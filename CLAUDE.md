@@ -83,6 +83,8 @@ Toda a documentação está em `docs/`. Leia o documento relevante antes de coda
 | `docs/09-infraestrutura-e-deploy.md` | Railway, Vercel, Supabase, monitoramento, backup |
 | `docs/10-logs-e-analytics.md` | Structlog, auditoria de usuário (4 tabelas), PostHog |
 | `docs/11-chat-e-ia-conversacional.md` | RAG completo, tipos de pergunta, custos, system prompt |
+| `docs/12-plano-de-negocios.md` | Plano de negócios completo — posicionamento, planos, Patrocine uma Auditoria, go-to-market, projeções |
+| `docs/13-api-dados-comercial.md` | Documentação técnica e comercial do plano API & Dados (R$1.997/mês) |
 
 ---
 
