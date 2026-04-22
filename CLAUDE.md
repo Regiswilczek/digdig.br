@@ -23,7 +23,7 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 - `relatorio_auditoria_caupr.html` — relatório HTML gerado pelo protótipo
 
 ### O Que Está Planejado (pasta `docs/`)
-Todo o design do novo sistema está documentado em 14 documentos. **Nada do novo sistema foi codificado ainda.** Estamos na fase de planejamento.
+Todo o design do novo sistema está documentado em 15 documentos. **Nada do novo sistema foi codificado ainda.** Estamos na fase de planejamento.
 
 ### Próximo Passo
 Invocar o `writing-plans` skill para criar o plano de implementação passo a passo, depois executar.
@@ -73,7 +73,7 @@ Toda a documentação está em `docs/`. Leia o documento relevante antes de coda
 |---------|-------------|
 | `docs/00-visao-geral-e-comercial.md` | Produto, planos (Cidadão/Investigador/Profissional/API&Dados), personas, roadmap |
 | `docs/01-arquitetura.md` | Stack completo, estrutura de pastas, fluxos de dados |
-| `docs/02-banco-de-dados.md` | 23 tabelas com SQL completo, RLS, índices (inclui Patrocine uma Auditoria) |
+| `docs/02-banco-de-dados.md` | 29 tabelas com SQL completo, RLS, índices (inclui api_keys, logs, preferencias_alertas, patrocínio) |
 | `docs/03-pipeline-ia.md` | Prompts Haiku e Sonnet, prompt caching, código de execução |
 | `docs/04-api-endpoints.md` | Todos os endpoints REST incluindo chat |
 | `docs/05-frontend.md` | Todas as páginas, componentes, layout do chat |
@@ -86,6 +86,7 @@ Toda a documentação está em `docs/`. Leia o documento relevante antes de coda
 | `docs/12-plano-de-negocios.md` | Plano de negócios completo — posicionamento, planos, Patrocine uma Auditoria, go-to-market, projeções |
 | `docs/13-api-dados-comercial.md` | Documentação técnica e comercial do plano API & Dados (R$1.997/mês) |
 | `docs/14-revisao-pre-implementacao.md` | **LEIA ANTES DE CODAR** — auditoria completa: 8 riscos críticos, gaps, inconsistências, checklist |
+| `docs/15-alertas-email-e-deduplicacao.md` | Spec completa de alertas por email (6 eventos, templates, Celery tasks) + algoritmo de deduplicação de nomes (rapidfuzz 88%) |
 
 ---
 
@@ -138,7 +139,7 @@ Custo de IA por novo órgão: ~$10-15 (similar ao CAU/PR)
 ## Regras de Trabalho Neste Projeto
 
 1. **Sempre leia o documento relevante antes de codar** — o design está nos docs
-2. **Não reinvente o schema** — as 23 tabelas estão definidas em `02-banco-de-dados.md`
+2. **Não reinvente o schema** — as 29 tabelas estão definidas em `02-banco-de-dados.md`
 3. **Prompt caching obrigatório** — o system prompt do pipeline IA deve usar `cache_control`
 4. **RLS em tudo** — toda tabela com `tenant_id` precisa de política RLS ativa
 5. **Logs em toda ação significativa** — usar `AuditLog.registrar()` nos endpoints

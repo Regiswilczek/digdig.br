@@ -500,9 +500,10 @@ async def chat_stream(slug: str, id: str, body: ChatPerguntaInput):
 
 | Plano | Perguntas/mês | Tipos liberados | Custo IA/mês (estimado) |
 |-------|--------------|-----------------|------------------------|
-| **Free** | 20 | Factual + Análise simples | ~$0,10 |
-| **Pro** | 300 | Todos os tipos | ~$3,00-8,00 |
-| **Enterprise** | Ilimitado | Todos + prioridade | ~$10-20 |
+| **Cidadão** | 5 | Factual + Análise simples | ~$0,02 |
+| **Investigador** | 200 | Todos os tipos | ~$2,00-6,00 |
+| **Profissional** | 1.000 | Todos os tipos | ~$10-20 |
+| **API & Dados** | via API (sem limite de chat direto) | Todos + prioridade | ~$10-20 |
 
 ### Custo Total do Produto por Mês (estimativa com 100 usuários Pro)
 
@@ -520,9 +521,10 @@ async def chat_stream(slug: str, id: str, body: ChatPerguntaInput):
 ```python
 def verificar_limite_chat(user: User, db: Session):
     limite = {
-        "free": 20,
-        "pro": 300,
-        "enterprise": float("inf")
+        "cidadao": 5,
+        "investigador": 200,
+        "profissional": 1000,
+        "api_dados": float("inf")
     }.get(user.plano.nome, 0)
     
     uso_mes = db.query(func.count(ChatMensagem.id))\

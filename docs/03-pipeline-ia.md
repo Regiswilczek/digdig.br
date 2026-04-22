@@ -163,13 +163,19 @@ CONTEXTO:
 ### 3.4 Código de Execução (Haiku em lote)
 
 ```python
+import os
 import anthropic
 from app.models import Ato, Analise, ConteudoAto
 from app.services.grafo_pessoas import extrair_e_salvar_pessoas
 
 client = anthropic.Anthropic()
 
-HAIKU_MODEL = "claude-haiku-4-5-20251001"
+# IDs de modelo: sempre via variável de ambiente, nunca hardcoded
+# Configurar em .env:
+#   CLAUDE_HAIKU_MODEL=claude-haiku-4-5-20251001
+#   CLAUDE_SONNET_MODEL=claude-sonnet-4-6
+HAIKU_MODEL  = os.environ["CLAUDE_HAIKU_MODEL"]
+SONNET_MODEL = os.environ["CLAUDE_SONNET_MODEL"]
 LOTE_SIZE = 50  # processar 50 atos por task Celery
 
 def analisar_lote_haiku(ato_ids: list[str], tenant_id: str):
@@ -197,8 +203,28 @@ def analisar_lote_haiku(ato_ids: list[str], tenant_id: str):
             ]
         )
         
-        resultado = json.loads(response.content[0].text)
-        
+        # Parsing da resposta com fallback para JSON inválido
+        raw_text = response.content[0].text
+
+        try:
+            resultado = json.loads(raw_text)
+        except json.JSONDecodeError as e:
+            logger.warning(
+                "json_invalido_claude",
+                ato_id=str(ato.id),
+                erro=str(e),
+                raw_preview=raw_text[:500]
+            )
+            # Tentar extrair campos críticos por regex antes de descartar
+            nivel_match = re.search(r'"nivel_alerta"\s*:\s*"(\w+)"', raw_text)
+            resultado = {
+                "nivel_alerta": nivel_match.group(1) if nivel_match else "suspeito",
+                "resumo": "Análise incompleta — resposta da IA malformada. Reprocessar manualmente.",
+                "irregularidades_legais": [],
+                "irregularidades_morais": [],
+                "parse_error": True
+            }
+
         # Salvar análise
         salvar_analise_haiku(ato_id, tenant_id, resultado, response.usage)
         
@@ -353,23 +379,34 @@ Produza:
 
 ## 6. Gestão de Erros e Retry
 
-```python
-import time
-from anthropic import RateLimitError, APIError
+**Por que não usar `time.sleep` em workers Celery:**  
+`time.sleep` bloqueia o slot de concorrência do worker durante toda a espera — um worker
+com `concurrency=4` que dorme por 20s em 4 tasks simultâneas fica completamente parado,
+sem processar nenhum novo item da fila. O correto é lançar `self.retry`, que libera o
+worker imediatamente e reagenda a task para execução futura via scheduler do Celery/Redis.
 
-def chamar_claude_com_retry(fn, max_tentativas=3):
-    for tentativa in range(max_tentativas):
-        try:
-            return fn()
-        except RateLimitError:
-            # Rate limit: esperar e tentar de novo
-            espera = (2 ** tentativa) * 5  # 5s, 10s, 20s
-            time.sleep(espera)
-        except APIError as e:
-            if tentativa == max_tentativas - 1:
-                raise
-            time.sleep(5)
-    raise Exception("Máximo de tentativas atingido")
+```python
+import re
+import json
+from anthropic import RateLimitError, APIError
+from celery import shared_task
+
+# ERRADO — bloqueia o slot de concorrência durante a espera:
+# import time
+# time.sleep(espera)
+# continue
+
+# CORRETO — libera o worker e reagenda via Celery:
+@shared_task(bind=True, max_retries=3)
+def analisar_ato_task(self, ato_id: str, tenant_id: str):
+    try:
+        return analisar_ato(ato_id, tenant_id)
+    except RateLimitError as e:
+        # Backoff exponencial: 5s, 10s, 20s — worker livre durante a espera
+        espera = (2 ** self.request.retries) * 5
+        raise self.retry(exc=e, countdown=espera, max_retries=3)
+    except APIError as e:
+        raise self.retry(exc=e, countdown=5, max_retries=3)
 ```
 
 ---

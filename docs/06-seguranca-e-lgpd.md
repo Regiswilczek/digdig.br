@@ -52,12 +52,71 @@ def verificar_acesso_orgao(user_id: str, tenant_slug: str, db: Session):
     # Pro e Enterprise: acesso a todos os órgãos ativos
 ```
 
+### 2.2.1 Acesso Antecipado de 48h para Doadores de Patrocínio
+
+Quando uma campanha atinge a meta (R$3.000), a análise é executada e os resultados
+ficam disponíveis 48h antes do público geral apenas para quem doou.
+
+**Mecanismo técnico:**
+
+1. Ao confirmar pagamento via Stripe webhook, o backend:
+   - Seta `doacoes_patrocinio.acesso_antecipado_ate = now() + interval '48 hours'`
+   - Seta `doacoes_patrocinio.acesso_antecipado_concedido = true`
+2. Quando a análise é concluída, o tenant muda para status `pre_lancamento` por 48h
+3. O middleware de autorização verifica:
+
+```python
+if tenant.status == "pre_lancamento":
+    tem_acesso = db.query(DoacaoPatrocinio).filter(
+        DoacaoPatrocinio.user_id == user_id,
+        DoacaoPatrocinio.campanha.has(tenant_id_gerado=tenant.id),
+        DoacaoPatrocinio.acesso_antecipado_ate > datetime.utcnow()
+    ).first() is not None
+    if not tem_acesso:
+        raise HTTPException(403, "ACESSO_ANTECIPADO_APENAS_DOADORES")
+```
+
+4. Após 48h, o tenant muda para status `active` automaticamente
+   (via Celery Beat que verifica diariamente)
+
 ### 2.3 Roles
 | Role | Quem tem | Permissões |
 |------|----------|-----------|
 | `anon` | Visitantes | Landing page, listagem pública de órgãos |
 | `authenticated` | Usuários com conta | Dashboard conforme plano |
 | `admin` | Equipe interna | Painel admin completo, disparar análises |
+
+### 2.4 Admin Role no Supabase JWT
+
+O campo `role` no JWT do Supabase é adicionado via `app_metadata`, que não é editável
+pelo usuário (ao contrário de `user_metadata`).
+
+**Como promover um usuário a admin:**
+
+1. Via console do Supabase → Authentication → Users → selecionar usuário →
+   editar `app_metadata` → adicionar `{ "role": "admin" }`
+2. Via SQL direto (apenas em emergência):
+```sql
+UPDATE auth.users
+SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'
+WHERE email = 'admin@digdig.com.br';
+```
+
+**Como o backend valida:**
+O JWT contém o campo `app_metadata.role`. O middleware FastAPI extrai:
+
+```python
+def requer_admin(credentials: HTTPAuthorizationCredentials = ...):
+    payload = verificar_jwt(credentials.credentials)
+    if payload.get("app_metadata", {}).get("role") != "admin":
+        raise HTTPException(status_code=403, detail="APENAS_ADMIN")
+    return payload
+```
+
+**Regras:**
+- Não há endpoint público para promover usuários a admin — apenas via console do Supabase
+- Se um admin cancelar a assinatura, mantém o role admin (são conceitos separados)
+- Máximo de 3 usuários admin no sistema (enforced manualmente)
 
 ---
 
@@ -116,7 +175,7 @@ atos = db.query(Ato).filter(
 ```
 
 ### 3.4 Proteção contra XSS
-- Frontend Next.js usa React que escapa HTML por padrão
+- Frontend React (Vite/Lovable) escapa HTML por padrão
 - Conteúdo de PDFs exibido como texto puro, nunca `dangerouslySetInnerHTML`
 - Relatórios HTML gerados pelo backend usam templates com escape automático (Jinja2)
 - Content Security Policy configurada no Lovable:
@@ -186,14 +245,13 @@ CREATE POLICY "user_reads_own_tenants" ON atos
         )
     );
 
--- Plano Free: acesso somente leitura ao primeiro órgão ativo
-CREATE POLICY "free_readonly_first_tenant" ON atos
-    FOR SELECT TO authenticated
-    USING (
-        -- lógica de plano implementada no backend, não no RLS diretamente
-        -- RLS garante que backend com service_role é necessário para writes
-        TRUE  -- select liberado, controle no backend
-    );
+-- ❌ NÃO USAR: policy abaixo libera dados de QUALQUER tenant para QUALQUER usuário autenticado
+-- CREATE POLICY "free_readonly_first_tenant" ON atos
+--     FOR SELECT TO authenticated
+--     USING (TRUE);
+--
+-- ✅ USAR: a policy correta restringe por tenant do usuário:
+-- Veja "user_reads_own_tenants" — USING(tenant_id IN (SELECT ...))
 
 -- Writes nunca passam pelo frontend — só via service_role do backend
 ```

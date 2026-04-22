@@ -3,14 +3,15 @@
 **Banco:** PostgreSQL 15 (via Supabase)  
 **ORM:** SQLAlchemy 2.x  
 **Migrações:** Alembic  
+**Total de tabelas:** 29 (25 principais + 4 de log/auditoria)
 
 ---
 
 ## 1. Diagrama de Relacionamentos
 
 ```
-planos ──────────────────── assinaturas ──── users
-                                               │
+planos ──────────────────── assinaturas ──── users ──── api_keys
+                                               │    └── preferencias_alertas
 tenants ──┬──────────────────────────── user_tenant_acesso
           │
           ├── knowledge_base (regimento)
@@ -18,14 +19,21 @@ tenants ──┬─────────────────────
           │
           ├── atos ──────────── conteudo_ato
           │     │
-          │     ├── aparicoes_pessoa ──── pessoas
+          │     ├── aparicoes_pessoa ──── pessoas ──── relacoes_pessoas
           │     │
           │     └── analises ──── irregularidades
           │           │
           │           └── rodadas_analise
           │
           ├── relatorios
-          └── padroes_detectados
+          ├── padroes_detectados
+          └── campanhas_patrocinio ──── doacoes_patrocinio
+                                   └── votos_patrocinio
+
+Logs (sem RLS, service_role only):
+  logs_sessao ── logs_atividade
+  logs_erros_usuario
+  logs_acesso_negado
 ```
 
 ---
@@ -37,17 +45,18 @@ Planos de acesso disponíveis na plataforma.
 
 ```sql
 CREATE TABLE planos (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    nome            VARCHAR(50) NOT NULL,          -- 'free', 'pro', 'enterprise'
-    nome_display    VARCHAR(100) NOT NULL,          -- 'Gratuito', 'Pro', 'Enterprise'
-    preco_mensal    DECIMAL(10,2) NOT NULL DEFAULT 0,
-    stripe_price_id VARCHAR(100),                   -- ID do preço no Stripe
-    limite_orgaos   INTEGER NOT NULL DEFAULT 1,     -- -1 = ilimitado
-    tem_api         BOOLEAN NOT NULL DEFAULT FALSE,
-    tem_alertas     BOOLEAN NOT NULL DEFAULT FALSE,
-    tem_export_csv  BOOLEAN NOT NULL DEFAULT FALSE,
-    ativo           BOOLEAN NOT NULL DEFAULT TRUE,
-    criado_em       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nome                VARCHAR(50) NOT NULL UNIQUE,  -- 'cidadao', 'investigador', 'profissional', 'api_dados'
+    preco_mensal        DECIMAL(10,2) NOT NULL DEFAULT 0,
+    stripe_price_id     VARCHAR(100),                  -- ID do preço no Stripe
+    limite_chat_mensal  INTEGER,                        -- NULL = ilimitado
+    max_orgaos          INTEGER,                        -- NULL = todos; reservado para uso futuro
+    tem_exportacao      BOOLEAN NOT NULL DEFAULT FALSE,
+    tem_api             BOOLEAN NOT NULL DEFAULT FALSE,
+    max_assentos        INTEGER NOT NULL DEFAULT 1,     -- membros por conta (Enterprise)
+    descricao           TEXT,
+    ativo               BOOLEAN NOT NULL DEFAULT TRUE,
+    criado_em           TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ```
 
@@ -531,6 +540,8 @@ CREATE TABLE doacoes_patrocinio (
   mensagem_publica        TEXT,
   nome_exibicao           TEXT, -- NULL = "Anônimo"
   votos_concedidos        INTEGER NOT NULL DEFAULT 0, -- votos extras por doação
+  acesso_antecipado_concedido BOOLEAN NOT NULL DEFAULT false,
+  acesso_antecipado_ate   TIMESTAMPTZ,               -- NULL = sem acesso antecipado
   created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -538,7 +549,67 @@ CREATE INDEX idx_doacoes_campanha ON doacoes_patrocinio(campanha_id);
 CREATE INDEX idx_doacoes_user ON doacoes_patrocinio(user_id);
 ```
 
-### 2.23 `votos_patrocinio`
+### 2.23 `api_keys`
+Chaves de acesso à API REST para usuários do plano `api_dados`.
+
+```sql
+CREATE TABLE api_keys (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  nome            TEXT NOT NULL,                          -- ex: "redacao-producao"
+  chave_hash      TEXT NOT NULL UNIQUE,                   -- SHA-256 da chave, nunca o valor real
+  prefixo         TEXT NOT NULL,                          -- primeiros 8 chars para exibição (ex: "sk_live_Tz8m")
+  ultimo_uso      TIMESTAMPTZ,
+  ativa           BOOLEAN NOT NULL DEFAULT true,
+  criado_em       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  revogado_em     TIMESTAMPTZ,
+  CONSTRAINT max_keys_por_usuario CHECK (true)            -- enforced em código: máx 5 por usuário
+);
+
+CREATE INDEX idx_api_keys_user ON api_keys(user_id);
+CREATE INDEX idx_api_keys_hash ON api_keys(chave_hash);  -- lookup na autenticação
+```
+
+RLS:
+```sql
+-- Usuário só acessa suas próprias API Keys
+ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "usuario_acessa_proprias_api_keys" ON api_keys
+  FOR ALL TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+```
+
+### 2.24 `preferencias_alertas`
+Configuração de notificações de alerta por usuário e órgão.
+
+```sql
+CREATE TABLE preferencias_alertas (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  tenant_id       UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  ativo           BOOLEAN NOT NULL DEFAULT true,
+  niveis          TEXT[] NOT NULL DEFAULT ARRAY['critico', 'grave'],  -- quais níveis notificar
+  frequencia      TEXT NOT NULL DEFAULT 'imediato'
+                    CHECK (frequencia IN ('imediato', 'diario', 'semanal')),
+  criado_em       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  atualizado_em   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, tenant_id)
+);
+```
+
+RLS:
+```sql
+ALTER TABLE preferencias_alertas ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "usuario_acessa_proprias_preferencias" ON preferencias_alertas
+  FOR ALL TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+```
+
+### 2.25 `votos_patrocinio`
 Votos gratuitos mensais que usuários autenticados podem dar a campanhas.
 
 ```sql
@@ -552,6 +623,63 @@ CREATE TABLE votos_patrocinio (
 );
 
 CREATE INDEX idx_votos_user_mes ON votos_patrocinio(user_id, mes_referencia);
+```
+
+---
+
+## 2.26–2.29 Tabelas de Log e Auditoria
+
+> Detalhadas no doc `10-logs-e-analytics.md`. Sem RLS — acesso exclusivo via `service_role` key pelo backend. Nunca expostas diretamente ao cliente.
+
+```sql
+-- ================================================================
+-- TABELAS DE LOG E AUDITORIA (detalhadas no doc 10)
+-- ================================================================
+
+CREATE TABLE logs_sessao (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID REFERENCES users(id) ON DELETE SET NULL,
+  ip_anonimizado  TEXT,
+  user_agent      TEXT,
+  tenant_slug     TEXT,
+  iniciada_em     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  encerrada_em    TIMESTAMPTZ,
+  total_acoes     INTEGER DEFAULT 0
+);
+
+CREATE TABLE logs_atividade (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID REFERENCES users(id) ON DELETE SET NULL,
+  sessao_id       UUID REFERENCES logs_sessao(id) ON DELETE SET NULL,
+  acao            TEXT NOT NULL,       -- ex: ATO_VISUALIZADO, CHAT_PERGUNTA_ENVIADA
+  tenant_slug     TEXT,
+  recurso_tipo    TEXT,                -- ex: "ato", "pessoa", "padrao"
+  recurso_id      UUID,
+  metadata        JSONB DEFAULT '{}',
+  criado_em       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE logs_erros_usuario (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID REFERENCES users(id) ON DELETE SET NULL,
+  tipo_erro       TEXT NOT NULL,       -- ex: LIMITE_CHAT_ATINGIDO, PLANO_INSUFICIENTE
+  contexto        JSONB DEFAULT '{}',
+  criado_em       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE logs_acesso_negado (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID REFERENCES users(id) ON DELETE SET NULL,
+  ip_anonimizado  TEXT,
+  rota_tentada    TEXT NOT NULL,
+  motivo          TEXT NOT NULL,       -- ex: PLANO_INSUFICIENTE, NAO_AUTENTICADO
+  criado_em       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_logs_atividade_user ON logs_atividade(user_id);
+CREATE INDEX idx_logs_atividade_acao ON logs_atividade(acao);
+CREATE INDEX idx_logs_atividade_criado ON logs_atividade(criado_em);
+CREATE INDEX idx_logs_sessao_user ON logs_sessao(user_id);
 ```
 
 ---
@@ -645,11 +773,12 @@ CREATE INDEX idx_pessoas_nome ON pessoas
 ## 5. Dados Iniciais (Seed)
 
 ```sql
--- Planos
-INSERT INTO planos (nome, nome_display, preco_mensal, limite_orgaos, tem_api, tem_alertas, tem_export_csv) VALUES
-('free',       'Gratuito',   0,      1,  FALSE, FALSE, FALSE),
-('pro',        'Pro',        297,   -1,  FALSE, TRUE,  TRUE),
-('enterprise', 'Enterprise', 997,   -1,  TRUE,  TRUE,  TRUE);
+-- Seed: Planos
+INSERT INTO planos (nome, preco_mensal, limite_chat_mensal, max_orgaos, tem_exportacao, tem_api, max_assentos, descricao) VALUES
+  ('cidadao',      0.00,    5,    NULL, false, false, 1, 'Acesso gratuito de leitura a todos os órgãos'),
+  ('investigador', 197.00,  200,  NULL, true,  false, 1, 'Para jornalistas, candidatos e militantes'),
+  ('profissional', 597.00,  1000, NULL, true,  false, 2, 'Para escritórios jurídicos e assessorias políticas'),
+  ('api_dados',    1997.00, NULL, NULL, true,  true,  5, 'Acesso via API REST para integrações');
 
 -- Tenant CAU-PR
 INSERT INTO tenants (slug, nome, nome_completo, estado, tipo_orgao, status, scraper_config) VALUES

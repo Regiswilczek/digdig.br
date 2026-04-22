@@ -411,7 +411,7 @@ def verificar_acesso(user, tenant, request, db):
 
 ## 4. Camada 3 — Analytics de Produto (PostHog)
 
-PostHog é open-source, tem SDK para Next.js e Python, e permite ver funis, retenção e feature flags.
+PostHog é open-source, tem SDK para React + Vite (Lovable) e Python, e permite ver funis, retenção e feature flags.
 
 ### 4.1 Configuração Frontend
 
@@ -422,7 +422,7 @@ import posthog from "posthog-js";
 export function initAnalytics() {
   if (typeof window === "undefined") return;
 
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+  posthog.init(import.meta.env.VITE_POSTHOG_KEY!, {
     api_host: "https://app.posthog.com",
     autocapture: false,    // controle manual — não capturar tudo automaticamente
     capture_pageview: true,

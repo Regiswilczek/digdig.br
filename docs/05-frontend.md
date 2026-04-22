@@ -347,9 +347,10 @@ Interface conversacional para o usuário perguntar sobre os dados em linguagem n
 - Indicador de cota restante do plano
 
 **Comportamento por plano:**
-- Free: 20 perguntas/mês — badge com contador visível
-- Pro: 300 perguntas/mês — contador discreto
-- Enterprise: ilimitado — sem contador
+- Cidadão: 5 perguntas/mês — badge com contador visível
+- Investigador: 200 perguntas/mês — contador discreto
+- Profissional: 1.000 perguntas/mês — contador discreto
+- API & Dados: via API (sem limite de chat direto) — sem contador
 
 ### 3.10 Relatórios (`/app/[orgao]/relatorios`)
 

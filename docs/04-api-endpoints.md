@@ -28,6 +28,75 @@ Content-Type: application/json
 
 ---
 
+## 1.1. API Keys (Plano API & Dados)
+
+```
+GET    /conta/api-keys           → lista as API Keys do usuário (sem revelar a chave)
+POST   /conta/api-keys           → gera nova API Key (retorna a chave UMA vez em texto claro)
+DELETE /conta/api-keys/{id}      → revoga uma API Key
+```
+
+### Listar API Keys
+```
+GET /conta/api-keys
+```
+Auth: obrigatório (plano API & Dados)
+
+**Resposta 200:**
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "nome": "redacao-producao",
+      "prefixo": "sk_live_Tz8m",
+      "ativa": true,
+      "ultimo_uso": "2026-04-20T14:32:00Z",
+      "criado_em": "2026-03-01T10:00:00Z"
+    }
+  ]
+}
+```
+
+### Gerar Nova API Key
+```
+POST /conta/api-keys
+```
+Auth: obrigatório (plano API & Dados)
+
+**Body:**
+```json
+{ "nome": "sistema-advocacia" }
+```
+
+**Resposta 201:**
+```json
+{
+  "id": "uuid",
+  "nome": "sistema-advocacia",
+  "chave": "sk_live_Tz8mX9...",
+  "prefixo": "sk_live_Tz8m",
+  "aviso": "Guarde esta chave agora. Ela não será exibida novamente."
+}
+```
+
+**Erros:**
+- 400 `LIMITE_API_KEYS`: usuário já tem 5 API Keys ativas
+- 403 `PLANO_INSUFICIENTE`: requer plano API & Dados
+
+### Revogar API Key
+```
+DELETE /conta/api-keys/{id}
+```
+Auth: obrigatório
+
+**Resposta 200:**
+```json
+{ "revogado": true, "revogado_em": "2026-04-22T18:00:00Z" }
+```
+
+---
+
 ## 2. Órgãos Públicos (Tenants)
 
 ### Listagem pública (sem auth)
@@ -770,6 +839,32 @@ Eventos tratados:
 - `customer.subscription.deleted`
 - `invoice.payment_succeeded`
 - `invoice.payment_failed`
+- `payment_intent.succeeded` → confirma doação de patrocínio, concede 6 meses de Investigador ao doador, atualiza `valor_arrecadado` da campanha, verifica se meta foi atingida (dispara análise se sim)
+
+### Onboarding de novo usuário
+```
+POST /webhooks/auth/novo-usuario
+```
+Auth: `Authorization: Bearer SERVICE_ROLE_KEY` (verificado para garantir que só o Supabase pode chamar)
+
+Chamado pelo Supabase Auth via Database Webhook quando um novo usuário é criado em `auth.users`. Cria o registro correspondente na tabela `users` com `plano_id` do plano Cidadão.
+
+**Body (enviado pelo Supabase):**
+```json
+{
+  "type": "INSERT",
+  "table": "users",
+  "record": {
+    "id": "uuid-do-supabase-auth",
+    "email": "usuario@exemplo.com"
+  }
+}
+```
+
+**Resposta 200:**
+```json
+{ "user_id": "uuid", "plano": "cidadao" }
+```
 
 ---
 
@@ -811,14 +906,16 @@ Eventos tratados:
 
 ## 13. Rate Limiting
 
-| Endpoint | Limite | Janela |
-|----------|--------|--------|
-| `/auth/*` | 10 req | 1 minuto |
-| `GET /orgaos/*/atos` | 100 req | 1 minuto |
-| `POST /relatorios/gerar` | 5 req | 1 hora |
-| `GET /grafo` | 20 req | 1 minuto |
-| API pública (Free) | 60 req | 1 hora |
-| API (Pro/Enterprise) | sem limite | — |
-| `POST /campanhas` | 5 req | 1 hora |
-| `POST /campanhas/*/doacoes` | 10 req | 1 hora |
-| `POST /campanhas/*/votos` | 20 req | 1 hora |
+| Contexto | Limite | Janela | Comportamento ao exceder |
+|---|---|---|---|
+| Público (sem auth) | 30 req | por minuto por IP | HTTP 429, retry após 60s |
+| Cidadão (autenticado) | 60 req | por minuto | HTTP 429 |
+| Investigador / Profissional | 120 req | por minuto | HTTP 429 |
+| API & Dados (API Key) | 60 req | por minuto | HTTP 429, header X-RateLimit-Remaining |
+| Chat — Cidadão | 5 perguntas | por mês | HTTP 429, código COTA_CHAT_ESGOTADA |
+| Chat — Investigador | 200 perguntas | por mês | idem |
+| Chat — Profissional | 1.000 perguntas | por mês | idem |
+| Chat — API & Dados | ilimitado via API | — | sem limite de cota |
+| POST /campanhas | 3 req | por hora por usuário | previne spam de campanhas |
+| POST /campanhas/*/doacoes | 5 req | por hora por usuário | — |
+| POST /campanhas/*/votos | 3 req | por mês por usuário | limite de votos gratuitos |
