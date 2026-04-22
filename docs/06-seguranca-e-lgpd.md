@@ -127,7 +127,7 @@ Content-Security-Policy:
   script-src 'self' 'unsafe-inline'; 
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: https:;
-  connect-src 'self' https://api.auditapublico.com.br https://*.supabase.co;
+  connect-src 'self' https://api.digdig.com.br https://*.supabase.co;
 ```
 
 ### 3.5 HTTPS Obrigatório
@@ -140,7 +140,7 @@ Content-Security-Policy:
 ```python
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://auditapublico.com.br", "https://www.auditapublico.com.br"],
+    allow_origins=["https://digdig.com.br", "https://www.digdig.com.br"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
@@ -332,7 +332,7 @@ Os PDFs baixados são documentos públicos, mas o scraper deve ser responsável:
 
 ```python
 SCRAPER_HEADERS = {
-    "User-Agent": "AuditaPublico/1.0 (+https://auditapublico.com.br/bot)",
+    "User-Agent": "Dig Dig/1.0 (+https://digdig.com.br/bot)",
     "Accept": "application/pdf,text/html"
 }
 

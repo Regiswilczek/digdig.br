@@ -1,4 +1,4 @@
-# Design Spec — AuditaPublico SaaS
+# Design Spec — Dig Dig SaaS
 
 **Data:** 2026-04-22  
 **Status:** Aprovado para implementação  

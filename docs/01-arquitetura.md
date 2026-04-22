@@ -86,7 +86,7 @@
 ## 3. Estrutura de Diretórios
 
 ```
-auditapublico/
+digdig/
 ├── frontend/                    # Next.js app
 │   ├── app/
 │   │   ├── (public)/           # Rotas públicas (landing, planos)

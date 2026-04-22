@@ -111,7 +111,7 @@ Estimativa de esforço: **2-5 dias por órgão**.
 
 ## 5. Posicionamento
 
-**Nome sugerido do produto:** `AuditaPublico` / `TranspareceAI` / `VigiaPublico`  
+**Nome sugerido do produto:** `Dig Dig` / `TranspareceAI` / `VigiaPublico`  
 *(nome final a definir)*
 
 **Tagline:** "A IA que lê o que ninguém lê — e diz o que precisamos saber."

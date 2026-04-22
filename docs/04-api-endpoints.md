@@ -1,6 +1,6 @@
 # API Endpoints
 
-**Base URL:** `https://api.auditapublico.com.br/v1`  
+**Base URL:** `https://api.digdig.com.br/v1`  
 **Autenticação:** Bearer token JWT (Supabase Auth)  
 **Formato:** JSON  
 **Versionamento:** URL path (`/v1/`)

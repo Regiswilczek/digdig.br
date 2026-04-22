@@ -37,7 +37,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 class PDFDownloader:
     HEADERS = {
-        "User-Agent": "AuditaPublico/1.0 (+https://auditapublico.com.br/bot)",
+        "User-Agent": "Dig Dig/1.0 (+https://digdig.com.br/bot)",
         "Accept": "application/pdf,*/*"
     }
     
@@ -255,7 +255,7 @@ Verificar:
   "rate_limit_segundos": 1.5,
   "timeout_segundos": 30,
   "max_paralelo": 5,
-  "user_agent": "AuditaPublico/1.0"
+  "user_agent": "Dig Dig/1.0"
 }
 ```
 

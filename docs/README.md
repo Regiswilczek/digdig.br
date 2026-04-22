@@ -1,4 +1,4 @@
-# AuditaPublico — Documentação do Projeto
+# Dig Dig — Documentação do Projeto
 
 Plataforma SaaS de auditoria de atos administrativos públicos com IA.
 

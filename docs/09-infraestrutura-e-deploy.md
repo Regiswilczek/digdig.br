@@ -7,8 +7,8 @@
 | Ambiente | Finalidade | URL |
 |---------|-----------|-----|
 | **Development** | Local dos desenvolvedores | localhost |
-| **Staging** | Testes antes de produção | staging.auditapublico.com.br |
-| **Production** | Usuários reais | auditapublico.com.br |
+| **Staging** | Testes antes de produção | staging.digdig.com.br |
+| **Production** | Usuários reais | digdig.com.br |
 
 ---
 
@@ -31,8 +31,8 @@
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  VERCEL (Frontend)                                       │
-│  ├── auditapublico.com.br        → Next.js (produção)   │
-│  └── staging.auditapublico.com.br → Next.js (staging)   │
+│  ├── digdig.com.br        → Next.js (produção)   │
+│  └── staging.digdig.com.br → Next.js (staging)   │
 └──────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────┐
@@ -71,7 +71,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Email
 RESEND_API_KEY=re_...
-EMAIL_FROM=noreply@auditapublico.com.br
+EMAIL_FROM=noreply@digdig.com.br
 
 # Redis
 REDIS_URL=redis://:senha@redis.railway.internal:6379
@@ -79,7 +79,7 @@ REDIS_URL=redis://:senha@redis.railway.internal:6379
 # App
 SECRET_KEY=chave-aleatoria-longa-para-JWT-interno
 ENVIRONMENT=production
-ALLOWED_ORIGINS=https://auditapublico.com.br,https://www.auditapublico.com.br
+ALLOWED_ORIGINS=https://digdig.com.br,https://www.digdig.com.br
 SENTRY_DSN=https://...@sentry.io/...
 
 # Limites
@@ -92,7 +92,7 @@ CLAUDE_BUDGET_ALERT_USD=20.0
 # Apenas variáveis PÚBLICAS
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...  # anon key — permissões mínimas
-NEXT_PUBLIC_API_URL=https://api.auditapublico.com.br
+NEXT_PUBLIC_API_URL=https://api.digdig.com.br
 NEXT_PUBLIC_STRIPE_PK=pk_live_...
 NEXT_PUBLIC_SENTRY_DSN=https://...@sentry.io/...
 NEXT_PUBLIC_ENVIRONMENT=production

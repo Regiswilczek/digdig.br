@@ -127,7 +127,7 @@ CREATE TABLE tenants (
 --     }
 --   ],
 --   "rate_limit_segundos": 1.5,
---   "user_agent": "AuditaPublico/1.0"
+--   "user_agent": "Dig Dig/1.0"
 -- }
 
 CREATE INDEX idx_tenants_slug ON tenants(slug);

@@ -198,7 +198,7 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture(scope="session")
 def db_engine():
-    engine = create_engine("postgresql://test:test@localhost:5433/auditapublico_test")
+    engine = create_engine("postgresql://test:test@localhost:5433/digdig_test")
     Base.metadata.create_all(engine)
     yield engine
     Base.metadata.drop_all(engine)
@@ -559,7 +559,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: auditapublico_test
+          POSTGRES_DB: digdig_test
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
         ports: ["5433:5432"]

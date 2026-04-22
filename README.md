@@ -1,6 +1,8 @@
-# AuditaPublico
+# Dig Dig
 
-Plataforma SaaS de auditoria automatizada de atos administrativos públicos brasileiros usando inteligência artificial.
+**Escavamos os atos públicos. Você decide o que fazer com o que encontramos.**
+
+Plataforma SaaS que audita automaticamente atos administrativos de órgãos públicos brasileiros usando IA — detectando irregularidades legais e morais enterradas em PDFs que ninguém lê.
 
 ---
 
@@ -14,7 +16,7 @@ Resultado: irregularidades passam despercebidas. Nepotismo, concentração de po
 
 ## A Solução
 
-O AuditaPublico baixa automaticamente todos os atos administrativos de um órgão público, extrai o texto completo dos PDFs e usa IA para analisar cada documento — detectando tanto violações legais quanto irregularidades morais e éticas.
+O Dig Dig baixa automaticamente todos os atos administrativos de um órgão público, extrai o texto completo dos PDFs e usa IA para analisar cada documento — detectando tanto violações legais quanto irregularidades morais e éticas.
 
 O resultado é apresentado em um dashboard interativo com filtros, visualização de relacionamentos entre pessoas e um sistema de chat onde o usuário pode perguntar em linguagem natural sobre qualquer irregularidade encontrada.
 

@@ -1,4 +1,4 @@
-# Contexto do Projeto — AuditaPublico
+# Contexto do Projeto — Dig Dig
 
 Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar uma nova sessão. Leia tudo antes de qualquer ação.
 
@@ -6,7 +6,7 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 
 ## O Que É Este Projeto
 
-**AuditaPublico** é uma plataforma SaaS que audita automaticamente atos administrativos de órgãos públicos brasileiros usando IA (Claude API). O sistema baixa PDFs de sites oficiais, extrai o texto completo, analisa com Haiku + Sonnet para detectar irregularidades legais e morais, e apresenta os resultados via dashboard web e chat conversacional.
+**Dig Dig** é uma plataforma SaaS que audita automaticamente atos administrativos de órgãos públicos brasileiros usando IA (Claude API). O sistema baixa PDFs de sites oficiais, extrai o texto completo, analisa com Haiku + Sonnet para detectar irregularidades legais e morais, e apresenta os resultados via dashboard web e chat conversacional.
 
 **Dono do projeto:** Regis Alessander Wilczek  
 **Contexto político:** Regis é candidato/apoiador de chapa de oposição ao CAU/PR (Conselho de Arquitetura e Urbanismo do Paraná). O CAU/PR é o primeiro órgão auditado e serviu de caso piloto para validar o produto.
