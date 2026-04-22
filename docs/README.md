@@ -20,6 +20,7 @@ Plataforma SaaS de auditoria de atos administrativos públicos com IA.
 | 11 | [Chat e IA Conversacional](11-chat-e-ia-conversacional.md) | RAG, como a IA navega os dados, tipos de perguntas, custos, limites por plano |
 | 12 | [Plano de Negócios e Estratégia Comercial](12-plano-de-negocios.md) | Posicionamento, modelo de receita, Patrocine uma Auditoria, go-to-market, projeções |
 | 13 | [API & Dados — Documentação Comercial](13-api-dados-comercial.md) | Endpoints, autenticação, webhooks, rate limiting, SDKs, casos de uso |
+| 14 | [Revisão Pré-Implementação](14-revisao-pre-implementacao.md) | Auditoria técnica completa — riscos, gaps, inconsistências, ordem de implementação, checklist |
 
 ## Status
 

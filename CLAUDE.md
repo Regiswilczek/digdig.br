@@ -23,7 +23,7 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 - `relatorio_auditoria_caupr.html` — relatório HTML gerado pelo protótipo
 
 ### O Que Está Planejado (pasta `docs/`)
-Todo o design do novo sistema está documentado em 13 documentos. **Nada do novo sistema foi codificado ainda.** Estamos na fase de planejamento.
+Todo o design do novo sistema está documentado em 14 documentos. **Nada do novo sistema foi codificado ainda.** Estamos na fase de planejamento.
 
 ### Próximo Passo
 Invocar o `writing-plans` skill para criar o plano de implementação passo a passo, depois executar.
@@ -85,6 +85,7 @@ Toda a documentação está em `docs/`. Leia o documento relevante antes de coda
 | `docs/11-chat-e-ia-conversacional.md` | RAG completo, tipos de pergunta, custos, system prompt |
 | `docs/12-plano-de-negocios.md` | Plano de negócios completo — posicionamento, planos, Patrocine uma Auditoria, go-to-market, projeções |
 | `docs/13-api-dados-comercial.md` | Documentação técnica e comercial do plano API & Dados (R$1.997/mês) |
+| `docs/14-revisao-pre-implementacao.md` | **LEIA ANTES DE CODAR** — auditoria completa: 8 riscos críticos, gaps, inconsistências, checklist |
 
 ---
 
