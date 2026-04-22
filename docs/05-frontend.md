@@ -1,7 +1,7 @@
 # Frontend — Páginas, Componentes e Fluxos
 
-**Stack:** Next.js 15 + Tailwind CSS + shadcn/ui  
-**Deploy:** Vercel  
+**Stack:** React + Vite + shadcn/ui + TanStack Router (via Lovable)  
+**Deploy:** Lovable  
 **Auth:** Supabase Auth (client-side)
 
 ---
@@ -12,6 +12,8 @@
 / (público)
 ├── /                       → Landing page
 ├── /planos                 → Página de preços
+├── /patrocinar             → Patrocine uma Auditoria (termômetros públicos)
+│   └── /patrocinar/[slug]  → Campanha específica de uma instituição
 ├── /sobre                  → Sobre o projeto
 ├── /login                  → Login
 ├── /cadastro               → Cadastro
@@ -59,6 +61,46 @@
 - Toggle mensal/anual (com desconto)
 - FAQ sobre o produto
 - CTA por plano → checkout Stripe
+
+### 2.3 Patrocine uma Auditoria (`/patrocinar`)
+
+Página pública (sem login) que exibe as campanhas ativas de crowdfunding para análise de novas instituições.
+
+**Layout:**
+```
+[Header: "Escolha o próximo órgão a ser auditado"]
+[Subtítulo: "Quando uma campanha atingir R$ 3.000, executamos a análise completa."]
+
+[Grid de cards de campanha]
+┌─────────────────────────────────────────────┐
+│  Câmara Municipal de Curitiba               │
+│  📍 Curitiba, PR                            │
+│  ████████████░░░░░░░  68% — R$ 2.040/3.000 │
+│  127 apoiadores · 23 dias restantes         │
+│  [Apoiar com R$25+]  [Votar grátis (3/mês)] │
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│  CRM/PR — Conselho Regional de Medicina     │
+│  📍 Paraná                                  │
+│  ███░░░░░░░░░░░░░░░░  22% — R$ 660/3.000   │
+│  44 apoiadores · 51 dias restantes          │
+│  [Apoiar com R$25+]  [Votar grátis (3/mês)] │
+└─────────────────────────────────────────────┘
+```
+
+**Página de campanha individual (`/patrocinar/[slug]`):**
+- Header com nome da instituição e progresso detalhado
+- Lista de últimas doações (nome ou "Anônimo" + valor se público)
+- Formulário de doação (mínimo R$25, integração Stripe)
+- Botão de voto gratuito (requer login, 3 votos/mês por usuário)
+- Seção "O que você recebe": 6 meses Investigador + badge Patrocinador + acesso 48h antes
+
+**Funcionalidades:**
+- Termômetro animado com progresso em tempo real
+- Compartilhamento social nativo (cópia de link, Twitter/X, WhatsApp)
+- Notificação por email ao atingir a meta (para todos os apoiadores)
+- Contador de votos gratuitos restantes (visível após login)
 
 ---
 

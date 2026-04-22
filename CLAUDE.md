@@ -23,7 +23,7 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 - `relatorio_auditoria_caupr.html` — relatório HTML gerado pelo protótipo
 
 ### O Que Está Planejado (pasta `docs/`)
-Todo o design do novo sistema está documentado em 11 documentos. **Nada do novo sistema foi codificado ainda.** Estamos na fase de planejamento.
+Todo o design do novo sistema está documentado em 13 documentos. **Nada do novo sistema foi codificado ainda.** Estamos na fase de planejamento.
 
 ### Próximo Passo
 Invocar o `writing-plans` skill para criar o plano de implementação passo a passo, depois executar.
@@ -36,9 +36,9 @@ Invocar o `writing-plans` skill para criar o plano de implementação passo a pa
 |---------|--------------------|---------| 
 | Modelos de IA | Haiku 4.5 (triagem) + Sonnet 4.6 (análise + chat) | Custo ~$10/rodada CAU-PR, Sonnet resolve tudo sem Opus |
 | Backend | FastAPI + Celery + Redis | Async nativo, fila real para jobs longos |
-| Frontend | Next.js 15 + Tailwind + shadcn/ui | SSR para SEO, componentes prontos |
+| Frontend | Lovable + React + Vite + shadcn/ui + TanStack Router | Deploy gerenciado pela Lovable, integrado ao GitHub |
 | Banco | PostgreSQL via Supabase | Auth + Storage + RLS inclusos |
-| Deploy | Railway (backend) + Vercel (frontend) | Simples, previsível, sem DevOps pesado |
+| Deploy | Railway (backend) + Lovable (frontend) | Simples, previsível, sem DevOps pesado |
 | Multi-tenancy | Schema compartilhado com RLS por tenant_id | Mais simples que schemas separados |
 | PDF extraction | pdfplumber + fallback Tesseract OCR | Testado: 10/10 PDFs do CAU-PR têm texto nativo |
 | Chat | RAG com contexto do banco (não re-lê PDFs) | PDFs já analisados e salvos — chat é barato (~$0,02-0,10/pergunta) |
@@ -49,7 +49,7 @@ Invocar o `writing-plans` skill para criar o plano de implementação passo a pa
 ## Arquitetura em 30 Segundos
 
 ```
-Frontend (Next.js / Vercel)
+Frontend (React/Vite / Lovable)
     ↓ API REST
 Backend (FastAPI / Railway)
     ↓ Jobs assíncronos
@@ -71,16 +71,16 @@ Toda a documentação está em `docs/`. Leia o documento relevante antes de coda
 
 | Arquivo | O que contém |
 |---------|-------------|
-| `docs/00-visao-geral-e-comercial.md` | Produto, planos (Free/Pro/Enterprise), personas, roadmap |
+| `docs/00-visao-geral-e-comercial.md` | Produto, planos (Cidadão/Investigador/Profissional/API&Dados), personas, roadmap |
 | `docs/01-arquitetura.md` | Stack completo, estrutura de pastas, fluxos de dados |
-| `docs/02-banco-de-dados.md` | 20 tabelas com SQL completo, RLS, índices |
+| `docs/02-banco-de-dados.md` | 23 tabelas com SQL completo, RLS, índices (inclui Patrocine uma Auditoria) |
 | `docs/03-pipeline-ia.md` | Prompts Haiku e Sonnet, prompt caching, código de execução |
 | `docs/04-api-endpoints.md` | Todos os endpoints REST incluindo chat |
 | `docs/05-frontend.md` | Todas as páginas, componentes, layout do chat |
 | `docs/06-seguranca-e-lgpd.md` | Auth, RLS, CORS, SQL injection, LGPD |
 | `docs/07-scraper-e-instituicoes.md` | Código do scraper, como adicionar novo órgão |
 | `docs/08-testes.md` | Unitários, integração, E2E, segurança, CI/CD |
-| `docs/09-infraestrutura-e-deploy.md` | Railway, Vercel, Supabase, monitoramento, backup |
+| `docs/09-infraestrutura-e-deploy.md` | Railway, Lovable, Supabase, monitoramento, backup |
 | `docs/10-logs-e-analytics.md` | Structlog, auditoria de usuário (4 tabelas), PostHog |
 | `docs/11-chat-e-ia-conversacional.md` | RAG completo, tipos de pergunta, custos, system prompt |
 | `docs/12-plano-de-negocios.md` | Plano de negócios completo — posicionamento, planos, Patrocine uma Auditoria, go-to-market, projeções |
@@ -113,11 +113,12 @@ Os JSONs já coletados têm esta estrutura:
 
 ## Planos Comerciais
 
-| Plano | Preço | Perguntas chat/mês | Órgãos |
-|-------|-------|-------------------|--------|
-| Free | R$0 | 20 | 1 (só visualização) |
-| Pro | R$297/mês | 300 | Todos |
-| Enterprise | R$997/mês | Ilimitado + API | Todos |
+| Plano | Preço | Chat/mês | Órgãos |
+|-------|-------|----------|--------|
+| Cidadão | R$0 | 5 | Todos (leitura) |
+| Investigador | R$197/mês | 200 | Todos |
+| Profissional | R$597/mês | 1.000 | Todos |
+| API & Dados | R$1.997/mês | via API | Todos + API REST |
 
 ---
 
@@ -136,7 +137,7 @@ Custo de IA por novo órgão: ~$10-15 (similar ao CAU/PR)
 ## Regras de Trabalho Neste Projeto
 
 1. **Sempre leia o documento relevante antes de codar** — o design está nos docs
-2. **Não reinvente o schema** — as 20 tabelas estão definidas em `02-banco-de-dados.md`
+2. **Não reinvente o schema** — as 23 tabelas estão definidas em `02-banco-de-dados.md`
 3. **Prompt caching obrigatório** — o system prompt do pipeline IA deve usar `cache_control`
 4. **RLS em tudo** — toda tabela com `tenant_id` precisa de política RLS ativa
 5. **Logs em toda ação significativa** — usar `AuditLog.registrar()` nos endpoints

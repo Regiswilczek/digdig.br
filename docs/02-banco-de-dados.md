@@ -490,6 +490,70 @@ CREATE TABLE relatorios (
 CREATE INDEX idx_relatorios_tenant ON relatorios(tenant_id);
 ```
 
+### 2.21 `campanhas_patrocinio`
+Campanhas de crowdfunding para financiar a análise de novas instituições públicas.
+
+```sql
+CREATE TABLE campanhas_patrocinio (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome_orgao      TEXT NOT NULL,
+  descricao       TEXT,
+  uf              CHAR(2),
+  tipo_orgao      TEXT, -- conselho_profissional, camara_municipal, autarquia, etc.
+  status          TEXT NOT NULL DEFAULT 'ativa'
+                    CHECK (status IN ('ativa', 'concluida', 'cancelada', 'em_analise')),
+  meta_valor      NUMERIC(10,2) NOT NULL DEFAULT 3000.00,
+  valor_arrecadado NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+  total_doadores  INTEGER NOT NULL DEFAULT 0,
+  total_votos     INTEGER NOT NULL DEFAULT 0,
+  proposta_por    UUID REFERENCES users(id) ON DELETE SET NULL,
+  tenant_id_gerado UUID REFERENCES tenants(id) ON DELETE SET NULL, -- preenchido ao concluir
+  prazo_expiracao TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_campanhas_status ON campanhas_patrocinio(status);
+```
+
+### 2.22 `doacoes_patrocinio`
+Doações individuais feitas a uma campanha de patrocínio.
+
+```sql
+CREATE TABLE doacoes_patrocinio (
+  id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  campanha_id             UUID NOT NULL REFERENCES campanhas_patrocinio(id) ON DELETE CASCADE,
+  user_id                 UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  valor                   NUMERIC(10,2) NOT NULL CHECK (valor >= 25.00),
+  stripe_payment_intent   TEXT UNIQUE,
+  status                  TEXT NOT NULL DEFAULT 'pendente'
+                            CHECK (status IN ('pendente', 'confirmada', 'estornada', 'falhou')),
+  mensagem_publica        TEXT,
+  nome_exibicao           TEXT, -- NULL = "Anônimo"
+  votos_concedidos        INTEGER NOT NULL DEFAULT 0, -- votos extras por doação
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_doacoes_campanha ON doacoes_patrocinio(campanha_id);
+CREATE INDEX idx_doacoes_user ON doacoes_patrocinio(user_id);
+```
+
+### 2.23 `votos_patrocinio`
+Votos gratuitos mensais que usuários autenticados podem dar a campanhas.
+
+```sql
+CREATE TABLE votos_patrocinio (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  campanha_id     UUID NOT NULL REFERENCES campanhas_patrocinio(id) ON DELETE CASCADE,
+  mes_referencia  CHAR(7) NOT NULL, -- formato: '2026-04' — controle do limite mensal
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, campanha_id, mes_referencia) -- 1 voto por usuário por campanha por mês (gratuito)
+);
+
+CREATE INDEX idx_votos_user_mes ON votos_patrocinio(user_id, mes_referencia);
+```
+
 ---
 
 ## 3. Row Level Security (RLS)
@@ -517,6 +581,46 @@ CREATE POLICY "tenant_isolation" ON atos
 
 -- Mesma política replicada para todas as tabelas sensíveis
 -- Admin bypassa com service_role key
+```
+
+### RLS — Patrocínio
+
+```sql
+-- campanhas_patrocinio: leitura pública, insert por autenticados, update/delete só admin
+ALTER TABLE campanhas_patrocinio ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "campanhas_leitura_publica" ON campanhas_patrocinio
+    FOR SELECT USING (true);
+
+CREATE POLICY "campanhas_insert_autenticado" ON campanhas_patrocinio
+    FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+CREATE POLICY "campanhas_update_admin" ON campanhas_patrocinio
+    FOR UPDATE USING (auth.jwt() ->> 'role' = 'admin');
+
+CREATE POLICY "campanhas_delete_admin" ON campanhas_patrocinio
+    FOR DELETE USING (auth.jwt() ->> 'role' = 'admin');
+
+-- doacoes_patrocinio: insert pelo próprio usuário, leitura pública de campos públicos,
+-- leitura completa apenas do próprio usuário ou admin
+ALTER TABLE doacoes_patrocinio ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "doacoes_insert_proprio" ON doacoes_patrocinio
+    FOR INSERT WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "doacoes_leitura_publica" ON doacoes_patrocinio
+    FOR SELECT USING (true);
+-- Campos sensíveis (stripe_payment_intent, status completo) filtrados na camada de API;
+-- leitura completa do próprio usuário ou admin é enforced no backend.
+
+-- votos_patrocinio: insert pelo próprio usuário, leitura pública
+ALTER TABLE votos_patrocinio ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "votos_insert_proprio" ON votos_patrocinio
+    FOR INSERT WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "votos_leitura_publica" ON votos_patrocinio
+    FOR SELECT USING (true);
 ```
 
 ---

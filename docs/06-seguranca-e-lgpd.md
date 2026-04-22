@@ -119,7 +119,7 @@ atos = db.query(Ato).filter(
 - Frontend Next.js usa React que escapa HTML por padrão
 - Conteúdo de PDFs exibido como texto puro, nunca `dangerouslySetInnerHTML`
 - Relatórios HTML gerados pelo backend usam templates com escape automático (Jinja2)
-- Content Security Policy configurada no Vercel:
+- Content Security Policy configurada no Lovable:
 
 ```
 Content-Security-Policy: 
@@ -131,7 +131,7 @@ Content-Security-Policy:
 ```
 
 ### 3.5 HTTPS Obrigatório
-- Vercel (frontend): HTTPS com renovação automática de certificado
+- Lovable (frontend): HTTPS com renovação automática de certificado
 - Railway (backend): HTTPS com Let's Encrypt
 - Supabase: HTTPS nativo
 - Nenhuma comunicação em HTTP permitida em produção
@@ -162,11 +162,11 @@ REDIS_URL=redis://...
 RESEND_API_KEY=...
 SENTRY_DSN=...
 
-# Frontend (Vercel) — apenas públicas
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...  # anon key (pública, sem permissões admin)
-NEXT_PUBLIC_API_URL=...
-NEXT_PUBLIC_STRIPE_PK=...
+# Frontend (Lovable) — apenas públicas
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...  # anon key (pública, sem permissões admin)
+VITE_API_URL=...
+VITE_STRIPE_PK=...
 ```
 
 ---
@@ -363,9 +363,9 @@ def baixar_com_respeito(url: str):
 
 ### Frontend
 - [ ] Nenhuma chave secreta no código cliente
-- [ ] CSP configurada no Vercel
+- [ ] CSP configurada no Lovable
 - [ ] Supabase anon key usada no cliente (sem service_role)
-- [ ] Formulários com proteção CSRF (Next.js Server Actions)
+- [ ] Formulários com proteção CSRF
 - [ ] Sanitização de conteúdo exibido (sem dangerouslySetInnerHTML com input de usuário)
 
 ### Infra

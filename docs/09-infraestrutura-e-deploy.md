@@ -16,7 +16,7 @@
 
 | Serviço | Plano | Custo/mês | O que roda |
 |---------|-------|-----------|-----------|
-| **Vercel** | Hobby → Pro | $0 → $20 | Frontend Next.js |
+| **Lovable** | Starter → Pro | $0 → $25 | Frontend React + Vite |
 | **Railway** | Starter | ~$20-50 | Backend FastAPI + Celery Workers + Redis |
 | **Supabase** | Free → Pro | $0 → $25 | PostgreSQL + Auth + Storage |
 | **Stripe** | Pay-as-you-go | 2.9% + R$0.30/transação | Billing |
@@ -30,9 +30,9 @@
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  VERCEL (Frontend)                                       │
-│  ├── digdig.com.br        → Next.js (produção)   │
-│  └── staging.digdig.com.br → Next.js (staging)   │
+│  LOVABLE (Frontend)                                      │
+│  ├── digdig.com.br        → React + Vite (produção)     │
+│  └── staging.digdig.com.br → React + Vite (staging)    │
 └──────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────┐
@@ -87,15 +87,15 @@ MAX_PDF_SIZE_MB=10
 CLAUDE_BUDGET_ALERT_USD=20.0
 ```
 
-### Frontend (Vercel)
+### Frontend (Lovable)
 ```env
-# Apenas variáveis PÚBLICAS
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...  # anon key — permissões mínimas
-NEXT_PUBLIC_API_URL=https://api.digdig.com.br
-NEXT_PUBLIC_STRIPE_PK=pk_live_...
-NEXT_PUBLIC_SENTRY_DSN=https://...@sentry.io/...
-NEXT_PUBLIC_ENVIRONMENT=production
+# Apenas variáveis PÚBLICAS — configuradas no painel do Lovable em Settings → Environment Variables
+VITE_SUPABASE_URL=https://xxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...  # anon key — permissões mínimas
+VITE_API_URL=https://api.digdig.com.br
+VITE_STRIPE_PK=pk_live_...
+VITE_SENTRY_DSN=https://...@sentry.io/...
+VITE_ENVIRONMENT=production
 ```
 
 ---
@@ -175,17 +175,7 @@ jobs:
           railway_token: ${{ secrets.RAILWAY_TOKEN }}
           service: api
 
-  deploy-frontend:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+  # Frontend: deploy automático via Lovable ao fazer push para main — não requer step adicional no CI
 ```
 
 ### Estratégia de branching
@@ -382,7 +372,7 @@ CloudFront para assets estáticos
 ## 11. Checklist de Deploy (Pré-produção)
 
 ### Infraestrutura
-- [ ] Todos os secrets configurados no Railway e Vercel
+- [ ] Todos os secrets configurados no Railway e no Lovable (Settings → Environment Variables)
 - [ ] Domínio configurado com HTTPS
 - [ ] Health check respondendo `/health`
 - [ ] Migrations aplicadas em produção

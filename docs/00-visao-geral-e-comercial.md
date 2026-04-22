@@ -60,21 +60,21 @@ Estimativa de esforço: **2-5 dias por órgão**.
 
 ### Planos
 
-| Plano | Preço | Órgãos | Análises/mês | Público |
-|-------|-------|--------|--------------|---------|
-| **Free** | R$ 0 | 1 (visualização) | — | Jornalistas, curiosos |
-| **Pro** | R$ 297/mês | Todos disponíveis | Ilimitado | Campanhas, assessorias políticas |
-| **Enterprise** | R$ 997/mês | Todos + prioritários | Ilimitado + API | Escritórios de advocacia, ONGs, imprensa |
+| Plano | Preço | Chat/mês | Exportação | Assentos | Para quem |
+|---|---|---|---|---|---|
+| **Cidadão** | R$ 0 | 5 perguntas | Nenhuma | 1 | Qualquer brasileiro — leitura e compreensão |
+| **Investigador** | R$ 197/mês | 200 | PDF e HTML | 1 | Jornalistas, candidatos, militantes |
+| **Profissional** | R$ 597/mês | 1.000 | CSV, JSON, PDF, HTML | 2 | Escritórios jurídicos, assessorias políticas |
+| **API & Dados** | R$ 1.997/mês | via API | API REST + webhooks | 5 | Veículos de imprensa, plataformas, pesquisadores |
 
 ### Receitas Adicionais
 - **Análise sob demanda:** cliente envia um órgão específico, equipe configura e entrega em 5-7 dias — R$ 1.500 por órgão
 - **Relatório personalizado:** síntese executiva customizada por um analista humano + IA — R$ 500-2.000
-- **White-label:** licenciar a plataforma para partidos políticos ou sindicatos — valor negociado
 
 ### Projeção de Receita (conservadora)
 
-| Mês | Free | Pro | Enterprise | MRR |
-|-----|------|-----|------------|-----|
+| Mês | Cidadão | Investigador | Profissional | MRR |
+|-----|---------|--------------|--------------|-----|
 | 1 | 50 | 5 | 0 | R$ 1.485 |
 | 3 | 200 | 20 | 2 | R$ 7.934 |
 | 6 | 500 | 50 | 5 | R$ 19.835 |
@@ -88,19 +88,19 @@ Estimativa de esforço: **2-5 dias por órgão**.
 - Precisa de munição documentada para debates e campanha
 - Não tem tempo para ler 1.800 portarias
 - Quer fichas de denúncia prontas para usar em entrevistas
-- **Plano:** Pro
+- **Plano:** Investigador
 
 ### Persona 2 — O Jornalista Investigativo
 - Cobre política local ou conselhos profissionais
 - Precisa de dados verificáveis com links para fontes primárias
 - Quer alertas quando novos atos suspeitos forem publicados
-- **Plano:** Pro ou Enterprise
+- **Plano:** Investigador ou API & Dados
 
 ### Persona 3 — O Advogado / Escritório
 - Atua em processos administrativos
 - Precisa de levantamento completo de precedentes e irregularidades
 - Quer exportar relatórios técnicos com referências legais
-- **Plano:** Enterprise
+- **Plano:** Profissional
 
 ### Persona 4 — O Cidadão Engajado / Ativista
 - Acompanha um órgão específico
@@ -111,12 +111,11 @@ Estimativa de esforço: **2-5 dias por órgão**.
 
 ## 5. Posicionamento
 
-**Nome sugerido do produto:** `Dig Dig` / `TranspareceAI` / `VigiaPublico`  
-*(nome final a definir)*
+**Nome:** Dig Dig
 
-**Tagline:** "A IA que lê o que ninguém lê — e diz o que precisamos saber."
+**Tagline:** "Escavamos os atos públicos. Você decide o que fazer com o que encontramos."
 
-**Domínio:** a definir
+**Domínio:** digdig.com.br / app.digdig.com.br / api.digdig.com.br
 
 ---
 

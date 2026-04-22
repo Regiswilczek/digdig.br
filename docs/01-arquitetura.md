@@ -10,8 +10,8 @@
 └──────────────────────────────┬──────────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────────┐
-│                    FRONTEND — Vercel                             │
-│                    Next.js 15 + Tailwind CSS                    │
+│                    FRONTEND — Lovable                            │
+│                    React + Vite (Lovable) + Tailwind CSS        │
 │  • Landing page pública                                         │
 │  • App autenticado (dashboard, filtros, relatórios)             │
 │  • Painel admin (gerenciar órgãos, rodadas de análise)          │
@@ -50,12 +50,11 @@
 ### Frontend
 | Tecnologia | Versão | Função |
 |-----------|--------|--------|
-| Next.js | 15.x | Framework React com SSR/SSG |
+| React | 18 + Vite (via Lovable) | Framework frontend com bundler Vite |
 | Tailwind CSS | 3.x | Estilização |
 | shadcn/ui | latest | Componentes de UI |
 | Recharts | 2.x | Gráficos e visualizações |
-| React Query | 5.x | Cache e sincronização de dados |
-| Zustand | 4.x | Estado global simples |
+| TanStack Router + TanStack Query | latest | Roteamento client-side e cache de dados |
 
 ### Backend
 | Tecnologia | Versão | Função |
@@ -76,7 +75,7 @@
 | Supabase | PostgreSQL + Auth + Storage |
 | Redis (Railway) | Broker Celery + cache |
 | Railway | Deploy backend + workers |
-| Vercel | Deploy frontend |
+| Lovable | Deploy frontend |
 | Stripe | Billing e assinaturas |
 | Resend | Email transacional |
 | Sentry | Monitoramento de erros |
@@ -87,7 +86,7 @@
 
 ```
 digdig/
-├── frontend/                    # Next.js app
+├── frontend/                    # React + Vite (Lovable) app
 │   ├── app/
 │   │   ├── (public)/           # Rotas públicas (landing, planos)
 │   │   ├── (auth)/             # Login, cadastro, reset senha
@@ -200,7 +199,7 @@ digdig/
         ↓
 [Retorna dados paginados para o frontend]
         ↓
-[Next.js renderiza dashboard]
+[React + Vite (Lovable) renderiza dashboard]
 ```
 
 ---
@@ -263,6 +262,6 @@ Todos os dados ficam nas mesmas tabelas, separados por `tenant_id`. Row Level Se
 | Celery + Redis | FastAPI BackgroundTasks | Jobs longos precisam de fila real com retry, monitoramento e concorrência |
 | Supabase | PostgreSQL próprio | Auth + Storage + RLS prontos, economiza semanas de desenvolvimento |
 | SQLite → PostgreSQL | Manter SQLite | Multi-tenant, concorrência, RLS exigem PostgreSQL |
-| Next.js | Vite + React SPA | SSR para SEO na landing page, SSG para docs públicos |
+| Lovable (React + Vite) | Next.js | Geração e deploy de frontend gerenciados pela plataforma Lovable, integrado ao GitHub. TanStack Router para roteamento client-side. |
 | pdfplumber | PyMuPDF / PDFMiner | Melhor extração de tabelas e layout, mais Pythônico |
 | Railway | Heroku / Fly.io | Pricing previsível, suporte Redis nativo, deploy simples |

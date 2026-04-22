@@ -302,7 +302,276 @@ Accept: text/html|application/pdf|text/plain
 
 ---
 
-## 7. Chat com IA (RAG Conversacional)
+## 7. Patrocine uma Auditoria
+
+Mecanismo de crowdfunding para financiar a análise de novas instituições públicas. Usuários nominam órgãos, votam nas propostas e podem fazer doações via Stripe para atingir a meta de R$ 3.000,00 que dispara a análise.
+
+### Listar campanhas ativas
+```
+GET /campanhas
+```
+Auth: público
+
+**Query params:**
+```
+status       string  ativa|concluida|cancelada|em_analise  (default: ativa)
+uf           string  PR|SP|...
+tipo_orgao   string  conselho_profissional|camara_municipal|autarquia
+ordenar      string  votos_desc|valor_desc|recente  (default: votos_desc)
+page         int     default=1
+limit        int     default=20, max=100
+```
+
+**Resposta 200:**
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "nome_orgao": "Câmara Municipal de Curitiba",
+      "descricao": "Auditoria das deliberações de 2020-2026",
+      "uf": "PR",
+      "tipo_orgao": "camara_municipal",
+      "status": "ativa",
+      "meta_valor": 3000.00,
+      "valor_arrecadado": 1250.00,
+      "percentual_meta": 41.7,
+      "total_doadores": 12,
+      "total_votos": 87,
+      "prazo_expiracao": "2026-07-31T23:59:59Z",
+      "created_at": "2026-04-10T14:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1, "limit": 20, "total": 5, "pages": 1
+  }
+}
+```
+
+---
+
+### Detalhe de uma campanha
+```
+GET /campanhas/{id}
+```
+Auth: público
+
+**Resposta 200:**
+```json
+{
+  "id": "uuid",
+  "nome_orgao": "Câmara Municipal de Curitiba",
+  "descricao": "Auditoria das deliberações de 2020-2026",
+  "uf": "PR",
+  "tipo_orgao": "camara_municipal",
+  "status": "ativa",
+  "meta_valor": 3000.00,
+  "valor_arrecadado": 1250.00,
+  "percentual_meta": 41.7,
+  "total_doadores": 12,
+  "total_votos": 87,
+  "proposta_por": {"id": "uuid", "nome": "João da Silva"},
+  "tenant_id_gerado": null,
+  "prazo_expiracao": "2026-07-31T23:59:59Z",
+  "created_at": "2026-04-10T14:00:00Z",
+  "updated_at": "2026-04-22T09:15:00Z"
+}
+```
+
+**Erros:**
+- 404 `NAO_ENCONTRADO`: campanha não existe
+
+---
+
+### Nominar Nova Instituição
+```
+POST /campanhas
+```
+Auth: obrigatório
+
+**Body:**
+```json
+{
+  "nome_orgao": "Câmara Municipal de Curitiba",
+  "descricao": "Auditoria das deliberações de 2020-2026",
+  "uf": "PR",
+  "tipo_orgao": "camara_municipal"
+}
+```
+
+**Resposta 201:**
+```json
+{
+  "id": "uuid",
+  "nome_orgao": "Câmara Municipal de Curitiba",
+  "descricao": "Auditoria das deliberações de 2020-2026",
+  "uf": "PR",
+  "tipo_orgao": "camara_municipal",
+  "status": "ativa",
+  "meta_valor": 3000.00,
+  "valor_arrecadado": 0.00,
+  "total_doadores": 0,
+  "total_votos": 0,
+  "created_at": "2026-04-22T15:00:00Z"
+}
+```
+
+**Erros:**
+- 400 `CAMPANHA_DUPLICADA`: instituição já tem campanha ativa
+- 401 `NAO_AUTENTICADO`
+
+---
+
+### Lista pública de apoiadores
+```
+GET /campanhas/{id}/doadores
+```
+Auth: público
+
+**Query params:**
+```
+page    int   default=1
+limit   int   default=20, max=100
+```
+
+**Resposta 200:**
+```json
+{
+  "data": [
+    {
+      "nome_exibicao": "Maria Souza",
+      "valor": 100.00,
+      "mensagem_publica": "Transparência sempre!",
+      "created_at": "2026-04-15T10:30:00Z"
+    },
+    {
+      "nome_exibicao": "Anônimo",
+      "valor": 50.00,
+      "mensagem_publica": null,
+      "created_at": "2026-04-16T08:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1, "limit": 20, "total": 12, "pages": 1
+  }
+}
+```
+
+**Erros:**
+- 404 `NAO_ENCONTRADO`: campanha não existe
+
+---
+
+### Iniciar doação
+```
+POST /campanhas/{id}/doacoes
+```
+Auth: obrigatório
+
+**Body:**
+```json
+{
+  "valor": 100.00,
+  "nome_exibicao": "Maria Souza",
+  "mensagem_publica": "Transparência sempre!"
+}
+```
+- `nome_exibicao` opcional — omitir ou passar `null` para exibir como "Anônimo"
+- `mensagem_publica` opcional
+
+**Resposta 201:**
+```json
+{
+  "doacao_id": "uuid",
+  "stripe_payment_intent": "pi_3...",
+  "client_secret": "pi_3..._secret_...",
+  "valor": 100.00,
+  "status": "pendente"
+}
+```
+
+**Erros:**
+- 400 `DOACAO_MINIMA`: valor abaixo do mínimo de R$ 25,00
+- 400 `CAMPANHA_NAO_ATIVA`: campanha não está com status `ativa`
+- 401 `NAO_AUTENTICADO`
+- 404 `NAO_ENCONTRADO`: campanha não existe
+
+---
+
+### Confirmar pagamento (webhook Stripe)
+```
+POST /campanhas/{id}/doacoes/confirmar
+```
+Auth: assinatura HMAC do Stripe (header `Stripe-Signature`)
+
+Atualiza o status da doação para `confirmada`, incrementa `valor_arrecadado` e `total_doadores` na campanha. Se `valor_arrecadado >= meta_valor`, a campanha passa para `em_analise` e dispara a criação do tenant.
+
+**Body:** payload bruto do evento Stripe `payment_intent.succeeded`
+
+**Resposta 200:**
+```json
+{"received": true}
+```
+
+**Erros:**
+- 400 `ASSINATURA_INVALIDA`: header `Stripe-Signature` não confere
+
+---
+
+### Registrar voto gratuito
+```
+POST /campanhas/{id}/votos
+```
+Auth: obrigatório
+
+Cada usuário autenticado tem direito a **3 votos gratuitos por mês**, distribuíveis entre quaisquer campanhas ativas. Doações confirmadas concedem votos extras proporcionais ao valor (`votos_concedidos` em `doacoes_patrocinio`).
+
+**Body:** vazio `{}`
+
+**Resposta 201:**
+```json
+{
+  "voto_id": "uuid",
+  "campanha_id": "uuid",
+  "mes_referencia": "2026-04",
+  "votos_gratuitos_restantes": 2,
+  "created_at": "2026-04-22T15:05:00Z"
+}
+```
+
+**Erros:**
+- 400 `COTA_VOTOS_ESGOTADA`: 3 votos gratuitos do mês já utilizados
+- 400 `CAMPANHA_NAO_ATIVA`: campanha não está com status `ativa`
+- 409 `VOTO_DUPLICADO`: usuário já votou nesta campanha neste mês
+- 401 `NAO_AUTENTICADO`
+- 404 `NAO_ENCONTRADO`: campanha não existe
+
+---
+
+### Saldo de votos gratuitos do mês
+```
+GET /campanhas/{id}/votos/saldo
+```
+Auth: obrigatório
+
+**Resposta 200:**
+```json
+{
+  "mes_referencia": "2026-04",
+  "votos_gratuitos_limite": 3,
+  "votos_gratuitos_usados": 1,
+  "votos_gratuitos_restantes": 2,
+  "ja_votou_nesta_campanha": false
+}
+```
+
+**Erros:**
+- 401 `NAO_AUTENTICADO`
+- 404 `NAO_ENCONTRADO`: campanha não existe
+
+---
+
+## 8. Chat com IA (RAG Conversacional)
 
 ### Criar nova sessão de chat
 ```
@@ -395,7 +664,7 @@ GET /orgaos/{slug}/chat/cota
 
 ---
 
-## 8. Planos e Billing
+## 9. Planos e Billing
 
 ### Listar planos disponíveis (público)
 ```
@@ -427,7 +696,7 @@ POST /billing/portal
 
 ---
 
-## 8. Admin (apenas usuários com role = admin)
+## 10. Admin (apenas usuários com role = admin)
 
 ### Listar órgãos com detalhes internos
 ```
@@ -489,7 +758,7 @@ GET /admin/custos
 
 ---
 
-## 9. Webhooks
+## 11. Webhooks
 
 ### Stripe (billing events)
 ```
@@ -504,7 +773,7 @@ Eventos tratados:
 
 ---
 
-## 10. Códigos de Erro
+## 12. Códigos de Erro
 
 ```json
 {
@@ -531,10 +800,16 @@ Eventos tratados:
 | 429 | `RATE_LIMIT` | Muitas requisições |
 | 500 | `ERRO_INTERNO` | Erro no servidor |
 | 503 | `ANALISE_EM_CURSO` | Rodada de análise em andamento |
+| 400 | `CAMPANHA_DUPLICADA` | Instituição já tem campanha ativa |
+| 400 | `CAMPANHA_NAO_ATIVA` | Campanha não está com status `ativa` |
+| 400 | `DOACAO_MINIMA` | Valor de doação abaixo do mínimo (R$ 25,00) |
+| 400 | `COTA_VOTOS_ESGOTADA` | Os 3 votos gratuitos mensais já foram utilizados |
+| 400 | `ASSINATURA_INVALIDA` | Assinatura HMAC do webhook Stripe não confere |
+| 409 | `VOTO_DUPLICADO` | Usuário já votou nesta campanha neste mês |
 
 ---
 
-## 11. Rate Limiting
+## 13. Rate Limiting
 
 | Endpoint | Limite | Janela |
 |----------|--------|--------|
@@ -544,3 +819,6 @@ Eventos tratados:
 | `GET /grafo` | 20 req | 1 minuto |
 | API pública (Free) | 60 req | 1 hora |
 | API (Pro/Enterprise) | sem limite | — |
+| `POST /campanhas` | 5 req | 1 hora |
+| `POST /campanhas/*/doacoes` | 10 req | 1 hora |
+| `POST /campanhas/*/votos` | 20 req | 1 hora |
