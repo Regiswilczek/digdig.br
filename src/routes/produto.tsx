@@ -1,4 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  User,
+  AlertTriangle,
+  Network,
+  CalendarDays,
+  Bell,
+  BarChart3,
+  Plug,
+  Globe2,
+  ArrowUpRight,
+  ChevronRight,
+  Circle,
+} from "lucide-react";
 
 export const Route = createFileRoute("/produto")({
   head: () => ({
