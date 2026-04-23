@@ -35,5 +35,12 @@ def test_allowed_origins_list():
 
 def test_is_production():
     from app.config import Settings
-    assert Settings(environment="production").is_production is True
+    prod = Settings(
+        environment="production",
+        supabase_jwt_secret="x",
+        supabase_service_role_key="x",
+        anthropic_api_key="x",
+        webhook_secret="x",
+    )
+    assert prod.is_production is True
     assert Settings(environment="development").is_production is False
