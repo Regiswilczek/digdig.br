@@ -250,7 +250,7 @@ function Nav() {
         DIG DIG
       </span>
       <div className="hidden md:flex items-center gap-8 text-[13px] text-white/50">
-        <a href="#" className="hover:text-white transition-colors duration-200">Produto</a>
+        <Link to="/produto" className="hover:text-white transition-colors duration-200">Produto</Link>
         <Link to="/solucoes" className="hover:text-white transition-colors duration-200">Soluções</Link>
         <Link to="/precos" className="hover:text-white transition-colors duration-200">Preços</Link>
         <Link to="/patrocine" className="hover:text-white transition-colors duration-200">Patrocine</Link>
