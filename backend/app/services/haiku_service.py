@@ -2,7 +2,6 @@ import json
 import re
 import uuid
 from decimal import Decimal
-from typing import Optional
 from anthropic import AsyncAnthropic
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -20,6 +19,7 @@ PRECOS_HAIKU = {
     "input": 0.80 / 1_000_000,
     "output": 4.00 / 1_000_000,
     "cache_read": 0.08 / 1_000_000,
+    "cache_write": 1.00 / 1_000_000,
 }
 
 SYSTEM_PROMPT_TEMPLATE = """Você é um auditor especializado em direito administrativo brasileiro e ética pública.
@@ -123,6 +123,10 @@ async def analisar_ato_haiku(
     rodada_id: uuid.UUID,
     system_prompt: str,
 ) -> Analise:
+    """
+    Raises anthropic.RateLimitError and anthropic.APIError on API failure.
+    Callers (Celery tasks) are responsible for retry with exponential backoff.
+    """
     ato_result = await db.execute(select(Ato).where(Ato.id == ato_id))
     ato = ato_result.scalar_one()
 
@@ -161,6 +165,7 @@ TEXTO COMPLETO:
         response.usage.input_tokens * PRECOS_HAIKU["input"]
         + response.usage.output_tokens * PRECOS_HAIKU["output"]
         + getattr(response.usage, "cache_read_input_tokens", 0) * PRECOS_HAIKU["cache_read"]
+        + getattr(response.usage, "cache_creation_input_tokens", 0) * PRECOS_HAIKU["cache_write"]
     )
 
     # Upsert Analise
