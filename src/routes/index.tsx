@@ -252,32 +252,39 @@ function DesktopBadge() {
   );
 }
 
-// ── Mobile stats — refined strip ──────────────────────────────────────────────
+// ── Mobile stats — 2-column strip (mirrors desktop card) ─────────────────────
 
 function MobileStats() {
   return (
-    <div className="grid grid-cols-3 border border-white/10 bg-black/55 select-none rounded-lg overflow-hidden">
-      <div className="flex flex-col justify-center px-3 py-3 border-r border-white/10">
-        <span className="text-[8px] font-mono text-yellow-300 tracking-[0.18em] uppercase leading-tight">
-          ↑↑ ELEVADO
+    <div className="border border-white/10 bg-black/55 select-none rounded-lg overflow-hidden">
+      {/* Top row: alert */}
+      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/10">
+        <span className="text-[10px] font-mono text-yellow-300 tracking-[0.18em] uppercase">
+          ↑ ELEVADO
         </span>
-        <span className="text-[8px] font-mono text-white/35 tracking-[0.14em] uppercase leading-tight mt-0.5">
-          ALERTA
-        </span>
-      </div>
-      <div className="flex flex-col justify-center px-3 py-3">
-        <span className="text-[8px] font-mono text-white/35 tracking-[0.16em] uppercase leading-tight">
-          MAPEADOS
-        </span>
-        <span className="text-[1.5rem] font-bold text-white tabular-nums leading-none mt-0.5">
-          1.789
+        <span className="text-[10px] font-mono text-white/40 tracking-[0.14em] uppercase">
+          NÍVEL DE ATENÇÃO
         </span>
       </div>
-      <div className="flex flex-col justify-center items-center px-3 py-3 border-l border-white/10 gap-1">
-        <span className="text-[7px] font-mono text-white/35 tracking-[0.14em] uppercase">
-          INDÍCIOS
+
+      {/* Main row: count + checkmark */}
+      <div className="flex items-end justify-between px-4 pt-3 pb-3">
+        <div className="flex flex-col">
+          <span className="text-[9px] font-mono text-white/40 tracking-[0.18em] uppercase mb-1">
+            ATOS MAPEADOS:
+          </span>
+          <span className="text-[2.4rem] font-bold text-white tabular-nums leading-none">
+            1.789
+          </span>
+        </div>
+      </div>
+
+      {/* Bottom row: indícios */}
+      <div className="flex items-center justify-between px-4 py-2.5" style={{ borderTop: "1px dashed rgba(255,255,255,0.16)" }}>
+        <span className="text-[9px] font-mono text-white/40 tracking-[0.14em] uppercase">
+          INDÍCIOS IDENTIFICADOS
         </span>
-        <span className="text-[#00cc46] font-bold text-lg leading-none">✓</span>
+        <span className="text-[#00cc46] font-bold text-base leading-none">✓</span>
       </div>
     </div>
   );
