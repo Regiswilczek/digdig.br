@@ -341,8 +341,8 @@ function PadroesGlobais() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {stats.map((s) => (
           <div key={s.l} className="border border-white/10 bg-black/40 p-5 text-center">
-            <p style={SYNE} className="text-[1.6rem]" >
-              <span style={{ color: s.c }}>{s.v}</span>
+            <p style={SYNE} className="text-[1.6rem] text-white">
+              {s.v}
             </p>
             <p className="text-white/55 text-[11px] mt-2 leading-tight">{s.l}</p>
           </div>
