@@ -326,7 +326,7 @@ function PadroesGlobais() {
   return (
     <section className="max-w-6xl mx-auto mt-20 md:mt-28">
       <div className="text-center mb-12">
-        <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] uppercase text-[#F0C81E]">
+        <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] uppercase text-white/40">
           PADRÕES GLOBAIS
         </span>
         <h2 style={{ ...SYNE, letterSpacing: "-0.01em" }} className="text-white mt-3 text-[1.6rem] md:text-[2.2rem]">
