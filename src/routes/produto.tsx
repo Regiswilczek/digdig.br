@@ -315,18 +315,18 @@ function FichaDenuncia() {
 // ── Padrões agregados ────────────────────────────────────────────────────────
 function PadroesGlobais() {
   const stats = [
-    { v: "1.789", l: "Atos analisados", c: "#F0C81E" },
-    { v: "136", l: "Ad Referendum", c: "#fb923c" },
-    { v: "32", l: "Prorrogações de processante", c: "#dc2626" },
-    { v: "154", l: "Nomeações comissionadas", c: "#a78bfa" },
-    { v: "72", l: "Exonerações", c: "#67e8f9" },
-    { v: "7,6%", l: "Ratio ad referendum", c: "#fb923c" },
+    { v: "1.789", l: "Atos analisados" },
+    { v: "136", l: "Ad Referendum" },
+    { v: "32", l: "Prorrogações de processante" },
+    { v: "154", l: "Nomeações comissionadas" },
+    { v: "72", l: "Exonerações" },
+    { v: "7,6%", l: "Ratio ad referendum" },
   ];
 
   return (
     <section className="max-w-6xl mx-auto mt-20 md:mt-28">
       <div className="text-center mb-12">
-        <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] uppercase text-[#F0C81E]">
+        <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] uppercase text-white/40">
           PADRÕES GLOBAIS
         </span>
         <h2 style={{ ...SYNE, letterSpacing: "-0.01em" }} className="text-white mt-3 text-[1.6rem] md:text-[2.2rem]">
@@ -341,8 +341,8 @@ function PadroesGlobais() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {stats.map((s) => (
           <div key={s.l} className="border border-white/10 bg-black/40 p-5 text-center">
-            <p style={SYNE} className="text-[1.6rem]" >
-              <span style={{ color: s.c }}>{s.v}</span>
+            <p style={SYNE} className="text-[1.6rem] text-white">
+              {s.v}
             </p>
             <p className="text-white/55 text-[11px] mt-2 leading-tight">{s.l}</p>
           </div>
