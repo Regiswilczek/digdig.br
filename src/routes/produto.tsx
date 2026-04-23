@@ -220,9 +220,9 @@ function FichaDenuncia() {
           <div>
             <span
               style={{ ...SYNE, letterSpacing: "0.22em" }}
-              className="text-[10px] uppercase px-2 py-1 bg-[#f97316]/15 text-[#fb923c] border border-[#f97316]/30"
+              className="inline-flex items-center gap-1.5 text-[10px] uppercase px-2 py-1 bg-[#f97316]/15 text-[#fb923c] border border-[#f97316]/30"
             >
-              ● LARANJA
+              <Circle className="!size-2 fill-current" /> LARANJA
             </span>
             <h3 style={SYNE} className="text-white text-[1.3rem] mt-3">
               Portaria nº 678 / 2026
