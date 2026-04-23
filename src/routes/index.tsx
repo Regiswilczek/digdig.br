@@ -362,19 +362,19 @@ function HomePage() {
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden md:block"
-        style={{ height: "60%", background: "linear-gradient(to top, #07080f 45%, transparent 100%)" }}
+        style={{ height: "55%", background: "linear-gradient(to top, rgba(7,8,15,0.92) 30%, rgba(7,8,15,0) 100%)" }}
       />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 z-10 block md:hidden"
-        style={{ height: "65%", background: "linear-gradient(to top, #07080f 50%, transparent 100%)" }}
+        style={{ height: "60%", background: "linear-gradient(to top, rgba(7,8,15,0.92) 35%, rgba(7,8,15,0) 100%)" }}
       />
 
-      {/* Top gradient for nav readability + hides terrain horizon */}
+      {/* Top gradient for nav readability */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 z-10"
-        style={{ height: "42%", background: "linear-gradient(to bottom, #07080f 30%, transparent 100%)" }}
+        style={{ height: "30%", background: "linear-gradient(to bottom, rgba(7,8,15,0.85) 0%, rgba(7,8,15,0) 100%)" }}
       />
 
       <DesktopHero />
