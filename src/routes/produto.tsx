@@ -441,37 +441,37 @@ function ChatDemo() {
 function FeaturesGrid() {
   const features = [
     {
-      icon: "🕸",
+      Icon: Network,
       titulo: "Grafo de relacionamentos",
       texto:
         "Visualize quem nomeou quem, em que ato, e quantas vezes. Padrões de favorecimento aparecem na hora.",
     },
     {
-      icon: "📅",
+      Icon: CalendarDays,
       titulo: "Linha do tempo",
       texto:
         "Atos correlacionados em ordem cronológica. Veja o histórico de uma comissão processante do início ao fim.",
     },
     {
-      icon: "🔔",
+      Icon: Bell,
       titulo: "Alertas por email",
       texto:
         "Receba notificação quando um padrão novo for detectado, ou no digest semanal do seu órgão.",
     },
     {
-      icon: "📊",
+      Icon: BarChart3,
       titulo: "Exportação completa",
       texto:
         "Tudo em PDF, CSV ou JSON. Material pronto para a redação, petição inicial ou plenário.",
     },
     {
-      icon: "🔌",
+      Icon: Plug,
       titulo: "API REST",
       texto:
         "Plano API & Dados libera 10.000 chamadas/mês com webhooks de novos atos e alertas.",
     },
     {
-      icon: "🌎",
+      Icon: Globe2,
       titulo: "Multi-órgão",
       texto:
         "Comece com CAU/PR. Em breve: prefeituras, câmaras municipais, conselhos regionais de todo o Brasil.",
