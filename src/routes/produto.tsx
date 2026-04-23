@@ -351,7 +351,7 @@ function PadroesGlobais() {
 
       <div className="mt-8 border border-[#dc2626]/30 bg-[#dc2626]/5 p-6 md:p-7">
         <div className="flex items-start gap-3">
-          <span className="text-[#fb7185] text-[1.2rem] leading-none mt-0.5">⚠</span>
+          <AlertTriangle className="!size-5 text-[#fb7185] shrink-0 mt-0.5" />
           <div>
             <p style={{ ...SYNE, letterSpacing: "0.18em" }} className="text-[#fb7185] text-[10px] uppercase">
               ALERTA DE PADRÃO
