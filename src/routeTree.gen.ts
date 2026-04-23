@@ -13,6 +13,7 @@ import { Route as SolucoesRouteImport } from './routes/solucoes'
 import { Route as ProdutoRouteImport } from './routes/produto'
 import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as PatrocineRouteImport } from './routes/patrocine'
+import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SolucoesRoute = SolucoesRouteImport.update({
@@ -35,6 +36,11 @@ const PatrocineRoute = PatrocineRouteImport.update({
   path: '/patrocine',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/entrar': typeof EntrarRoute
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/entrar': typeof EntrarRoute
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/entrar': typeof EntrarRoute
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
@@ -65,14 +74,28 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/patrocine' | '/precos' | '/produto' | '/solucoes'
+  fullPaths:
+    | '/'
+    | '/entrar'
+    | '/patrocine'
+    | '/precos'
+    | '/produto'
+    | '/solucoes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/patrocine' | '/precos' | '/produto' | '/solucoes'
-  id: '__root__' | '/' | '/patrocine' | '/precos' | '/produto' | '/solucoes'
+  to: '/' | '/entrar' | '/patrocine' | '/precos' | '/produto' | '/solucoes'
+  id:
+    | '__root__'
+    | '/'
+    | '/entrar'
+    | '/patrocine'
+    | '/precos'
+    | '/produto'
+    | '/solucoes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EntrarRoute: typeof EntrarRoute
   PatrocineRoute: typeof PatrocineRoute
   PrecosRoute: typeof PrecosRoute
   ProdutoRoute: typeof ProdutoRoute
@@ -109,6 +132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatrocineRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -121,6 +151,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EntrarRoute: EntrarRoute,
   PatrocineRoute: PatrocineRoute,
   PrecosRoute: PrecosRoute,
   ProdutoRoute: ProdutoRoute,
