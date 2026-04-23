@@ -386,8 +386,8 @@ function ChatDemo() {
       <div className="border border-white/10 bg-black/50 backdrop-blur-sm p-5 md:p-7">
         {/* User msg */}
         <div className="flex gap-3 mb-5">
-          <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-[11px] flex-shrink-0">
-            👤
+          <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+            <User className="!size-4 text-white/70" />
           </div>
           <div className="flex-1 bg-white/[0.03] border border-white/10 p-4">
             <p className="text-white/85 text-[13.5px]">
