@@ -257,7 +257,6 @@ function DesktopBadge() {
 function MobileStats() {
   return (
     <div className="grid grid-cols-3 border border-white/10 bg-black/55 select-none rounded-lg overflow-hidden">
-      {/* Alert */}
       <div className="flex flex-col justify-center px-3 py-3 border-r border-white/10">
         <span className="text-[8px] font-mono text-yellow-300 tracking-[0.18em] uppercase leading-tight">
           ↑↑ ELEVADO
@@ -266,8 +265,6 @@ function MobileStats() {
           ALERTA
         </span>
       </div>
-
-      {/* Count */}
       <div className="flex flex-col justify-center px-3 py-3">
         <span className="text-[8px] font-mono text-white/35 tracking-[0.16em] uppercase leading-tight">
           MAPEADOS
@@ -276,8 +273,6 @@ function MobileStats() {
           1.789
         </span>
       </div>
-
-      {/* Confirm */}
       <div className="flex flex-col justify-center items-center px-3 py-3 border-l border-white/10 gap-1">
         <span className="text-[7px] font-mono text-white/35 tracking-[0.14em] uppercase">
           INDÍCIOS
@@ -366,13 +361,10 @@ function MobileHero() {
       className="md:hidden relative z-20 flex flex-col px-5 pb-5 gap-5"
       style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
     >
-      {/* Tag chip — small app-style label */}
+      {/* Live tag */}
       <div className="self-start flex items-center gap-2 border border-white/15 bg-black/55 px-2.5 py-1 rounded-full">
         <span className="h-1.5 w-1.5 rounded-full bg-[#00cc46] animate-pulse" />
-        <span
-          style={SYNE}
-          className="text-[9px] uppercase tracking-[0.22em] text-white/70"
-        >
+        <span style={SYNE} className="text-[9px] uppercase tracking-[0.22em] text-white/70">
           Auditoria ao vivo
         </span>
       </div>
@@ -389,15 +381,7 @@ function MobileHero() {
       >
         <span className="block">
           DIG <StyledDIG />
-          <sup
-            style={{
-              fontSize: "0.25em",
-              verticalAlign: "super",
-              fontWeight: 400,
-              letterSpacing: 0,
-              color: "rgba(255,255,255,0.35)",
-            }}
-          >
+          <sup style={{ fontSize: "0.25em", verticalAlign: "super", fontWeight: 400, letterSpacing: 0, color: "rgba(255,255,255,0.35)" }}>
             ®
           </sup>
         </span>
@@ -407,20 +391,15 @@ function MobileHero() {
         </span>
       </h1>
 
-      {/* Subtitle */}
       <p className="text-white/45 text-[13.5px] leading-relaxed max-w-[300px]">
         Analisamos documentos públicos com IA.
-        <br />
-        Indícios aparecem. Você age.
+        <br />Indícios aparecem. Você age.
       </p>
 
-      {/* Stats strip */}
       <MobileStats />
 
-      {/* Powered by Claude — subtle, full width */}
       <PoweredByClaude compact fullWidth />
 
-      {/* CTA — full-width, app-like primary action */}
       <a
         href="/explorar"
         style={{ ...SYNE, background: "#009C3B", letterSpacing: "0.20em" }}
