@@ -1,6 +1,6 @@
 import io
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 from app.services.pdf_service import extract_text_pdfplumber, normalize_text
 
 
@@ -44,3 +44,29 @@ def test_normalize_text_fixes_whitespace():
 def test_normalize_text_handles_empty():
     assert normalize_text("") == ""
     assert normalize_text("   ") == ""
+
+
+def test_extract_text_multi_page():
+    mock_page1 = MagicMock()
+    mock_page1.extract_text.return_value = "Página um"
+    mock_page2 = MagicMock()
+    mock_page2.extract_text.return_value = "Página dois"
+    mock_pdf = MagicMock()
+    mock_pdf.pages = [mock_page1, mock_page2]
+    mock_pdf.__enter__ = lambda s: s
+    mock_pdf.__exit__ = MagicMock(return_value=False)
+
+    with patch("app.services.pdf_service.pdfplumber.open", return_value=mock_pdf):
+        text, pages = extract_text_pdfplumber(b"fake-pdf-bytes")
+
+    assert "Página um" in text
+    assert "Página dois" in text
+    assert pages == 2
+
+
+def test_extract_text_corrupt_pdf_returns_empty():
+    with patch("app.services.pdf_service.pdfplumber.open", side_effect=Exception("corrupt")):
+        text, pages = extract_text_pdfplumber(b"bad-pdf-bytes")
+
+    assert text == ""
+    assert pages == 0

@@ -13,13 +13,16 @@ async def download_pdf(url: str, timeout: float = 30.0) -> bytes:
 
 
 def extract_text_pdfplumber(pdf_bytes: bytes) -> tuple[str, int]:
-    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-        pages = []
-        for page in pdf.pages:
-            text = page.extract_text() or ""
-            pages.append(text)
-        full_text = "\n\n".join(pages)
-        return normalize_text(full_text), len(pdf.pages)
+    try:
+        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+            pages = []
+            for page in pdf.pages:
+                text = page.extract_text() or ""
+                pages.append(text)
+            full_text = "\n\n".join(pages)
+            return normalize_text(full_text), len(pdf.pages)
+    except Exception:
+        return "", 0
 
 
 def normalize_text(text: str) -> str:
