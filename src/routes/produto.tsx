@@ -114,7 +114,7 @@ function Pipeline() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {etapas.map((e) => (
-          <div key={e.n} className="border border-white/10 bg-black/40 backdrop-blur-sm p-6 flex flex-col">
+          <div key={e.n} className="border border-white/10 bg-[#0d0f1a]/90 p-6 flex flex-col">
             <span style={{ ...SYNE }} className="text-[#F0C81E] text-[2rem] block mb-3">
               {e.n}
             </span>
@@ -383,7 +383,7 @@ function ChatDemo() {
         </h2>
       </div>
 
-      <div className="border border-white/10 bg-black/50 backdrop-blur-sm p-5 md:p-7">
+      <div className="border border-white/10 bg-[#0d0f1a]/90 p-5 md:p-7">
         {/* User msg */}
         <div className="flex gap-3 mb-5">
           <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">

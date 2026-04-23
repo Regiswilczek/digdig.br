@@ -128,7 +128,7 @@ function CampanhaCard({ campanha }: { campanha: Campanha }) {
 
   return (
     <div
-      className={`relative flex flex-col p-7 border backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] ${
+      className={`relative flex flex-col p-7 border bg-[#0d0f1a]/90 transition-all duration-300 hover:translate-y-[-2px] ${
         campanha.destaque
           ? "bg-white/[0.04] border-white/30"
           : "bg-black/40 border-white/10 hover:border-white/20"
@@ -338,21 +338,13 @@ function PatrocinePage() {
 
   return (
     <div className="relative min-h-screen bg-[#07080f] text-white overflow-x-hidden animate-fade-in">
-      {/* Brazil flag inspired backdrop */}
+      {/* Subtle single-layer backdrop (fixed, no scroll repaint) */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
+        className="pointer-events-none fixed inset-0 z-0"
         style={{
           background:
-            "radial-gradient(ellipse 80% 60% at 15% 10%, rgba(0,130,60,0.45), transparent 60%), radial-gradient(ellipse 70% 50% at 90% 25%, rgba(240,200,30,0.18), transparent 65%), radial-gradient(circle at 60% 90%, rgba(10,35,110,0.5), transparent 55%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(0deg, rgba(255,255,255,0.5) 0 1px, transparent 1px 4px)",
+            "radial-gradient(ellipse 60% 50% at 20% 10%, rgba(0,130,60,0.22), transparent 70%)",
         }}
       />
 

@@ -195,7 +195,7 @@ function SolucaoCard({ sol, index }: { sol: Solucao; index: number }) {
       </div>
 
       <div className="md:col-span-7 md:[direction:ltr]">
-        <div className="border border-white/10 bg-black/40 backdrop-blur-sm p-7 md:p-9">
+        <div className="border border-white/10 bg-[#0d0f1a]/90 p-7 md:p-9">
           <span style={{ ...SYNE, letterSpacing: "0.25em" }} className="text-[10px] uppercase text-white/40">
             O QUE VOCÊ GANHA
           </span>
