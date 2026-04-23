@@ -58,78 +58,67 @@ function ParticleField() {
 
       const STEP = 4;
       const PIX  = 3;
-      // Vortex eye — off-screen to the right so no visible center
-      const VX   = W * 0.78;
-      const VY   = H * 0.55;
-      const VSC  = Math.max(W, H) * 0.55;
+
+      // Brazil flag palette (deep, slightly desaturated for dark bg)
+      const BLUE   = [10,  35, 110];   // #0a236e
+      const GREEN  = [0,  130,  60];   // #00823c
+      const YELLOW = [240, 200,  30];  // #f0c81e
+
+      const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+      const mix = (c1: number[], c2: number[], t: number) => [
+        lerp(c1[0], c2[0], t),
+        lerp(c1[1], c2[1], t),
+        lerp(c1[2], c2[2], t),
+      ];
 
       for (let py = 0; py < H; py += STEP) {
         const ny = py / H;
-
         for (let px = 0; px < W; px += STEP) {
-          const nx  = px / W;
-          const dx  = px - VX;
-          const dy  = py - VY;
-          const dist = Math.sqrt(dx * dx + dy * dy) / VSC;
-          const vStr = Math.max(0, 1 - dist * 1.8);
+          const nx = px / W;
 
-          // Flowing wave field — covers the entire canvas seamlessly
-          const w1 = Math.sin(nx * 7.5 + ny * 3.2 + t * 0.40);
-          const w2 = Math.sin(nx * 2.4 - ny * 5.5 - t * 0.27);
-          const w3 = Math.cos(nx * 4.6 + ny * 2.1 + t * 0.22);
-          const raw = (w1 * 0.44 + w2 * 0.31 + w3 * 0.25) * 0.5 + 0.5;
-          const flowRidge = Math.pow(1 - Math.abs(2 * raw - 1), 2.2);
+          // Flowing wave field — smooth, full-screen, no center artefact
+          const w1 = Math.sin(nx * 4.2 + ny * 2.6 + t * 0.35);
+          const w2 = Math.sin(nx * 1.9 - ny * 3.4 - t * 0.22);
+          const w3 = Math.cos((nx + ny) * 3.1 + t * 0.18);
+          const raw = (w1 * 0.42 + w2 * 0.33 + w3 * 0.25) * 0.5 + 0.5;
 
-          const ang = Math.atan2(dy, dx);
-          const vRaw = Math.sin(dist * 28 + ang * 0.6 - t * 1.05) * 0.5 + 0.5;
-          const vortexRidge = Math.pow(1 - Math.abs(2 * vRaw - 1), 2.4);
+          // Ridge for dot density / brightness
+          const ridge = Math.pow(1 - Math.abs(2 * raw - 1), 1.8);
 
-          const brightness =
-            flowRidge * (1 - vStr * 0.75) + vortexRidge * vStr * 0.75;
+          const THRESH = 0.30;
+          if (ridge < THRESH) continue;
+          const norm = (ridge - THRESH) / (1 - THRESH);
 
-          const THRESH = 0.44;
-          if (brightness < THRESH) continue;
-          const norm = (brightness - THRESH) / (1 - THRESH);
+          // Diagonal flag-band coordinate (bottom-left → top-right)
+          // Slow drift over time so the flag "breathes"
+          const band = (nx * 0.55 + (1 - ny) * 0.45 + Math.sin(t * 0.12) * 0.04 + raw * 0.08) % 1;
 
-          // Brazil flag palette: deep blue → green → yellow
-          // Color zone driven by spatial position so bands feel like a flag
-          // unfurling across the page.
-          const zone = (nx * 0.55 + (1 - ny) * 0.45 + Math.sin(t * 0.15) * 0.05);
-
-          let r = 0, g = 0, b = 0;
-          if (zone < 0.38) {
-            // Deep navy blue (#002776 family)
-            const bl = zone / 0.38;
-            r = Math.round(0 + bl * 10);
-            g = Math.round(20 + bl * 50);
-            b = Math.round(110 + bl * 60);
-          } else if (zone < 0.72) {
-            // Green (#009C3B family)
-            const bl = (zone - 0.38) / 0.34;
-            r = Math.round(10 + bl * 20);
-            g = Math.round(70 + bl * 110);
-            b = Math.round(170 - bl * 110);
+          // 3 bands like a flag: green → yellow → blue, smooth transitions
+          let col: number[];
+          if (band < 0.40) {
+            const u = band / 0.40;            // green dominant, fading to yellow
+            col = mix(GREEN, YELLOW, Math.pow(u, 1.6));
+          } else if (band < 0.62) {
+            const u = (band - 0.40) / 0.22;   // yellow core
+            col = mix(YELLOW, mix(YELLOW, BLUE, 0.5), u);
           } else {
-            // Yellow (#FFDF00 family)
-            const bl = Math.min(1, (zone - 0.72) / 0.28);
-            r = Math.round(30 + bl * 225);
-            g = Math.round(180 + bl * 43);
-            b = Math.round(60 - bl * 60);
+            const u = (band - 0.62) / 0.38;   // blue
+            col = mix(mix(YELLOW, BLUE, 0.5), BLUE, Math.pow(u, 0.8));
           }
 
-          // Brightness modulation by ridge intensity
-          const intensity = 0.45 + norm * 0.55;
-          r = Math.round(r * intensity);
-          g = Math.round(g * intensity);
-          b = Math.round(b * intensity);
+          // Brightness modulation
+          const intensity = 0.40 + norm * 0.65;
+          const r = Math.min(255, Math.round(col[0] * intensity));
+          const g = Math.min(255, Math.round(col[1] * intensity));
+          const b = Math.min(255, Math.round(col[2] * intensity));
 
-          const alpha = Math.min(0.9, 0.4 + norm * 0.5);
+          const alpha = Math.min(0.85, 0.35 + norm * 0.50);
           ctx.fillStyle = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
           ctx.fillRect(px, py, PIX, PIX);
         }
       }
 
-      t += 0.013;
+      t += 0.012;
       raf = requestAnimationFrame(tick);
     }
 
