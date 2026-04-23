@@ -294,20 +294,96 @@ function MobileStats() {
 // ── Nav ───────────────────────────────────────────────────────────────────────
 
 function Nav() {
+  const [open, setOpen] = useState(false);
+
+  // Lock scroll when mobile menu is open
+  useEffect(() => {
+    if (open) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [open]);
+
+  const links = [
+    { to: "/produto", label: "Produto" },
+    { to: "/solucoes", label: "Soluções" },
+    { to: "/precos", label: "Preços" },
+    { to: "/patrocine", label: "Patrocine" },
+  ] as const;
+
   return (
     <nav className="relative z-30 flex items-center justify-between px-6 md:px-14 py-5 md:py-6">
-      <span style={{ ...SYNE, letterSpacing: "0.18em" }} className="text-white text-[12px] md:text-[13px] uppercase">
+      <Link to="/" style={{ ...SYNE, letterSpacing: "0.18em" }} className="text-white text-[12px] md:text-[13px] uppercase">
         DIG DIG
-      </span>
+      </Link>
       <div className="hidden md:flex items-center gap-8 text-[13px] text-white/50">
-        <Link to="/produto" className="hover:text-white transition-colors duration-200">Produto</Link>
-        <Link to="/solucoes" className="hover:text-white transition-colors duration-200">Soluções</Link>
-        <Link to="/precos" className="hover:text-white transition-colors duration-200">Preços</Link>
-        <Link to="/patrocine" className="hover:text-white transition-colors duration-200">Patrocine</Link>
+        {links.map((l) => (
+          <Link key={l.to} to={l.to} className="hover:text-white transition-colors duration-200">{l.label}</Link>
+        ))}
       </div>
-      <a href="/entrar" className="text-[12px] md:text-[13px] text-white/50 hover:text-white transition-colors duration-200">
+      <a href="/entrar" className="hidden md:inline text-[13px] text-white/50 hover:text-white transition-colors duration-200">
         Entrar
       </a>
+
+      {/* Mobile hamburger */}
+      <button
+        type="button"
+        aria-label="Abrir menu"
+        aria-expanded={open}
+        onClick={() => setOpen(true)}
+        className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/15 bg-black/40 text-white/80 active:scale-95 transition"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
+      {/* Mobile menu overlay */}
+      {open && (
+        <div className="md:hidden fixed inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
+          <div className="absolute inset-x-0 top-0 bg-[#0a0a0a] border-b border-white/10 px-6 pt-5 pb-8 flex flex-col">
+            <div className="flex items-center justify-between mb-8">
+              <span style={{ ...SYNE, letterSpacing: "0.18em" }} className="text-white text-[12px] uppercase">
+                DIG DIG
+              </span>
+              <button
+                type="button"
+                aria-label="Fechar menu"
+                onClick={() => setOpen(false)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/15 bg-white/5 text-white/80 active:scale-95 transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex flex-col">
+              {links.map((l) => (
+                <Link
+                  key={l.to}
+                  to={l.to}
+                  onClick={() => setOpen(false)}
+                  className="text-white text-[22px] font-medium py-4 border-b border-white/10"
+                  style={SYNE}
+                >
+                  {l.label}
+                </Link>
+              ))}
+              <a
+                href="/entrar"
+                onClick={() => setOpen(false)}
+                className="mt-6 inline-flex items-center justify-center h-12 rounded-md bg-white text-black text-[14px] font-semibold uppercase tracking-wider"
+                style={SYNE}
+              >
+                Entrar
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
