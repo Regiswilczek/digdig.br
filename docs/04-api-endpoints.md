@@ -767,14 +767,35 @@ POST /billing/portal
 
 ## 10. Admin (apenas usuários com role = admin)
 
-### Listar órgãos com detalhes internos
+> **Segurança:** As rotas de admin reais ficam em `/pnl/*` (prefixo obscurecido).
+> A rota `/admin/*` é um **honeypot** — qualquer acesso é logado como sinal de varredura ou ataque.
+> Autenticação via header `X-Admin-Secret`.
+
+### Honeypot (decoy)
 ```
-GET /admin/orgaos
+/* /admin/*  →  sempre retorna 404, mas loga IP + user-agent + path
 ```
 
-### Adicionar novo órgão
+### Disparar nova rodada de análise
 ```
-POST /admin/orgaos
+POST /pnl/orgaos/{slug}/rodadas
+```
+Header obrigatório: `X-Admin-Secret: <webhook_secret>`
+
+### Status de rodada
+```
+GET /pnl/rodadas/{rodada_id}
+```
+Header obrigatório: `X-Admin-Secret: <webhook_secret>`
+
+### Listar órgãos com detalhes internos (futuro)
+```
+GET /pnl/orgaos
+```
+
+### Adicionar novo órgão (futuro)
+```
+POST /pnl/orgaos
 ```
 **Body:**
 ```json
@@ -791,28 +812,9 @@ POST /admin/orgaos
 }
 ```
 
-### Disparar nova rodada de análise
+### Dashboard de custos (futuro)
 ```
-POST /admin/orgaos/{slug}/rodadas
-```
-**Body:**
-```json
-{
-  "modo": "completo|incremental",
-  "max_atos": null,
-  "forcar_reanalise": false
-}
-```
-
-### Status das rodadas
-```
-GET /admin/orgaos/{slug}/rodadas
-GET /admin/rodadas/{rodada_id}
-```
-
-### Dashboard de custos
-```
-GET /admin/custos
+GET /pnl/custos
 ```
 **Resposta:**
 ```json

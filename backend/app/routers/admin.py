@@ -8,7 +8,7 @@ from app.database import get_db
 from app.models.ato import RodadaAnalise
 from app.models.tenant import Tenant
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/pnl", tags=["admin"])
 
 
 def verify_admin_secret(request: Request) -> None:
@@ -46,7 +46,7 @@ async def iniciar_rodada(
         "rodada_id": str(rodada.id),
         "tenant": slug,
         "status": "iniciada",
-        "mensagem": "Pipeline iniciado. Acompanhe o status via GET /admin/rodadas/{rodada_id}",
+        "mensagem": "Pipeline iniciado. Acompanhe o status via GET /pnl/rodadas/{rodada_id}",
     }
 
 
