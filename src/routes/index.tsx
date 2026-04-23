@@ -237,6 +237,7 @@ function MobileBadge() {
         </span>
         <span className="text-[#00cc46] font-bold text-xl leading-none">✓</span>
       </div>
+      </div>
     </div>
   );
 }
