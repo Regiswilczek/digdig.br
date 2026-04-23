@@ -9,7 +9,7 @@ from app.config import settings
 from app.models.ato import Ato, ConteudoAto
 from app.models.analise import Analise, Irregularidade
 from app.models.pessoa import AparicaoPessoa, Pessoa
-from app.services.haiku_service import montar_system_prompt, NIVEIS_VALIDOS
+from app.services.haiku_service import NIVEIS_VALIDOS
 
 client = AsyncAnthropic()
 
@@ -103,10 +103,18 @@ async def _montar_contexto_enriquecido(
     )
     aparicoes = aparicoes_result.scalars().all()
 
+    pessoa_ids = [ap.pessoa_id for ap in aparicoes]
+    if pessoa_ids:
+        pessoas_result = await db.execute(
+            select(Pessoa).where(Pessoa.id.in_(pessoa_ids))
+        )
+        pessoas_by_id = {p.id: p for p in pessoas_result.scalars().all()}
+    else:
+        pessoas_by_id = {}
+
     historico_pessoas = []
     for ap in aparicoes:
-        pessoa_result = await db.execute(select(Pessoa).where(Pessoa.id == ap.pessoa_id))
-        pessoa = pessoa_result.scalar_one_or_none()
+        pessoa = pessoas_by_id.get(ap.pessoa_id)
         if pessoa:
             historico_pessoas.append({
                 "nome": pessoa.nome_normalizado,
@@ -135,7 +143,9 @@ async def analisar_ato_sonnet(
     Callers (Celery tasks) are responsible for retry with exponential backoff.
     """
     analise_result = await db.execute(select(Analise).where(Analise.ato_id == ato_id))
-    analise = analise_result.scalar_one()
+    analise = analise_result.scalar_one_or_none()
+    if analise is None:
+        raise ValueError(f"Analise not found for ato_id={ato_id} — Haiku must run first")
 
     ato_result = await db.execute(select(Ato).where(Ato.id == ato_id))
     ato = ato_result.scalar_one()
@@ -168,7 +178,6 @@ async def analisar_ato_sonnet(
     analise.status = "sonnet_completo"
     analise.nivel_alerta = resultado["nivel_alerta_confirmado"]
     analise.score_risco = resultado.get("score_risco_final", analise.score_risco)
-    analise.analisado_por_sonnet = True
     analise.resultado_sonnet = resultado
     analise.recomendacao_campanha = (
         resultado.get("ficha_denuncia", {}).get("recomendacao_campanha")
@@ -176,35 +185,38 @@ async def analisar_ato_sonnet(
     analise.tokens_sonnet = response.usage.input_tokens + response.usage.output_tokens
     analise.custo_usd = analise.custo_usd + Decimal(str(custo))
 
-    # Save Sonnet irregularidades
-    for indicio in resultado.get("analise_aprofundada", {}).get("indicios_legais", []):
-        irr = Irregularidade(
-            id=uuid.uuid4(),
-            analise_id=analise.id,
-            ato_id=ato_id,
-            tenant_id=ato.tenant_id,
-            categoria="legal",
-            tipo=indicio.get("tipo", "desconhecido"),
-            descricao=indicio.get("descricao", ""),
-            artigo_violado=indicio.get("artigo_violado"),
-            gravidade=indicio.get("gravidade", "alta"),
-        )
-        db.add(irr)
+    # Only save irregularidades once — guard against retry double-insertion
+    if not analise.analisado_por_sonnet:
+        for indicio in resultado.get("analise_aprofundada", {}).get("indicios_legais", []):
+            irr = Irregularidade(
+                id=uuid.uuid4(),
+                analise_id=analise.id,
+                ato_id=ato_id,
+                tenant_id=ato.tenant_id,
+                categoria="legal",
+                tipo=indicio.get("tipo", "desconhecido"),
+                descricao=indicio.get("descricao", ""),
+                artigo_violado=indicio.get("artigo_violado"),
+                gravidade=indicio.get("gravidade", "alta"),
+            )
+            db.add(irr)
 
-    for indicio in resultado.get("analise_aprofundada", {}).get("indicios_morais", []):
-        irr = Irregularidade(
-            id=uuid.uuid4(),
-            analise_id=analise.id,
-            ato_id=ato_id,
-            tenant_id=ato.tenant_id,
-            categoria="moral",
-            tipo=indicio.get("tipo", "desconhecido"),
-            descricao=indicio.get("descricao", ""),
-            artigo_violado=None,
-            gravidade=indicio.get("gravidade", "alta"),
-            impacto_politico=indicio.get("impacto_politico"),
-        )
-        db.add(irr)
+        for indicio in resultado.get("analise_aprofundada", {}).get("indicios_morais", []):
+            irr = Irregularidade(
+                id=uuid.uuid4(),
+                analise_id=analise.id,
+                ato_id=ato_id,
+                tenant_id=ato.tenant_id,
+                categoria="moral",
+                tipo=indicio.get("tipo", "desconhecido"),
+                descricao=indicio.get("descricao", ""),
+                artigo_violado=None,
+                gravidade=indicio.get("gravidade", "alta"),
+                impacto_politico=indicio.get("impacto_politico"),
+            )
+            db.add(irr)
+
+    analise.analisado_por_sonnet = True
 
     await db.commit()
     return analise
