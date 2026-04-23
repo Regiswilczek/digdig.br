@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routers import health, webhooks
+from app.routers.admin import router as admin_router
 
 
 def create_app() -> FastAPI:
@@ -25,11 +26,12 @@ def create_app() -> FastAPI:
         allow_origins=settings.allowed_origins_list,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
-        allow_headers=["Authorization", "Content-Type"],
+        allow_headers=["Authorization", "Content-Type", "X-Admin-Secret"],
     )
 
     app.include_router(health.router)
     app.include_router(webhooks.router, prefix="/webhooks")
+    app.include_router(admin_router)
 
     return app
 
