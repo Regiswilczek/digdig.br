@@ -44,3 +44,9 @@ def test_is_production():
     )
     assert prod.is_production is True
     assert Settings(environment="development").is_production is False
+
+
+def test_database_module_imports():
+    from app.database import engine, async_session_factory, get_db
+    assert engine is not None
+    assert async_session_factory is not None

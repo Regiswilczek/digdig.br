@@ -1,7 +1,7 @@
 fastapi==0.111.0
 uvicorn[standard]==0.30.1
-sqlalchemy[asyncio]==2.0.30
-asyncpg==0.29.0
+sqlalchemy[asyncio]==2.0.49
+asyncpg>=0.30.0
 alembic==1.13.1
 pydantic-settings==2.3.1
 PyJWT[crypto]==2.9.0
@@ -13,6 +13,6 @@ structlog==24.2.0
 pdfplumber==0.11.3
 anthropic==0.28.0
 ftfy==6.2.0
-rapidfuzz==3.9.3
+rapidfuzz>=3.9.6
 mercadopago==2.2.2
 resend==2.1.0
