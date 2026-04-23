@@ -4,19 +4,27 @@
 
 ---
 
-## Por que isso existe
+## A Ferramenta Que Eu Não Tinha
 
-Candidato a uma chapa de oposição no Conselho de Arquitetura e Urbanismo do Paraná, me deparei com um problema concreto: há anos de atos administrativos publicados no site do CAU/PR — portarias, deliberações, nomeações, exonerações, instaurações de comissões processantes — e nenhuma ferramenta que permitisse entender o que estava acontecendo dentro da gestão de forma rápida e sistemática.
+Antes de falar de código, preciso falar do trabalho manual que me ensinou por que essa ferramenta precisava existir.
 
-Você pode baixar cada PDF individualmente, ler um por um, tentar montar um mapa mental de quem nomeou quem, quando, por quanto tempo, se o prazo foi respeitado, se a comissão tinha a composição correta. Mas são quase 1.800 atos. Nenhum ser humano faz isso com eficiência.
+Passei um período da minha carreira como Assessor Parlamentar no gabinete de um vereador de Curitiba. Parte do trabalho era fiscalizar a prefeitura — não de forma genérica, mas ir fundo nos portais de transparência, cruzar dados, entender quem estava comprando o quê, de quem, por quanto.
 
-A ideia foi simples: e se um sistema fizesse isso automaticamente? Baixa todos os PDFs, lê o texto, analisa com inteligência artificial, classifica o nível de risco de cada ato, extrai os nomes das pessoas envolvidas, aponta as irregularidades — e ainda gera fichas de denúncia prontas para usar em entrevistas, redes sociais e processos.
+Foi nesse trabalho que encontrei o que ficou conhecido como o escândalo da água San Pelegrino: dinheiro público sendo gasto em água mineral de alto padrão para uso interno da administração municipal, de forma sistemática e sem justificativa em viagens e diarias. Não foi uma denúncia que caiu no meu colo — foi o resultado de dias vasculhando planilhas de licitação, notas de empenho, contratos, cruzando dados de fornecedores com CNPJs. Fiz isso manualmente, com o Portal da Transparência aberto em abas, uma planilha do lado e muita paciência.
+
+Denunciei. Funcionou. O escândalo repercutiu.
+
+Mas o processo me deixou com uma sensação permanente de ineficiência. Havia mais irregularidades ali — eu sabia disso — e a limitação não era a minha vontade de encontrá-las. Era a capacidade humana de processar volume de informação. Um analista humano consegue revisar dezenas de documentos por dia. Os órgãos públicos publicam centenas ou milhares por ano.
+
+Depois desse período, fui trabalhar no próprio CAU/PR — primeiro como Chefe de Gabinete, depois como Assessor Especial. Vi a instituição por dentro. Entendi como as decisões são tomadas, onde as atas são publicadas, quais atos têm ementa vaga, quais nomeações chegam por Ad Referendum sem deliberação do plenário. Aprendi a linguagem administrativa que disfarça escolhas políticas em atos burocráticos.
+
+Quando decidi construir o Dig Dig, sabia exatamente o que queria: uma ferramenta que fizesse automaticamente o que eu fiz manualmente na prefeitura de Curitiba. Que baixasse cada ato, lesse o texto, entendesse o contexto e me dissesse onde olhar com atenção.
 
 Foi assim que nasceu o **Dig Dig**.
 
 ---
 
-## O que existe para analisar
+## O Que Existe para Analisar
 
 O CAU/PR publica dois tipos principais de atos administrativos:
 
@@ -29,7 +37,7 @@ O primeiro passo foi coletar os metadados de todos esses atos — número, data,
 
 ---
 
-## A arquitetura que escolhemos
+## A Arquitetura Que Escolhemos
 
 Antes de escrever uma linha de código de produção, documentamos tudo: 15 documentos cobrindo banco de dados, API, frontend, segurança, testes, infraestrutura, prompts de IA, modelo de negócio.
 
@@ -43,11 +51,11 @@ O stack escolhido:
 
 A lógica do pipeline é em duas fases. O **Haiku** — modelo rápido e barato — analisa todos os atos e classifica em quatro níveis: verde (conforme), amarelo (suspeito), laranja (indício moderado-grave) e vermelho (indício crítico). O **Sonnet** entra só nos casos vermelho, gerando análise aprofundada, ficha de denúncia e mapeamento de pessoas.
 
-O custo estimado por rodada completa: algo em torno de R$50-60.
+O custo estimado por rodada completa: algo em torno de R$25-30.
 
 ---
 
-## Quando o mundo real bate na porta
+## Quando o Mundo Real Bate na Porta
 
 Teoria é teoria. Na prática, cada etapa trouxe um problema que não estava no planejamento.
 
@@ -57,13 +65,13 @@ Quando o worker Celery no Railway tentou baixar os PDFs, recebeu **403 Forbidden
 
 Tentamos adicionar headers de navegador (User-Agent, Referer, Accept) imitando o Chrome. Não adiantou. O bloqueio era por IP, não por fingerprint.
 
-A solução foi pragmática: **criar um script local** que roda na minha máquina, com IP brasileiro, e baixa os PDFs diretamente. O `scrape_local.py` faz exatamente isso — conecta direto no banco Supabase, pega a fila de atos pendentes, baixa com rate limit de 1,5 segundos entre requests (para não parecer um ataque), extrai o texto e salva. 553 portarias processadas em aproximadamente 45 minutos.
+A solução foi pragmática: **criar um script local** que roda na minha máquina, com IP brasileiro, e baixa os PDFs diretamente. O `scrape_local.py` faz exatamente isso — conecta direto no banco Supabase, pega a fila de atos pendentes, baixa com rate limit de 1,5 segundos entre requests (para não parecer um ataque), extrai o texto e salva. 400 portarias processadas em aproximadamente 45 minutos.
 
 ### Problema 2: Quase 30% das portarias são PDFs escaneados
 
 Ao rodar o scraper, 151 portarias voltaram com "texto vazio". Minha primeira hipótese foi problema de encoding ou de extração. Testei com pymupdf, com extração raw, com diferentes modos. Tudo zero caracteres.
 
-Aí veio o momento de entender o que estava acontecendo: abri um desses PDFs no navegador e vi o texto perfeitamente. Mas ao inspecionar a estrutura do arquivo, confirmamos: **o PDF é uma imagem**. Não tem camada de texto. O navegador renderiza a imagem e parece texto, mas não dá para selecionar, copiar ou extrair nada.
+Aí veio o momento de entender o que estava acontecendo: abri um desses PDFs no navegador e vi o texto perfeitamente. Mas ao inspecionar a estrutura do arquivo com pymupdf (`rawdict`), a resposta foi clara: 1 bloco de imagem, 0 blocos de texto. **O PDF é uma imagem.** Não tem camada de texto. O navegador renderiza a imagem e parece texto, mas não dá para selecionar, copiar ou extrair nada.
 
 Isso é característico de documentos mais antigos — portarias de 2018, 2019, 2020 eram digitalizadas em scanner e salvas como imagem dentro de um PDF. As portarias a partir de 2022 em diante foram geradas digitalmente e têm texto nativo.
 
@@ -122,9 +130,9 @@ Na prática, cada ato custa entre $0,008 (com cache quente) e $0,071 (cache frio
 
 ---
 
-## Onde estamos agora
+## Onde Estamos Agora
 
-Enquanto escrevo, o pipeline está rodando. 
+O pipeline está rodando.
 
 O worker Celery no Railway está analisando portaria por portaria: lê o texto, envia para o Haiku com o regimento interno cacheado como contexto, recebe o JSON com classificação, indícios e pessoas extraídas, salva tudo no banco.
 
@@ -137,7 +145,7 @@ O Haiku está processando do mais recente para o mais antigo, então os atos de 
 
 ---
 
-## O que ainda falta
+## O Que Ainda Falta
 
 1. **Deliberações via scraper HTML** — as 595 deliberações que existem só como HTML precisam de um scraper diferente
 2. **OCR nas portarias escaneadas** — as 151 portarias de 2018-2021 precisam de Tesseract para ter o texto extraído
@@ -147,7 +155,7 @@ O Haiku está processando do mais recente para o mais antigo, então os atos de 
 
 ---
 
-## O que aprendemos
+## O Que Aprendemos
 
 Construir uma ferramenta de auditoria pública com IA é tecnicamente possível e financeiramente viável. O custo de processar quase 400 documentos com leitura completa do regimento interno como contexto fica em torno de R$27.
 
@@ -155,7 +163,9 @@ O maior obstáculo não foi a tecnologia — foi a qualidade dos dados públicos
 
 A auditoria vai ter limitações de cobertura. Documentamos isso. Um relatório honesto sobre o que foi possível analisar e o que não foi é mais útil do que um relatório que finge ter analisado tudo.
 
-O próximo passo é terminar essa primeira rodada e ver o que o Haiku encontrou.
+E sobre o futuro: portarias e deliberações são só o começo. A mesma lógica se aplica a notas de diárias, aumentos de patrimônio de gestores, gastos públicos em compras diretas, aditivos contratuais. Tudo isso é público. Tudo isso é passível de análise automatizada. O que fazia falta era a ferramenta.
+
+Agora ela existe.
 
 ---
 
