@@ -492,7 +492,7 @@ function FeaturesGrid() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {features.map((f) => (
           <div key={f.titulo} className="border border-white/10 bg-black/40 p-6">
-            <span className="text-[1.8rem] block mb-3">{f.icon}</span>
+            <f.Icon className="!size-6 text-[#F0C81E] mb-4" strokeWidth={1.5} />
             <h3 style={SYNE} className="text-white text-[1.05rem] mb-2">
               {f.titulo}
             </h3>
