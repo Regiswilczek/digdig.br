@@ -362,46 +362,73 @@ function DesktopHero() {
 
 function MobileHero() {
   return (
-    <div className="md:hidden relative z-20 flex flex-col px-6 pb-6 gap-4" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
+    <div
+      className="md:hidden relative z-20 flex flex-col px-5 pb-5 gap-5"
+      style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
+    >
+      {/* Tag chip — small app-style label */}
+      <div className="self-start flex items-center gap-2 border border-white/15 bg-black/55 px-2.5 py-1 rounded-full">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#00cc46] animate-pulse" />
+        <span
+          style={SYNE}
+          className="text-[9px] uppercase tracking-[0.22em] text-white/70"
+        >
+          Auditoria ao vivo
+        </span>
+      </div>
+
       {/* Headline */}
       <h1
         style={{
           ...SYNE,
-          fontSize: "clamp(1.7rem, 7.8vw, 2.6rem)",
-          lineHeight: 0.90,
+          fontSize: "clamp(1.95rem, 9vw, 2.9rem)",
+          lineHeight: 0.92,
           letterSpacing: "-0.02em",
         }}
         className="text-white"
       >
         <span className="block">
           DIG <StyledDIG />
-          <sup style={{ fontSize: "0.25em", verticalAlign: "super", fontWeight: 400, letterSpacing: 0, color: "rgba(255,255,255,0.35)" }}>
+          <sup
+            style={{
+              fontSize: "0.25em",
+              verticalAlign: "super",
+              fontWeight: 400,
+              letterSpacing: 0,
+              color: "rgba(255,255,255,0.35)",
+            }}
+          >
             ®
           </sup>
         </span>
         <span className="block">Escavamos</span>
-        <span className="block" style={{ color: "rgba(255,255,255,0.52)" }}>
+        <span className="block" style={{ color: "rgba(255,255,255,0.5)" }}>
           os atos públicos.
         </span>
       </h1>
 
       {/* Subtitle */}
-      <p className="text-white/38 text-[13px] leading-relaxed max-w-[280px]">
+      <p className="text-white/45 text-[13.5px] leading-relaxed max-w-[300px]">
         Analisamos documentos públicos com IA.
-        <br />Indícios aparecem. Você age.
+        <br />
+        Indícios aparecem. Você age.
       </p>
 
-      {/* CTA */}
+      {/* Stats strip */}
+      <MobileStats />
+
+      {/* Powered by Claude — subtle, full width */}
+      <PoweredByClaude compact fullWidth />
+
+      {/* CTA — full-width, app-like primary action */}
       <a
         href="/explorar"
         style={{ ...SYNE, background: "#009C3B", letterSpacing: "0.20em" }}
-        className="self-start inline-block text-white text-[10px] uppercase px-6 py-[11px] hover:opacity-90 transition-opacity"
+        className="flex items-center justify-center gap-2 w-full text-white text-[11px] uppercase py-4 rounded-lg active:scale-[0.99] hover:opacity-90 transition-all"
       >
         EXPLORAR AUDITORIA
+        <span aria-hidden className="text-[14px]">→</span>
       </a>
-
-      {/* Badge — horizontal compact */}
-      <MobileBadge />
     </div>
   );
 }
