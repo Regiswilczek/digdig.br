@@ -299,9 +299,9 @@ function FichaDenuncia() {
             target="_blank"
             rel="noopener noreferrer"
             style={MONO}
-            className="text-[11.5px] text-white/45 hover:text-white/70 transition-colors break-all"
+            className="inline-flex items-center gap-1.5 text-[11.5px] text-white/45 hover:text-white/70 transition-colors break-all"
           >
-            ↗ PDF original no caupr.gov.br
+            <ArrowUpRight className="!size-3.5 shrink-0" /> PDF original no caupr.gov.br
           </a>
           <span style={{ ...SYNE, letterSpacing: "0.18em" }} className="text-[10px] uppercase text-white/40">
             Exportar PDF · CSV · JSON
