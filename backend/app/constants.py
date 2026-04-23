@@ -1,0 +1,16 @@
+PLANO_CIDADAO = "cidadao"
+PLANO_INVESTIGADOR = "investigador"
+PLANO_PROFISSIONAL = "profissional"
+PLANO_API_DADOS = "api_dados"
+
+PLANO_CHAT_LIMITES = {
+    PLANO_CIDADAO: 5,
+    PLANO_INVESTIGADOR: 200,
+    PLANO_PROFISSIONAL: 1000,
+    PLANO_API_DADOS: None,  # ilimitado
+}
+
+NIVEL_ALERTA_VERDE = "verde"
+NIVEL_ALERTA_AMARELO = "amarelo"
+NIVEL_ALERTA_LARANJA = "laranja"
+NIVEL_ALERTA_VERMELHO = "vermelho"
