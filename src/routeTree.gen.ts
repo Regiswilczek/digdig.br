@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PrecosRouteImport } from './routes/precos'
+import { Route as PatrocineRouteImport } from './routes/patrocine'
 import { Route as IndexRouteImport } from './routes/index'
 
 const PrecosRoute = PrecosRouteImport.update({
   id: '/precos',
   path: '/precos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatrocineRoute = PatrocineRouteImport.update({
+  id: '/patrocine',
+  path: '/patrocine',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,27 +31,31 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/precos'
+  fullPaths: '/' | '/patrocine' | '/precos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/precos'
-  id: '__root__' | '/' | '/precos'
+  to: '/' | '/patrocine' | '/precos'
+  id: '__root__' | '/' | '/patrocine' | '/precos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PatrocineRoute: typeof PatrocineRoute
   PrecosRoute: typeof PrecosRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/precos'
       fullPath: '/precos'
       preLoaderRoute: typeof PrecosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/patrocine': {
+      id: '/patrocine'
+      path: '/patrocine'
+      fullPath: '/patrocine'
+      preLoaderRoute: typeof PatrocineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PatrocineRoute: PatrocineRoute,
   PrecosRoute: PrecosRoute,
 }
 export const routeTree = rootRouteImport

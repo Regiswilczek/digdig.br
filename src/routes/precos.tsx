@@ -90,11 +90,11 @@ const PLANOS: Plano[] = [
     cta: "Falar com vendas",
     cor: "#a78bfa",
     features: [
-      "API REST completa",
-      "Webhooks para novos atos",
-      "Chat via API",
-      "5 assentos",
+      "API REST completa + webhooks",
+      "10.000 calls por mês",
+      "5 assentos com permissões",
       "SLA e suporte prioritário",
+      "Tudo do plano Profissional",
     ],
   },
 ];
@@ -113,7 +113,7 @@ function Nav() {
         <Link to="/" className="hover:text-white transition-colors">Produto</Link>
         <a href="#" className="hover:text-white transition-colors">Soluções</a>
         <Link to="/precos" className="text-white">Preços</Link>
-        <a href="#" className="hover:text-white transition-colors">Patrocine</a>
+        <Link to="/patrocine" className="hover:text-white transition-colors">Patrocine</Link>
       </div>
       <a
         href="/entrar"
