@@ -1,9 +1,13 @@
 -- ================================================================
 -- Dig Dig — Seed Knowledge Base: CAU/PR Regimento Interno
--- Run in Supabase SQL Editor after applying migrations and seed.sql
--- Replace the PLACEHOLDER text with the actual regimento content
--- Source: https://www.caupr.gov.br/regimento/ (6ª versão — DPOPR 0191-02/2025)
+-- Prefer running scripts/seed_regimento.py (extracts text automatically).
+-- This SQL is a fallback — paste the extracted text in place of PLACEHOLDER.
+-- Source: https://www.caupr.gov.br/wp-content/uploads/2026/03/Deliberacao-Ad-Referendum-09.2026-v.02-Com-Regimento.pdf
 -- ================================================================
+
+DELETE FROM knowledge_base
+WHERE tenant_id = (SELECT id FROM tenants WHERE slug = 'cau-pr')
+  AND tipo = 'regimento';
 
 INSERT INTO knowledge_base (
     id,
@@ -20,12 +24,11 @@ SELECT
     gen_random_uuid(),
     t.id,
     'regimento',
-    'Regimento Interno CAU/PR — 6ª versão (DPOPR 0191-02/2025)',
-    'PLACEHOLDER — substitua este texto pelo conteúdo completo do Regimento Interno do CAU/PR disponível em https://www.caupr.gov.br/regimento/',
+    'Regimento Interno CAU/PR — 6ª versão (DPOPR 0191-02/2025 com alterações Deliberação Ad Referendum nº 09/2026)',
+    'PLACEHOLDER — rode scripts/seed_regimento.py para preencher automaticamente',
     '6',
-    '2025-02-01',
-    'https://www.caupr.gov.br/regimento/',
+    '2026-03-01',
+    'https://www.caupr.gov.br/wp-content/uploads/2026/03/Deliberacao-Ad-Referendum-09.2026-v.02-Com-Regimento.pdf',
     NOW()
 FROM tenants t
-WHERE t.slug = 'cau-pr'
-ON CONFLICT DO NOTHING;
+WHERE t.slug = 'cau-pr';

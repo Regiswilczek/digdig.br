@@ -1,5 +1,6 @@
 import uuid
 import hmac
+from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -34,6 +35,7 @@ async def iniciar_rodada(
         id=uuid.uuid4(),
         tenant_id=tenant.id,
         status="pendente",
+        criado_em=datetime.now(timezone.utc),
     )
     db.add(rodada)
     await db.commit()
