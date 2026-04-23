@@ -525,7 +525,8 @@ function ProdutoPage() {
             className="text-white mt-4 text-[2.2rem] md:text-[4rem] leading-[0.92]"
           >
             A IA escava.<br />
-            <span className="text-white/55">Você conduz</span> a narrativa.
+            <span className="text-white/55">Você decide</span>&nbsp;<br />
+            o&nbsp;que fazer.
           </h1>
           <p className="text-white/55 text-[14px] md:text-[16px] mt-7 max-w-2xl mx-auto leading-relaxed">
             Veja como funciona o pipeline que processou{" "}
