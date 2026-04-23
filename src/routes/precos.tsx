@@ -253,52 +253,6 @@ function PrecosPage() {
           ))}
         </section>
 
-        {/* Add-ons */}
-        <section className="max-w-5xl mx-auto mt-20 md:mt-28">
-          <div className="text-center mb-10">
-            <span
-              style={{ ...SYNE, letterSpacing: "0.3em" }}
-              className="text-[10px] uppercase text-white/40"
-            >
-              SOB DEMANDA
-            </span>
-            <h2
-              style={{ ...SYNE, letterSpacing: "-0.01em" }}
-              className="text-white mt-3 text-[1.6rem] md:text-[2.2rem]"
-            >
-              Precisa de algo específico?
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="border border-white/10 bg-black/40 p-7">
-              <h3 style={SYNE} className="text-white text-[1.15rem] mb-2">
-                Análise de novo órgão
-              </h3>
-              <p className="text-white/55 text-[13px] leading-relaxed mb-4">
-                Você indica um órgão público, configuramos o scraper e
-                entregamos a auditoria completa em 5 a 7 dias.
-              </p>
-              <p className="text-[#F0C81E]" style={SYNE}>
-                R$ 1.500 <span className="text-white/40 text-[12px]">por órgão</span>
-              </p>
-            </div>
-
-            <div className="border border-white/10 bg-black/40 p-7">
-              <h3 style={SYNE} className="text-white text-[1.15rem] mb-2">
-                Relatório personalizado
-              </h3>
-              <p className="text-white/55 text-[13px] leading-relaxed mb-4">
-                Síntese executiva customizada por um analista humano com apoio
-                da IA. Pronto para imprensa ou denúncia formal.
-              </p>
-              <p className="text-[#F0C81E]" style={SYNE}>
-                R$ 500 – R$ 2.000
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* FAQ-ish closing */}
         <section className="max-w-3xl mx-auto mt-20 md:mt-28 text-center">
           <h2
