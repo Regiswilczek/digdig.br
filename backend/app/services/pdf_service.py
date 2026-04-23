@@ -10,8 +10,21 @@ logger = logging.getLogger(__name__)
 MAX_PDF_BYTES = 50 * 1024 * 1024  # 50 MB
 
 
+_BROWSER_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Referer": "https://www.caupr.gov.br/",
+    "Accept": "application/pdf,*/*",
+}
+
+
 async def download_pdf(url: str, timeout: float = 30.0) -> bytes:
-    async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+    async with httpx.AsyncClient(
+        timeout=timeout, follow_redirects=True, headers=_BROWSER_HEADERS
+    ) as client:
         response = await client.get(url)
         response.raise_for_status()
         if len(response.content) > MAX_PDF_BYTES:
