@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from sqlalchemy import String, Numeric, Boolean, Text, Integer
+from sqlalchemy import String, Numeric, Boolean, Text, Integer, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import Base, TimestampMixin
@@ -10,7 +10,8 @@ class Plano(Base, TimestampMixin):
     __tablename__ = "planos"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
+        server_default=text("gen_random_uuid()"),
     )
     nome: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     preco_mensal: Mapped[Decimal] = mapped_column(
