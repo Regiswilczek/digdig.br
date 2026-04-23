@@ -1,4 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  User,
+  AlertTriangle,
+  Network,
+  CalendarDays,
+  Bell,
+  BarChart3,
+  Plug,
+  Globe2,
+  ArrowUpRight,
+  ChevronRight,
+  Circle,
+} from "lucide-react";
 
 export const Route = createFileRoute("/produto")({
   head: () => ({
@@ -207,9 +220,9 @@ function FichaDenuncia() {
           <div>
             <span
               style={{ ...SYNE, letterSpacing: "0.22em" }}
-              className="text-[10px] uppercase px-2 py-1 bg-[#f97316]/15 text-[#fb923c] border border-[#f97316]/30"
+              className="inline-flex items-center gap-1.5 text-[10px] uppercase px-2 py-1 bg-[#f97316]/15 text-[#fb923c] border border-[#f97316]/30"
             >
-              ● LARANJA
+              <Circle className="!size-2 fill-current" /> LARANJA
             </span>
             <h3 style={SYNE} className="text-white text-[1.3rem] mt-3">
               Portaria nº 678 / 2026
@@ -239,14 +252,14 @@ function FichaDenuncia() {
             </span>
             <ul className="mt-2 space-y-2">
               <li className="text-[13px] text-white/85 flex items-start gap-2">
-                <span className="text-[#fb923c] mt-1">▸</span>
+                <ChevronRight className="!size-3.5 text-[#fb923c] mt-1 shrink-0" />
                 <span>
                   <strong className="text-white">Processo disciplinar:</strong> instauração
                   ou prorrogação de comissão processante
                 </span>
               </li>
               <li className="text-[13px] text-white/85 flex items-start gap-2">
-                <span className="text-[#fb923c] mt-1">▸</span>
+                <ChevronRight className="!size-3.5 text-[#fb923c] mt-1 shrink-0" />
                 <span>
                   <strong className="text-white">Prazo excessivo:</strong> comissão com
                   múltiplas prorrogações (3ª desde abril/2025)
@@ -286,9 +299,9 @@ function FichaDenuncia() {
             target="_blank"
             rel="noopener noreferrer"
             style={MONO}
-            className="text-[11.5px] text-white/45 hover:text-white/70 transition-colors break-all"
+            className="inline-flex items-center gap-1.5 text-[11.5px] text-white/45 hover:text-white/70 transition-colors break-all"
           >
-            ↗ PDF original no caupr.gov.br
+            <ArrowUpRight className="!size-3.5 shrink-0" /> PDF original no caupr.gov.br
           </a>
           <span style={{ ...SYNE, letterSpacing: "0.18em" }} className="text-[10px] uppercase text-white/40">
             Exportar PDF · CSV · JSON
@@ -338,7 +351,7 @@ function PadroesGlobais() {
 
       <div className="mt-8 border border-[#dc2626]/30 bg-[#dc2626]/5 p-6 md:p-7">
         <div className="flex items-start gap-3">
-          <span className="text-[#fb7185] text-[1.2rem] leading-none mt-0.5">⚠</span>
+          <AlertTriangle className="!size-5 text-[#fb7185] shrink-0 mt-0.5" />
           <div>
             <p style={{ ...SYNE, letterSpacing: "0.18em" }} className="text-[#fb7185] text-[10px] uppercase">
               ALERTA DE PADRÃO
@@ -373,8 +386,8 @@ function ChatDemo() {
       <div className="border border-white/10 bg-black/50 backdrop-blur-sm p-5 md:p-7">
         {/* User msg */}
         <div className="flex gap-3 mb-5">
-          <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-[11px] flex-shrink-0">
-            👤
+          <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+            <User className="!size-4 text-white/70" />
           </div>
           <div className="flex-1 bg-white/[0.03] border border-white/10 p-4">
             <p className="text-white/85 text-[13.5px]">
@@ -428,37 +441,37 @@ function ChatDemo() {
 function FeaturesGrid() {
   const features = [
     {
-      icon: "🕸",
+      Icon: Network,
       titulo: "Grafo de relacionamentos",
       texto:
         "Visualize quem nomeou quem, em que ato, e quantas vezes. Padrões de favorecimento aparecem na hora.",
     },
     {
-      icon: "📅",
+      Icon: CalendarDays,
       titulo: "Linha do tempo",
       texto:
         "Atos correlacionados em ordem cronológica. Veja o histórico de uma comissão processante do início ao fim.",
     },
     {
-      icon: "🔔",
+      Icon: Bell,
       titulo: "Alertas por email",
       texto:
         "Receba notificação quando um padrão novo for detectado, ou no digest semanal do seu órgão.",
     },
     {
-      icon: "📊",
+      Icon: BarChart3,
       titulo: "Exportação completa",
       texto:
         "Tudo em PDF, CSV ou JSON. Material pronto para a redação, petição inicial ou plenário.",
     },
     {
-      icon: "🔌",
+      Icon: Plug,
       titulo: "API REST",
       texto:
         "Plano API & Dados libera 10.000 chamadas/mês com webhooks de novos atos e alertas.",
     },
     {
-      icon: "🌎",
+      Icon: Globe2,
       titulo: "Multi-órgão",
       texto:
         "Comece com CAU/PR. Em breve: prefeituras, câmaras municipais, conselhos regionais de todo o Brasil.",
@@ -479,7 +492,7 @@ function FeaturesGrid() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {features.map((f) => (
           <div key={f.titulo} className="border border-white/10 bg-black/40 p-6">
-            <span className="text-[1.8rem] block mb-3">{f.icon}</span>
+            <f.Icon className="!size-6 text-[#F0C81E] mb-4" strokeWidth={1.5} />
             <h3 style={SYNE} className="text-white text-[1.05rem] mb-2">
               {f.titulo}
             </h3>
