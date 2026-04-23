@@ -50,3 +50,8 @@ def test_database_module_imports():
     from app.database import engine, async_session_factory, get_db
     assert engine is not None
     assert async_session_factory is not None
+
+
+def test_celery_app_creates():
+    from app.workers.celery_app import celery_app
+    assert celery_app.main == "digdig"
