@@ -203,7 +203,7 @@ function PlanCard({ plano }: { plano: Plano }) {
 
 function PrecosPage() {
   return (
-    <div className="relative min-h-screen bg-[#07080f] text-white overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#07080f] text-white overflow-x-hidden animate-fade-in">
       {/* Brazil flag inspired backdrop */}
       <div
         aria-hidden
