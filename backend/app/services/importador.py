@@ -1,0 +1,91 @@
+import json
+import uuid
+from datetime import datetime, date
+from pathlib import Path
+from typing import Optional
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from app.models.ato import Ato
+from app.models.tenant import Tenant
+
+# Paths relative to project root (where alembic runs from)
+PORTARIAS_JSON = Path("extracted/agente_auditoria_caupr/portarias_completo.json")
+DELIBERACOES_JSON = Path("extracted/agente_auditoria_caupr/deliberacoes_completo.json")
+
+
+def parse_data_publicacao(data_str: Optional[str]) -> Optional[date]:
+    if not data_str:
+        return None
+    try:
+        return datetime.strptime(data_str.strip(), "%d/%m/%Y").date()
+    except (ValueError, AttributeError):
+        return None
+
+
+def normalizar_tipo(fonte_tipo: str, subtipo: Optional[str]) -> str:
+    return fonte_tipo.lower().strip()
+
+
+async def importar_atos_cau_pr(db: AsyncSession) -> dict:
+    result = await db.execute(select(Tenant).where(Tenant.slug == "cau-pr"))
+    tenant = result.scalar_one()
+
+    fontes = [
+        (PORTARIAS_JSON, "portaria"),
+        (DELIBERACOES_JSON, "deliberacao"),
+    ]
+
+    total_importados = 0
+    total_existentes = 0
+    total_erros = 0
+
+    for json_path, tipo in fontes:
+        if not json_path.exists():
+            continue
+
+        with open(json_path, encoding="utf-8") as f:
+            atos_json = json.load(f)
+
+        for item in atos_json:
+            try:
+                numero = str(item.get("numero", "")).strip()
+                if not numero:
+                    continue
+
+                existing = await db.execute(
+                    select(Ato).where(
+                        Ato.tenant_id == tenant.id,
+                        Ato.numero == numero,
+                        Ato.tipo == tipo,
+                    )
+                )
+                if existing.scalar_one_or_none():
+                    total_existentes += 1
+                    continue
+
+                links_pdf = item.get("links_pdf") or []
+                url_pdf = links_pdf[0] if links_pdf else None
+
+                ato = Ato(
+                    id=uuid.uuid4(),
+                    tenant_id=tenant.id,
+                    numero=numero,
+                    tipo=tipo,
+                    titulo=item.get("titulo"),
+                    data_publicacao=parse_data_publicacao(item.get("data")),
+                    ementa=item.get("ementa"),
+                    url_pdf=url_pdf,
+                )
+                db.add(ato)
+                total_importados += 1
+
+            except Exception:
+                total_erros += 1
+                continue
+
+    await db.commit()
+    return {
+        "importados": total_importados,
+        "existentes": total_existentes,
+        "erros": total_erros,
+    }
