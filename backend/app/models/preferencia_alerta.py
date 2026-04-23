@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Boolean, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import String, Boolean, ForeignKey, DateTime, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from app.models.base import Base
@@ -16,5 +16,9 @@ class PreferenciaAlerta(Base):
     ativo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     niveis: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False, default=list)
     frequencia: Mapped[str] = mapped_column(String(20), nullable=False, default="imediato")
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    atualizado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )

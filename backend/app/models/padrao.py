@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, date
-from sqlalchemy import String, Text, ForeignKey, DateTime, Date
+from sqlalchemy import String, Text, ForeignKey, DateTime, Date, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from app.models.base import Base
@@ -21,4 +21,6 @@ class PadraoDetectado(Base):
     pessoas_envolvidas: Mapped[list[uuid.UUID] | None] = mapped_column(ARRAY(UUID(as_uuid=True)), nullable=True)
     periodo_inicio: Mapped[date | None] = mapped_column(Date, nullable=True)
     periodo_fim: Mapped[date | None] = mapped_column(Date, nullable=True)
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

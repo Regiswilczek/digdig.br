@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, date
 from decimal import Decimal
-from sqlalchemy import String, Boolean, Text, Integer, ForeignKey, DateTime, Date, Numeric, UniqueConstraint
+from sqlalchemy import String, Boolean, Text, Integer, ForeignKey, DateTime, Date, Numeric, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from app.models.base import Base
@@ -22,8 +22,12 @@ class Pessoa(Base):
     ultimo_ato_data: Mapped[date | None] = mapped_column(Date, nullable=True)
     score_concentracao: Mapped[int] = mapped_column(Integer, default=0)
     eh_suspeito: Mapped[bool] = mapped_column(Boolean, default=False)
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    atualizado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
 
     aparicoes: Mapped[list["AparicaoPessoa"]] = relationship(back_populates="pessoa")
 
@@ -38,7 +42,9 @@ class AparicaoPessoa(Base):
     tipo_aparicao: Mapped[str] = mapped_column(String(100), nullable=False)
     cargo: Mapped[str | None] = mapped_column(String(500), nullable=True)
     data_ato: Mapped[date | None] = mapped_column(Date, nullable=True)
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     pessoa: Mapped["Pessoa"] = relationship(back_populates="aparicoes")
     ato: Mapped["Ato"] = relationship(back_populates="aparicoes")
@@ -55,4 +61,6 @@ class RelacaoPessoa(Base):
     tipo_relacao: Mapped[str | None] = mapped_column(String(100), nullable=True)
     atos_em_comum: Mapped[int] = mapped_column(Integer, default=1)
     peso: Mapped[Decimal] = mapped_column(Numeric(5, 2), default=Decimal("1.0"))
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

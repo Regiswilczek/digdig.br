@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Boolean, ForeignKey, DateTime
+from sqlalchemy import String, Boolean, ForeignKey, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import Base, TimestampMixin
@@ -44,6 +44,9 @@ class Assinatura(Base):
     periodo_inicio: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     periodo_fim: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     cancelado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     user: Mapped["User"] = relationship(back_populates="assinaturas")
+    plano: Mapped["Plano"] = relationship()

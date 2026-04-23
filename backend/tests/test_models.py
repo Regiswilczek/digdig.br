@@ -41,3 +41,8 @@ def test_ato_unique_constraint():
     from app.models.ato import Ato
     col_sets = [frozenset(c.columns.keys()) for c in Ato.__table__.constraints]
     assert frozenset(["tenant_id", "numero", "tipo"]) in col_sets
+
+def test_votos_unique_constraint():
+    from app.models.patrocinio import VotoPatrocinio
+    col_sets = [frozenset(c.columns.keys()) for c in VotoPatrocinio.__table__.constraints]
+    assert frozenset(["user_id", "campanha_id", "mes_referencia"]) in col_sets

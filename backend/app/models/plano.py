@@ -3,10 +3,10 @@ from decimal import Decimal
 from sqlalchemy import String, Numeric, Boolean, Text, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
-from app.models.base import Base
+from app.models.base import Base, TimestampMixin
 
 
-class Plano(Base):
+class Plano(Base, TimestampMixin):
     __tablename__ = "planos"
 
     id: Mapped[uuid.UUID] = mapped_column(

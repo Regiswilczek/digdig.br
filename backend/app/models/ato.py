@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, date
 from decimal import Decimal
-from sqlalchemy import String, Boolean, Text, Integer, ForeignKey, DateTime, Date, Numeric, UniqueConstraint
+from sqlalchemy import String, Boolean, Text, Integer, ForeignKey, DateTime, Date, Numeric, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import Base
@@ -27,8 +27,12 @@ class Ato(Base):
     pdf_paginas: Mapped[int | None] = mapped_column(Integer, nullable=True)
     processado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     erro_download: Mapped[str | None] = mapped_column(Text, nullable=True)
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    atualizado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
 
     tenant: Mapped["Tenant"] = relationship(back_populates="atos")
     conteudo: Mapped["ConteudoAto | None"] = relationship(back_populates="ato", uselist=False)
@@ -44,7 +48,9 @@ class ConteudoAto(Base):
     metodo_extracao: Mapped[str] = mapped_column(String(50), nullable=False, default="pdfplumber")
     qualidade: Mapped[str | None] = mapped_column(String(20), default="boa")
     tokens_estimados: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     ato: Mapped["Ato"] = relationship(back_populates="conteudo")
 
@@ -65,4 +71,6 @@ class RodadaAnalise(Base):
     erro_mensagem: Mapped[str | None] = mapped_column(Text, nullable=True)
     iniciado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     concluido_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

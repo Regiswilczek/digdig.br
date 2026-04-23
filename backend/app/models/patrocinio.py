@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import String, Boolean, Text, Integer, ForeignKey, DateTime, Numeric, CheckConstraint
+from sqlalchemy import String, Boolean, Text, Integer, ForeignKey, DateTime, Numeric, CheckConstraint, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import Base
@@ -9,6 +9,12 @@ from app.models.base import Base
 
 class CampanhaPatrocinio(Base):
     __tablename__ = "campanhas_patrocinio"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('ativa', 'concluida', 'cancelada', 'em_analise')",
+            name="ck_campanhas_status"
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     nome_orgao: Mapped[str] = mapped_column(Text, nullable=False)
@@ -23,8 +29,12 @@ class CampanhaPatrocinio(Base):
     proposta_por: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     tenant_id_gerado: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="SET NULL"), nullable=True)
     prazo_expiracao: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
 
     doacoes: Mapped[list["DoacaoPatrocinio"]] = relationship(back_populates="campanha")
     votos: Mapped[list["VotoPatrocinio"]] = relationship(back_populates="campanha")
@@ -32,6 +42,13 @@ class CampanhaPatrocinio(Base):
 
 class DoacaoPatrocinio(Base):
     __tablename__ = "doacoes_patrocinio"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pendente', 'confirmada', 'estornada', 'falhou')",
+            name="ck_doacoes_status"
+        ),
+        CheckConstraint("valor >= 25.00", name="ck_doacoes_valor_min"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     campanha_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("campanhas_patrocinio.id", ondelete="CASCADE"), nullable=False)
@@ -44,18 +61,23 @@ class DoacaoPatrocinio(Base):
     votos_concedidos: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     acesso_antecipado_concedido: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     acesso_antecipado_ate: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     campanha: Mapped["CampanhaPatrocinio"] = relationship(back_populates="doacoes")
 
 
 class VotoPatrocinio(Base):
     __tablename__ = "votos_patrocinio"
+    __table_args__ = (UniqueConstraint("user_id", "campanha_id", "mes_referencia"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     campanha_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("campanhas_patrocinio.id", ondelete="CASCADE"), nullable=False)
     mes_referencia: Mapped[str] = mapped_column(String(7), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     campanha: Mapped["CampanhaPatrocinio"] = relationship(back_populates="votos")

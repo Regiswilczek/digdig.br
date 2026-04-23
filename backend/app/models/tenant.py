@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, date
-from sqlalchemy import String, Boolean, Text, Integer, ForeignKey, CHAR, DateTime, Date
+from sqlalchemy import String, Boolean, Text, Integer, ForeignKey, CHAR, DateTime, Date, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
 from app.models.base import Base, TimestampMixin
@@ -40,7 +40,9 @@ class UserTenantAcesso(Base):
     tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), primary_key=True
     )
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     user: Mapped["User"] = relationship(back_populates="acessos_tenant")
     tenant: Mapped["Tenant"] = relationship(back_populates="acessos_usuario")
@@ -61,7 +63,9 @@ class KnowledgeBase(Base):
     versao: Mapped[str | None] = mapped_column(String(50), nullable=True)
     vigente_desde: Mapped[date | None] = mapped_column(Date, nullable=True)
     url_original: Mapped[str | None] = mapped_column(Text, nullable=True)
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     tenant: Mapped["Tenant"] = relationship(back_populates="knowledge_base")
 
@@ -81,6 +85,8 @@ class TenantRegra(Base):
     palavras_chave: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True)
     peso: Mapped[int] = mapped_column(Integer, default=1)
     ativo: Mapped[bool] = mapped_column(Boolean, default=True)
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     tenant: Mapped["Tenant"] = relationship(back_populates="regras")
