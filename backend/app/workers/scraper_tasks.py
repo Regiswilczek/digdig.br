@@ -84,14 +84,19 @@ async def _scrape_ato(ato_id_str: str, rodada_id_str: str) -> dict:
             raise
 
 
-@celery_app.task(queue="scraper", name="scraper.scrape_lote")
-def scrape_lote_task(ato_ids: list[str], rodada_id: str) -> dict:
+async def scrape_lote_async(ato_ids: list[str], rodada_id: str) -> dict:
+    """Direct async version — used by orquestrador to avoid nested asyncio.run()."""
     results = {"ok": 0, "erro": 0, "existente": 0}
     for ato_id in ato_ids:
         try:
-            result = scrape_ato_task.apply(args=[ato_id, rodada_id]).result
+            result = await _scrape_ato(ato_id, rodada_id)
             status = result.get("status", "erro")
             results[status] = results.get(status, 0) + 1
         except Exception:
             results["erro"] += 1
     return results
+
+
+@celery_app.task(queue="scraper", name="scraper.scrape_lote")
+def scrape_lote_task(ato_ids: list[str], rodada_id: str) -> dict:
+    return asyncio.run(scrape_lote_async(ato_ids, rodada_id))

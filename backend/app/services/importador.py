@@ -11,9 +11,10 @@ from app.models.tenant import Tenant
 
 logger = logging.getLogger(__name__)
 
-# Paths relative to project root (where alembic runs from)
-PORTARIAS_JSON = Path("extracted/agente_auditoria_caupr/portarias_completo.json")
-DELIBERACOES_JSON = Path("extracted/agente_auditoria_caupr/deliberacoes_completo.json")
+# importador.py lives at backend/app/services/ → project root is 4 levels up
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+PORTARIAS_JSON = _PROJECT_ROOT / "extracted" / "agente_auditoria_caupr" / "portarias_completo.json"
+DELIBERACOES_JSON = _PROJECT_ROOT / "extracted" / "agente_auditoria_caupr" / "deliberacoes_completo.json"
 
 
 def parse_data_publicacao(data_str: Optional[str]) -> Optional[date]:

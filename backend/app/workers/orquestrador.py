@@ -7,8 +7,8 @@ from app.database import async_session_factory
 from app.models.ato import Ato, RodadaAnalise
 from app.models.tenant import Tenant
 from app.services.importador import importar_atos_cau_pr
-from app.workers.scraper_tasks import scrape_lote_task
-from app.workers.analise_tasks import analisar_lote_haiku_task, analisar_criticos_sonnet_task
+from app.workers.scraper_tasks import scrape_lote_async
+from app.workers.analise_tasks import _analisar_lote_haiku, _analisar_criticos_sonnet
 
 LOTE_SIZE = 50
 
@@ -59,10 +59,10 @@ async def _iniciar_rodada(rodada_id_str: str, tenant_slug: str) -> dict:
             )
             await db.commit()
 
-            # Step 3: Scrape PDFs in batches
+            # Step 3: Scrape PDFs in batches (direct async — no nested asyncio.run)
             for i in range(0, len(ato_ids), LOTE_SIZE):
                 lote = ato_ids[i:i + LOTE_SIZE]
-                scrape_lote_task.apply(args=[lote, rodada_id_str])
+                await scrape_lote_async(lote, rodada_id_str)
 
             # Step 4: Haiku analysis — all acts with text
             atos_com_texto_result = await db.execute(
@@ -77,14 +77,10 @@ async def _iniciar_rodada(rodada_id_str: str, tenant_slug: str) -> dict:
 
             for i in range(0, len(ids_para_haiku), LOTE_SIZE):
                 lote = ids_para_haiku[i:i + LOTE_SIZE]
-                analisar_lote_haiku_task.apply(
-                    args=[lote, rodada_id_str, str(tenant.id)]
-                )
+                await _analisar_lote_haiku(lote, rodada_id_str, str(tenant.id))
 
             # Step 5: Sonnet on critical acts
-            analisar_criticos_sonnet_task.apply(
-                args=[rodada_id_str, str(tenant.id)]
-            )
+            await _analisar_criticos_sonnet(rodada_id_str, str(tenant.id))
 
             await db.execute(
                 update(RodadaAnalise)
