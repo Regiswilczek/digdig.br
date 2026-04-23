@@ -32,6 +32,11 @@ function ParticleField() {
     const wrap = wrapRef.current;
     if (!wrap || typeof window === "undefined") return;
 
+    // Respect reduced-motion preference: render a single static frame and stop.
+    const reducedMotion =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     const cv = document.createElement("canvas");
     cv.setAttribute("aria-hidden", "true");
     cv.style.cssText =
@@ -42,22 +47,24 @@ function ParticleField() {
     let t = 0;
     let raf = 0;
     let alive = true;
+    let visible = true;       // viewport visibility
+    let tabVisible = !document.hidden;
+    let lastFrame = 0;
+    const FRAME_MS = 1000 / 30; // cap at 30fps
 
     function resize() {
       cv.width  = wrap!.clientWidth  || window.innerWidth;
       cv.height = wrap!.clientHeight || window.innerHeight;
     }
 
-    function tick() {
-      if (!alive) return;
-
+    function drawFrame() {
       const W = cv.width;
       const H = cv.height;
-      if (W < 2 || H < 2) { raf = requestAnimationFrame(tick); return; }
+      if (W < 2 || H < 2) return;
 
       ctx.clearRect(0, 0, W, H);
 
-      const STEP = 4;
+      const STEP = 6;
       const PIX  = 3;
 
       // Brazil flag palette (deep, slightly desaturated for dark bg)
@@ -118,19 +125,62 @@ function ParticleField() {
           ctx.fillRect(px, py, PIX, PIX);
         }
       }
+    }
 
-      t += 0.012;
+    function tick(now: number) {
+      if (!alive) return;
+      if (!visible || !tabVisible) {
+        // Don't schedule next frame; we'll resume via observers/listeners.
+        return;
+      }
+      if (now - lastFrame >= FRAME_MS) {
+        lastFrame = now;
+        drawFrame();
+        t += 0.024;
+      }
       raf = requestAnimationFrame(tick);
+    }
+
+    function start() {
+      if (!alive || reducedMotion) return;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(tick);
+    }
+
+    function onVisibility() {
+      tabVisible = !document.hidden;
+      if (tabVisible) start();
+      else cancelAnimationFrame(raf);
     }
 
     resize();
     window.addEventListener("resize", resize);
-    raf = requestAnimationFrame(tick);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    // Pause when off-screen
+    const io = new IntersectionObserver(
+      (entries) => {
+        visible = entries[0]?.isIntersecting ?? true;
+        if (visible) start();
+        else cancelAnimationFrame(raf);
+      },
+      { threshold: 0.01 }
+    );
+    io.observe(wrap);
+
+    if (reducedMotion) {
+      // Single static frame
+      drawFrame();
+    } else {
+      start();
+    }
 
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", onVisibility);
+      io.disconnect();
       cv.remove();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
