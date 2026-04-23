@@ -69,8 +69,7 @@ function Pipeline() {
     {
       n: "02",
       titulo: "Extração",
-      texto:
-        "pdfplumber extrai o texto integral; Tesseract OCR cobre PDFs escaneados. Tudo vai para banco indexado.",
+      texto: "Análise",
       detalhe: "10/10 PDFs do CAU/PR extraídos sem fallback OCR",
     },
     {
