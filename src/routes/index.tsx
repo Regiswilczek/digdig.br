@@ -23,6 +23,15 @@ const SCANLINE: React.CSSProperties = {
   backgroundClip: "text",
 };
 
+// Mobile variant — fewer, thicker stripes for better legibility on small screens
+const SCANLINE_MOBILE: React.CSSProperties = {
+  backgroundImage:
+    "repeating-linear-gradient(180deg,rgba(255,255,255,.95) 0,rgba(255,255,255,.95) 2.5px,transparent 2.5px,transparent 14px)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  backgroundClip: "text",
+};
+
 // ── Terrain canvas ────────────────────────────────────────────────────────────
 // Imperative canvas — created outside React reconciler to avoid SSR/Strict Mode.
 
@@ -193,8 +202,8 @@ function ParticleField() {
 // ── Shared headline word ──────────────────────────────────────────────────────
 
 // The second "DIG" with the scanline stripe effect
-function StyledDIG() {
-  return <span style={SCANLINE}>DIG</span>;
+function StyledDIG({ mobile = false }: { mobile?: boolean }) {
+  return <span style={mobile ? SCANLINE_MOBILE : SCANLINE}>DIG</span>;
 }
 
 // ── Desktop badge ─────────────────────────────────────────────────────────────
@@ -464,7 +473,7 @@ function MobileHero() {
         className="text-white"
       >
         <span className="block">
-          DIG <StyledDIG />
+          DIG <StyledDIG mobile />
           <sup style={{ fontSize: "0.25em", verticalAlign: "super", fontWeight: 400, letterSpacing: 0, color: "rgba(255,255,255,0.35)" }}>
             ®
           </sup>
