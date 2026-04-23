@@ -252,40 +252,32 @@ function DesktopBadge() {
   );
 }
 
-// ── Mobile badge — compact horizontal strip ───────────────────────────────────
+// ── Mobile stats — refined strip ──────────────────────────────────────────────
 
-function MobileBadge() {
+function MobileStats() {
   return (
-    <div className="flex flex-col gap-1.5 select-none">
-      <PoweredByClaude compact />
-    <div className="flex border border-white/20 bg-black/60 backdrop-blur-sm select-none">
-      {/* Alert level */}
-      <div className="flex flex-col justify-center px-3 py-2.5 border-r border-white/10 flex-shrink-0">
-        <span className="text-[8px] font-mono text-yellow-300 tracking-[0.18em] uppercase leading-[1.6]">
+    <div className="grid grid-cols-3 border border-white/10 bg-black/55 select-none rounded-lg overflow-hidden">
+      <div className="flex flex-col justify-center px-3 py-3 border-r border-white/10">
+        <span className="text-[8px] font-mono text-yellow-300 tracking-[0.18em] uppercase leading-tight">
           ↑↑ ELEVADO
         </span>
-        <span className="text-[8px] font-mono text-white/35 tracking-[0.14em] uppercase leading-[1.6]">
+        <span className="text-[8px] font-mono text-white/35 tracking-[0.14em] uppercase leading-tight mt-0.5">
           ALERTA
         </span>
       </div>
-
-      {/* Count */}
-      <div className="flex flex-col justify-center px-3 py-2.5 flex-1 min-w-0">
-        <span className="text-[8px] font-mono text-white/35 tracking-[0.18em] uppercase leading-[1.4]">
-          ATOS MAPEADOS:
+      <div className="flex flex-col justify-center px-3 py-3">
+        <span className="text-[8px] font-mono text-white/35 tracking-[0.16em] uppercase leading-tight">
+          MAPEADOS
         </span>
-        <span className="text-[1.65rem] font-bold text-white tabular-nums leading-none">
+        <span className="text-[1.5rem] font-bold text-white tabular-nums leading-none mt-0.5">
           1.789
         </span>
       </div>
-
-      {/* Confirm */}
-      <div className="flex flex-col justify-center items-center px-3 py-2.5 border-l border-white/10 flex-shrink-0 gap-0.5">
-        <span className="text-[7px] font-mono text-white/35 tracking-[0.12em] uppercase text-center leading-[1.4]">
+      <div className="flex flex-col justify-center items-center px-3 py-3 border-l border-white/10 gap-1">
+        <span className="text-[7px] font-mono text-white/35 tracking-[0.14em] uppercase">
           INDÍCIOS
         </span>
-        <span className="text-[#00cc46] font-bold text-xl leading-none">✓</span>
-      </div>
+        <span className="text-[#00cc46] font-bold text-lg leading-none">✓</span>
       </div>
     </div>
   );
