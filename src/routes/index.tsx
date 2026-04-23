@@ -23,10 +23,10 @@ const SCANLINE: React.CSSProperties = {
   backgroundClip: "text",
 };
 
-// Mobile variant — fewer, thicker stripes for better legibility on small screens
+// Mobile variant — just 2 thick horizontal bars for max legibility on small screens
 const SCANLINE_MOBILE: React.CSSProperties = {
   backgroundImage:
-    "repeating-linear-gradient(180deg,rgba(255,255,255,.95) 0,rgba(255,255,255,.95) 2.5px,transparent 2.5px,transparent 14px)",
+    "linear-gradient(180deg, rgba(255,255,255,.95) 0%, rgba(255,255,255,.95) 28%, transparent 28%, transparent 44%, rgba(255,255,255,.95) 44%, rgba(255,255,255,.95) 72%, transparent 72%, transparent 88%, rgba(255,255,255,.95) 88%, rgba(255,255,255,.95) 100%)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
   backgroundClip: "text",
