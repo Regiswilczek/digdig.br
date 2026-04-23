@@ -16,6 +16,12 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 PORTARIAS_JSON = _PROJECT_ROOT / "extracted" / "agente_auditoria_caupr" / "portarias_completo.json"
 DELIBERACOES_JSON = _PROJECT_ROOT / "extracted" / "agente_auditoria_caupr" / "deliberacoes_completo.json"
 
+logger.info("importador_paths", extra={
+    "project_root": str(_PROJECT_ROOT),
+    "portarias_exists": PORTARIAS_JSON.exists(),
+    "deliberacoes_exists": DELIBERACOES_JSON.exists(),
+})
+
 
 def parse_data_publicacao(data_str: Optional[str]) -> Optional[date]:
     if not data_str:
