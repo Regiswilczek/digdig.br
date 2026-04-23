@@ -39,6 +39,7 @@ build/
 # OS / Editor
 .vscode/*
 !.vscode/extensions.json
+.claude/
 .idea
 .DS_Store
 Thumbs.db
