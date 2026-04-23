@@ -1,7 +1,6 @@
 import uuid
 import asyncio
 from anthropic import RateLimitError, APIError
-from celery import shared_task
 from sqlalchemy import select, update
 from app.workers.celery_app import celery_app
 from app.database import async_session_factory
@@ -43,6 +42,8 @@ async def _analisar_lote_haiku(
                 )
                 await db.commit()
                 results["ok"] += 1
+            except (RateLimitError, APIError):
+                raise  # bubble up to task wrapper for retry
             except Exception:
                 results["erro"] += 1
                 continue
@@ -90,6 +91,8 @@ async def _analisar_criticos_sonnet(rodada_id_str: str, tenant_id_str: str) -> d
                 )
                 await db.commit()
                 results["ok"] += 1
+            except (RateLimitError, APIError):
+                raise
             except Exception:
                 results["erro"] += 1
                 continue

@@ -5,7 +5,11 @@ celery_app = Celery(
     "digdig",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=[],
+    include=[
+        "app.workers.scraper_tasks",
+        "app.workers.analise_tasks",
+        "app.workers.orquestrador",
+    ],
 )
 
 celery_app.conf.update(
@@ -18,9 +22,8 @@ celery_app.conf.update(
     task_acks_late=True,
     worker_prefetch_multiplier=1,
     task_routes={
-        "app.workers.tasks_scraper.*": {"queue": "scraper"},
-        "app.workers.tasks_analise.*": {"queue": "analise"},
-        "app.workers.tasks_relatorio.*": {"queue": "relatorio"},
-        "app.workers.tasks_alertas.*": {"queue": "alertas"},
+        "scraper.*": {"queue": "scraper"},
+        "analise.*": {"queue": "analise"},
+        "orquestrador.*": {"queue": "analise"},
     },
 )

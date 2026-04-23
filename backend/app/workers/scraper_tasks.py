@@ -1,6 +1,5 @@
 import uuid
 import asyncio
-from celery import shared_task
 from sqlalchemy import select, update
 from app.workers.celery_app import celery_app
 from app.database import async_session_factory
@@ -10,7 +9,10 @@ from app.services.pdf_service import download_pdf, extract_text_pdfplumber, esti
 
 @celery_app.task(bind=True, max_retries=3, queue="scraper", name="scraper.scrape_ato")
 def scrape_ato_task(self, ato_id: str, rodada_id: str) -> dict:
-    return asyncio.run(_scrape_ato(ato_id, rodada_id))
+    try:
+        return asyncio.run(_scrape_ato(ato_id, rodada_id))
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=(2 ** self.request.retries) * 5)
 
 
 async def _scrape_ato(ato_id_str: str, rodada_id_str: str) -> dict:
@@ -79,7 +81,7 @@ async def _scrape_ato(ato_id_str: str, rodada_id_str: str) -> dict:
                 update(Ato).where(Ato.id == ato_id).values(erro_download=str(exc)[:500])
             )
             await db.commit()
-            raise self.retry(exc=exc, countdown=(2 ** self.request.retries) * 5)
+            raise
 
 
 @celery_app.task(queue="scraper", name="scraper.scrape_lote")
@@ -87,7 +89,7 @@ def scrape_lote_task(ato_ids: list[str], rodada_id: str) -> dict:
     results = {"ok": 0, "erro": 0, "existente": 0}
     for ato_id in ato_ids:
         try:
-            result = scrape_ato_task.apply(args=[ato_id, rodada_id]).get(timeout=60)
+            result = scrape_ato_task.apply(args=[ato_id, rodada_id]).result
             status = result.get("status", "erro")
             results[status] = results.get(status, 0) + 1
         except Exception:
