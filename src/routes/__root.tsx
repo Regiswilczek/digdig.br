@@ -29,14 +29,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "DIG DIG" },
+      { name: "description", content: "Escavamos, você decide." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "DIG DIG" },
+      { property: "og:description", content: "Escavamos, você decide." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "DIG DIG" },
+      { name: "twitter:description", content: "Escavamos, você decide." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/754cbec8-ca0d-4ed4-b367-a3046640a40f/id-preview-1bdea40b--de6bb1c6-fce9-4fcc-8b70-897478281149.lovable.app-1776959650781.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/754cbec8-ca0d-4ed4-b367-a3046640a40f/id-preview-1bdea40b--de6bb1c6-fce9-4fcc-8b70-897478281149.lovable.app-1776959650781.png" },
     ],
     links: [
       {
