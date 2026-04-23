@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import claudeLogo from "@/assets/claude-logo.png";
 
@@ -250,9 +250,10 @@ function Nav() {
         DIG DIG
       </span>
       <div className="hidden md:flex items-center gap-8 text-[13px] text-white/50">
-        {["Produto", "Soluções", "Preços", "Patrocine"].map((l) => (
-          <a key={l} href="#" className="hover:text-white transition-colors duration-200">{l}</a>
-        ))}
+        <a href="#" className="hover:text-white transition-colors duration-200">Produto</a>
+        <a href="#" className="hover:text-white transition-colors duration-200">Soluções</a>
+        <Link to="/precos" className="hover:text-white transition-colors duration-200">Preços</Link>
+        <a href="#" className="hover:text-white transition-colors duration-200">Patrocine</a>
       </div>
       <a href="/entrar" className="text-[12px] md:text-[13px] text-white/50 hover:text-white transition-colors duration-200">
         Entrar
