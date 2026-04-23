@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
+import claudeLogo from "@/assets/claude-logo.png";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -147,9 +148,34 @@ function StyledDIG() {
 
 // ── Desktop badge ─────────────────────────────────────────────────────────────
 
+function PoweredByClaude({ compact = false }: { compact?: boolean }) {
+  return (
+    <div
+      className={`flex items-center gap-2 border border-white/15 bg-black/55 backdrop-blur-sm select-none ${
+        compact ? "px-2.5 py-1.5" : "px-3 py-2"
+      }`}
+    >
+      <span
+        style={SYNE}
+        className={`text-white/45 uppercase tracking-[0.22em] ${compact ? "text-[7px]" : "text-[8px]"}`}
+      >
+        Cérebro
+      </span>
+      <span className={`bg-white/15 ${compact ? "h-2.5 w-px" : "h-3 w-px"}`} />
+      <img
+        src={claudeLogo}
+        alt="Claude"
+        className={compact ? "h-2.5 w-auto" : "h-3 w-auto"}
+        style={{ filter: "brightness(0) invert(1)" }}
+      />
+    </div>
+  );
+}
+
 function DesktopBadge() {
   return (
     <div className="flex flex-col gap-[3px] select-none flex-shrink-0">
+      <PoweredByClaude />
       <div className="border border-white/20 bg-black/55 backdrop-blur-sm px-3 py-[7px]">
         <p style={SYNE} className="text-[10px] tracking-[0.16em] uppercase leading-[1.55] text-white/80 flex items-center gap-1.5">
           <span className="text-yellow-300">↑</span> NÍVEL DE ATENÇÃO
@@ -181,6 +207,8 @@ function DesktopBadge() {
 
 function MobileBadge() {
   return (
+    <div className="flex flex-col gap-1.5 select-none">
+      <PoweredByClaude compact />
     <div className="flex border border-white/20 bg-black/60 backdrop-blur-sm select-none">
       {/* Alert level */}
       <div className="flex flex-col justify-center px-3 py-2.5 border-r border-white/10 flex-shrink-0">
@@ -208,6 +236,7 @@ function MobileBadge() {
           INDÍCIOS
         </span>
         <span className="text-[#00cc46] font-bold text-xl leading-none">✓</span>
+      </div>
       </div>
     </div>
   );
