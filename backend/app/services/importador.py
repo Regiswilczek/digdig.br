@@ -1,4 +1,5 @@
 import json
+import logging
 import uuid
 from datetime import datetime, date
 from pathlib import Path
@@ -7,6 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.ato import Ato
 from app.models.tenant import Tenant
+
+logger = logging.getLogger(__name__)
 
 # Paths relative to project root (where alembic runs from)
 PORTARIAS_JSON = Path("extracted/agente_auditoria_caupr/portarias_completo.json")
@@ -28,7 +31,9 @@ def normalizar_tipo(fonte_tipo: str, subtipo: Optional[str]) -> str:
 
 async def importar_atos_cau_pr(db: AsyncSession) -> dict:
     result = await db.execute(select(Tenant).where(Tenant.slug == "cau-pr"))
-    tenant = result.scalar_one()
+    tenant = result.scalar_one_or_none()
+    if tenant is None:
+        raise ValueError("Tenant 'cau-pr' not found in database. Run seed first.")
 
     fontes = [
         (PORTARIAS_JSON, "portaria"),
@@ -71,6 +76,7 @@ async def importar_atos_cau_pr(db: AsyncSession) -> dict:
                     tenant_id=tenant.id,
                     numero=numero,
                     tipo=tipo,
+                    subtipo=item.get("tipo") or None,
                     titulo=item.get("titulo"),
                     data_publicacao=parse_data_publicacao(item.get("data")),
                     ementa=item.get("ementa"),
@@ -79,7 +85,8 @@ async def importar_atos_cau_pr(db: AsyncSession) -> dict:
                 db.add(ato)
                 total_importados += 1
 
-            except Exception:
+            except Exception as exc:
+                logger.warning("importacao_item_erro", extra={"item": str(item.get("numero")), "error": str(exc)})
                 total_erros += 1
                 continue
 

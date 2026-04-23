@@ -1,6 +1,4 @@
-import json
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 from app.services.importador import parse_data_publicacao, normalizar_tipo
 
 
