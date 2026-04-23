@@ -315,12 +315,12 @@ function FichaDenuncia() {
 // ── Padrões agregados ────────────────────────────────────────────────────────
 function PadroesGlobais() {
   const stats = [
-    { v: "1.789", l: "Atos analisados", c: "#F0C81E" },
-    { v: "136", l: "Ad Referendum", c: "#fb923c" },
-    { v: "32", l: "Prorrogações de processante", c: "#dc2626" },
-    { v: "154", l: "Nomeações comissionadas", c: "#a78bfa" },
-    { v: "72", l: "Exonerações", c: "#67e8f9" },
-    { v: "7,6%", l: "Ratio ad referendum", c: "#fb923c" },
+    { v: "1.789", l: "Atos analisados" },
+    { v: "136", l: "Ad Referendum" },
+    { v: "32", l: "Prorrogações de processante" },
+    { v: "154", l: "Nomeações comissionadas" },
+    { v: "72", l: "Exonerações" },
+    { v: "7,6%", l: "Ratio ad referendum" },
   ];
 
   return (
