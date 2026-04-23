@@ -111,7 +111,7 @@ function Nav() {
       </Link>
       <div className="hidden md:flex items-center gap-8 text-[13px] text-white/50">
         <Link to="/" className="hover:text-white transition-colors">Produto</Link>
-        <a href="#" className="hover:text-white transition-colors">Soluções</a>
+        <Link to="/solucoes" className="hover:text-white transition-colors">Soluções</Link>
         <Link to="/precos" className="text-white">Preços</Link>
         <Link to="/patrocine" className="hover:text-white transition-colors">Patrocine</Link>
       </div>
