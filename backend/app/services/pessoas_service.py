@@ -55,24 +55,27 @@ async def salvar_pessoas(
                 nome_normalizado=nome_norm,
                 variantes_nome=[nome_raw],
                 cargo_mais_recente=cargo or None,
-                total_aparicoes=0,
+                total_aparicoes=1,
+                primeiro_ato_data=data_ato,
+                ultimo_ato_data=data_ato,
             )
             db.add(pessoa)
             await db.flush()
         else:
-            # Add name variant if new
             variantes = pessoa.variantes_nome or []
+            new_values = {
+                "total_aparicoes": Pessoa.total_aparicoes + 1,
+                "cargo_mais_recente": cargo or pessoa.cargo_mais_recente,
+                "ultimo_ato_data": data_ato,
+            }
             if nome_raw not in variantes:
                 variantes.append(nome_raw)
-                await db.execute(
-                    update(Pessoa)
-                    .where(Pessoa.id == pessoa.id)
-                    .values(
-                        variantes_nome=variantes,
-                        cargo_mais_recente=cargo or pessoa.cargo_mais_recente,
-                        total_aparicoes=Pessoa.total_aparicoes + 1,
-                    )
-                )
+                new_values["variantes_nome"] = variantes
+            if data_ato and (pessoa.primeiro_ato_data is None or data_ato < pessoa.primeiro_ato_data):
+                new_values["primeiro_ato_data"] = data_ato
+            await db.execute(
+                update(Pessoa).where(Pessoa.id == pessoa.id).values(**new_values)
+            )
 
         # Check if AparicaoPessoa already exists for this ato
         ap_result = await db.execute(
