@@ -253,7 +253,7 @@ function Nav() {
         <a href="#" className="hover:text-white transition-colors duration-200">Produto</a>
         <a href="#" className="hover:text-white transition-colors duration-200">Soluções</a>
         <Link to="/precos" className="hover:text-white transition-colors duration-200">Preços</Link>
-        <a href="#" className="hover:text-white transition-colors duration-200">Patrocine</a>
+        <Link to="/patrocine" className="hover:text-white transition-colors duration-200">Patrocine</Link>
       </div>
       <a href="/entrar" className="text-[12px] md:text-[13px] text-white/50 hover:text-white transition-colors duration-200">
         Entrar
