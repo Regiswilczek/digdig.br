@@ -68,29 +68,54 @@ Responda SEMPRE em JSON válido com esta estrutura exata:
 }}"""
 
 
-def parse_haiku_response(raw_text: str) -> dict:
+def _try_parse_json(text: str) -> dict | None:
     try:
-        result = json.loads(raw_text)
+        result = json.loads(text)
         if result.get("nivel_alerta") not in NIVEIS_VALIDOS:
             result["nivel_alerta"] = "amarelo"
         return result
-    except json.JSONDecodeError:
-        nivel_match = re.search(r'"nivel_alerta"\s*:\s*"(\w+)"', raw_text)
-        nivel = nivel_match.group(1) if nivel_match else "amarelo"
-        if nivel not in NIVEIS_VALIDOS:
-            nivel = "amarelo"
-        return {
-            "nivel_alerta": nivel,
-            "score_risco": 50,
-            "resumo": "Análise incompleta — resposta malformada. Reprocessar manualmente.",
-            "indicios": [],
-            "pessoas_extraidas": [],
-            "valores_monetarios": [],
-            "referencias_atos": [],
-            "requer_aprofundamento": False,
-            "motivo_aprofundamento": None,
-            "parse_error": True,
-        }
+    except (json.JSONDecodeError, AttributeError):
+        return None
+
+
+def parse_haiku_response(raw_text: str) -> dict:
+    # 1. Try raw text first
+    result = _try_parse_json(raw_text.strip())
+    if result is not None:
+        return result
+
+    # 2. Strip markdown code fences and try again
+    text = re.sub(r"^```(?:json)?\s*\n?", "", raw_text.strip(), flags=re.MULTILINE)
+    text = re.sub(r"\n?```\s*$", "", text.strip(), flags=re.MULTILINE)
+    result = _try_parse_json(text)
+    if result is not None:
+        return result
+
+    # 3. Extract first {...} block from the text (handles prose before/after JSON)
+    json_match = re.search(r"\{.*\}", text, re.DOTALL)
+    if json_match:
+        result = _try_parse_json(json_match.group())
+        if result is not None:
+            return result
+
+    # 4. Fallback: extract nivel_alerta via regex
+    logger.warning("haiku_parse_error", extra={"raw_first_300": raw_text[:300]})
+    nivel_match = re.search(r'"nivel_alerta"\s*:\s*"(\w+)"', raw_text)
+    nivel = nivel_match.group(1) if nivel_match else "amarelo"
+    if nivel not in NIVEIS_VALIDOS:
+        nivel = "amarelo"
+    return {
+        "nivel_alerta": nivel,
+        "score_risco": 50,
+        "resumo": "Análise incompleta — resposta malformada. Reprocessar manualmente.",
+        "indicios": [],
+        "pessoas_extraidas": [],
+        "valores_monetarios": [],
+        "referencias_atos": [],
+        "requer_aprofundamento": False,
+        "motivo_aprofundamento": None,
+        "parse_error": True,
+    }
 
 
 async def montar_system_prompt(db: AsyncSession, tenant_id: uuid.UUID) -> str:
@@ -120,7 +145,7 @@ async def montar_system_prompt(db: AsyncSession, tenant_id: uuid.UUID) -> str:
 async def analisar_ato_haiku(
     db: AsyncSession,
     ato_id: uuid.UUID,
-    rodada_id: uuid.UUID,
+    rodada_id: uuid.UUID | None,
     system_prompt: str,
 ) -> Analise:
     """
@@ -180,7 +205,6 @@ TEXTO COMPLETO:
             rodada_id=rodada_id,
         )
         db.add(analise)
-        await db.flush()
 
     analise.status = "haiku_completo"
     analise.nivel_alerta = resultado["nivel_alerta"]

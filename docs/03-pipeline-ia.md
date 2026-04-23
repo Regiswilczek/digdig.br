@@ -6,6 +6,56 @@
 
 ---
 
+## 0. Cobertura da Análise (CAU/PR — Portarias)
+
+**IMPORTANTE:** O relatório final DEVE documentar explicitamente quais atos foram analisados
+e quais foram excluídos, e por quê. Isso é requisito de credibilidade da auditoria.
+
+### Situação atual das portarias CAU/PR (levantamento 2026-04)
+
+| Ano  | Total | Com texto | Escaneadas | Cobertura |
+|------|-------|-----------|------------|-----------|
+| 2026 | 15    | 13        | 2          | 87%       |
+| 2025 | 114   | 113       | 1          | 99%       |
+| 2024 | 94    | 94        | 0          | 100%      |
+| 2023 | 45    | 42        | 3          | 93%       |
+| 2022 | 52    | 52        | 0          | 100%      |
+| 2021 | 87    | 54        | 33         | 62%       |
+| 2020 | 33    | 4         | 29         | 12%       |
+| 2019 | 21    | 0         | 21         | 0%        |
+| 2018 | 63    | 1         | 62         | 2%        |
+| 2017 | 12    | 12        | 0          | 100%      |
+| 2016 | 7     | 7         | 0          | 100%      |
+
+**Deliberações:** 595 das ~1.238 deliberações não possuem link PDF no site do CAU/PR — são
+publicadas apenas em formato HTML. Análise de deliberações requer scraper HTML separado.
+
+### Nota metodológica obrigatória no relatório
+
+Todo relatório gerado pelo sistema deve incluir a seguinte nota:
+
+> "Esta auditoria analisou **N portarias** do CAU/PR com texto extraível. Outras **M portarias**
+> (principalmente do período 2018–2021) não puderam ser incluídas por serem documentos
+> digitalizados sem camada de texto (PDFs escaneados). A lista completa dos documentos
+> excluídos está disponível no arquivo `cobertura_analise.json`. Para análise futura desses
+> documentos, seria necessária aplicação de OCR."
+
+### Script de cobertura
+
+```bash
+# Gera cobertura_analise.json com lista completa de analisadas e excluídas
+python scripts/relatorio_cobertura.py
+```
+
+O JSON gerado contém:
+- `resumo`: totais e percentuais
+- `por_ano`: cobertura ano a ano
+- `portarias_escaneadas`: lista completa com número, data, ementa e URL
+- `portarias_analisadas`: lista completa com resultado da análise IA
+- `nota_metodologica`: texto padronizado para incluir nos relatórios
+
+---
+
 ## 1. Visão Geral do Pipeline
 
 ```
