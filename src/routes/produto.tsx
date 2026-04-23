@@ -81,7 +81,7 @@ function Pipeline() {
     },
     {
       n: "04",
-      titulo: "Análise profunda (Sonnet 4.6)",
+      titulo: "Análise",
       texto:
         "Atos críticos viram fichas com violação de regimento, citação direta e sugestão de questionamento.",
       detalhe: "32 prorrogações de comissão processante aprofundadas",
