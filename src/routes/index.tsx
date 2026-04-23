@@ -148,15 +148,15 @@ function StyledDIG() {
 
 // ── Desktop badge ─────────────────────────────────────────────────────────────
 
-function PoweredByClaude({ compact = false }: { compact?: boolean }) {
-  const wrapClass = compact
-    ? "flex items-center gap-2 border border-white/15 bg-black/55 backdrop-blur-sm select-none px-2.5 py-1.5"
-    : "flex items-center gap-2 border border-white/15 bg-black/55 backdrop-blur-sm select-none px-3 py-2";
+function PoweredByClaude({ compact = false, fullWidth = false }: { compact?: boolean; fullWidth?: boolean }) {
+  const padClass = compact ? "px-2.5 py-2" : "px-3 py-2.5";
+  const widthClass = fullWidth ? "w-full justify-center" : "";
+  const wrapClass = `flex items-center gap-2 border border-white/15 bg-black/55 backdrop-blur-sm select-none ${padClass} ${widthClass}`;
   const labelClass = compact
-    ? "text-white/45 uppercase tracking-[0.22em] text-[7px]"
-    : "text-white/45 uppercase tracking-[0.22em] text-[8px]";
-  const dividerClass = compact ? "bg-white/15 h-2.5 w-px" : "bg-white/15 h-3 w-px";
-  const imgClass = compact ? "h-2.5 w-auto" : "h-3 w-auto";
+    ? "text-white/45 uppercase tracking-[0.22em] text-[6px]"
+    : "text-white/45 uppercase tracking-[0.22em] text-[7px]";
+  const dividerClass = compact ? "bg-white/15 h-3.5 w-px" : "bg-white/15 h-4 w-px";
+  const imgClass = compact ? "h-4 w-auto" : "h-[18px] w-auto";
   return (
     <div className={wrapClass}>
       <span style={SYNE} className={labelClass}>Cérebro</span>
@@ -173,8 +173,8 @@ function PoweredByClaude({ compact = false }: { compact?: boolean }) {
 
 function DesktopBadge() {
   return (
-    <div className="flex flex-col gap-[3px] select-none flex-shrink-0">
-      <PoweredByClaude />
+    <div className="flex flex-col gap-[3px] select-none flex-shrink-0 w-[215px]">
+      <PoweredByClaude fullWidth />
       <div className="border border-white/20 bg-black/55 backdrop-blur-sm px-3 py-[7px]">
         <p style={SYNE} className="text-[10px] tracking-[0.16em] uppercase leading-[1.55] text-white/80 flex items-center gap-1.5">
           <span className="text-yellow-300">↑</span> NÍVEL DE ATENÇÃO
