@@ -68,8 +68,8 @@ Com 1.171 atos: **economiza ~$3** vs. sem cache.
 ```
 Você é um auditor especializado em direito administrativo brasileiro e ética pública.
 
-Sua missão é analisar atos administrativos do {NOME_ORGAO} e identificar irregularidades 
-legais, morais e éticas com base no Regimento Interno vigente.
+Sua missão é analisar atos administrativos do {NOME_ORGAO} e identificar indícios de 
+irregularidades legais, morais e éticas com base no Regimento Interno vigente.
 
 ═══════════════════════════════════════════════
 REGIMENTO INTERNO — {NOME_ORGAO}
@@ -82,8 +82,8 @@ REGRAS ESPECÍFICAS DESTE ÓRGÃO:
 NÍVEIS DE ALERTA:
 - VERDE: ato conforme, sem irregularidades detectadas
 - AMARELO: suspeito, requer atenção — possível irregularidade moral ou procedimental
-- LARANJA: irregularidade moderada-grave — moral, ética ou legal menos óbvia
-- VERMELHO: irregularidade grave ou crítica — violação legal direta ou padrão altamente suspeito
+- LARANJA: indício moderado-grave — possível irregularidade moral, ética ou legal
+- VERMELHO: indício crítico — padrão altamente suspeito ou aparente violação legal direta
 
 CRITÉRIOS DE ANÁLISE OBRIGATÓRIOS:
 
@@ -135,12 +135,12 @@ CONTEXTO:
 {
   "nivel_alerta": "verde|amarelo|laranja|vermelho",
   "score_risco": 0,
-  "status": "conforme|suspeito|irregular|critico",
-  "irregularidades": [
+  "status": "conforme|suspeito|alerta|critico",
+  "indicios": [
     {
       "categoria": "legal|moral|etica|processual",
       "tipo": "nepotismo|concentracao_poder|perseguicao|...",
-      "descricao": "descrição objetiva da irregularidade",
+      "descricao": "descrição objetiva do indício identificado",
       "artigo_violado": "Art. X, §Y do Regimento",
       "gravidade": "baixa|media|alta|critica"
     }
@@ -303,7 +303,7 @@ poderia ser usada em debate público ou entrevista.
   "score_risco_final": 87,
   "confirmacao_suspeita": true,
   "analise_aprofundada": {
-    "irregularidades_legais": [
+    "indicios_legais": [
       {
         "tipo": "prazo_excedido_comissao_processante",
         "descricao": "Comissão Processante nomeada em abril/2025 foi prorrogada pela quarta vez, totalizando 360 dias — o Regimento permite máximo de 120 dias.",
@@ -311,7 +311,7 @@ poderia ser usada em debate público ou entrevista.
         "gravidade": "alta"
       }
     ],
-    "irregularidades_morais": [
+    "indicios_morais": [
       {
         "tipo": "perseguicao_politica",
         "descricao": "O processado aparece em 3 manifestações públicas contra a gestão atual (01/2025, 03/2025, 11/2025). As prorrogações mantêm o processo aberto sem conclusão, impedindo o processado de exercer cargos.",
@@ -325,8 +325,8 @@ poderia ser usada em debate público ou entrevista.
   "ficha_denuncia": {
     "titulo": "CAU/PR mantém processo disciplinar aberto por mais de 1 ano para afastar opositor",
     "fato": "A Portaria 678/2026 prorroga pela 4ª vez a Comissão Processante instaurada em abril/2025, totalizando 360 dias de investigação sem conclusão.",
-    "irregularidade_legal": "Violação do Art. 89, §3º do Regimento Interno: prazo máximo de 120 dias, prorrogável uma vez.",
-    "irregularidade_moral": "Uso do processo disciplinar como instrumento de perseguição política.",
+    "indicio_legal": "Indício de violação do Art. 89, §3º do Regimento Interno: prazo máximo de 120 dias, prorrogável uma vez.",
+    "indicio_moral": "Indício de uso do processo disciplinar como instrumento de perseguição política.",
     "evidencias": [
       "Portaria 580/2025 — instauração em 07/04/2025",
       "Portaria 667/2026 — 1ª recondução em 02/02/2026",  
@@ -369,7 +369,7 @@ ESTATÍSTICAS GERAIS:
 
 Produza:
 1. Um relatório executivo narrativo (500-800 palavras) conectando os padrões
-2. Um ranking das 10 irregularidades mais graves
+2. Um ranking dos 10 indícios mais graves
 3. Uma lista de 5 padrões globais detectados com narrativa para cada um
 4. 3 recomendações de denúncia prioritárias para uso em campanha
 """

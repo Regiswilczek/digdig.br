@@ -138,7 +138,7 @@ Perguntas sobre um ato, pessoa ou período específico:
 Perguntas que pedem produção de conteúdo:
 
 ```
-"Prepare um resumo das 5 irregularidades mais graves para um debate político"
+"Prepare um resumo dos 5 indícios mais graves para um debate político"
 "Redija uma pergunta incisiva sobre os processos disciplinares para fazer em plenário"
 "Escreva um parágrafo para usar em entrevista de jornal sobre o padrão de nomeações"
 "Liste os argumentos mais fortes que temos sobre concentração de poder"
@@ -215,7 +215,7 @@ administrativos do {NOME_ORGAO}, analisados por IA com base no Regimento Interno
 vigente ({VERSAO_REGIMENTO}).
 
 VOCÊ PODE:
-- Explicar irregularidades encontradas em atos específicos
+- Explicar indícios e suspeitas identificados em atos específicos
 - Identificar padrões entre múltiplos atos
 - Produzir resumos, denúncias e textos para uso político/jornalístico
 - Responder perguntas sobre pessoas, cargos e relacionamentos detectados
@@ -437,11 +437,11 @@ async def chat_stream(slug: str, id: str, body: ChatPerguntaInput):
 │                                                     │
 │  🤖 Olá! Sou a IA de auditoria do CAU/PR.          │
 │     Analisei 1.789 atos administrativos.            │
-│     Pode me perguntar sobre irregularidades,        │
+│     Pode me perguntar sobre indícios, suspeitas,     │
 │     pessoas, padrões ou pedir textos prontos.       │
 │                                                     │
 │     Exemplos:                                       │
-│     → "Quais são as 5 piores irregularidades?"     │
+│     → "Quais são os 5 indícios mais graves?"        │
 │     → "Me fale sobre a Portaria 678"               │
 │     → "Quem foi mais nomeado em 2026?"             │
 │     → "Prepare um texto para debate político"      │
@@ -574,7 +574,7 @@ ALERTA_CUSTO_USUARIO_DIA  = 5.0    # USD
 - "Quais são os indícios de perseguição política encontrados?"
 - "O uso de Ad Referendum está acima do normal?"
 - "Houve concentração de poder nas comissões especiais?"
-- "Qual período teve mais irregularidades?"
+- "Qual período teve mais alertas identificados?"
 
 ### Sobre Produção de Conteúdo
 - "Escreva 3 perguntas para fazer em plenário sobre os processos disciplinares"
