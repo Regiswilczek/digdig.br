@@ -69,8 +69,7 @@ function Pipeline() {
     {
       n: "02",
       titulo: "Extração",
-      texto:
-        "pdfplumber extrai o texto integral; Tesseract OCR cobre PDFs escaneados. Tudo vai para banco indexado.",
+      texto: "Análise",
       detalhe: "10/10 PDFs do CAU/PR extraídos sem fallback OCR",
     },
     {
@@ -82,7 +81,7 @@ function Pipeline() {
     },
     {
       n: "04",
-      titulo: "Análise profunda (Sonnet 4.6)",
+      titulo: "Análise",
       texto:
         "Atos críticos viram fichas com violação de regimento, citação direta e sugestão de questionamento.",
       detalhe: "32 prorrogações de comissão processante aprofundadas",
