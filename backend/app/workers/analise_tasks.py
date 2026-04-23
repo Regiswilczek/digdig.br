@@ -69,7 +69,7 @@ async def _analisar_criticos_sonnet(rodada_id_str: str, tenant_id_str: str) -> d
         criticos_result = await db.execute(
             select(Analise).where(
                 Analise.rodada_id == rodada_id,
-                Analise.nivel_alerta.in_(["laranja", "vermelho"]),
+                Analise.nivel_alerta.in_(["vermelho"]),
                 Analise.analisado_por_sonnet == False,
             )
         )
