@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Whitepaper01ExtracaoCauprRouteImport } from './routes/whitepaper-01-extracao-caupr'
 import { Route as SolucoesRouteImport } from './routes/solucoes'
 import { Route as ProdutoRouteImport } from './routes/produto'
 import { Route as PrecosRouteImport } from './routes/precos'
@@ -16,6 +17,12 @@ import { Route as PatrocineRouteImport } from './routes/patrocine'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as IndexRouteImport } from './routes/index'
 
+const Whitepaper01ExtracaoCauprRoute =
+  Whitepaper01ExtracaoCauprRouteImport.update({
+    id: '/whitepaper-01-extracao-caupr',
+    path: '/whitepaper-01-extracao-caupr',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SolucoesRoute = SolucoesRouteImport.update({
   id: '/solucoes',
   path: '/solucoes',
@@ -54,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
   '/solucoes': typeof SolucoesRoute
+  '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +70,7 @@ export interface FileRoutesByTo {
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
   '/solucoes': typeof SolucoesRoute
+  '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +80,7 @@ export interface FileRoutesById {
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
   '/solucoes': typeof SolucoesRoute
+  '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,8 +91,16 @@ export interface FileRouteTypes {
     | '/precos'
     | '/produto'
     | '/solucoes'
+    | '/whitepaper-01-extracao-caupr'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/entrar' | '/patrocine' | '/precos' | '/produto' | '/solucoes'
+  to:
+    | '/'
+    | '/entrar'
+    | '/patrocine'
+    | '/precos'
+    | '/produto'
+    | '/solucoes'
+    | '/whitepaper-01-extracao-caupr'
   id:
     | '__root__'
     | '/'
@@ -91,6 +109,7 @@ export interface FileRouteTypes {
     | '/precos'
     | '/produto'
     | '/solucoes'
+    | '/whitepaper-01-extracao-caupr'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -100,10 +119,18 @@ export interface RootRouteChildren {
   PrecosRoute: typeof PrecosRoute
   ProdutoRoute: typeof ProdutoRoute
   SolucoesRoute: typeof SolucoesRoute
+  Whitepaper01ExtracaoCauprRoute: typeof Whitepaper01ExtracaoCauprRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/whitepaper-01-extracao-caupr': {
+      id: '/whitepaper-01-extracao-caupr'
+      path: '/whitepaper-01-extracao-caupr'
+      fullPath: '/whitepaper-01-extracao-caupr'
+      preLoaderRoute: typeof Whitepaper01ExtracaoCauprRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/solucoes': {
       id: '/solucoes'
       path: '/solucoes'
@@ -156,6 +183,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrecosRoute: PrecosRoute,
   ProdutoRoute: ProdutoRoute,
   SolucoesRoute: SolucoesRoute,
+  Whitepaper01ExtracaoCauprRoute: Whitepaper01ExtracaoCauprRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
