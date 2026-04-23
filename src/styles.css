@@ -1,4 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap');
 @import "tailwindcss" source(none);
+
+html, body {
+  background: #07080f;
+  margin: 0;
+}
 @source "../src";
 @import "tw-animate-css";
 

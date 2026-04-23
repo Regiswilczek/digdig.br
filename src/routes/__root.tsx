@@ -29,17 +29,17 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "DIG DIG" },
-      { name: "description", content: "Escavamos, você decide." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "DIG DIG" },
-      { property: "og:description", content: "Escavamos, você decide." },
+      { title: "Dig Dig — Auditoria de Atos Públicos com IA" },
+      { name: "description", content: "Escavamos os atos públicos. Analisamos milhares de documentos oficiais com IA e identificamos indícios de irregularidades para jornalistas, candidatos e cidadãos." },
+      { name: "author", content: "Dig Dig" },
+      { property: "og:title", content: "Dig Dig — Auditoria de Atos Públicos com IA" },
+      { property: "og:description", content: "Escavamos os atos públicos. Indícios aparecem. Você decide o que fazer." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "DIG DIG" },
-      { name: "twitter:description", content: "Escavamos, você decide." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/754cbec8-ca0d-4ed4-b367-a3046640a40f/id-preview-1bdea40b--de6bb1c6-fce9-4fcc-8b70-897478281149.lovable.app-1776959650781.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: "@digdigbr" },
+      { name: "twitter:title", content: "Dig Dig — Auditoria de Atos Públicos com IA" },
+      { name: "twitter:description", content: "Escavamos os atos públicos. Indícios aparecem. Você decide o que fazer." },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/754cbec8-ca0d-4ed4-b367-a3046640a40f/id-preview-1bdea40b--de6bb1c6-fce9-4fcc-8b70-897478281149.lovable.app-1776959650781.png" },
     ],
     links: [
@@ -56,11 +56,11 @@ export const Route = createRootRoute({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR" style={{ background: "#07080f" }}>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body style={{ background: "#07080f", margin: 0 }}>
         {children}
         <Scripts />
       </body>
