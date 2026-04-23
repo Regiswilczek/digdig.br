@@ -11,6 +11,13 @@ export const Route = createFileRoute("/entrar")({
         content:
           "Acesse sua conta Dig Dig ou crie uma nova para investigar atos administrativos com IA.",
       },
+      // Mobile app-like polish
+      { name: "theme-color", content: "#07080f" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1",
+      },
     ],
   }),
 });
@@ -165,9 +172,8 @@ function ParticleField() {
   return <div ref={wrapRef} aria-hidden="true" className="absolute inset-0" />;
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
-
-function EntrarPage() {
+// ── Shared form logic hook ────────────────────────────────────────────────────
+function useAuthForm() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -185,7 +191,6 @@ function EntrarPage() {
       return;
     }
     setSubmitting(true);
-    // Auth backend not enabled yet — show informative message.
     setTimeout(() => {
       setSubmitting(false);
       setError(
@@ -196,16 +201,343 @@ function EntrarPage() {
     }, 600);
   }
 
+  return {
+    mode,
+    setMode,
+    isLogin,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    name,
+    setName,
+    submitting,
+    error,
+    onSubmit,
+  };
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+function EntrarPage() {
+  const f = useAuthForm();
+
   return (
-    <div className="min-h-[100dvh] bg-[#07080f] text-white flex flex-col md:flex-row">
-      {/* ── Left: form ─────────────────────────────────────────────────────── */}
-      <section className="w-full md:w-[46%] lg:w-[42%] xl:w-[38%] flex flex-col px-6 sm:px-10 md:px-12 lg:px-16 py-8 md:py-10">
-        {/* Top: brand link back home */}
+    <>
+      {/* ── Mobile (app-like) ──────────────────────────────────────────────── */}
+      <MobileView f={f} />
+
+      {/* ── Desktop / Tablet (split screen) ────────────────────────────────── */}
+      <DesktopView f={f} />
+    </>
+  );
+}
+
+// ── Mobile: full-bleed app feel ───────────────────────────────────────────────
+function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
+  const {
+    isLogin,
+    setMode,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    name,
+    setName,
+    submitting,
+    error,
+    onSubmit,
+  } = f;
+
+  return (
+    <div
+      className="md:hidden relative min-h-[100dvh] bg-[#07080f] text-white overflow-hidden flex flex-col"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
+    >
+      {/* Animated background — top third only, like app hero */}
+      <div className="absolute inset-x-0 top-0 h-[42%] overflow-hidden">
+        <ParticleField />
+        {/* Bottom fade into card */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
+          style={{
+            background:
+              "linear-gradient(to top, #07080f 0%, rgba(7,8,15,0.85) 35%, rgba(7,8,15,0) 100%)",
+          }}
+        />
+        {/* Top status-bar fade */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-16"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(7,8,15,0.7) 0%, rgba(7,8,15,0) 100%)",
+          }}
+        />
+      </div>
+
+      {/* Top bar */}
+      <header className="relative z-20 flex items-center justify-between px-5 pt-4">
+        <Link
+          to="/"
+          className="text-[11px] uppercase tracking-[0.18em] text-white/55 hover:text-white transition-colors flex items-center gap-1.5"
+        >
+          <span aria-hidden>←</span> Início
+        </Link>
+        <Link
+          to="/"
+          style={{ ...SYNE, letterSpacing: "0.18em" }}
+          className="text-white text-[12px] uppercase"
+        >
+          DIG DIG
+        </Link>
+        <span className="w-[52px]" aria-hidden />
+      </header>
+
+      {/* Hero word */}
+      <div className="relative z-20 px-5 pt-10 pb-6 text-center">
+        <h1
+          style={SYNE}
+          className="text-white uppercase leading-[0.92] tracking-tight"
+        >
+          <span
+            className="block"
+            style={{ fontSize: "clamp(3rem, 18vw, 4.5rem)" }}
+          >
+            DIG <span style={SCANLINE}>DIG</span>
+            <sup
+              style={{
+                fontSize: "0.25em",
+                verticalAlign: "super",
+                fontWeight: 400,
+                letterSpacing: 0,
+                color: "rgba(255,255,255,0.4)",
+              }}
+            >
+              ®
+            </sup>
+          </span>
+        </h1>
+        <p className="mt-3 text-white/55 text-[12px] leading-relaxed max-w-[280px] mx-auto">
+          Indícios aparecem. Você decide o que fazer.
+        </p>
+      </div>
+
+      {/* Card sheet — pushes up to feel like a native bottom sheet */}
+      <main
+        className="relative z-20 flex-1 mt-2 px-5 pb-6"
+      >
+        <div
+          className="bg-[#0d0f1a]/95 border border-white/10 rounded-t-[28px] rounded-b-2xl px-6 pt-6 pb-7 shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.6)]"
+        >
+          {/* Drag handle */}
+          <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-white/15" aria-hidden />
+
+          <div className="flex items-baseline justify-between mb-1">
+            <h2
+              style={SYNE}
+              className="text-white text-[1.35rem] uppercase tracking-tight"
+            >
+              {isLogin ? "Entrar" : "Criar conta"}
+            </h2>
+            <span className="text-[10px] uppercase tracking-[0.18em] text-white/35">
+              {isLogin ? "01 / Acesso" : "01 / Cadastro"}
+            </span>
+          </div>
+          <p className="text-white/45 text-[12px] leading-relaxed mb-5">
+            {isLogin
+              ? "Acesse o painel e continue investigando."
+              : "Crie sua conta gratuita em segundos."}
+          </p>
+
+          {/* Segmented control */}
+          <div
+            role="tablist"
+            className="flex items-center bg-white/[0.04] border border-white/10 rounded-full p-1 mb-5"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isLogin}
+              onClick={() => setMode("login")}
+              className={`flex-1 py-2.5 text-[11px] uppercase tracking-[0.18em] rounded-full transition-all ${
+                isLogin
+                  ? "bg-white text-[#07080f] shadow-sm"
+                  : "text-white/55"
+              }`}
+              style={SYNE}
+            >
+              Entrar
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!isLogin}
+              onClick={() => setMode("signup")}
+              className={`flex-1 py-2.5 text-[11px] uppercase tracking-[0.18em] rounded-full transition-all ${
+                !isLogin
+                  ? "bg-white text-[#07080f] shadow-sm"
+                  : "text-white/55"
+              }`}
+              style={SYNE}
+            >
+              Cadastro
+            </button>
+          </div>
+
+          <form onSubmit={onSubmit} className="space-y-3.5">
+            {!isLogin && (
+              <MobileField
+                label="Nome"
+                type="text"
+                autoComplete="name"
+                value={name}
+                onChange={setName}
+                placeholder="Seu nome completo"
+              />
+            )}
+
+            <MobileField
+              label="Email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="voce@exemplo.com"
+              inputMode="email"
+            />
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5 px-1">
+                <label
+                  className="text-[10px] uppercase tracking-[0.2em] text-white/45"
+                  style={SYNE}
+                >
+                  Senha
+                </label>
+                {isLogin && (
+                  <button
+                    type="button"
+                    className="text-[10px] uppercase tracking-[0.16em] text-white/45 hover:text-white transition-colors"
+                  >
+                    Esqueci
+                  </button>
+                )}
+              </div>
+              <input
+                type="password"
+                autoComplete={isLogin ? "current-password" : "new-password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-[15px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 focus:bg-white/[0.06] transition-colors"
+                placeholder="••••••••"
+              />
+            </div>
+
+            {error && (
+              <p className="text-[12px] text-yellow-300/90 leading-relaxed border-l-2 border-yellow-300/60 pl-3 py-1">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              style={SYNE}
+              className="w-full bg-white text-[#07080f] py-4 text-[12px] uppercase tracking-[0.2em] rounded-xl hover:bg-white/90 active:scale-[0.99] transition-all disabled:opacity-50"
+            >
+              {submitting
+                ? "Aguarde..."
+                : isLogin
+                  ? "Entrar"
+                  : "Criar conta"}
+            </button>
+          </form>
+
+          <p className="mt-5 text-center text-[12.5px] text-white/55">
+            {isLogin ? "Ainda não tem conta? " : "Já tem uma conta? "}
+            <button
+              type="button"
+              onClick={() => setMode(isLogin ? "signup" : "login")}
+              className="text-white font-medium underline-offset-4 hover:underline"
+            >
+              {isLogin ? "Cadastre-se" : "Entrar"}
+            </button>
+          </p>
+        </div>
+
+        <p className="mt-5 text-center text-[10px] text-white/30 uppercase tracking-[0.16em] px-4">
+          Ao continuar você aceita nossos termos
+        </p>
+      </main>
+    </div>
+  );
+}
+
+function MobileField({
+  label,
+  type,
+  autoComplete,
+  value,
+  onChange,
+  placeholder,
+  inputMode,
+}: {
+  label: string;
+  type: string;
+  autoComplete: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  inputMode?: "email" | "text" | "numeric" | "tel" | "url" | "search";
+}) {
+  return (
+    <div>
+      <label
+        className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5 px-1"
+        style={SYNE}
+      >
+        {label}
+      </label>
+      <input
+        type={type}
+        autoComplete={autoComplete}
+        inputMode={inputMode}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-[15px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 focus:bg-white/[0.06] transition-colors"
+        placeholder={placeholder}
+      />
+    </div>
+  );
+}
+
+// ── Desktop: original split-screen ────────────────────────────────────────────
+function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
+  const {
+    isLogin,
+    setMode,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    name,
+    setName,
+    submitting,
+    error,
+    onSubmit,
+  } = f;
+
+  return (
+    <div className="hidden md:flex min-h-[100dvh] bg-[#07080f] text-white flex-row">
+      {/* Left: form */}
+      <section className="w-[46%] lg:w-[42%] xl:w-[38%] flex flex-col px-12 lg:px-16 py-10">
         <div className="flex items-center justify-between">
           <Link
             to="/"
             style={{ ...SYNE, letterSpacing: "0.18em" }}
-            className="text-white text-[12px] md:text-[13px] uppercase hover:text-white/70 transition-colors"
+            className="text-white text-[13px] uppercase hover:text-white/70 transition-colors"
           >
             DIG DIG
           </Link>
@@ -217,12 +549,11 @@ function EntrarPage() {
           </Link>
         </div>
 
-        {/* Form card */}
         <div className="flex-1 flex items-center">
           <div className="w-full max-w-[400px] mx-auto">
             <h1
               style={SYNE}
-              className="text-white text-[1.75rem] md:text-[2rem] leading-tight uppercase tracking-tight mb-1.5"
+              className="text-white text-[2rem] leading-tight uppercase tracking-tight mb-1.5"
             >
               {isLogin ? "Entrar" : "Criar conta"}
             </h1>
@@ -232,7 +563,6 @@ function EntrarPage() {
                 : "Crie sua conta gratuita e comece a investigar atos públicos."}
             </p>
 
-            {/* Toggle */}
             <div className="flex items-center border border-white/10 bg-white/[0.02] mb-6 p-0.5">
               <button
                 type="button"
@@ -362,11 +692,10 @@ function EntrarPage() {
         </div>
       </section>
 
-      {/* ── Right: animated background with DIG DIG ───────────────────────── */}
-      <section className="relative hidden md:block flex-1 bg-[#07080f] overflow-hidden border-l border-white/[0.06]">
+      {/* Right: animated background */}
+      <section className="relative flex-1 bg-[#07080f] overflow-hidden border-l border-white/[0.06]">
         <ParticleField />
 
-        {/* Edge fades for legibility of the centered word */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -389,7 +718,6 @@ function EntrarPage() {
           }}
         />
 
-        {/* Centered DIG DIG */}
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-10 text-center">
           <h2
             style={SYNE}
