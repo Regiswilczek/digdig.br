@@ -149,23 +149,22 @@ function StyledDIG() {
 // ── Desktop badge ─────────────────────────────────────────────────────────────
 
 function PoweredByClaude({ compact = false }: { compact?: boolean }) {
+  const wrapClass = compact
+    ? "flex items-center gap-2 border border-white/15 bg-black/55 backdrop-blur-sm select-none px-2.5 py-1.5"
+    : "flex items-center gap-2 border border-white/15 bg-black/55 backdrop-blur-sm select-none px-3 py-2";
+  const labelClass = compact
+    ? "text-white/45 uppercase tracking-[0.22em] text-[7px]"
+    : "text-white/45 uppercase tracking-[0.22em] text-[8px]";
+  const dividerClass = compact ? "bg-white/15 h-2.5 w-px" : "bg-white/15 h-3 w-px";
+  const imgClass = compact ? "h-2.5 w-auto" : "h-3 w-auto";
   return (
-    <div
-      className={`flex items-center gap-2 border border-white/15 bg-black/55 backdrop-blur-sm select-none ${
-        compact ? "px-2.5 py-1.5" : "px-3 py-2"
-      }`}
-    >
-      <span
-        style={SYNE}
-        className={`text-white/45 uppercase tracking-[0.22em] ${compact ? "text-[7px]" : "text-[8px]"}`}
-      >
-        Cérebro
-      </span>
-      <span className={`bg-white/15 ${compact ? "h-2.5 w-px" : "h-3 w-px"}`} />
+    <div className={wrapClass}>
+      <span style={SYNE} className={labelClass}>Cérebro</span>
+      <span className={dividerClass} />
       <img
         src={claudeLogo}
         alt="Claude"
-        className={compact ? "h-2.5 w-auto" : "h-3 w-auto"}
+        className={imgClass}
         style={{ filter: "brightness(0) invert(1)" }}
       />
     </div>
