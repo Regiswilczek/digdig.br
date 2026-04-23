@@ -59,9 +59,11 @@ export const getRouter = () => {
     routeTree,
     context: {},
     scrollRestoration: true,
+    // Preload only when a link is hovered for a moment — avoids fetching
+    // every neighbouring route chunk just because the cursor passes by.
     defaultPreload: "intent",
-    defaultPreloadDelay: 30,
-    defaultPreloadStaleTime: 0,
+    defaultPreloadDelay: 200,
+    defaultPreloadStaleTime: 30_000,
     defaultErrorComponent: DefaultErrorComponent,
   });
 
