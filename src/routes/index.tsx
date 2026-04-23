@@ -58,64 +58,73 @@ function ParticleField() {
 
       const STEP = 4;
       const PIX  = 3;
-      const VX   = W * 0.76;
-      const VY   = H * 0.58;
-      const VSC  = Math.min(W, H) * 0.46;
+      // Vortex eye — off-screen to the right so no visible center
+      const VX   = W * 0.78;
+      const VY   = H * 0.55;
+      const VSC  = Math.max(W, H) * 0.55;
 
-      for (let py = Math.floor(H * 0.30); py < H; py += STEP) {
+      for (let py = 0; py < H; py += STEP) {
         const ny = py / H;
-        const vFade = ny < 0.48
-          ? Math.pow((ny - 0.30) / 0.18, 2.8) * 0.70
-          : 0.70 + ((ny - 0.48) / 0.52) * 0.30;
-        if (vFade < 0.04) continue;
 
         for (let px = 0; px < W; px += STEP) {
           const nx  = px / W;
           const dx  = px - VX;
           const dy  = py - VY;
           const dist = Math.sqrt(dx * dx + dy * dy) / VSC;
-          const vStr = Math.max(0, 1 - dist * 2.3);
+          const vStr = Math.max(0, 1 - dist * 1.8);
 
-          // Dark floor (always drawn)
-          ctx.fillStyle = `rgba(0,9,42,${(Math.min(1, vFade * 0.92)).toFixed(2)})`;
-          ctx.fillRect(px, py, PIX, PIX);
-
-          if (dist < 0.058 && vStr > 0.52) continue; // eye centre
-
-          const w1 = Math.sin(nx * 9.0 + ny * 4.0 + t * 0.42);
-          const w2 = Math.sin(nx * 2.7 - ny * 6.8 - t * 0.29);
-          const w3 = Math.cos(nx * 5.4 + ny * 1.7 + t * 0.24);
+          // Flowing wave field — covers the entire canvas seamlessly
+          const w1 = Math.sin(nx * 7.5 + ny * 3.2 + t * 0.40);
+          const w2 = Math.sin(nx * 2.4 - ny * 5.5 - t * 0.27);
+          const w3 = Math.cos(nx * 4.6 + ny * 2.1 + t * 0.22);
           const raw = (w1 * 0.44 + w2 * 0.31 + w3 * 0.25) * 0.5 + 0.5;
-          const terrainRidge = Math.pow(1 - Math.abs(2 * raw - 1), 2.4);
+          const flowRidge = Math.pow(1 - Math.abs(2 * raw - 1), 2.2);
 
           const ang = Math.atan2(dy, dx);
-          const vRaw = Math.sin(dist * 32 + ang * 0.5 - t * 1.15) * 0.5 + 0.5;
+          const vRaw = Math.sin(dist * 28 + ang * 0.6 - t * 1.05) * 0.5 + 0.5;
           const vortexRidge = Math.pow(1 - Math.abs(2 * vRaw - 1), 2.4);
 
           const brightness =
-            terrainRidge * (1 - vStr * 0.80) + vortexRidge * vStr * 0.80;
+            flowRidge * (1 - vStr * 0.75) + vortexRidge * vStr * 0.75;
 
-          const THRESH = 0.42;
+          const THRESH = 0.44;
           if (brightness < THRESH) continue;
           const norm = (brightness - THRESH) / (1 - THRESH);
 
+          // Brazil flag palette: deep blue → green → yellow
+          // Color zone driven by spatial position so bands feel like a flag
+          // unfurling across the page.
+          const zone = (nx * 0.55 + (1 - ny) * 0.45 + Math.sin(t * 0.15) * 0.05);
+
           let r = 0, g = 0, b = 0;
-          if (norm < 0.32) {
-            const bl = norm / 0.32;
-            g = Math.round(25 + bl * 70);
-            b = Math.round(90 + bl * 110);
-          } else if (norm < 0.65) {
-            const bl = (norm - 0.32) / 0.33;
-            g = Math.round(95 + bl * 61);
-            b = Math.round(200 + bl * (59 - 200));
+          if (zone < 0.38) {
+            // Deep navy blue (#002776 family)
+            const bl = zone / 0.38;
+            r = Math.round(0 + bl * 10);
+            g = Math.round(20 + bl * 50);
+            b = Math.round(110 + bl * 60);
+          } else if (zone < 0.72) {
+            // Green (#009C3B family)
+            const bl = (zone - 0.38) / 0.34;
+            r = Math.round(10 + bl * 20);
+            g = Math.round(70 + bl * 110);
+            b = Math.round(170 - bl * 110);
           } else {
-            const bl = (norm - 0.65) / 0.35;
-            r = Math.round(bl * 255);
-            g = Math.round(156 + bl * 67);
-            b = Math.round(59 * (1 - bl));
+            // Yellow (#FFDF00 family)
+            const bl = Math.min(1, (zone - 0.72) / 0.28);
+            r = Math.round(30 + bl * 225);
+            g = Math.round(180 + bl * 43);
+            b = Math.round(60 - bl * 60);
           }
 
-          ctx.fillStyle = `rgba(${r},${g},${b},${Math.min(0.96, vFade * (0.52 + norm * 0.44)).toFixed(2)})`;
+          // Brightness modulation by ridge intensity
+          const intensity = 0.45 + norm * 0.55;
+          r = Math.round(r * intensity);
+          g = Math.round(g * intensity);
+          b = Math.round(b * intensity);
+
+          const alpha = Math.min(0.9, 0.4 + norm * 0.5);
+          ctx.fillStyle = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
           ctx.fillRect(px, py, PIX, PIX);
         }
       }
