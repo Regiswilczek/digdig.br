@@ -252,14 +252,14 @@ function FichaDenuncia() {
             </span>
             <ul className="mt-2 space-y-2">
               <li className="text-[13px] text-white/85 flex items-start gap-2">
-                <span className="text-[#fb923c] mt-1">▸</span>
+                <ChevronRight className="!size-3.5 text-[#fb923c] mt-1 shrink-0" />
                 <span>
                   <strong className="text-white">Processo disciplinar:</strong> instauração
                   ou prorrogação de comissão processante
                 </span>
               </li>
               <li className="text-[13px] text-white/85 flex items-start gap-2">
-                <span className="text-[#fb923c] mt-1">▸</span>
+                <ChevronRight className="!size-3.5 text-[#fb923c] mt-1 shrink-0" />
                 <span>
                   <strong className="text-white">Prazo excessivo:</strong> comissão com
                   múltiplas prorrogações (3ª desde abril/2025)
