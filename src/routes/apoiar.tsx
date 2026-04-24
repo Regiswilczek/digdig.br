@@ -7,19 +7,13 @@ export const Route = createFileRoute("/apoiar")({
       {
         name: "description",
         content:
-          "Planos de assinatura e patrocínio de auditorias. Como sustentar o Dig Dig e o que você recebe em troca.",
+          "Centenas de documentos oficiais são publicados todo ano. Ninguém lê. Nós lemos. Conheça o Dig Dig e apoie a auditoria pública com IA.",
       },
       { property: "og:title", content: "Apoiar — Dig Dig" },
       {
         property: "og:description",
         content:
-          "Assine para acessar o banco completo. Patrocine para financiar a auditoria de um órgão específico. A partir de R$ 0.",
-      },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+          "O Dig Dig escava atos públicos com IA. Assine ou patrocine uma auditoria.",
       },
     ],
   }),
@@ -29,6 +23,10 @@ export const Route = createFileRoute("/apoiar")({
 // ─── Constants ────────────────────────────────────────────
 const INTER: React.CSSProperties = {
   fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+};
+
+const MONO: React.CSSProperties = {
+  fontFamily: "'JetBrains Mono', 'IBM Plex Mono', 'Courier New', monospace",
 };
 
 const GOLD = "#F0C81E";
@@ -180,13 +178,13 @@ function Nav() {
         <Link to="/" className="hover:text-white/70 transition">
           Início
         </Link>
-        <Link to="/apoiar" className="text-white/70 font-medium">
+        <Link to="/apoiar" className="text-white/65 font-medium">
           Apoiar
         </Link>
       </div>
       <a
         href="/entrar"
-        className="text-[12px] text-white/30 hover:text-white/70 transition"
+        className="text-[12px] text-white/30 hover:text-white/65 transition"
       >
         Entrar
       </a>
@@ -194,7 +192,51 @@ function Nav() {
   );
 }
 
-// ─── Plano row ────────────────────────────────────────────
+// ─── Live status bar ──────────────────────────────────────
+function StatusBar() {
+  return (
+    <div
+      className="border-b border-white/[0.05] py-3.5 px-6 md:px-12 overflow-x-auto"
+      style={{ background: "rgba(255,255,255,0.018)" }}
+    >
+      <div
+        className="flex items-center gap-5 text-[11px] whitespace-nowrap"
+        style={MONO}
+      >
+        <span className="flex items-center gap-2">
+          <span
+            className="h-[6px] w-[6px] rounded-full"
+            style={{
+              background: "#4ade80",
+              boxShadow: "0 0 6px #4ade80",
+              animation: "pulse 2s infinite",
+            }}
+          />
+          <span style={{ color: "rgba(255,255,255,0.50)" }}>PIPELINE ATIVO</span>
+        </span>
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span style={{ color: "rgba(255,255,255,0.40)" }}>CAU/PR</span>
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span>
+          <span style={{ color: "rgba(255,255,255,0.70)" }}>262</span>
+          <span style={{ color: "rgba(255,255,255,0.28)" }}> / 400 portarias analisadas</span>
+        </span>
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span>
+          <span style={{ color: GOLD }}>1</span>
+          <span style={{ color: "rgba(255,255,255,0.28)" }}> alerta laranja</span>
+        </span>
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span style={{ color: "rgba(255,255,255,0.28)" }}>
+          custo rastreado:{" "}
+          <span style={{ color: "rgba(255,255,255,0.55)" }}>$3,09</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Plan row ─────────────────────────────────────────────
 function PlanoRow({ plano }: { plano: Plano }) {
   return (
     <div
@@ -207,15 +249,10 @@ function PlanoRow({ plano }: { plano: Plano }) {
           style={{ width: "2px", background: GOLD }}
         />
       )}
-
       <div className="flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-10">
-        {/* Name + price */}
         <div className="flex-shrink-0" style={{ minWidth: "210px" }}>
           <div className="flex items-center gap-3 flex-wrap">
-            <span
-              className="text-[1.2rem] font-semibold text-white/80 leading-tight"
-              style={INTER}
-            >
+            <span className="text-[1.15rem] font-semibold text-white/80" style={INTER}>
               {plano.nome}
             </span>
             {plano.destaque && (
@@ -228,10 +265,7 @@ function PlanoRow({ plano }: { plano: Plano }) {
             )}
           </div>
           <div className="mt-2 flex items-baseline gap-1">
-            <span
-              className="text-[1.75rem] font-bold text-white leading-none"
-              style={INTER}
-            >
+            <span className="text-[1.7rem] font-bold text-white leading-none" style={INTER}>
               {plano.preco}
             </span>
             <span className="text-[12px] text-white/25 ml-1" style={INTER}>
@@ -242,13 +276,11 @@ function PlanoRow({ plano }: { plano: Plano }) {
             {plano.publico}
           </p>
         </div>
-
-        {/* Features */}
         <ul className="flex-1 grid sm:grid-cols-2 gap-x-6 gap-y-1.5">
           {plano.features.map((f) => (
             <li
               key={f}
-              className="flex items-start gap-2 text-[13px] text-white/42 leading-relaxed"
+              className="flex items-start gap-2 text-[13px] text-white/40 leading-relaxed"
               style={INTER}
             >
               <span className="flex-shrink-0 text-white/15">—</span>
@@ -256,8 +288,6 @@ function PlanoRow({ plano }: { plano: Plano }) {
             </li>
           ))}
         </ul>
-
-        {/* CTA */}
         <div className="flex-shrink-0">
           <a
             href="/cadastro"
@@ -268,7 +298,7 @@ function PlanoRow({ plano }: { plano: Plano }) {
                 : {
                     ...INTER,
                     border: "1px solid rgba(255,255,255,0.10)",
-                    color: "rgba(255,255,255,0.38)",
+                    color: "rgba(255,255,255,0.35)",
                   }
             }
           >
@@ -289,28 +319,27 @@ function CampanhaCard({ campanha }: { campanha: Campanha }) {
     <div className="border border-white/[0.06] p-6 flex flex-col gap-5">
       <div>
         <p
-          className="text-[9px] uppercase tracking-[0.14em] text-white/22 mb-2"
+          className="text-[9px] uppercase tracking-[0.14em] text-white/20 mb-2"
           style={INTER}
         >
           {campanha.tipo}
         </p>
-        <h3 className="text-[1rem] font-semibold text-white/75" style={INTER}>
+        <h3 className="text-[1rem] font-semibold text-white/72" style={INTER}>
           {campanha.nome}
         </h3>
       </div>
-
       <div>
         <div className="flex items-baseline justify-between mb-2">
-          <span className="text-[1.05rem] font-bold text-white/85" style={INTER}>
+          <span className="text-[1.05rem] font-bold text-white/80" style={MONO}>
             {formatBRL(campanha.arrecadado)}
           </span>
-          <span className="text-[10px] text-white/22" style={INTER}>
+          <span className="text-[10px] text-white/20" style={MONO}>
             / {formatBRL(META)}
           </span>
         </div>
         <div
-          className="w-full overflow-hidden"
-          style={{ height: "2px", background: "rgba(255,255,255,0.06)" }}
+          className="w-full"
+          style={{ height: "2px", background: "rgba(255,255,255,0.05)" }}
         >
           <div
             style={{
@@ -321,20 +350,19 @@ function CampanhaCard({ campanha }: { campanha: Campanha }) {
           />
         </div>
         <div
-          className="flex justify-between mt-2 text-[10px] text-white/22"
-          style={INTER}
+          className="flex justify-between mt-2 text-[10px] text-white/20"
+          style={MONO}
         >
           <span>{campanha.apoiadores} apoiadores</span>
           <span>
-            {isConcluida ? "Concluída ✓" : `${campanha.diasRestantes} dias`}
+            {isConcluida ? "concluída ✓" : `${campanha.diasRestantes}d restantes`}
           </span>
         </div>
       </div>
-
       {isConcluida ? (
         <Link
           to="/"
-          className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30 hover:text-white/60 transition"
+          className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/28 hover:text-white/55 transition"
           style={INTER}
         >
           Ver auditoria →
@@ -349,7 +377,7 @@ function CampanhaCard({ campanha }: { campanha: Campanha }) {
             Apoiar
           </a>
           <button
-            className="text-[10px] font-medium px-4 py-2.5 border border-white/[0.07] text-white/28 hover:text-white/55 hover:border-white/15 transition"
+            className="text-[10px] font-medium px-4 py-2.5 border border-white/[0.07] text-white/25 hover:text-white/50 hover:border-white/14 transition"
             style={INTER}
           >
             ★ Votar
@@ -370,131 +398,91 @@ function ApoiarPage() {
       style={INTER}
     >
       <Nav />
+      <StatusBar />
 
       <main className="px-6 md:px-12 pb-28">
-        {/* ─── Header ─── */}
-        <header className="max-w-2xl mx-auto pt-14 md:pt-20 pb-14 md:pb-18">
+
+        {/* ─── Manifesto ─── */}
+        <header className="max-w-3xl mx-auto pt-16 md:pt-24 pb-14 md:pb-20">
           <p
-            className="text-[9px] uppercase tracking-[0.32em] text-white/22 mb-5"
-            style={INTER}
+            className="text-[9px] uppercase tracking-[0.32em] text-white/22 mb-7"
+            style={MONO}
           >
-            Apoiar o Dig Dig
+            NASCE O DIG DIG — ABRIL 2026
           </p>
           <h1
-            className="text-[2.6rem] md:text-[3.8rem] font-bold text-white leading-[1.04] tracking-[-0.025em] mb-7"
+            className="text-[2.6rem] md:text-[4rem] font-bold text-white leading-[1.03] tracking-[-0.03em] mb-9"
             style={INTER}
           >
-            Um projeto real.{" "}
-            <span className="text-white/35">Duas formas de ajudar.</span>
+            Centenas de documentos
+            <br />
+            oficiais são publicados
+            <br />
+            todo ano. Ninguém lê.
+            <br />
+            <span className="text-white/28">Nós lemos.</span>
           </h1>
           <div
-            className="space-y-4 text-[15px] md:text-[16px] text-white/50 leading-[1.78]"
+            className="space-y-4 text-[15px] md:text-[16px] text-white/48 leading-[1.80] max-w-2xl"
             style={INTER}
           >
             <p>
-              O Dig Dig escava atos administrativos de órgãos públicos
-              brasileiros — portarias, deliberações, resoluções — analisados por
-              IA em busca de irregularidades legais e morais. O código é aberto.
-              A metodologia é pública. Os resultados também.
+              São portarias, deliberações e resoluções — dados públicos, pagos
+              com dinheiro seu. Estão enterrados em PDFs numerados, sem
+              contexto, sem índice. A burocracia conta com isso.
             </p>
             <p>
-              Há duas formas de sustentar o projeto. A primeira é{" "}
-              <strong className="text-white/72 font-medium">assinatura</strong>:
-              você acessa o banco completo de atos analisados, conversa com a IA
-              e exporta o que precisar. A segunda é{" "}
-              <strong className="text-white/72 font-medium">
-                patrocínio coletivo
-              </strong>
-              : qualquer pessoa nomeia um órgão, a comunidade financia R$ 3.000,
-              e a IA entrega a auditoria em até 7 dias — pública para todos.
+              Usamos IA para escavar esse arquivo. Mapeamos irregularidades
+              legais e morais. Sinalizamos padrões. Não afirmamos crimes —
+              mostramos o que encontramos, e você decide o que fazer com isso.
             </p>
             <p>
-              Sem contrato. Cancele quando quiser. Se a meta de patrocínio não
-              for atingida em 90 dias, devolvemos.
+              O Dig Dig será o maior banco de dados de atos públicos com
+              auditoria direta do Brasil.
             </p>
+          </div>
+
+          {/* Stats row */}
+          <div
+            className="flex flex-wrap gap-x-8 gap-y-4 mt-12 pt-10 border-t border-white/[0.06]"
+          >
+            {[
+              { valor: "1.789", label: "atos coletados" },
+              { valor: "262", label: "já analisados" },
+              { valor: "1", label: "laranja detectado" },
+              { valor: "R$ 0", label: "para começar" },
+            ].map((s) => (
+              <div key={s.label}>
+                <p
+                  className="text-[1.6rem] font-bold text-white leading-none mb-1"
+                  style={MONO}
+                >
+                  {s.valor}
+                </p>
+                <p className="text-[11px] text-white/25 uppercase tracking-[0.12em]" style={INTER}>
+                  {s.label}
+                </p>
+              </div>
+            ))}
           </div>
         </header>
 
-        {/* ─── Planos ─── */}
-        <section className="max-w-4xl mx-auto mb-20 md:mb-28" id="planos">
-          <div className="mb-8 pb-5 border-b border-white/[0.05] flex items-end justify-between flex-wrap gap-3">
+        {/* ─── Auditorias em curso ─── */}
+        <section className="max-w-5xl mx-auto mb-20 md:mb-28" id="auditorias">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
             <div>
               <p
-                className="text-[9px] uppercase tracking-[0.3em] text-white/22 mb-2"
-                style={INTER}
+                className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-1.5"
+                style={MONO}
               >
-                Assinatura mensal
+                Campanhas
               </p>
-              <h2 className="text-[1.4rem] font-bold text-white/72" style={INTER}>
-                Planos
+              <h2 className="text-[1.2rem] font-bold text-white/68" style={INTER}>
+                Auditorias em curso
               </h2>
             </div>
-            <p className="text-[11px] text-white/25" style={INTER}>
-              Cartão ou PIX · Sem fidelidade
-            </p>
-          </div>
-
-          <div>
-            {PLANOS.map((p) => (
-              <PlanoRow key={p.id} plano={p} />
-            ))}
-          </div>
-
-          <p
-            className="mt-5 text-[11px] text-white/22 leading-relaxed"
-            style={INTER}
-          >
-            Todos os planos incluem leitura completa das auditorias publicadas.
-            Notas fiscais emitidas automaticamente.
-          </p>
-        </section>
-
-        {/* ─── Divider ─── */}
-        <div className="max-w-4xl mx-auto border-t border-white/[0.05] mb-20 md:mb-28" />
-
-        {/* ─── Patrocínio intro ─── */}
-        <section
-          className="max-w-4xl mx-auto mb-10 md:mb-14"
-          id="patrocinio"
-        >
-          <p
-            className="text-[9px] uppercase tracking-[0.3em] text-white/22 mb-2"
-            style={INTER}
-          >
-            Patrocínio coletivo
-          </p>
-          <h2
-            className="text-[1.4rem] font-bold text-white/72 mb-4"
-            style={INTER}
-          >
-            Nomear um órgão
-          </h2>
-          <p
-            className="text-[14px] md:text-[15px] text-white/42 leading-[1.75] max-w-2xl mb-3"
-            style={INTER}
-          >
-            Qualquer usuário cadastrado pode propor um órgão para auditoria. A
-            comunidade financia a partir de R$ 25. Quando a meta de R$ 3.000 é
-            atingida, a IA executa a auditoria e o resultado fica público para
-            todos — doadores ou não.
-          </p>
-          <p className="text-[12px] text-white/25" style={INTER}>
-            {formatBRL(totalArrecadado)} arrecadados no total ·{" "}
-            <span className="text-white/45">CAU/PR: auditoria concluída e publicada.</span>
-          </p>
-        </section>
-
-        {/* ─── Campaign grid ─── */}
-        <section className="max-w-5xl mx-auto mb-20 md:mb-28">
-          <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-            <p
-              className="text-[9px] text-white/22 uppercase tracking-[0.2em]"
-              style={INTER}
-            >
-              Campanhas ativas
-            </p>
             <button
-              className="text-[10px] uppercase tracking-[0.14em] px-4 py-2 border border-white/[0.07] text-white/30 hover:text-white/55 hover:border-white/14 transition"
+              className="text-[10px] uppercase tracking-[0.14em] px-4 py-2.5 border border-white/[0.07] text-white/28 hover:text-white/55 hover:border-white/14 transition"
               style={INTER}
             >
               + Nominar órgão
@@ -506,63 +494,56 @@ function ApoiarPage() {
               <CampanhaCard key={c.slug} campanha={c} />
             ))}
           </div>
+
+          <p className="mt-5 text-[11px] text-white/22" style={INTER}>
+            {formatBRL(totalArrecadado)} arrecadados no total ·{" "}
+            Cada auditoria tem meta de R$ 3.000 · Prazo de 90 dias ·{" "}
+            Resultado público para todos
+          </p>
         </section>
 
-        {/* ─── Como funciona ─── */}
+        {/* ─── Como funciona o patrocínio ─── */}
         <section className="max-w-4xl mx-auto mb-20 md:mb-28">
           <p
-            className="text-[9px] uppercase tracking-[0.3em] text-white/22 mb-8"
-            style={INTER}
+            className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-7"
+            style={MONO}
           >
-            Como funciona o patrocínio
+            Como funciona
           </p>
           <ol className="grid md:grid-cols-4 gap-px bg-white/[0.04]">
             {[
               {
                 n: "01",
                 titulo: "Nominar",
-                texto:
-                  "Qualquer usuário cadastrado — mesmo no plano gratuito — pode propor um órgão.",
+                texto: "Qualquer usuário cadastrado pode propor um órgão — mesmo no plano gratuito.",
               },
               {
                 n: "02",
                 titulo: "Financiar",
-                texto:
-                  "Doações a partir de R$ 25 via cartão ou PIX. Meta: R$ 3.000. Prazo: 90 dias.",
+                texto: "Doações a partir de R$ 25 via cartão ou PIX. Meta: R$ 3.000 em 90 dias.",
               },
               {
                 n: "03",
                 titulo: "Executar",
-                texto:
-                  "Meta atingida → auditoria em até 7 dias. Doadores recebem acesso 48h antes da publicação.",
+                texto: "Meta atingida → auditoria em até 7 dias. Doadores recebem acesso 48h antes.",
               },
               {
                 n: "04",
                 titulo: "Publicar",
-                texto:
-                  "O resultado fica público para qualquer pessoa, doador ou não. Sem paywall.",
+                texto: "Resultado público para qualquer pessoa. Sem paywall. Sem exceção.",
               },
             ].map((p) => (
-              <li
-                key={p.n}
-                className="bg-[#07080f] p-6 flex flex-col gap-3"
-              >
+              <li key={p.n} className="bg-[#07080f] p-6 flex flex-col gap-3">
                 <span
-                  className="text-[1.45rem] font-bold leading-none"
-                  style={{ ...INTER, color: GOLD }}
+                  className="text-[1.4rem] font-bold leading-none"
+                  style={{ ...MONO, color: GOLD }}
                 >
                   {p.n}
                 </span>
-                <h3
-                  className="text-[0.9rem] font-semibold text-white/65"
-                  style={INTER}
-                >
+                <h3 className="text-[0.9rem] font-semibold text-white/60" style={INTER}>
                   {p.titulo}
                 </h3>
-                <p
-                  className="text-[12px] text-white/35 leading-relaxed"
-                  style={INTER}
-                >
+                <p className="text-[12px] text-white/32 leading-relaxed" style={INTER}>
                   {p.texto}
                 </p>
               </li>
@@ -570,19 +551,48 @@ function ApoiarPage() {
           </ol>
         </section>
 
-        {/* ─── Benefícios para quem patrocina ─── */}
+        {/* ─── Divider ─── */}
+        <div className="max-w-4xl mx-auto border-t border-white/[0.05] mb-20 md:mb-28" />
+
+        {/* ─── Planos ─── */}
+        <section className="max-w-4xl mx-auto mb-20 md:mb-28" id="planos">
+          <div className="mb-7 pb-5 border-b border-white/[0.05] flex items-end justify-between flex-wrap gap-3">
+            <div>
+              <p
+                className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-1.5"
+                style={MONO}
+              >
+                Assinatura
+              </p>
+              <h2 className="text-[1.2rem] font-bold text-white/68" style={INTER}>
+                Acesse o banco completo
+              </h2>
+            </div>
+            <p className="text-[11px] text-white/22" style={INTER}>
+              Cartão ou PIX · Sem fidelidade
+            </p>
+          </div>
+
+          {PLANOS.map((p) => (
+            <PlanoRow key={p.id} plano={p} />
+          ))}
+
+          <p className="mt-5 text-[11px] text-white/20 leading-relaxed" style={INTER}>
+            Todos os planos incluem leitura completa das auditorias publicadas.
+            Notas fiscais emitidas automaticamente.
+          </p>
+        </section>
+
+        {/* ─── Benefícios patrocinador ─── */}
         <section className="max-w-4xl mx-auto mb-20 md:mb-28">
           <div className="border border-white/[0.06] p-8 md:p-10">
             <p
-              className="text-[9px] uppercase tracking-[0.3em] mb-2"
-              style={{ ...INTER, color: GOLD }}
+              className="text-[9px] uppercase tracking-[0.28em] mb-2"
+              style={{ ...MONO, color: GOLD }}
             >
               Para quem patrocina
             </p>
-            <h2
-              className="text-[1.25rem] font-semibold text-white/68 mb-7"
-              style={INTER}
-            >
+            <h2 className="text-[1.2rem] font-semibold text-white/65 mb-7" style={INTER}>
               O que você recebe além da transparência pública
             </h2>
             <ul className="grid md:grid-cols-2 gap-x-10 gap-y-3">
@@ -595,13 +605,10 @@ function ApoiarPage() {
               ].map((it) => (
                 <li
                   key={it}
-                  className="flex items-start gap-3 text-[13px] text-white/45 leading-relaxed"
+                  className="flex items-start gap-3 text-[13px] text-white/40 leading-relaxed"
                   style={INTER}
                 >
-                  <span
-                    className="flex-shrink-0 mt-[6px]"
-                    style={{ color: `${GOLD}60` }}
-                  >
+                  <span className="flex-shrink-0 mt-[6px]" style={{ color: `${GOLD}55` }}>
                     —
                   </span>
                   {it}
@@ -614,39 +621,25 @@ function ApoiarPage() {
         {/* ─── Votos + Por que R$3k ─── */}
         <section className="max-w-4xl mx-auto mb-20 md:mb-28 grid md:grid-cols-2 gap-3">
           <div className="border border-white/[0.06] p-7">
-            <h3
-              className="text-[0.95rem] font-semibold text-white/65 mb-3"
-              style={INTER}
-            >
+            <h3 className="text-[0.95rem] font-semibold text-white/60 mb-3" style={INTER}>
               Não pode doar? Vote.
             </h3>
-            <p
-              className="text-[13px] text-white/38 leading-relaxed"
-              style={INTER}
-            >
+            <p className="text-[13px] text-white/35 leading-relaxed" style={INTER}>
               Todo usuário tem{" "}
-              <span className="text-white/60">3 votos gratuitos por mês</span>{" "}
+              <span className="text-white/58">3 votos gratuitos por mês</span>{" "}
               para distribuir entre as campanhas ativas. Votos influenciam a
               visibilidade — é a forma de dar voz a quem não pode contribuir
               financeiramente.
             </p>
           </div>
           <div className="border border-white/[0.06] p-7">
-            <h3
-              className="text-[0.95rem] font-semibold text-white/65 mb-3"
-              style={INTER}
-            >
+            <h3 className="text-[0.95rem] font-semibold text-white/60 mb-3" style={INTER}>
               Por que R$ 3.000?
             </h3>
-            <p
-              className="text-[13px] text-white/38 leading-relaxed"
-              style={INTER}
-            >
+            <p className="text-[13px] text-white/35 leading-relaxed" style={INTER}>
               Cobre o custo real da IA (~R$ 60), configuração do scraper,
               revisão humana e{" "}
-              <span className="text-white/60">
-                3 meses de manutenção dos dados
-              </span>{" "}
+              <span className="text-white/58">3 meses de manutenção dos dados</span>{" "}
               após a entrega. Sem margem inflada.
             </p>
           </div>
@@ -654,15 +647,12 @@ function ApoiarPage() {
 
         {/* ─── Footer CTA ─── */}
         <section className="max-w-2xl mx-auto text-center pt-10 border-t border-white/[0.05]">
-          <p
-            className="text-[13px] text-white/30 leading-relaxed mb-7"
-            style={INTER}
-          >
+          <p className="text-[13px] text-white/28 leading-relaxed mb-7" style={INTER}>
             Dúvidas ou quer conversar sobre uma parceria?
             <br />
             <a
               href="mailto:regisalessander@gmail.com"
-              className="text-white/45 hover:text-white/65 transition underline underline-offset-2 decoration-white/15"
+              className="text-white/42 hover:text-white/62 transition underline underline-offset-2 decoration-white/12"
             >
               regisalessander@gmail.com
             </a>
@@ -677,24 +667,24 @@ function ApoiarPage() {
             </a>
             <Link
               to="/"
-              className="inline-block text-[10px] font-medium uppercase tracking-[0.15em] px-5 py-3.5 text-white/28 hover:text-white/55 transition border border-white/[0.07]"
+              className="inline-block text-[10px] font-medium uppercase tracking-[0.15em] px-5 py-3.5 text-white/25 hover:text-white/52 transition border border-white/[0.07]"
               style={INTER}
             >
               ← Início
             </Link>
           </div>
-          <p className="mt-8 text-[10px] text-white/18" style={INTER}>
+          <p className="mt-8 text-[10px] text-white/16" style={INTER}>
             White Papers:{" "}
             <Link
               to="/whitepaper-01-extracao-caupr"
-              className="hover:text-white/40 transition underline underline-offset-2 decoration-white/10"
+              className="hover:text-white/38 transition underline underline-offset-2 decoration-white/08"
             >
               Nº 01
             </Link>
             {" · "}
             <Link
               to="/whitepaper-02-custo-e-controle"
-              className="hover:text-white/40 transition underline underline-offset-2 decoration-white/10"
+              className="hover:text-white/38 transition underline underline-offset-2 decoration-white/08"
             >
               Nº 02
             </Link>
