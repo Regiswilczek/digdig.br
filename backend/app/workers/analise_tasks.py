@@ -2,7 +2,7 @@ import uuid
 import asyncio
 from decimal import Decimal
 from anthropic import RateLimitError, APIError
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from app.workers.celery_app import celery_app
 from app.database import async_session_factory
 from app.models.ato import Ato, RodadaAnalise
@@ -68,7 +68,7 @@ async def _analisar_lote_haiku(
                     .where(RodadaAnalise.id == rodada_id)
                     .values(
                         atos_analisados_haiku=RodadaAnalise.atos_analisados_haiku + 1,
-                        custo_total_usd=RodadaAnalise.custo_total_usd + custo_ato,
+                        custo_total_usd=func.coalesce(RodadaAnalise.custo_total_usd, 0) + custo_ato,
                     )
                 )
                 await db.commit()
