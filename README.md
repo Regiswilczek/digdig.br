@@ -8,7 +8,7 @@ Plataforma SaaS que audita automaticamente atos administrativos de órgãos púb
 
 ## O Problema
 
-Órgãos públicos brasileiros publicam centenas de portarias, deliberações e resoluções por ano. Esses documentos estão disponíveis publicamente — mas ninguém lê. São PDFs técnicos, numerados, sem contexto, impossíveis de auditar manualmente.
+Órgãos públicos brasileiros publicam centenas de portarias, deliberações e resoluções por ano. Esses documentos estão disponíveis publicamente — mas ninguém lê. São PDFs técnicos, numerados, sem contexto, impossíveis de auditar manualmente em volume.
 
 Resultado: irregularidades passam despercebidas. Nepotismo, concentração de poder, perseguição política e gastos suspeitos ficam escondidos na burocracia.
 
@@ -18,7 +18,7 @@ Resultado: irregularidades passam despercebidas. Nepotismo, concentração de po
 
 O Dig Dig baixa automaticamente todos os atos administrativos de um órgão público, extrai o texto completo dos PDFs e usa IA para analisar cada documento — detectando tanto violações legais quanto irregularidades morais e éticas.
 
-O resultado é apresentado em um dashboard interativo com filtros, visualização de relacionamentos entre pessoas e um sistema de chat onde o usuário pode perguntar em linguagem natural sobre qualquer irregularidade encontrada.
+O resultado fica armazenado em banco de dados e é acessível via dashboard interativo e chat conversacional em linguagem natural.
 
 ---
 
@@ -26,41 +26,49 @@ O resultado é apresentado em um dashboard interativo com filtros, visualizaçã
 
 ```
 1. COLETA
-   O sistema baixa todos os PDFs do site oficial do órgão
-   e extrai o texto completo de cada documento.
+   Script local baixa todos os PDFs do site oficial do órgão
+   e extrai o texto com pdfplumber. (Roda localmente — servidores
+   de alguns órgãos bloqueiam requisições de data centers.)
 
-2. ANÁLISE COM IA
-   Haiku 4.5 analisa todos os atos em lote (triagem rápida).
-   Sonnet 4.6 aprofunda os casos críticos e gera fichas de denúncia.
-   Custo total por órgão: ~$10-15 (feito uma vez, resultados permanentes).
+2. ANÁLISE COM IA — FASE HAIKU
+   Claude Haiku 4.5 analisa todos os atos em lote com o regimento
+   interno como contexto (prompt caching). Classifica cada ato em:
+   Verde / Amarelo / Laranja / Vermelho.
+   Custo: ~$5–10 por órgão (portarias com texto nativo).
 
-3. DASHBOARD
-   Todos os resultados ficam armazenados e disponíveis via
-   interface web com filtros, busca, grafo de pessoas e
-   linha do tempo de irregularidades.
+3. ANÁLISE COM IA — FASE SONNET
+   Claude Sonnet 4.6 aprofunda apenas os casos Vermelho:
+   análise detalhada, ficha de denúncia, mapeamento de pessoas.
 
-4. CHAT CONVERSACIONAL
+4. DASHBOARD
+   Todos os resultados disponíveis via interface web com filtros,
+   busca por pessoa, linha do tempo de irregularidades.
+
+5. CHAT CONVERSACIONAL
    O usuário conversa com a IA sobre os dados analisados.
-   "Qual a relação entre as exonerações de 2025 e os processos abertos?"
-   A IA busca no banco e responde com citações precisas dos atos.
-
-5. FICHAS DE DENÚNCIA
-   Cada irregularidade grave gera uma ficha pronta para uso
-   em imprensa, processos jurídicos ou campanha política.
+   A IA consulta o banco e responde com citações precisas dos atos.
+   Custo por pergunta: ~$0,02–$0,10.
 ```
 
 ---
 
-## Primeiro Órgão Disponível: CAU/PR
+## Status Atual — CAU/PR (Abril 2026)
 
-O Conselho de Arquitetura e Urbanismo do Paraná foi o caso piloto:
+O Conselho de Arquitetura e Urbanismo do Paraná é o caso piloto, em análise agora.
 
-- **1.789 atos analisados** (551 portarias + 1.238 deliberações)
-- **1.171 PDFs** baixados e com texto extraído
-- Período coberto: 2020–2026
-- Custo da análise completa: ~$10
-
-**Mais órgãos em breve:** Câmaras Municipais, outros Conselhos Profissionais, Autarquias estaduais.
+| Indicador | Valor |
+|-----------|-------|
+| Total de atos coletados | 1.789 (551 portarias + 1.238 deliberações) |
+| Portarias com texto extraível | 400 |
+| Portarias escaneadas (sem texto) | 151 (2018–2021, PDFs-imagem) |
+| Deliberações com PDF | 2 |
+| Deliberações HTML-only | 595 (próxima sprint) |
+| **Portarias analisadas pela IA** | **262 de 400 (em progresso)** |
+| Distribuição — Verde | 93 (35%) |
+| Distribuição — Amarelo | 168 (64%) |
+| Distribuição — Laranja | 1 (<1%) |
+| Distribuição — Vermelho | 0 (chegando nos anos anteriores) |
+| Custo da rodada atual | ~$5 projetado |
 
 ---
 
@@ -68,72 +76,48 @@ O Conselho de Arquitetura e Urbanismo do Paraná foi o caso piloto:
 
 | Camada | Tecnologia |
 |--------|-----------|
-| Frontend | Next.js 15 + Tailwind CSS + shadcn/ui |
+| Frontend | React + Vite + TanStack Router + shadcn/ui (Lovable) |
 | Backend | FastAPI (Python 3.12) + Celery + Redis |
-| Banco de Dados | PostgreSQL via Supabase |
+| Banco de Dados | PostgreSQL via Supabase (29 tabelas, RLS) |
 | Autenticação | Supabase Auth (JWT) |
-| Storage | Supabase Storage (PDFs e relatórios) |
+| Storage | Supabase Storage |
 | IA — Triagem | Claude Haiku 4.5 (Anthropic) |
-| IA — Análise e Chat | Claude Sonnet 4.6 (Anthropic) |
-| Extração de PDF | pdfplumber + Tesseract OCR (fallback) |
+| IA — Análise Profunda e Chat | Claude Sonnet 4.6 (Anthropic) |
+| Extração de PDF | pdfplumber |
 | Fila de Jobs | Celery + Redis |
 | Deploy Backend | Railway |
-| Deploy Frontend | Vercel |
-| Billing | Stripe |
-| Email | Resend |
-| Monitoramento | Sentry + structlog |
-| Analytics | PostHog |
+| Deploy Frontend | Lovable |
+| Billing | Mercado Pago |
+| Monitoramento | structlog |
 
 ---
 
 ## Planos
 
-| Plano | Preço | Órgãos | Chat IA/mês |
-|-------|-------|--------|-------------|
-| **Gratuito** | R$ 0 | 1 órgão (só leitura) | 20 perguntas |
-| **Pro** | R$ 297/mês | Todos os órgãos | 300 perguntas |
-| **Enterprise** | R$ 997/mês | Todos + API | Ilimitado |
+| Plano | Preço | Chat IA/mês | Órgãos |
+|-------|-------|-------------|--------|
+| **Cidadão** | R$ 0 | 5 perguntas | Todos (só leitura) |
+| **Investigador** | R$ 197/mês | 200 perguntas | Todos |
+| **Profissional** | R$ 597/mês | 1.000 perguntas | Todos |
+| **API & Dados** | R$ 1.997/mês | via API | Todos + API REST |
 
 ---
 
 ## Tipos de Irregularidades Detectadas
 
-### Legais (violações diretas ao regimento)
+**Legais** (violações diretas ao regimento)
 - Autoridade incompetente para o ato
 - Violação de quórum em deliberações
 - Prazo de comissão processante excedido
 - Composição irregular de comissão
 
-### Morais e Éticas (mesmo quando "legais")
-- **Nepotismo e favorecimento** — nomeação de aliados sem critério técnico
-- **Concentração de poder** — excesso de atos Ad Referendum (decisão monocrática do presidente)
-- **Perseguição política** — processos disciplinares como instrumento contra opositores
-- **Cabide de empregos** — criação de cargos desnecessários
-- **Aparelhamento** — mesmo grupo controlando todas as comissões estratégicas
-- **Falta de transparência** — ementas genéricas para esconder o real propósito
-
----
-
-## O Chat com IA
-
-Após a análise ser feita uma vez, o usuário pode conversar com a IA sobre os dados:
-
-```
-Usuário: "Existe alguma relação entre as exonerações de 2025 e os processos abertos?"
-
-IA: "Encontrei um padrão claro nos dados. Em 2025 ocorreram 18 exonerações de cargos
-     em comissão. Dessas, 7 pessoas (39%) tiveram processo disciplinar aberto nos
-     60 dias anteriores à exoneração:
-
-     • João Silva — exonerado em 15/03/2025 (Portaria 601) após processo aberto
-       em 10/01/2025 (Portaria 558)
-     ...
-
-     Isso configura um padrão de uso do processo disciplinar como instrumento
-     para afastar pessoas antes de exonerá-las formalmente."
-```
-
-**A IA não re-analisa os PDFs a cada pergunta** — ela consulta os resultados já armazenados no banco. Custo por pergunta: ~$0,02 a $0,10.
+**Morais e Éticas** (mesmo quando "legais")
+- Nepotismo e favorecimento — nomeação de aliados sem critério técnico
+- Concentração de poder — excesso de atos Ad Referendum
+- Perseguição política — processos disciplinares como instrumento contra opositores
+- Cabide de empregos — criação de cargos desnecessários
+- Aparelhamento — mesmo grupo controlando todas as comissões estratégicas
+- Falta de transparência — ementas genéricas para esconder o real propósito
 
 ---
 
@@ -141,11 +125,10 @@ IA: "Encontrei um padrão claro nos dados. Em 2025 ocorreram 18 exonerações de
 
 ```
 /
-├── CLAUDE.md                    ← contexto completo para o Claude
-├── README.md                    ← este arquivo
+├── CLAUDE.md                         ← contexto completo para o Claude
+├── README.md                         ← este arquivo
 │
-├── docs/                        ← documentação completa do sistema
-│   ├── README.md                ← índice dos documentos
+├── docs/                             ← documentação e white papers
 │   ├── 00-visao-geral-e-comercial.md
 │   ├── 01-arquitetura.md
 │   ├── 02-banco-de-dados.md
@@ -157,42 +140,73 @@ IA: "Encontrei um padrão claro nos dados. Em 2025 ocorreram 18 exonerações de
 │   ├── 08-testes.md
 │   ├── 09-infraestrutura-e-deploy.md
 │   ├── 10-logs-e-analytics.md
-│   └── 11-chat-e-ia-conversacional.md
+│   ├── 11-chat-e-ia-conversacional.md
+│   ├── 12-plano-de-negocios.md
+│   ├── 13-api-dados-comercial.md
+│   ├── 14-revisao-pre-implementacao.md
+│   ├── 15-alertas-email-e-deduplicacao.md
+│   ├── registro-extracao-cau-pr.md         ← White Paper Nº 01 (MD)
+│   ├── whitepaper-01-extracao-caupr.html   ← White Paper Nº 01 (HTML)
+│   └── whitepaper-02-custo-e-controle.html ← White Paper Nº 02 (HTML)
 │
-├── extracted/agente_auditoria_caupr/   ← dados do CAU/PR já coletados
-│   ├── portarias_completo.json         ← 551 portarias com links de PDF
-│   ├── deliberacoes_completo.json      ← 1.238 deliberações
-│   ├── agente_auditoria.py             ← protótipo v1 (referência apenas)
-│   ├── resultados_auditoria.json       ← análise feita pelo protótipo
-│   └── relatorio_auditoria_caupr.html  ← relatório HTML do protótipo
+├── backend/                          ← FastAPI + Celery (em produção)
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── models/                   ← 29 modelos SQLAlchemy
+│   │   ├── routers/                  ← endpoints FastAPI
+│   │   ├── services/                 ← haiku_service, sonnet_service, etc.
+│   │   └── workers/                  ← Celery tasks (analise, scraper, orquestrador)
+│   ├── migrations/                   ← Alembic migrations
+│   ├── scripts/
+│   │   ├── scrape_local.py           ← scraper local (IP brasileiro)
+│   │   ├── test_haiku.py             ← testa 1 ato antes de rodar lote
+│   │   └── relatorio_cobertura.py    ← relatório de cobertura por ano
+│   └── tests/
 │
-├── backend/                     ← (a criar) FastAPI + Celery
-├── frontend/                    ← (a criar) Next.js
-└── .vscode/
+├── src/                              ← Frontend React/Vite (Lovable)
+│   └── routes/
+│       ├── index.tsx
+│       ├── whitepaper-01-extracao-caupr.tsx
+│       └── whitepaper-02-custo-e-controle.tsx
+│
+└── extracted/agente_auditoria_caupr/ ← dados brutos coletados
+    ├── portarias_completo.json        ← 551 portarias com links de PDF
+    └── deliberacoes_completo.json     ← 1.238 deliberações
 ```
 
 ---
 
-## Status do Projeto
+## Fases de Desenvolvimento
 
 | Fase | Status | Descrição |
 |------|--------|-----------|
-| Dados CAU/PR | ✅ Concluído | 1.789 atos coletados, PDFs testados |
-| Documentação | ✅ Concluído | 11 documentos de design e arquitetura |
-| Implementação | ⏳ Próximo passo | Plano de implementação a ser criado |
-| Deploy | — | Após implementação |
-| Lançamento CAU/PR | — | Meta: validar com dados reais |
+| Planejamento e docs | ✅ Concluído | 15 documentos de design e arquitetura |
+| Backend foundation | ✅ Concluído | FastAPI, 29 tabelas, Celery, auth, deploy Railway |
+| Scraper de portarias | ✅ Concluído | 400 portarias com texto, 151 escaneadas documentadas |
+| Pipeline Haiku | 🔄 Em progresso | 262/400 portarias analisadas |
+| Pipeline Sonnet | ⏳ Próximo | Aguarda Haiku terminar — só casos Vermelho |
+| Scraper deliberações (HTML) | ⏳ Próximo | 595 deliberações HTML-only |
+| OCR portarias escaneadas | ⏳ Planejado | 151 portarias de 2018–2021 |
+| Dashboard conectado | ⏳ Planejado | Frontend existe, falta ligar na API real |
+| Chat conversacional | ⏳ Planejado | RAG no banco, Sonnet responde |
+| Lançamento CAU/PR | ⏳ Planejado | Após resultados completos |
 
 ---
 
-## Documentação
+## White Papers
 
-Toda a arquitetura, banco de dados, endpoints, segurança e estratégia estão documentados em `docs/`.
+Série de registro técnico público sobre o processo de construção:
 
-Comece por [docs/README.md](docs/README.md) para o índice completo.
+- **[Nº 01 — Como Automatizamos a Auditoria do CAU/PR com IA](docs/whitepaper-01-extracao-caupr.html)**
+  A origem do projeto, a arquitetura, e os 7 problemas reais que tivemos que resolver.
+
+- **[Nº 02 — Quando a IA Custa Mais do Que Deveria](docs/whitepaper-02-custo-e-controle.html)**
+  Como detectamos e corrigimos $20 em chamadas de API não rastreadas — diagnóstico e solução em 4 camadas.
 
 ---
 
-## Contexto para IA (Claude)
+## Documentação Técnica
 
-Se você é o Claude trabalhando neste projeto, leia **[CLAUDE.md](CLAUDE.md)** primeiro. Ele contém todas as decisões tomadas, o estado atual do projeto e as regras de trabalho.
+Toda a arquitetura está em `docs/`. Leia [CLAUDE.md](CLAUDE.md) para o estado atual completo e regras de trabalho.
