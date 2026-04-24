@@ -891,6 +891,62 @@ function SolucoesPage() {
               </p>
             </section>
 
+            {/* ── White Papers — mobile only ── */}
+            <section className="lg:hidden mb-14">
+              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-4" style={MONO}>
+                White Papers
+              </p>
+              <div className="flex flex-col gap-3 mb-4">
+                {([
+                  { n: "01", titulo: "Como Automatizamos a Auditoria do CAU/PR com IA", desc: "A origem do projeto, a arquitetura e os 7 problemas reais que tivemos que resolver.", to: "/whitepaper-01-extracao-caupr" as const, publicado: true },
+                  { n: "02", titulo: "Quando a IA Custa Mais do Que Deveria", desc: "Como detectamos e corrigimos $20 em chamadas de API não rastreadas — 4 camadas de solução.", to: "/whitepaper-02-custo-e-controle" as const, publicado: true },
+                  { n: "03", titulo: "Os Primeiros Vermelhos", desc: "Quando o pipeline chegou nos anos anteriores e encontrou os primeiros casos críticos.", to: null, publicado: false },
+                ] as const).map((p) => (
+                  <div
+                    key={p.n}
+                    className="border border-white/[0.06] p-5"
+                    style={!p.publicado ? { borderColor: "rgba(255,255,255,0.03)" } : undefined}
+                  >
+                    <p
+                      className="text-[9px] uppercase tracking-[0.16em] mb-2.5 flex items-center gap-2"
+                      style={{ ...MONO, color: "rgba(255,255,255,0.20)" }}
+                    >
+                      Nº {p.n}
+                      {!p.publicado && <span style={{ color: "rgba(255,255,255,0.14)" }}>— em breve</span>}
+                    </p>
+                    <h4
+                      className="text-[0.82rem] font-semibold leading-snug mb-2"
+                      style={{ ...INTER, color: p.publicado ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.25)" }}
+                    >
+                      {p.titulo}
+                    </h4>
+                    <p
+                      className="text-[11px] leading-relaxed mb-3"
+                      style={{ ...INTER, color: p.publicado ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)" }}
+                    >
+                      {p.desc}
+                    </p>
+                    {p.publicado && p.to ? (
+                      <Link
+                        to={p.to}
+                        className="text-[10px] font-semibold uppercase tracking-[0.14em] transition hover:opacity-80"
+                        style={{ ...INTER, color: "rgba(255,255,255,0.35)" }}
+                      >
+                        Ler →
+                      </Link>
+                    ) : (
+                      <span className="text-[10px] uppercase tracking-[0.14em]" style={{ ...INTER, color: "rgba(255,255,255,0.16)" }}>
+                        Em breve
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] leading-relaxed" style={{ ...INTER, color: "rgba(255,255,255,0.18)" }}>
+                Registro técnico público sobre a construção do Dig Dig — metodologia, decisões e números reais.
+              </p>
+            </section>
+
             {/* ── Footer CTA ── */}
             <section className="pt-10 border-t border-white/[0.05] text-center">
               <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
