@@ -149,7 +149,7 @@ function Nav() {
         DIG DIG
       </Link>
       <div className="hidden md:flex items-center gap-8 text-[13px] text-white/30">
-        <Link to="/" className="hover:text-white/70 transition">Início</Link>
+        <Link to="/solucoes" className="hover:text-white/70 transition">Soluções</Link>
         <Link to="/apoiar" className="text-white/65 font-medium">Apoiar</Link>
       </div>
       <a href="/entrar" className="text-[12px] text-white/30 hover:text-white/65 transition">

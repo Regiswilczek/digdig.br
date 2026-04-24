@@ -317,7 +317,6 @@ function Nav() {
   }, [open]);
 
   const links = [
-    { to: "/produto", label: "Produto" },
     { to: "/solucoes", label: "Soluções" },
     { to: "/apoiar", label: "Apoiar" },
   ] as const;
