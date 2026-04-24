@@ -319,8 +319,7 @@ function Nav() {
   const links = [
     { to: "/produto", label: "Produto" },
     { to: "/solucoes", label: "Soluções" },
-    { to: "/precos", label: "Preços" },
-    { to: "/patrocine", label: "Patrocine" },
+    { to: "/apoiar", label: "Apoiar" },
   ] as const;
 
   return (

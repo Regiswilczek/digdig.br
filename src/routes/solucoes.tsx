@@ -148,8 +148,7 @@ function Nav() {
       <div className="hidden md:flex items-center gap-8 text-[13px] text-white/50">
         <Link to="/" className="hover:text-white transition-colors">Produto</Link>
         <Link to="/solucoes" className="text-white">Soluções</Link>
-        <Link to="/precos" className="hover:text-white transition-colors">Preços</Link>
-        <Link to="/patrocine" className="hover:text-white transition-colors">Patrocine</Link>
+        <Link to="/apoiar" className="hover:text-white transition-colors">Apoiar</Link>
       </div>
       <a
         href="/entrar"
@@ -216,7 +215,7 @@ function SolucaoCard({ sol, index }: { sol: Solucao; index: number }) {
               <p style={SYNE} className="text-white text-[1rem] mt-1">{sol.planoSugerido}</p>
             </div>
             <Link
-              to="/precos"
+              to="/apoiar"
               style={{ ...SYNE, letterSpacing: "0.2em", background: sol.cor, color: "#0a1530" }}
               className="text-[11px] uppercase px-5 py-3 hover:opacity-90 transition-opacity"
             >
@@ -300,14 +299,14 @@ function SolucoesPage() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
             <Link
-              to="/precos"
+              to="/apoiar"
               style={{ ...SYNE, background: "#F0C81E", color: "#0a1530", letterSpacing: "0.22em" }}
               className="inline-block text-[11px] uppercase px-7 py-[13px] hover:opacity-90 transition-opacity"
             >
               VER PLANOS
             </Link>
             <Link
-              to="/patrocine"
+              to="/apoiar"
               style={{ ...SYNE, letterSpacing: "0.22em" }}
               className="inline-block text-white/60 hover:text-white text-[11px] uppercase px-5 py-[13px] transition-colors"
             >
