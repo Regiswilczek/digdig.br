@@ -156,7 +156,7 @@ Qualquer pessoa pode nominar um órgão público para ser auditado pelo Dig Dig.
 - Fila de execução: uma instituição por vez (Dig Dig controla o cronograma)
 
 **6. Benefícios para doadores**
-- 6 meses do plano Investigador grátis (independente do valor doado — é por ter doado, não por quanto)
+- 1 mês do plano Investigador grátis na primeira doação (independente do valor — é por ter doado, não por quanto)
 - Badge "Patrocinador [Nome da Instituição]" permanente no perfil
 - Acesso antecipado ao resultado 48 horas antes da publicação pública
 - Email de atualização de progresso a cada 25% do termômetro preenchido
@@ -473,7 +473,7 @@ Premissa: meta de R$3.000 por instituição. Margem de contribuição por audito
 | Custo de Stripe (3,5% + R$0,60) | ~R$105 |
 | **Margem de contribuição** | **R$2.295–R$2.645** (~76–88%) |
 
-O benefício de 6 meses de Investigador para doadores (R$197 × 6 = R$1.182 de valor de tabela) é custo de IA marginal muito baixo — o custo incremental de 1 usuário Investigador adicional é próximo de zero. Não entra como custo direto da campanha.
+O benefício de 1 mês de Investigador para doadores (R$197 de valor de tabela) é custo de IA marginal muito baixo — o custo incremental de 1 usuário Investigador adicional é próximo de zero. Não entra como custo direto da campanha.
 
 ---
 
@@ -577,7 +577,7 @@ O benefício de 6 meses de Investigador para doadores (R$197 × 6 = R$1.182 de v
 - Limite de 5 chats/mês no plano gratuito é o principal gatilho de upgrade — testar se está no nível certo
 - Email nurturing com exemplos de uso do Investigador para usuários gratuitos ativos
 - Oferta de trial: 14 dias de Investigador grátis para usuários que atingirem o limite de chat
-- O plano de patrocínio garante 6 meses de Investigador para doadores — cria base pagante via outro vetor
+- O plano de patrocínio garante 1 mês de Investigador para doadores (primeira doação) — cria base pagante via outro vetor
 
 ---
 

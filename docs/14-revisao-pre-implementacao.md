@@ -327,7 +327,7 @@ O CLAUDE.md diz 551 portarias + 1.238 deliberações = 1.789. O doc 03 diz "1.17
 
 **O prompt caching está no lugar certo.** Cachear o system prompt com o regimento interno (8.000 tokens) e não cachear o user prompt (360 tokens por ato) é a configuração de máxima economia. Não mexer nisso.
 
-**O mecanismo de Patrocine uma Auditoria é genuinamente diferenciado.** A combinação de votos gratuitos + doações via Stripe + benefício de 6 meses Investigador para doadores + acesso antecipado é um loop de engajamento que vai funcionar. É o segundo maior diferencial do produto depois da análise de IA.
+**O mecanismo de Patrocine uma Auditoria é genuinamente diferenciado.** A combinação de votos gratuitos + doações via Stripe + benefício de 1 mês Investigador para doadores (primeira doação) + acesso antecipado é um loop de engajamento que vai funcionar. É o segundo maior diferencial do produto depois da análise de IA.
 
 **A decisão de RAG sobre dados pré-computados no chat está certa.** Re-ler os PDFs a cada pergunta seria inviável em custo e latência. Navegar o banco de análises já computadas é a arquitetura correta para o caso de uso.
 

@@ -597,7 +597,7 @@ function ApoiarPage() {
             </h2>
             <ul className="grid md:grid-cols-2 gap-x-10 gap-y-3">
               {[
-                "6 meses do plano Investigador grátis — independente do valor doado",
+                "1 mês do plano Investigador grátis na primeira doação",
                 'Badge "Patrocinador" permanente no seu perfil',
                 "Acesso ao resultado 48h antes da publicação pública",
                 "Emails de progresso a cada 25% da meta atingida",

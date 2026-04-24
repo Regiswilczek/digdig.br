@@ -94,7 +94,7 @@ Página pública (sem login) que exibe as campanhas ativas de crowdfunding para 
 - Lista de últimas doações (nome ou "Anônimo" + valor se público)
 - Formulário de doação (mínimo R$25, integração Stripe)
 - Botão de voto gratuito (requer login, 3 votos/mês por usuário)
-- Seção "O que você recebe": 6 meses Investigador + badge Patrocinador + acesso 48h antes
+- Seção "O que você recebe": 1 mês Investigador grátis (primeira doação) + badge Patrocinador + acesso 48h antes
 
 **Funcionalidades:**
 - Termômetro animado com progresso em tempo real

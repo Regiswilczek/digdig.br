@@ -841,7 +841,7 @@ Eventos tratados:
 - `customer.subscription.deleted`
 - `invoice.payment_succeeded`
 - `invoice.payment_failed`
-- `payment_intent.succeeded` → confirma doação de patrocínio, concede 6 meses de Investigador ao doador, atualiza `valor_arrecadado` da campanha, verifica se meta foi atingida (dispara análise se sim)
+- `payment_intent.succeeded` → confirma doação de patrocínio, concede 1 mês de Investigador ao doador (primeira doação), atualiza `valor_arrecadado` da campanha, verifica se meta foi atingida (dispara análise se sim)
 
 ### Onboarding de novo usuário
 ```
