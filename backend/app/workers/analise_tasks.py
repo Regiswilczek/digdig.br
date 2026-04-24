@@ -1,5 +1,6 @@
 import uuid
 import asyncio
+from decimal import Decimal
 from anthropic import RateLimitError, APIError
 from sqlalchemy import select, update
 from app.workers.celery_app import celery_app
@@ -9,6 +10,17 @@ from app.models.analise import Analise
 from app.models.tenant import Tenant
 from app.services.haiku_service import analisar_ato_haiku, montar_system_prompt
 from app.services.sonnet_service import analisar_ato_sonnet
+
+CUSTO_LIMITE_USD = Decimal("15.00")
+
+
+async def _rodada_esta_ativa(db, rodada_id: uuid.UUID) -> bool:
+    """Returns False if the rodada was cancelled externally — workers must stop."""
+    result = await db.execute(
+        select(RodadaAnalise.status).where(RodadaAnalise.id == rodada_id)
+    )
+    status = result.scalar_one_or_none()
+    return status in ("em_progresso", "pendente")
 
 
 @celery_app.task(bind=True, max_retries=3, queue="analise", name="analise.haiku_lote")
@@ -30,18 +42,56 @@ async def _analisar_lote_haiku(
     async with async_session_factory() as db:
         system_prompt = await montar_system_prompt(db, tenant_id)
 
-        results = {"ok": 0, "erro": 0}
+        results = {"ok": 0, "erro": 0, "pulados": 0, "cancelado": False}
         for ato_id_str in ato_ids:
+            # Check cancellation before each ato to stop quickly after cancel
+            if not await _rodada_esta_ativa(db, rodada_id):
+                results["cancelado"] = True
+                break
+
             ato_id = uuid.UUID(ato_id_str)
             try:
                 await analisar_ato_haiku(db, ato_id, rodada_id, system_prompt)
+
+                # Only increment counter for newly analyzed atos (not idempotency hits)
+                ato_result = await db.execute(select(Ato).where(Ato.id == ato_id))
+                ato = ato_result.scalar_one()
+
+                analise_result = await db.execute(
+                    select(Analise).where(Analise.ato_id == ato_id)
+                )
+                analise = analise_result.scalar_one_or_none()
+                custo_ato = analise.custo_usd if analise else Decimal("0")
+
                 await db.execute(
                     update(RodadaAnalise)
                     .where(RodadaAnalise.id == rodada_id)
-                    .values(atos_analisados_haiku=RodadaAnalise.atos_analisados_haiku + 1)
+                    .values(
+                        atos_analisados_haiku=RodadaAnalise.atos_analisados_haiku + 1,
+                        custo_total_usd=RodadaAnalise.custo_total_usd + custo_ato,
+                    )
                 )
                 await db.commit()
                 results["ok"] += 1
+
+                # Cost threshold: abort if rodada is burning too much money
+                rodada_result = await db.execute(
+                    select(RodadaAnalise.custo_total_usd).where(RodadaAnalise.id == rodada_id)
+                )
+                custo_acumulado = rodada_result.scalar_one_or_none() or Decimal("0")
+                if custo_acumulado > CUSTO_LIMITE_USD:
+                    await db.execute(
+                        update(RodadaAnalise)
+                        .where(RodadaAnalise.id == rodada_id)
+                        .values(
+                            status="cancelada",
+                            erro_mensagem=f"Limite de custo atingido: USD {custo_acumulado}",
+                        )
+                    )
+                    await db.commit()
+                    results["cancelado"] = True
+                    break
+
             except (RateLimitError, APIError):
                 raise  # bubble up to task wrapper for retry
             except Exception:
@@ -66,6 +116,9 @@ async def _analisar_criticos_sonnet(rodada_id_str: str, tenant_id_str: str) -> d
     tenant_id = uuid.UUID(tenant_id_str)
 
     async with async_session_factory() as db:
+        if not await _rodada_esta_ativa(db, rodada_id):
+            return {"ok": 0, "motivo": "rodada_cancelada"}
+
         criticos_result = await db.execute(
             select(Analise).where(
                 Analise.rodada_id == rodada_id,
@@ -82,6 +135,8 @@ async def _analisar_criticos_sonnet(rodada_id_str: str, tenant_id_str: str) -> d
         results = {"ok": 0, "erro": 0}
 
         for analise in criticos:
+            if not await _rodada_esta_ativa(db, rodada_id):
+                break
             try:
                 await analisar_ato_sonnet(db, analise.ato_id, rodada_id, system_prompt)
                 await db.execute(

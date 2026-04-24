@@ -155,6 +155,13 @@ async def analisar_ato_haiku(
     ato_result = await db.execute(select(Ato).where(Ato.id == ato_id))
     ato = ato_result.scalar_one()
 
+    # Idempotency guard: skip API call if ato was already successfully analyzed
+    if ato.processado:
+        existing = await db.execute(select(Analise).where(Analise.ato_id == ato_id))
+        analise = existing.scalar_one_or_none()
+        if analise:
+            return analise
+
     conteudo_result = await db.execute(
         select(ConteudoAto).where(ConteudoAto.ato_id == ato_id)
     )
