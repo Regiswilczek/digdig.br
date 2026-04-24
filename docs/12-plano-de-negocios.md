@@ -118,117 +118,66 @@ Isso é o que mantém a empresa viva juridicamente e politicamente. Neutralidade
 
 ---
 
-## 3. Patrocine uma Auditoria
+## 3. Doações, Votação e Apoio Institucional
 
-Esta é a funcionalidade mais original do produto. Não é só monetização — é mecanismo de crescimento, engajamento e PR.
+### Princípio
 
-### Conceito
+O Dig Dig é uma ferramenta do povo brasileiro. O acesso ao banco de dados auditado é gratuito para qualquer cidadão. Não há "meta por auditoria" ou promessa de entrega atrelada a valor arrecadado.
 
-Qualquer pessoa pode nominar um órgão público para ser auditado pelo Dig Dig. A comunidade financia coletivamente a análise. Quando a meta é atingida, a auditoria acontece em até 7 dias úteis e o resultado é publicado para todos — incluindo quem não doou.
+Cada casa de poder tem um volume de documentos completamente diferente. A Câmara Municipal de Curitiba publica dezenas de vezes mais atos que o CAU/PR. Uma meta fixa seria desonesta — para alguns órgãos seria insuficiente, para outros seria excessiva. E mais importante: vincular a execução de uma auditoria pública a uma meta financeira inverte a lógica. A auditoria deve acontecer porque é relevante, não porque foi financiada.
 
-### Mecânica completa
+O crescimento é orgânico e honesto: começamos com o CAU/PR porque conhecíamos o acervo por dentro. A cada nova auditoria, a ferramenta fica melhor e mais rápida. Com o tempo, o que hoje demanda trabalho humano será automatizado — mas não vamos prometer o que não podemos entregar ainda.
 
-**1. Nominação**
-- Qualquer usuário cadastrado (mesmo Cidadão gratuito) pode nominar uma instituição
-- Formulário: nome do órgão, URL do portal, breve justificativa pública (até 280 caracteres)
-- A nominação fica pública imediatamente no termômetro
+### Doações individuais
 
-**2. Votos gratuitos**
-- Todo usuário tem 3 votos por mês para distribuir entre qualquer nominação ativa
-- Votos influenciam a ordem de visibilidade na página (não substituem doações)
-- Objetivo: dar voz a quem não pode pagar e criar sinal orgânico de demanda
+- Valor mínimo: R$ 25 por contribuição
+- Frequência: única ou recorrente (escolha do doador)
+- Pagamento: cartão de crédito ou PIX
+- Benefício: 1 mês do plano Investigador grátis na primeira doação
+- Destino: custos operacionais reais (IA, infraestrutura, pesquisa humana)
+- Todo excedente é reinvestido em tecnologia para ampliar a capacidade da ferramenta
 
-**3. Doações**
-- Valor mínimo: R$ 25 por doação
-- Sem teto máximo por doador
-- Pagamento via Stripe (cartão de crédito, PIX)
-- Doação é voluntária e não dá direito a reembolso após auditoria executada
+### Votação de próximas auditorias
 
-**4. Termômetro por instituição**
-- Barra de progresso visível publicamente: R$ X de R$ 3.000
-- Número de apoiadores (não valor individual — privacidade)
-- Prazo de expiração: 90 dias para atingir a meta; se não atingir, doadores recebem crédito em conta para usar em outra nominação ou reembolso
+- Todo usuário cadastrado tem 3 votos/mês para distribuir entre os órgãos nominados
+- Qualquer usuário — mesmo no plano gratuito — pode nominar uma instituição
+- Os mais votados ficam no topo da fila de visibilidade
+- A equipe decide o cronograma de execução com base em: volume de votos, tamanho do acervo, complexidade técnica e capacidade atual da equipe
+- A fila é publicada e atualizada na plataforma — transparência total sobre o que vem a seguir
 
-**5. Meta e execução**
-- Meta fixa: R$ 3.000 por instituição (cobre custo de IA + scraping + 3 meses de margem de manutenção)
-- Ao atingir 100%: status muda para "Em análise"
-- Prazo de entrega: 7 dias úteis
-- Fila de execução: uma instituição por vez (Dig Dig controla o cronograma)
+### Apoio institucional
 
-**6. Benefícios para doadores**
-- 1 mês do plano Investigador grátis na primeira doação (independente do valor — é por ter doado, não por quanto)
-- Badge "Patrocinador [Nome da Instituição]" permanente no perfil
-- Acesso antecipado ao resultado 48 horas antes da publicação pública
-- Email de atualização de progresso a cada 25% do termômetro preenchido
+Empresas e organizações que acreditam na transparência pública podem se tornar Apoiadores Oficiais do Dig Dig. O modelo é negociado diretamente — sem tabela de preços, sem pacote fechado.
 
-### Mensagens para o doador
+Contato: apoie@digdig.com.br
 
-**Email de confirmação de doação:**
-> Assunto: Você acaba de financiar uma auditoria pública — obrigado  
+### Mensagens para o contribuidor
+
+**Email de confirmação de contribuição:**
+> Assunto: Obrigado — você acaba de apoiar a auditoria pública no Brasil
 >
-> Olá, [Nome].  
+> Olá, [Nome].
 >
-> Sua contribuição de R$ [X] para a auditoria do [Nome do Órgão] foi confirmada.  
+> Sua contribuição de R$ [X] foi confirmada.
 >
-> A meta está em [Y]% — [Z] pessoas já apoiaram esta auditoria junto com você.  
+> O Dig Dig usa esse valor para cobrir custos operacionais reais: IA, infraestrutura e trabalho humano de investigação. Todo excedente vai direto para ampliar a capacidade da ferramenta.
 >
-> Quando atingirmos R$ 3.000, a análise começa. Você vai receber o resultado 48 horas antes do público geral.  
->
-> Enquanto isso, seu plano Investigador já está ativo na sua conta.  
+> Seu plano Investigador já está ativo na sua conta — um mês completo para explorar o banco de dados auditado.
 >
 > — Equipe Dig Dig
 
-**Email de progresso (a cada 25%):**
-> Assunto: A auditoria do [Órgão] chegou a [25/50/75]%  
+**Email quando nova auditoria é publicada:**
+> Assunto: Nova auditoria publicada — [Nome do Órgão]
 >
-> A campanha que você apoiou está avançando.  
+> Olá, [Nome].
 >
-> [Barra de progresso visual: R$ X / R$ 3.000]  
+> A auditoria do [Órgão] está disponível no Dig Dig.
 >
-> [Número] pessoas já contribuíram. Se você conhece alguém que deveria saber disso, agora é a hora de compartilhar.  
+> Encontramos [X] atos que merecem atenção. [Y] classificados como alto risco. [Z] padrões recorrentes identificados.
 >
-> [Link para a página do termômetro]
-
-**Email de entrega (resultado publicado):**
-> Assunto: A auditoria do [Órgão] está pronta — você tem acesso exclusivo por 48h  
->
-> Olá, [Nome].  
->
-> A análise do [Órgão] que você ajudou a financiar está completa.  
->
-> Encontramos [X] atos que merecem atenção. [Y] classificados como alto risco. [Z] padrões recorrentes identificados.  
->
-> Você tem acesso exclusivo por 48 horas antes da publicação pública.  
->
-> [Ver resultado agora]  
+> [Ver resultado]
 >
 > Obrigado por tornar isso possível.
-
-### Campanha de lançamento — "Patrocine uma Auditoria"
-
-**O momento certo para lançar:** depois que o CAU/PR estiver ao vivo e funcionando. A auditoria do CAU/PR serve de prova social. O lançamento da mecânica de patrocínio acontece na Fase 2 do go-to-market.
-
-**Primeira campanha pré-selecionada (para gerar momentum imediato):**  
-O Dig Dig escolhe 3 instituições pré-nominadas antes de abrir ao público — instituições de alta visibilidade e fácil cobertura de mídia:
-1. CAU/PR (já auditado — serve como exemplo do que vem)
-2. Uma câmara municipal de cidade média do Paraná
-3. Um conselho profissional federal (ex: CRM-PR ou CRC-PR)
-
-**Copy de lançamento para redes sociais:**
-
-> *Post de lançamento — Twitter/X e LinkedIn:*  
->
-> O CAU/PR tem 1.789 atos administrativos publicados.  
-> Nossa IA leu todos.  
->
-> Agora você pode pedir que façamos o mesmo com qualquer órgão público do Brasil.  
->
-> Nominie. A comunidade financia. Nós executamos. O resultado é público.  
->
-> R$ 25 é o mínimo. Uma auditoria completa custa R$ 3.000.  
->
-> digdig.com.br/patrocine  
-> #TransparênciaPublica #AuditoriaCidadã
 
 > *Reels/TikTok — roteiro de 30 segundos:*  
 >
@@ -277,7 +226,7 @@ O objetivo não é viralidade nacional. É ser a referência local quando o assu
 - Lançar o site com o CAU/PR completo analisado (551 portarias + 1.238 deliberações)
 - Publicar os dados abertamente — toda análise é pública no plano Cidadão
 - Divulgar em grupos de arquitetos no WhatsApp e Telegram do Paraná
-- Divulgar no LinkedIn de Regis com contexto da candidatura à oposição do CAU/PR
+- Divulgar no LinkedIn de Regis com o contexto da investigação interna que originou o projeto
 - Meta de usuários: 500 cadastros no mês 1
 - Meta de receita: R$0 a R$5.000 (primeiros Investigadores via network pessoal)
 
@@ -292,16 +241,17 @@ O objetivo não é viralidade nacional. É ser a referência local quando o assu
 - Abrir para outros órgãos (foco total no CAU/PR)
 - Oferecer demo ou onboarding personalizado
 
-### Fase 2: Campanha "Patrocine uma Auditoria" (semanas 5–12)
+### Fase 2: Votação aberta + primeira auditoria extra-CAU (semanas 5–12)
 
-**Objetivo:** Escalar o modelo de crowdfunding, gerar cobertura de imprensa, validar willingness-to-pay fora do network pessoal.
+**Objetivo:** Abrir a fila de votação para o público, publicar a segunda auditoria, gerar cobertura de imprensa, validar willingness-to-pay fora do network pessoal.
 
 **Ações:**
-- Lançar a mecânica de patrocínio com as 3 instituições pré-nominadas
+- Abrir nominações e votos para o público geral
 - Campanha de conteúdo: um post diário com dado real tirado da análise do CAU/PR
 - Email semanal para lista de usuários com "o que encontramos esta semana"
-- Primeira campanha atingida → press release para G1, Folha de SP, UOL, Gazeta do Povo, Band Paraná
+- Segunda auditoria publicada → press release para G1, Folha de SP, UOL, Gazeta do Povo, Band Paraná
 - Onboarding de primeiros clientes Profissional (escritórios jurídicos, vereadores)
+- Lançar seção de contribuições com opção recorrente
 
 **Canais adicionais:**
 - SEO: páginas de resultado de cada órgão auditado indexáveis pelo Google
@@ -310,8 +260,8 @@ O objetivo não é viralidade nacional. É ser a referência local quando o assu
 
 **Meta:**
 - 2.000 usuários cadastrados
-- 3 campanhas de patrocínio ativas simultaneamente
-- Primeira auditoria extra-CAU entregue
+- 2ª auditoria publicada (órgão decidido pela equipe com base nos votos)
+- Primeiros apoiadores institucionais identificados via apoie@digdig.com.br
 - MRR: R$15.000–R$30.000
 
 ### Fase 3: Expansão nacional (meses 4–12)
@@ -326,8 +276,8 @@ O objetivo não é viralidade nacional. É ser a referência local quando o assu
 - Avaliar contratação de 1 pessoa de suporte/operações
 
 **Meta ao fim de 12 meses:**
-- 15+ órgãos analisados
-- 50+ campanhas de patrocínio concluídas
+- 15+ órgãos analisados e publicados
+- Contribuições recorrentes como fonte estável de custeio operacional
 - MRR: R$80.000–R$150.000
 - CAC estabilizado abaixo de R$200
 
