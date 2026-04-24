@@ -1,17 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  User,
-  AlertTriangle,
-  Network,
-  CalendarDays,
-  Bell,
-  BarChart3,
-  Plug,
-  Globe2,
-  ArrowUpRight,
-  ChevronRight,
-  Circle,
-} from "lucide-react";
+import { ArrowUpRight, ChevronRight, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/produto")({
   head: () => ({
@@ -20,586 +8,683 @@ export const Route = createFileRoute("/produto")({
       {
         name: "description",
         content:
-          "Como o Dig Dig escava atos administrativos: pipeline de IA, classificação de alertas, fichas de denúncia, grafo de relacionamentos e chat conversacional. Casos reais do CAU/PR.",
+          "Como o Dig Dig escava atos administrativos: pipeline de IA, classificação de alertas, fichas de denúncia e chat conversacional. Casos reais do CAU/PR.",
       },
       { property: "og:title", content: "Produto — Dig Dig" },
-      {
-        property: "og:description",
-        content:
-          "1.789 atos analisados, 136 ad referendum detectados, 32 prorrogações suspeitas. Veja como a IA escava o que ninguém leria.",
-      },
     ],
   }),
   component: ProdutoPage,
 });
 
-const SYNE: React.CSSProperties = {
-  fontFamily: "'Syne', system-ui, sans-serif",
-  fontWeight: 800,
+const INTER: React.CSSProperties = {
+  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
 };
 
 const MONO: React.CSSProperties = {
-  fontFamily:
-    "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+  fontFamily: "'JetBrains Mono', 'IBM Plex Mono', 'Courier New', monospace",
 };
 
+const GOLD = "#F0C81E";
+
+// ─── Nav ──────────────────────────────────────────────────
 function Nav() {
   return (
-    <nav className="relative z-30 flex items-center justify-between px-6 md:px-14 py-5 md:py-6">
+    <nav
+      className="flex items-center justify-between px-6 md:px-12 py-5 border-b border-white/[0.06]"
+      style={INTER}
+    >
       <Link
         to="/"
-        style={{ ...SYNE, letterSpacing: "0.18em" }}
-        className="text-white text-[12px] md:text-[13px] uppercase hover:opacity-80 transition"
+        className="text-white text-[12px] uppercase tracking-[0.2em] font-bold hover:opacity-55 transition"
       >
         DIG DIG
       </Link>
-      <div className="hidden md:flex items-center gap-8 text-[13px] text-white/50">
-        <Link to="/produto" className="text-white">Produto</Link>
-        <Link to="/solucoes" className="hover:text-white transition-colors">Soluções</Link>
-        <Link to="/apoiar" className="hover:text-white transition-colors">Apoiar</Link>
+      <div className="hidden md:flex items-center gap-8 text-[13px] text-white/30">
+        <Link to="/produto" className="text-white/65 font-medium">Produto</Link>
+        <Link to="/solucoes" className="hover:text-white/70 transition">Soluções</Link>
+        <Link to="/apoiar" className="hover:text-white/70 transition">Apoiar</Link>
       </div>
-      <a
-        href="/entrar"
-        className="text-[12px] md:text-[13px] text-white/50 hover:text-white transition-colors"
-      >
+      <a href="/entrar" className="text-[12px] text-white/30 hover:text-white/65 transition">
         Entrar
       </a>
     </nav>
   );
 }
 
-// ── Pipeline (4 etapas) ──────────────────────────────────────────────────────
-function Pipeline() {
-  const etapas = [
+// ─── Status bar ───────────────────────────────────────────
+function StatusBar() {
+  return (
+    <div
+      className="border-b border-white/[0.05] py-3.5 px-6 md:px-12 overflow-x-auto"
+      style={{ background: "rgba(255,255,255,0.018)" }}
+    >
+      <div className="flex items-center gap-5 text-[11px] whitespace-nowrap" style={MONO}>
+        <span className="flex items-center gap-2">
+          <span
+            className="h-[6px] w-[6px] rounded-full flex-shrink-0"
+            style={{ background: "#4ade80", boxShadow: "0 0 6px #4ade80" }}
+          />
+          <span style={{ color: "rgba(255,255,255,0.50)" }}>PIPELINE ATIVO</span>
+        </span>
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span style={{ color: "rgba(255,255,255,0.40)" }}>CAU/PR</span>
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span>
+          <span style={{ color: "rgba(255,255,255,0.70)" }}>262</span>
+          <span style={{ color: "rgba(255,255,255,0.28)" }}> / 400 portarias analisadas</span>
+        </span>
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span>
+          <span style={{ color: GOLD }}>1</span>
+          <span style={{ color: "rgba(255,255,255,0.28)" }}> alerta laranja detectado</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Papers sidebar ───────────────────────────────────────
+function PapersSidebar() {
+  const papers = [
     {
       n: "01",
-      titulo: "Coleta",
-      texto:
-        "Scraper baixa 100% dos atos do site oficial. PDFs ficam armazenados — nada se perde quando a gestão muda o site.",
-      detalhe: "1.789 atos coletados no CAU/PR (551 portarias + 1.238 deliberações)",
+      titulo: "Como Automatizamos a Auditoria do CAU/PR com IA",
+      desc: "A origem do projeto, a arquitetura e os 7 problemas reais que tivemos que resolver.",
+      to: "/whitepaper-01-extracao-caupr" as const,
+      publicado: true,
     },
     {
       n: "02",
-      titulo: "Extração",
-      texto: "Análise",
-      detalhe: "10/10 PDFs do CAU/PR extraídos sem fallback OCR",
+      titulo: "Quando a IA Custa Mais do Que Deveria",
+      desc: "Como detectamos e corrigimos $20 em chamadas de API não rastreadas — 4 camadas de solução.",
+      to: "/whitepaper-02-custo-e-controle" as const,
+      publicado: true,
     },
     {
       n: "03",
-      titulo: "Triagem (Haiku 4.5)",
-      texto:
-        "Cada ato recebe nível de alerta: verde / amarelo / laranja / vermelho. Custo baixo, escala milhar de atos por hora.",
-      detalhe: "136 ad referendum sinalizados (7,6% do total)",
-    },
-    {
-      n: "04",
-      titulo: "Análise",
-      texto:
-        "Atos críticos viram fichas com violação de regimento, citação direta e sugestão de questionamento.",
-      detalhe: "32 prorrogações de comissão processante aprofundadas",
+      titulo: "Os Primeiros Vermelhos",
+      desc: "Quando o pipeline chegou nos anos anteriores e encontrou os primeiros casos críticos.",
+      to: null,
+      publicado: false,
     },
   ];
 
   return (
-    <section className="max-w-6xl mx-auto mt-20 md:mt-28">
-      <div className="text-center mb-12">
-        <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] uppercase text-white/40">
-          PIPELINE
-        </span>
-        <h2 style={{ ...SYNE, letterSpacing: "-0.01em" }} className="text-white mt-3 text-[1.6rem] md:text-[2.2rem]">
-          Quatro etapas. Zero leitura humana.
-        </h2>
+    <aside className="hidden lg:block flex-shrink-0" style={{ width: "260px" }}>
+      <div className="sticky" style={{ top: "32px" }}>
+        <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-4" style={MONO}>
+          White Papers
+        </p>
+        <div className="flex flex-col gap-3">
+          {papers.map((p) => (
+            <div
+              key={p.n}
+              className="border border-white/[0.06] p-5"
+              style={!p.publicado ? { borderColor: "rgba(255,255,255,0.03)" } : undefined}
+            >
+              <p
+                className="text-[9px] uppercase tracking-[0.16em] mb-2.5 flex items-center gap-2"
+                style={{ ...MONO, color: "rgba(255,255,255,0.20)" }}
+              >
+                Nº {p.n}
+                {!p.publicado && (
+                  <span style={{ color: "rgba(255,255,255,0.14)" }}>— em breve</span>
+                )}
+              </p>
+              <h4
+                className="text-[0.82rem] font-semibold leading-snug mb-2"
+                style={{
+                  ...INTER,
+                  color: p.publicado ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.25)",
+                }}
+              >
+                {p.titulo}
+              </h4>
+              <p
+                className="text-[11px] leading-relaxed mb-3"
+                style={{
+                  ...INTER,
+                  color: p.publicado ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)",
+                }}
+              >
+                {p.desc}
+              </p>
+              {p.publicado && p.to ? (
+                <Link
+                  to={p.to}
+                  className="text-[10px] font-semibold uppercase tracking-[0.14em] transition hover:opacity-80"
+                  style={{ ...INTER, color: "rgba(255,255,255,0.35)" }}
+                >
+                  Ler →
+                </Link>
+              ) : (
+                <span
+                  className="text-[10px] uppercase tracking-[0.14em]"
+                  style={{ ...INTER, color: "rgba(255,255,255,0.16)" }}
+                >
+                  Em breve
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+        <p
+          className="mt-5 text-[11px] leading-relaxed"
+          style={{ ...INTER, color: "rgba(255,255,255,0.18)" }}
+        >
+          Registro técnico público sobre a construção do Dig Dig — metodologia, decisões e números reais.
+        </p>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        {etapas.map((e) => (
-          <div key={e.n} className="border border-white/10 bg-[#0d0f1a]/90 p-6 flex flex-col">
-            <span style={{ ...SYNE }} className="text-[#F0C81E] text-[2rem] block mb-3">
-              {e.n}
-            </span>
-            <h3 style={SYNE} className="text-white text-[1.05rem] mb-2">
-              {e.titulo}
-            </h3>
-            <p className="text-white/55 text-[13px] leading-relaxed flex-1">{e.texto}</p>
-            <p className="mt-4 pt-3 border-t border-white/10 text-[#F0C81E]/80 text-[11.5px] leading-snug" style={MONO}>
-              {e.detalhe}
-            </p>
-          </div>
-        ))}
-      </div>
-    </section>
+    </aside>
   );
 }
 
-// ── Sistema de alertas ──────────────────────────────────────────────────────
-function Alertas() {
+// ─── Page ─────────────────────────────────────────────────
+function ProdutoPage() {
   const niveis = [
     {
       cor: "#16a34a",
-      label: "VERDE",
+      label: "Verde",
       desc: "Conforme. Ato rotineiro sem indícios de irregularidade.",
       exemplo: "PORTARIA Nº 676 — Exonera de Cargo a pedido (CJV)",
-      contagem: "~70% dos atos",
+      pct: "~70%",
     },
     {
       cor: "#eab308",
-      label: "AMARELO",
+      label: "Amarelo",
       desc: "Atenção. Padrão a observar — ainda não é irregularidade clara.",
       exemplo: "PORTARIA Nº 677 — Nomeia para Cargo em Comissão",
-      contagem: "~20% dos atos",
+      pct: "~20%",
     },
     {
       cor: "#f97316",
-      label: "LARANJA",
+      label: "Laranja",
       desc: "Indício forte. Padrão repetido ou violação procedimental.",
-      exemplo: "PORTARIA Nº 678 — Prorroga Comissão Processante (3ª prorrogação)",
-      contagem: "~8% dos atos",
+      exemplo: "PORTARIA Nº 678 — Prorroga Comissão Processante (3ª vez)",
+      pct: "~8%",
     },
     {
       cor: "#dc2626",
-      label: "VERMELHO",
+      label: "Vermelho",
       desc: "Crítico. Provável violação direta do regimento — ficha de denúncia gerada.",
       exemplo: "Ad referendum sucessivo sem ratificação plenária",
-      contagem: "~2% dos atos",
+      pct: "~2%",
     },
   ];
 
-  return (
-    <section className="max-w-6xl mx-auto mt-20 md:mt-28">
-      <div className="text-center mb-12">
-        <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] uppercase text-[#F0C81E]">
-          CLASSIFICAÇÃO DE ALERTAS
-        </span>
-        <h2 style={{ ...SYNE, letterSpacing: "-0.01em" }} className="text-white mt-3 text-[1.6rem] md:text-[2.2rem]">
-          Quatro níveis. Foco no que importa.
-        </h2>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {niveis.map((n) => (
-          <div key={n.label} className="border border-white/10 bg-black/40 p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: n.cor }} />
-              <span style={{ ...SYNE, letterSpacing: "0.22em" }} className="text-white text-[11px]">
-                {n.label}
-              </span>
-            </div>
-            <p className="text-white/70 text-[13px] leading-relaxed mb-4">{n.desc}</p>
-            <p className="text-white/40 text-[11px] uppercase tracking-widest mb-1">Exemplo CAU/PR</p>
-            <p style={MONO} className="text-white/85 text-[11.5px] leading-snug mb-4">
-              {n.exemplo}
-            </p>
-            <p className="text-white/40 text-[11px] pt-3 border-t border-white/10">{n.contagem}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// ── Ficha de denúncia (caso real) ────────────────────────────────────────────
-function FichaDenuncia() {
-  return (
-    <section className="max-w-5xl mx-auto mt-20 md:mt-28">
-      <div className="text-center mb-10">
-        <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] uppercase text-white/40">
-          FICHA DE DENÚNCIA
-        </span>
-        <h2 style={{ ...SYNE, letterSpacing: "-0.01em" }} className="text-white mt-3 text-[1.6rem] md:text-[2.2rem]">
-          Cada ato crítico vira documento acionável.
-        </h2>
-        <p className="text-white/50 text-[13.5px] mt-3 max-w-2xl mx-auto">
-          Exemplo real gerado a partir de uma portaria do CAU/PR.
-        </p>
-      </div>
-
-      <div className="border border-white/15 bg-gradient-to-br from-white/[0.04] to-transparent p-6 md:p-9">
-        {/* Cabeçalho */}
-        <div className="flex flex-wrap items-start justify-between gap-3 mb-5 pb-5 border-b border-white/10">
-          <div>
-            <span
-              style={{ ...SYNE, letterSpacing: "0.22em" }}
-              className="inline-flex items-center gap-1.5 text-[10px] uppercase px-2 py-1 bg-[#f97316]/15 text-[#fb923c] border border-[#f97316]/30"
-            >
-              <Circle className="!size-2 fill-current" /> LARANJA
-            </span>
-            <h3 style={SYNE} className="text-white text-[1.3rem] mt-3">
-              Portaria nº 678 / 2026
-            </h3>
-            <p className="text-white/50 text-[12.5px] mt-1">
-              02/04/2026 · CAU/PR · Comissão Processante
-            </p>
-          </div>
-          <div className="text-right">
-            <span className="text-white/40 text-[10px] uppercase tracking-widest block">Confiança IA</span>
-            <span style={SYNE} className="text-white text-[1.4rem]">87%</span>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <span style={{ ...SYNE, letterSpacing: "0.22em" }} className="text-[10px] uppercase text-white/40">
-              EMENTA
-            </span>
-            <p className="text-white/80 text-[13px] mt-2 leading-relaxed">
-              Prorroga o prazo da Comissão Processante nomeada pela Portaria nº 580 de
-              07/04/2025 e reconduzida pela Portaria 667 de 02/02/2026.
-            </p>
-
-            <span style={{ ...SYNE, letterSpacing: "0.22em" }} className="text-[10px] uppercase text-white/40 block mt-6">
-              ALERTAS DETECTADOS
-            </span>
-            <ul className="mt-2 space-y-2">
-              <li className="text-[13px] text-white/85 flex items-start gap-2">
-                <ChevronRight className="!size-3.5 text-[#fb923c] mt-1 shrink-0" />
-                <span>
-                  <strong className="text-white">Processo disciplinar:</strong> instauração
-                  ou prorrogação de comissão processante
-                </span>
-              </li>
-              <li className="text-[13px] text-white/85 flex items-start gap-2">
-                <ChevronRight className="!size-3.5 text-[#fb923c] mt-1 shrink-0" />
-                <span>
-                  <strong className="text-white">Prazo excessivo:</strong> comissão com
-                  múltiplas prorrogações (3ª desde abril/2025)
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <span style={{ ...SYNE, letterSpacing: "0.22em" }} className="text-[10px] uppercase text-[#F0C81E]">
-              VIOLAÇÃO REGIMENTAL
-            </span>
-            <div className="mt-2 border-l-2 border-[#F0C81E] pl-4">
-              <p style={MONO} className="text-white/80 text-[12px] leading-relaxed italic">
-                "As comissões processantes terão prazo de 60 dias, prorrogáveis uma única
-                vez por igual período."
-              </p>
-              <p className="text-white/45 text-[11px] mt-2">
-                Regimento Interno CAU/PR — Art. 47, §2º (DPOPR 0191-02/2025)
-              </p>
-            </div>
-
-            <span style={{ ...SYNE, letterSpacing: "0.22em" }} className="text-[10px] uppercase text-white/40 block mt-6">
-              SUGESTÃO DE QUESTIONAMENTO
-            </span>
-            <p className="text-white/75 text-[13px] mt-2 leading-relaxed">
-              Solicitar ao plenário justificativa formal para a 3ª prorrogação consecutiva
-              da mesma comissão processante, com cronograma de conclusão e identificação
-              dos investigados.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
-          <a
-            href="https://www.caupr.gov.br/wp-content/uploads/2026/04/CAUPR-PRES-Portaria2026.0678-PAD_2025.01_PRT2025.0580-20260402-v01-FPBM_WGL.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={MONO}
-            className="inline-flex items-center gap-1.5 text-[11.5px] text-white/45 hover:text-white/70 transition-colors break-all"
-          >
-            <ArrowUpRight className="!size-3.5 shrink-0" /> PDF original no caupr.gov.br
-          </a>
-          <span style={{ ...SYNE, letterSpacing: "0.18em" }} className="text-[10px] uppercase text-white/40">
-            Exportar PDF · CSV · JSON
-          </span>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── Padrões agregados ────────────────────────────────────────────────────────
-function PadroesGlobais() {
-  const stats = [
-    { v: "1.789", l: "Atos analisados" },
-    { v: "136", l: "Ad Referendum" },
-    { v: "32", l: "Prorrogações de processante" },
-    { v: "154", l: "Nomeações comissionadas" },
-    { v: "72", l: "Exonerações" },
-    { v: "7,6%", l: "Ratio ad referendum" },
-  ];
-
-  return (
-    <section className="max-w-6xl mx-auto mt-20 md:mt-28">
-      <div className="text-center mb-12">
-        <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] uppercase text-white/40">
-          PADRÕES GLOBAIS
-        </span>
-        <h2 style={{ ...SYNE, letterSpacing: "-0.01em" }} className="text-white mt-3 text-[1.6rem] md:text-[2.2rem]">
-          A IA conecta o que está fragmentado.
-        </h2>
-        <p className="text-white/55 text-[14px] mt-4 max-w-2xl mx-auto leading-relaxed">
-          Resultado real da rodada CAU/PR (out/2020 – abr/2026). Cada número
-          revela um padrão de gestão.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {stats.map((s) => (
-          <div key={s.l} className="border border-white/10 bg-black/40 p-5 text-center">
-            <p style={SYNE} className="text-[1.6rem] text-white">
-              {s.v}
-            </p>
-            <p className="text-white/55 text-[11px] mt-2 leading-tight">{s.l}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-8 border border-[#dc2626]/30 bg-[#dc2626]/5 p-6 md:p-7">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="!size-5 text-[#fb7185] shrink-0 mt-0.5" />
-          <div>
-            <p style={{ ...SYNE, letterSpacing: "0.18em" }} className="text-[#fb7185] text-[10px] uppercase">
-              ALERTA DE PADRÃO
-            </p>
-            <p className="text-white/85 text-[14px] mt-2 leading-relaxed">
-              <strong className="text-white">136 atos Ad Referendum</strong> em 5 anos —
-              indício de concentração de poder na presidência sem deliberação plenária.
-              <br />
-              <strong className="text-white">32 prorrogações de comissões processantes</strong> —
-              possível uso do instrumento disciplinar com finalidade política.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── Chat conversacional ──────────────────────────────────────────────────────
-function ChatDemo() {
-  return (
-    <section className="max-w-5xl mx-auto mt-20 md:mt-28">
-      <div className="text-center mb-10">
-        <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] uppercase text-white/40">
-          CHAT CONVERSACIONAL
-        </span>
-        <h2 style={{ ...SYNE, letterSpacing: "-0.01em" }} className="text-white mt-3 text-[1.6rem] md:text-[2.2rem]">
-          Pergunte como se fosse um pesquisador.
-        </h2>
-      </div>
-
-      <div className="border border-white/10 bg-[#0d0f1a]/90 p-5 md:p-7">
-        {/* User msg */}
-        <div className="flex gap-3 mb-5">
-          <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-            <User className="!size-4 text-white/70" />
-          </div>
-          <div className="flex-1 bg-white/[0.03] border border-white/10 p-4">
-            <p className="text-white/85 text-[13.5px]">
-              Quantas vezes a presidência usou ad referendum em 2025 sem ratificação plenária?
-            </p>
-          </div>
-        </div>
-
-        {/* AI msg */}
-        <div className="flex gap-3">
-          <div className="h-8 w-8 rounded-full bg-[#F0C81E]/15 border border-[#F0C81E]/30 flex items-center justify-center text-[11px] flex-shrink-0">
-            <span style={SYNE} className="text-[#F0C81E] text-[10px]">DD</span>
-          </div>
-          <div className="flex-1 bg-[#F0C81E]/[0.03] border border-[#F0C81E]/15 p-4">
-            <p className="text-white/90 text-[13.5px] leading-relaxed mb-3">
-              Em 2025, a presidência do CAU/PR emitiu <strong className="text-white">28 atos
-              ad referendum</strong>. Destes, <strong className="text-white">11 não foram
-              ratificados</strong> em plenária dentro do prazo regimental de 30 dias
-              (Art. 41 do Regimento Interno).
-            </p>
-            <p className="text-white/70 text-[12.5px] leading-relaxed">
-              Os atos sem ratificação concentram-se em: nomeações para cargos comissionados
-              (6), prorrogações de comissões processantes (3) e contratações emergenciais (2).
-            </p>
-            <div className="mt-4 pt-3 border-t border-white/10 flex flex-wrap gap-2">
-              <span style={MONO} className="text-[10.5px] text-white/45 px-2 py-1 bg-white/5">
-                Portaria 612/2025
-              </span>
-              <span style={MONO} className="text-[10.5px] text-white/45 px-2 py-1 bg-white/5">
-                Portaria 634/2025
-              </span>
-              <span style={MONO} className="text-[10.5px] text-white/45 px-2 py-1 bg-white/5">
-                Deliberação Plen. 89/2025
-              </span>
-              <span style={MONO} className="text-[10.5px] text-white/45 px-2 py-1 bg-white/5">
-                +8 fontes
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <p className="text-center text-white/40 text-[12px] mt-5">
-        Plano Cidadão: 5 perguntas/mês · Investigador: 200/mês · Profissional: 1.000/mês
-      </p>
-    </section>
-  );
-}
-
-// ── Features extras ──────────────────────────────────────────────────────────
-function FeaturesGrid() {
   const features = [
     {
-      Icon: Network,
       titulo: "Grafo de relacionamentos",
-      texto:
-        "Visualize quem nomeou quem, em que ato, e quantas vezes. Padrões de favorecimento aparecem na hora.",
+      texto: "Visualize quem nomeou quem, em que ato, e quantas vezes. Padrões de favorecimento aparecem na hora.",
     },
     {
-      Icon: CalendarDays,
       titulo: "Linha do tempo",
-      texto:
-        "Atos correlacionados em ordem cronológica. Veja o histórico de uma comissão processante do início ao fim.",
+      texto: "Atos correlacionados em ordem cronológica. Veja o histórico de uma comissão processante do início ao fim.",
     },
     {
-      Icon: Bell,
       titulo: "Alertas por email",
-      texto:
-        "Receba notificação quando um padrão novo for detectado, ou no digest semanal do seu órgão.",
+      texto: "Receba notificação quando um padrão novo for detectado, ou no digest semanal do seu órgão.",
     },
     {
-      Icon: BarChart3,
       titulo: "Exportação completa",
-      texto:
-        "Tudo em PDF, CSV ou JSON. Material pronto para a redação, petição inicial ou plenário.",
+      texto: "Tudo em PDF, CSV ou JSON. Material pronto para a redação, petição inicial ou plenário.",
     },
     {
-      Icon: Plug,
       titulo: "API REST",
-      texto:
-        "Plano API & Dados libera 10.000 chamadas/mês com webhooks de novos atos e alertas.",
+      texto: "Plano API & Dados libera 10.000 chamadas/mês com webhooks de novos atos e alertas.",
     },
     {
-      Icon: Globe2,
       titulo: "Multi-órgão",
-      texto:
-        "Comece com CAU/PR. Em breve: prefeituras, câmaras municipais, conselhos regionais de todo o Brasil.",
+      texto: "Comece com CAU/PR. Em breve: prefeituras, câmaras municipais, conselhos regionais de todo o Brasil.",
     },
   ];
 
   return (
-    <section className="max-w-6xl mx-auto mt-20 md:mt-28">
-      <div className="text-center mb-12">
-        <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] uppercase text-white/40">
-          O QUE MAIS VEM JUNTO
-        </span>
-        <h2 style={{ ...SYNE, letterSpacing: "-0.01em" }} className="text-white mt-3 text-[1.6rem] md:text-[2.2rem]">
-          Mais do que uma busca: um sistema.
-        </h2>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {features.map((f) => (
-          <div key={f.titulo} className="border border-white/10 bg-black/40 p-6">
-            <f.Icon className="!size-6 text-[#F0C81E] mb-4" strokeWidth={1.5} />
-            <h3 style={SYNE} className="text-white text-[1.05rem] mb-2">
-              {f.titulo}
-            </h3>
-            <p className="text-white/55 text-[13px] leading-relaxed">{f.texto}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ProdutoPage() {
-  return (
-    <div className="relative min-h-screen bg-[#07080f] text-white overflow-x-hidden animate-fade-in">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 55% at 18% 8%, rgba(0,130,60,0.32), transparent 60%), radial-gradient(ellipse 60% 50% at 88% 22%, rgba(240,200,30,0.14), transparent 65%), radial-gradient(circle at 55% 95%, rgba(10,35,110,0.45), transparent 55%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(0deg, rgba(255,255,255,0.5) 0 1px, transparent 1px 4px)",
-        }}
-      />
-
+    <div className="min-h-screen bg-[#07080f] text-white overflow-x-hidden" style={INTER}>
       <Nav />
+      <StatusBar />
 
-      <main className="relative z-10 px-6 md:px-14 pb-24">
-        {/* Hero */}
-        <header className="max-w-4xl mx-auto text-center pt-8 md:pt-16 pb-12 md:pb-16">
-          <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] md:text-[11px] uppercase text-[#F0C81E]">
-            PRODUTO
-          </span>
-          <h1
-            style={{ ...SYNE, letterSpacing: "-0.025em" }}
-            className="text-white mt-4 text-[2.2rem] md:text-[4rem] leading-[0.92]"
-          >
-            A IA escava.<br />
-            <span className="text-white/55">Você decide</span>&nbsp;<br />
-            o&nbsp;que fazer.
-          </h1>
-          <p className="text-white/55 text-[14px] md:text-[16px] mt-7 max-w-2xl mx-auto leading-relaxed">
-            Veja como funciona o pipeline que processou{" "}
-            <strong className="text-white">1.789 atos do CAU/PR</strong>, detectou{" "}
-            <strong className="text-white">136 ad referendum suspeitos</strong> e gerou{" "}
-            <strong className="text-white">fichas de denúncia acionáveis</strong> em poucas horas.
-          </p>
+      <div className="max-w-7xl mx-auto px-6 md:px-12 pb-28">
+        <div className="flex gap-12 xl:gap-16 pt-14 md:pt-20">
 
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-9">
-            <Link
-              to="/apoiar"
-              style={{ ...SYNE, background: "#F0C81E", color: "#0a1530", letterSpacing: "0.22em" }}
-              className="inline-block text-[11px] uppercase px-7 py-[13px] hover:opacity-90 transition-opacity"
-            >
-              VER PLANOS
-            </Link>
-            <a
-              href="/relatorio_auditoria_caupr.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ ...SYNE, letterSpacing: "0.22em" }}
-              className="inline-block text-white/60 hover:text-white text-[11px] uppercase px-5 py-[13px] border border-white/15 transition-colors"
-            >
-              VER RELATÓRIO CAU/PR →
-            </a>
-          </div>
-        </header>
+          {/* ─── Main ─── */}
+          <main className="flex-1 min-w-0">
 
-        <Pipeline />
-        <Alertas />
-        <FichaDenuncia />
-        <PadroesGlobais />
-        <ChatDemo />
-        <FeaturesGrid />
+            {/* Hero */}
+            <header className="pb-14 md:pb-18">
+              <p className="text-[9px] uppercase tracking-[0.32em] text-white/22 mb-7" style={MONO}>
+                PRODUTO — DIG DIG
+              </p>
+              <h1
+                className="text-[2.4rem] md:text-[3.6rem] font-bold text-white leading-[1.03] tracking-[-0.03em] mb-9"
+                style={INTER}
+              >
+                A IA escava.
+                <br />Você decide
+                <br /><span className="text-white/28">o que fazer.</span>
+              </h1>
+              <div className="space-y-4 text-[15px] md:text-[16px] text-white/70 leading-[1.80] max-w-xl" style={INTER}>
+                <p>
+                  O Dig Dig coleta todos os atos administrativos de um órgão público, extrai o texto
+                  completo, classifica o nível de alerta com IA e gera fichas de denúncia para os casos
+                  críticos — em horas, não meses.
+                </p>
+                <p>
+                  Abaixo está o pipeline real rodando agora no CAU/PR: 1.789 atos coletados,
+                  262 já analisados, padrões identificados.
+                </p>
+              </div>
 
-        {/* CTA final */}
-        <section className="max-w-3xl mx-auto mt-20 md:mt-28 text-center">
-          <h2 style={{ ...SYNE, letterSpacing: "-0.01em" }} className="text-white text-[1.5rem] md:text-[2rem]">
-            Pronto para escavar o seu órgão?
-          </h2>
-          <p className="text-white/50 text-[14px] mt-4 leading-relaxed">
-            Comece grátis no plano Cidadão, ou patrocine uma auditoria completa
-            de qualquer órgão público brasileiro.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
-            <Link
-              to="/apoiar"
-              style={{ ...SYNE, background: "#F0C81E", color: "#0a1530", letterSpacing: "0.22em" }}
-              className="inline-block text-[11px] uppercase px-7 py-[13px] hover:opacity-90 transition-opacity"
-            >
-              COMEÇAR GRÁTIS
-            </Link>
-            <Link
-              to="/apoiar"
-              style={{ ...SYNE, letterSpacing: "0.22em" }}
-              className="inline-block text-white/60 hover:text-white text-[11px] uppercase px-5 py-[13px] transition-colors"
-            >
-              PATROCINAR AUDITORIA →
-            </Link>
-          </div>
-        </section>
-      </main>
+              <div className="flex flex-wrap gap-x-8 gap-y-4 mt-12 pt-10 border-t border-white/[0.06]">
+                {[
+                  { valor: "1.789", label: "atos coletados" },
+                  { valor: "262", label: "analisados" },
+                  { valor: "136", label: "ad referendum" },
+                  { valor: "32", label: "prorrogações suspeitas" },
+                ].map((s) => (
+                  <div key={s.label}>
+                    <p className="text-[1.5rem] font-bold text-white leading-none mb-1" style={MONO}>
+                      {s.valor}
+                    </p>
+                    <p className="text-[10px] text-white/45 uppercase tracking-[0.12em]" style={INTER}>
+                      {s.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </header>
+
+            {/* Pipeline */}
+            <section className="mb-16 md:mb-20">
+              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
+                Pipeline
+              </p>
+              <h2 className="text-[1.15rem] font-bold text-white/85 mb-6" style={INTER}>
+                Quatro etapas. Zero leitura humana.
+              </h2>
+              <ol className="grid sm:grid-cols-2 gap-px bg-white/[0.04]">
+                {[
+                  {
+                    n: "01",
+                    titulo: "Coleta",
+                    texto: "Scraper baixa 100% dos atos do site oficial. PDFs ficam armazenados — nada se perde quando a gestão muda o site.",
+                    detalhe: "1.789 atos coletados no CAU/PR",
+                  },
+                  {
+                    n: "02",
+                    titulo: "Extração de texto",
+                    texto: "pdfplumber extrai o texto nativo dos PDFs. Para documentos escaneados, OCR via Tesseract garante cobertura total.",
+                    detalhe: "400 portarias com texto extraído",
+                  },
+                  {
+                    n: "03",
+                    titulo: "Triagem — Haiku 4.5",
+                    texto: "Cada ato recebe nível de alerta: verde / amarelo / laranja / vermelho. Custo baixo, escala milhar de atos por hora.",
+                    detalhe: "136 ad referendum sinalizados (7,6% do total)",
+                  },
+                  {
+                    n: "04",
+                    titulo: "Análise — Sonnet 4.6",
+                    texto: "Atos críticos viram fichas com violação de regimento, citação direta e sugestão de questionamento público.",
+                    detalhe: "32 prorrogações de comissão processante aprofundadas",
+                  },
+                ].map((e) => (
+                  <li key={e.n} className="bg-[#07080f] p-6 flex flex-col gap-3">
+                    <span className="text-[1.3rem] font-bold leading-none" style={{ ...MONO, color: GOLD }}>
+                      {e.n}
+                    </span>
+                    <h3 className="text-[0.88rem] font-semibold text-white/78" style={INTER}>
+                      {e.titulo}
+                    </h3>
+                    <p className="text-[12px] text-white/55 leading-relaxed flex-1" style={INTER}>
+                      {e.texto}
+                    </p>
+                    <p
+                      className="text-[11px] pt-3 border-t border-white/[0.05]"
+                      style={{ ...MONO, color: "rgba(255,255,255,0.30)" }}
+                    >
+                      {e.detalhe}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </section>
+
+            {/* Níveis de alerta */}
+            <section className="mb-16 md:mb-20">
+              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
+                Classificação de alertas
+              </p>
+              <h2 className="text-[1.15rem] font-bold text-white/85 mb-6" style={INTER}>
+                Quatro níveis. Foco no que importa.
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {niveis.map((n) => (
+                  <div key={n.label} className="border border-white/[0.06] p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span
+                        className="h-[6px] w-[6px] rounded-full flex-shrink-0"
+                        style={{ background: n.cor }}
+                      />
+                      <span
+                        className="text-[10px] font-semibold uppercase tracking-[0.16em]"
+                        style={{ ...INTER, color: n.cor }}
+                      >
+                        {n.label}
+                      </span>
+                      <span className="ml-auto text-[10px] text-white/22" style={MONO}>
+                        {n.pct}
+                      </span>
+                    </div>
+                    <p className="text-[12px] text-white/62 leading-relaxed mb-3" style={INTER}>
+                      {n.desc}
+                    </p>
+                    <p
+                      className="text-[11px] pt-3 border-t border-white/[0.05]"
+                      style={{ ...MONO, color: "rgba(255,255,255,0.28)" }}
+                    >
+                      {n.exemplo}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Ficha de denúncia */}
+            <section className="mb-16 md:mb-20">
+              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
+                Ficha de denúncia
+              </p>
+              <h2 className="text-[1.15rem] font-bold text-white/85 mb-6" style={INTER}>
+                Cada ato crítico vira documento acionável.
+              </h2>
+
+              <div className="border border-white/[0.06] p-7 md:p-9">
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-6 pb-5 border-b border-white/[0.05]">
+                  <div>
+                    <span
+                      className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] px-2.5 py-1 mb-3"
+                      style={{
+                        color: "#f97316",
+                        background: "rgba(249,115,22,0.10)",
+                        border: "1px solid rgba(249,115,22,0.22)",
+                      }}
+                    >
+                      ● Laranja
+                    </span>
+                    <h3 className="text-[1.1rem] font-bold text-white/82" style={INTER}>
+                      Portaria nº 678 / 2026
+                    </h3>
+                    <p className="text-[12px] text-white/35 mt-1" style={INTER}>
+                      02/04/2026 · CAU/PR · Comissão Processante
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase tracking-[0.14em] text-white/22 block mb-1" style={INTER}>
+                      Confiança IA
+                    </span>
+                    <span className="text-[1.4rem] font-bold text-white/65" style={MONO}>87%</span>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-[0.14em] text-white/22 mb-3" style={MONO}>
+                      Ementa
+                    </p>
+                    <p className="text-[13px] text-white/65 leading-relaxed mb-5" style={INTER}>
+                      Prorroga o prazo da Comissão Processante nomeada pela Portaria nº 580 de
+                      07/04/2025 e reconduzida pela Portaria 667 de 02/02/2026.
+                    </p>
+
+                    <p className="text-[9px] uppercase tracking-[0.14em] text-white/22 mb-3" style={MONO}>
+                      Alertas detectados
+                    </p>
+                    <ul className="space-y-2.5">
+                      <li className="flex items-start gap-2 text-[12px] text-white/65 leading-relaxed" style={INTER}>
+                        <ChevronRight
+                          className="!size-3.5 flex-shrink-0 mt-0.5"
+                          style={{ color: "#f97316" }}
+                        />
+                        <span>
+                          <strong className="text-white/82">Processo disciplinar:</strong>{" "}
+                          instauração ou prorrogação de comissão processante
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2 text-[12px] text-white/65 leading-relaxed" style={INTER}>
+                        <ChevronRight
+                          className="!size-3.5 flex-shrink-0 mt-0.5"
+                          style={{ color: "#f97316" }}
+                        />
+                        <span>
+                          <strong className="text-white/82">Prazo excessivo:</strong>{" "}
+                          comissão com múltiplas prorrogações (3ª desde abril/2025)
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p
+                      className="text-[9px] uppercase tracking-[0.14em] mb-3"
+                      style={{ ...MONO, color: GOLD }}
+                    >
+                      Violação regimental
+                    </p>
+                    <div className="pl-4 mb-6" style={{ borderLeft: `2px solid ${GOLD}` }}>
+                      <p className="text-[12px] text-white/65 leading-relaxed italic" style={MONO}>
+                        "As comissões processantes terão prazo de 60 dias, prorrogáveis uma única
+                        vez por igual período."
+                      </p>
+                      <p className="text-[11px] text-white/28 mt-2" style={INTER}>
+                        Regimento Interno CAU/PR — Art. 47, §2º (DPOPR 0191-02/2025)
+                      </p>
+                    </div>
+
+                    <p className="text-[9px] uppercase tracking-[0.14em] text-white/22 mb-3" style={MONO}>
+                      Sugestão de questionamento
+                    </p>
+                    <p className="text-[12px] text-white/58 leading-relaxed" style={INTER}>
+                      Solicitar ao plenário justificativa formal para a 3ª prorrogação consecutiva,
+                      com cronograma de conclusão e identificação dos investigados.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-7 pt-5 border-t border-white/[0.05] flex flex-wrap items-center justify-between gap-3">
+                  <a
+                    href="https://www.caupr.gov.br/wp-content/uploads/2026/04/CAUPR-PRES-Portaria2026.0678-PAD_2025.01_PRT2025.0580-20260402-v01-FPBM_WGL.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-[11px] text-white/30 hover:text-white/55 transition"
+                    style={MONO}
+                  >
+                    <ArrowUpRight className="!size-3.5" /> PDF original no caupr.gov.br
+                  </a>
+                  <span className="text-[10px] uppercase tracking-[0.16em] text-white/22" style={INTER}>
+                    Exportar PDF · CSV · JSON
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            {/* Padrões detectados */}
+            <section className="mb-16 md:mb-20">
+              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
+                Padrões detectados
+              </p>
+              <h2 className="text-[1.15rem] font-bold text-white/85 mb-6" style={INTER}>
+                A IA conecta o que está fragmentado.
+              </h2>
+
+              <div className="flex flex-wrap gap-x-8 gap-y-5 pt-6 border-t border-white/[0.05] mb-8">
+                {[
+                  { v: "1.789", l: "atos analisados" },
+                  { v: "136", l: "ad referendum" },
+                  { v: "32", l: "prorrogações de processante" },
+                  { v: "154", l: "nomeações comissionadas" },
+                  { v: "7,6%", l: "ratio ad referendum" },
+                ].map((s) => (
+                  <div key={s.l}>
+                    <p className="text-[1.3rem] font-bold text-white leading-none mb-1" style={MONO}>
+                      {s.v}
+                    </p>
+                    <p className="text-[10px] text-white/45 uppercase tracking-[0.12em]" style={INTER}>
+                      {s.l}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border border-white/[0.06] p-6">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle
+                    className="!size-4 flex-shrink-0 mt-0.5"
+                    style={{ color: "#fb7185" }}
+                  />
+                  <div>
+                    <p className="text-[9px] uppercase tracking-[0.18em] text-white/28 mb-2" style={MONO}>
+                      Alerta de padrão — CAU/PR (2020–2026)
+                    </p>
+                    <p className="text-[13px] text-white/68 leading-relaxed" style={INTER}>
+                      <strong className="text-white/88">136 atos Ad Referendum</strong> em 5 anos —
+                      indício de concentração de poder na presidência sem deliberação plenária.{" "}
+                      <strong className="text-white/88">32 prorrogações de comissões processantes</strong> —
+                      possível uso do instrumento disciplinar com finalidade política.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Divider */}
+            <div className="border-t border-white/[0.05] mb-16 md:mb-20" />
+
+            {/* Chat conversacional */}
+            <section className="mb-16 md:mb-20">
+              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
+                Chat conversacional
+              </p>
+              <h2 className="text-[1.15rem] font-bold text-white/85 mb-6" style={INTER}>
+                Pergunte como se fosse um pesquisador.
+              </h2>
+
+              <div className="border border-white/[0.06] p-6 md:p-7">
+                <div className="flex gap-3 mb-5">
+                  <div
+                    className="h-7 w-7 border border-white/[0.10] flex items-center justify-center flex-shrink-0 text-[10px] text-white/30"
+                    style={MONO}
+                  >
+                    U
+                  </div>
+                  <div className="flex-1 bg-white/[0.025] border border-white/[0.05] p-4">
+                    <p className="text-[13px] text-white/72" style={INTER}>
+                      Quantas vezes a presidência usou ad referendum em 2025 sem ratificação plenária?
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div
+                    className="h-7 w-7 border flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
+                    style={{ borderColor: `${GOLD}44`, color: GOLD, ...MONO }}
+                  >
+                    DD
+                  </div>
+                  <div
+                    className="flex-1 p-4 border"
+                    style={{ borderColor: `${GOLD}20`, background: `${GOLD}06` }}
+                  >
+                    <p className="text-[13px] text-white/80 leading-relaxed mb-3" style={INTER}>
+                      Em 2025, a presidência do CAU/PR emitiu{" "}
+                      <strong className="text-white">28 atos ad referendum</strong>. Destes,{" "}
+                      <strong className="text-white">11 não foram ratificados</strong> em plenária
+                      dentro do prazo regimental de 30 dias (Art. 41 do Regimento Interno).
+                    </p>
+                    <p className="text-[12px] text-white/52 leading-relaxed mb-4" style={INTER}>
+                      Os atos sem ratificação concentram-se em: nomeações para cargos comissionados
+                      (6), prorrogações de comissões processantes (3) e contratações emergenciais (2).
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-3 border-t border-white/[0.05]">
+                      {["Portaria 612/2025", "Portaria 634/2025", "Deliberação Plen. 89/2025", "+8 fontes"].map((f) => (
+                        <span
+                          key={f}
+                          className="text-[10px] px-2 py-1 border border-white/[0.06] text-white/30"
+                          style={MONO}
+                        >
+                          {f}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <p className="mt-4 text-[11px] text-white/25" style={INTER}>
+                Plano Cidadão: 5 perguntas/mês · Investigador: 200/mês · Profissional: 1.000/mês
+              </p>
+            </section>
+
+            {/* O que mais vem junto */}
+            <section className="mb-16 md:mb-20">
+              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
+                O que mais vem junto
+              </p>
+              <h2 className="text-[1.15rem] font-bold text-white/85 mb-6" style={INTER}>
+                Mais do que uma busca: um sistema.
+              </h2>
+              <div className="border-t border-white/[0.05]">
+                {features.map((f) => (
+                  <div
+                    key={f.titulo}
+                    className="border-b border-white/[0.05] py-4 flex flex-col sm:flex-row gap-2 sm:gap-8"
+                  >
+                    <h3
+                      className="text-[0.88rem] font-semibold text-white/72 flex-shrink-0"
+                      style={{ ...INTER, minWidth: "200px" }}
+                    >
+                      {f.titulo}
+                    </h3>
+                    <p className="text-[13px] text-white/45 leading-relaxed" style={INTER}>
+                      {f.texto}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Footer */}
+            <section className="pt-10 border-t border-white/[0.05] text-center">
+              <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+                <a
+                  href="/cadastro"
+                  className="inline-block text-[10px] font-semibold uppercase tracking-[0.18em] px-7 py-3.5 transition-opacity hover:opacity-75"
+                  style={{ ...INTER, background: GOLD, color: "#0a0a0a" }}
+                >
+                  Criar conta grátis
+                </a>
+                <Link
+                  to="/solucoes"
+                  className="inline-block text-[10px] font-medium uppercase tracking-[0.15em] px-5 py-3.5 text-white/25 hover:text-white/52 transition border border-white/[0.07]"
+                  style={INTER}
+                >
+                  Ver soluções por perfil →
+                </Link>
+              </div>
+              <p className="text-[11px] text-white/20" style={INTER}>
+                Dúvidas:{" "}
+                <a href="mailto:regisalessander@gmail.com" className="hover:text-white/40 transition">
+                  regisalessander@gmail.com
+                </a>
+              </p>
+            </section>
+
+          </main>
+
+          {/* ─── Sidebar ─── */}
+          <PapersSidebar />
+        </div>
+      </div>
     </div>
   );
 }

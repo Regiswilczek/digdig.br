@@ -7,23 +7,23 @@ export const Route = createFileRoute("/solucoes")({
       {
         name: "description",
         content:
-          "Auditoria automatizada de atos administrativos com IA. Soluções para jornalistas, advogados, conselheiros, vereadores e cidadãos que querem fiscalizar o poder público.",
+          "Auditoria automatizada de atos administrativos com IA. Para jornalistas, advogados, conselheiros, parlamentares e cidadãos que querem fiscalizar o poder público.",
       },
       { property: "og:title", content: "Soluções — Dig Dig" },
-      {
-        property: "og:description",
-        content:
-          "Da redação ao tribunal: como o Dig Dig escava atos administrativos para quem precisa de provas, padrões e narrativa.",
-      },
     ],
   }),
   component: SolucoesPage,
 });
 
-const SYNE: React.CSSProperties = {
-  fontFamily: "'Syne', system-ui, sans-serif",
-  fontWeight: 800,
+const INTER: React.CSSProperties = {
+  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
 };
+
+const MONO: React.CSSProperties = {
+  fontFamily: "'JetBrains Mono', 'IBM Plex Mono', 'Courier New', monospace",
+};
+
+const GOLD = "#F0C81E";
 
 type Solucao = {
   slug: string;
@@ -39,11 +39,11 @@ type Solucao = {
 const SOLUCOES: Solucao[] = [
   {
     slug: "jornalistas",
-    publico: "JORNALISMO INVESTIGATIVO",
+    publico: "Jornalismo investigativo",
     titulo: "Da pauta à matéria publicada em horas, não meses.",
     dor: "Você tem o faro, mas o Diário Oficial tem 20 anos de PDFs. Lê tudo manualmente ou desiste da pauta.",
     comoResolve:
-      "A IA escaneia milhares de atos, identifica padrões (nomeações repetidas, contratos suspeitos, concentração de poder) e entrega fichas prontas com citação direta do regimento violado.",
+      "A IA escaneia milhares de atos, identifica padrões — nomeações repetidas, contratos suspeitos, concentração de poder — e entrega fichas com citação direta do regimento violado.",
     beneficios: [
       "Fichas de denúncia com fonte e número do ato",
       "Busca conversacional: \"quem mais nomeou parente em 2025?\"",
@@ -51,11 +51,11 @@ const SOLUCOES: Solucao[] = [
       "Alertas por email quando aparece padrão novo",
     ],
     planoSugerido: "Investigador — R$ 197/mês",
-    cor: "#F0C81E",
+    cor: GOLD,
   },
   {
     slug: "advogados",
-    publico: "DIREITO E COMPLIANCE",
+    publico: "Direito e compliance",
     titulo: "Provas documentais organizadas para a petição inicial.",
     dor: "Reunir evidências de irregularidade administrativa exige semanas de leitura de atos esparsos em sites mal indexados.",
     comoResolve:
@@ -71,7 +71,7 @@ const SOLUCOES: Solucao[] = [
   },
   {
     slug: "conselheiros",
-    publico: "CONSELHEIROS E OPOSIÇÃO",
+    publico: "Conselheiros e oposição",
     titulo: "Munição para o plenário, sem precisar virar pesquisador.",
     dor: "Você foi eleito para fiscalizar, mas a gestão produz mais documentos do que dá para ler. Você reage tarde — quando reage.",
     comoResolve:
@@ -87,7 +87,7 @@ const SOLUCOES: Solucao[] = [
   },
   {
     slug: "vereadores",
-    publico: "PARLAMENTARES E ASSESSORIAS",
+    publico: "Parlamentares e assessorias",
     titulo: "Fiscalize o executivo municipal sem montar uma equipe de pesquisa.",
     dor: "Câmaras municipais têm orçamento limitado para análise de atos do executivo. A oposição perde por desinformação, não por argumento.",
     comoResolve:
@@ -103,14 +103,14 @@ const SOLUCOES: Solucao[] = [
   },
   {
     slug: "cidadaos",
-    publico: "CIDADÃOS E COLETIVOS",
+    publico: "Cidadãos e coletivos",
     titulo: "Transparência não é privilégio de quem tem assessoria.",
     dor: "Você quer entender o que o conselho profissional, a câmara ou a prefeitura está fazendo — mas o site oficial é hostil e os atos são técnicos.",
     comoResolve:
-      "Plano Cidadão grátis: leia auditorias publicadas, vote em órgãos para próxima rodada e proponha novos. 5 perguntas/mês para o chat tirar dúvidas em linguagem simples.",
+      "Plano Cidadão grátis: leia auditorias publicadas, vote nos próximos órgãos e proponha novos. 5 perguntas por mês para o chat tirar dúvidas em linguagem simples.",
     beneficios: [
       "Acesso vitalício e gratuito ao plano Cidadão",
-      "3 votos/mês em campanhas de patrocínio",
+      "3 votos/mês em próximas auditorias",
       "Pode nominar qualquer órgão público",
       "Resultados ficam públicos — sem paywall",
     ],
@@ -119,7 +119,7 @@ const SOLUCOES: Solucao[] = [
   },
   {
     slug: "api",
-    publico: "EMPRESAS E REDAÇÕES",
+    publico: "Empresas e redações",
     titulo: "Dados estruturados de atos administrativos via API REST.",
     dor: "Sua redação, plataforma de compliance ou ferramenta interna precisa de dados de atos públicos — mas raspar manualmente não escala.",
     comoResolve:
@@ -127,7 +127,7 @@ const SOLUCOES: Solucao[] = [
     beneficios: [
       "10.000 chamadas/mês via API REST",
       "Webhooks de novos atos e alertas",
-      "5 seats incluídos para a equipe",
+      "5 assentos incluídos para a equipe",
       "Suporte técnico dedicado",
     ],
     planoSugerido: "API & Dados — R$ 1.997/mês",
@@ -135,89 +135,225 @@ const SOLUCOES: Solucao[] = [
   },
 ];
 
+// ─── Nav ──────────────────────────────────────────────────
 function Nav() {
   return (
-    <nav className="relative z-30 flex items-center justify-between px-6 md:px-14 py-5 md:py-6">
+    <nav
+      className="flex items-center justify-between px-6 md:px-12 py-5 border-b border-white/[0.06]"
+      style={INTER}
+    >
       <Link
         to="/"
-        style={{ ...SYNE, letterSpacing: "0.18em" }}
-        className="text-white text-[12px] md:text-[13px] uppercase hover:opacity-80 transition"
+        className="text-white text-[12px] uppercase tracking-[0.2em] font-bold hover:opacity-55 transition"
       >
         DIG DIG
       </Link>
-      <div className="hidden md:flex items-center gap-8 text-[13px] text-white/50">
-        <Link to="/" className="hover:text-white transition-colors">Produto</Link>
-        <Link to="/solucoes" className="text-white">Soluções</Link>
-        <Link to="/apoiar" className="hover:text-white transition-colors">Apoiar</Link>
+      <div className="hidden md:flex items-center gap-8 text-[13px] text-white/30">
+        <Link to="/produto" className="hover:text-white/70 transition">Produto</Link>
+        <Link to="/solucoes" className="text-white/65 font-medium">Soluções</Link>
+        <Link to="/apoiar" className="hover:text-white/70 transition">Apoiar</Link>
       </div>
-      <a
-        href="/entrar"
-        className="text-[12px] md:text-[13px] text-white/50 hover:text-white transition-colors"
-      >
+      <a href="/entrar" className="text-[12px] text-white/30 hover:text-white/65 transition">
         Entrar
       </a>
     </nav>
   );
 }
 
-function SolucaoCard({ sol, index }: { sol: Solucao; index: number }) {
-  const reverse = index % 2 === 1;
+// ─── Status bar ───────────────────────────────────────────
+function StatusBar() {
   return (
     <div
-      id={sol.slug}
-      className={`grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-center py-12 md:py-16 border-t border-white/10 ${
-        reverse ? "md:[direction:rtl]" : ""
-      }`}
+      className="border-b border-white/[0.05] py-3.5 px-6 md:px-12 overflow-x-auto"
+      style={{ background: "rgba(255,255,255,0.018)" }}
     >
-      <div className="md:col-span-5 md:[direction:ltr]">
-        <div aria-hidden className="h-[3px] w-10 mb-5" style={{ background: sol.cor }} />
-        <span
-          style={{ ...SYNE, letterSpacing: "0.3em", color: sol.cor }}
-          className="text-[10px] uppercase"
-        >
-          {sol.publico}
+      <div className="flex items-center gap-5 text-[11px] whitespace-nowrap" style={MONO}>
+        <span className="flex items-center gap-2">
+          <span
+            className="h-[6px] w-[6px] rounded-full flex-shrink-0"
+            style={{ background: "#4ade80", boxShadow: "0 0 6px #4ade80" }}
+          />
+          <span style={{ color: "rgba(255,255,255,0.50)" }}>PIPELINE ATIVO</span>
         </span>
-        <h3
-          style={{ ...SYNE, letterSpacing: "-0.015em" }}
-          className="text-white mt-3 text-[1.6rem] md:text-[2.2rem] leading-[1.05]"
-        >
-          {sol.titulo}
-        </h3>
-        <p className="text-white/55 text-[13.5px] md:text-[14.5px] mt-5 leading-relaxed">
-          <span className="text-white/40">A dor: </span>
-          {sol.dor}
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span style={{ color: "rgba(255,255,255,0.40)" }}>CAU/PR</span>
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span>
+          <span style={{ color: "rgba(255,255,255,0.70)" }}>262</span>
+          <span style={{ color: "rgba(255,255,255,0.28)" }}> / 400 portarias analisadas</span>
+        </span>
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span>
+          <span style={{ color: GOLD }}>1</span>
+          <span style={{ color: "rgba(255,255,255,0.28)" }}> alerta laranja detectado</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Papers sidebar ───────────────────────────────────────
+function PapersSidebar() {
+  const papers = [
+    {
+      n: "01",
+      titulo: "Como Automatizamos a Auditoria do CAU/PR com IA",
+      desc: "A origem do projeto, a arquitetura e os 7 problemas reais que tivemos que resolver.",
+      to: "/whitepaper-01-extracao-caupr" as const,
+      publicado: true,
+    },
+    {
+      n: "02",
+      titulo: "Quando a IA Custa Mais do Que Deveria",
+      desc: "Como detectamos e corrigimos $20 em chamadas de API não rastreadas — 4 camadas de solução.",
+      to: "/whitepaper-02-custo-e-controle" as const,
+      publicado: true,
+    },
+    {
+      n: "03",
+      titulo: "Os Primeiros Vermelhos",
+      desc: "Quando o pipeline chegou nos anos anteriores e encontrou os primeiros casos críticos.",
+      to: null,
+      publicado: false,
+    },
+  ];
+
+  return (
+    <aside className="hidden lg:block flex-shrink-0" style={{ width: "260px" }}>
+      <div className="sticky" style={{ top: "32px" }}>
+        <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-4" style={MONO}>
+          White Papers
         </p>
-        <p className="text-white/75 text-[13.5px] md:text-[14.5px] mt-4 leading-relaxed">
-          <span className="text-white/40">Como o Dig Dig resolve: </span>
-          {sol.comoResolve}
+        <div className="flex flex-col gap-3">
+          {papers.map((p) => (
+            <div
+              key={p.n}
+              className="border border-white/[0.06] p-5"
+              style={!p.publicado ? { borderColor: "rgba(255,255,255,0.03)" } : undefined}
+            >
+              <p
+                className="text-[9px] uppercase tracking-[0.16em] mb-2.5 flex items-center gap-2"
+                style={{ ...MONO, color: "rgba(255,255,255,0.20)" }}
+              >
+                Nº {p.n}
+                {!p.publicado && (
+                  <span style={{ color: "rgba(255,255,255,0.14)" }}>— em breve</span>
+                )}
+              </p>
+              <h4
+                className="text-[0.82rem] font-semibold leading-snug mb-2"
+                style={{
+                  ...INTER,
+                  color: p.publicado ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.25)",
+                }}
+              >
+                {p.titulo}
+              </h4>
+              <p
+                className="text-[11px] leading-relaxed mb-3"
+                style={{
+                  ...INTER,
+                  color: p.publicado ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)",
+                }}
+              >
+                {p.desc}
+              </p>
+              {p.publicado && p.to ? (
+                <Link
+                  to={p.to}
+                  className="text-[10px] font-semibold uppercase tracking-[0.14em] transition hover:opacity-80"
+                  style={{ ...INTER, color: "rgba(255,255,255,0.35)" }}
+                >
+                  Ler →
+                </Link>
+              ) : (
+                <span
+                  className="text-[10px] uppercase tracking-[0.14em]"
+                  style={{ ...INTER, color: "rgba(255,255,255,0.16)" }}
+                >
+                  Em breve
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+        <p
+          className="mt-5 text-[11px] leading-relaxed"
+          style={{ ...INTER, color: "rgba(255,255,255,0.18)" }}
+        >
+          Registro técnico público sobre a construção do Dig Dig — metodologia, decisões e números reais.
         </p>
       </div>
+    </aside>
+  );
+}
 
-      <div className="md:col-span-7 md:[direction:ltr]">
-        <div className="border border-white/10 bg-[#0d0f1a]/90 p-7 md:p-9">
-          <span style={{ ...SYNE, letterSpacing: "0.25em" }} className="text-[10px] uppercase text-white/40">
-            O QUE VOCÊ GANHA
-          </span>
-          <ul className="mt-5 space-y-3.5">
+// ─── Solution block ───────────────────────────────────────
+function SolucaoBloco({ sol }: { sol: Solucao }) {
+  return (
+    <div id={sol.slug} className="border-t border-white/[0.05] py-10 md:py-12">
+      <div style={{ height: "2px", width: "28px", background: sol.cor, marginBottom: "14px" }} />
+      <p
+        className="text-[9px] uppercase tracking-[0.22em] font-medium mb-3"
+        style={{ ...INTER, color: sol.cor }}
+      >
+        {sol.publico}
+      </p>
+      <h3
+        className="text-[1.2rem] md:text-[1.45rem] font-bold leading-[1.18] mb-6"
+        style={{ ...INTER, color: "rgba(255,255,255,0.82)" }}
+      >
+        {sol.titulo}
+      </h3>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        <div>
+          <p className="text-[9px] uppercase tracking-[0.14em] text-white/22 mb-2" style={MONO}>
+            A dor
+          </p>
+          <p className="text-[13px] text-white/52 leading-relaxed mb-6" style={INTER}>
+            {sol.dor}
+          </p>
+          <p className="text-[9px] uppercase tracking-[0.14em] text-white/22 mb-2" style={MONO}>
+            Como o Dig Dig resolve
+          </p>
+          <p className="text-[13px] text-white/68 leading-relaxed" style={INTER}>
+            {sol.comoResolve}
+          </p>
+        </div>
+
+        <div className="border border-white/[0.06] p-5">
+          <p className="text-[9px] uppercase tracking-[0.18em] text-white/22 mb-4" style={MONO}>
+            O que você ganha
+          </p>
+          <ul className="space-y-2.5 mb-6">
             {sol.beneficios.map((b) => (
-              <li key={b} className="flex items-start gap-3 text-[13.5px] text-white/80 leading-relaxed">
+              <li
+                key={b}
+                className="flex items-start gap-2.5 text-[12px] text-white/60 leading-relaxed"
+                style={INTER}
+              >
                 <span
-                  className="mt-[7px] h-1.5 w-1.5 rounded-full flex-shrink-0"
+                  className="flex-shrink-0 mt-[6px] h-[5px] w-[5px] rounded-full"
                   style={{ background: sol.cor }}
                 />
                 {b}
               </li>
             ))}
           </ul>
-          <div className="mt-7 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-4">
+          <div className="pt-4 border-t border-white/[0.05] flex items-center justify-between gap-3">
             <div>
-              <span className="text-white/40 text-[11px] uppercase tracking-widest">Plano sugerido</span>
-              <p style={SYNE} className="text-white text-[1rem] mt-1">{sol.planoSugerido}</p>
+              <p className="text-[9px] uppercase tracking-[0.14em] text-white/22 mb-1" style={MONO}>
+                Plano sugerido
+              </p>
+              <p className="text-[0.88rem] font-semibold text-white/60" style={INTER}>
+                {sol.planoSugerido}
+              </p>
             </div>
             <Link
               to="/apoiar"
-              style={{ ...SYNE, letterSpacing: "0.2em", background: sol.cor, color: "#0a1530" }}
-              className="text-[11px] uppercase px-5 py-3 hover:opacity-90 transition-opacity"
+              className="text-[10px] font-semibold uppercase tracking-[0.14em] px-4 py-2.5 transition-opacity hover:opacity-75 flex-shrink-0"
+              style={{ ...INTER, background: sol.cor, color: "#0a0a0a" }}
             >
               Ver plano →
             </Link>
@@ -228,93 +364,99 @@ function SolucaoCard({ sol, index }: { sol: Solucao; index: number }) {
   );
 }
 
+// ─── Page ─────────────────────────────────────────────────
 function SolucoesPage() {
   return (
-    <div className="relative min-h-screen bg-[#07080f] text-white overflow-x-hidden animate-fade-in">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 55% at 20% 8%, rgba(0,130,60,0.35), transparent 60%), radial-gradient(ellipse 60% 50% at 85% 20%, rgba(240,200,30,0.14), transparent 65%), radial-gradient(circle at 50% 95%, rgba(10,35,110,0.45), transparent 55%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(0deg, rgba(255,255,255,0.5) 0 1px, transparent 1px 4px)",
-        }}
-      />
-
+    <div className="min-h-screen bg-[#07080f] text-white overflow-x-hidden" style={INTER}>
       <Nav />
+      <StatusBar />
 
-      <main className="relative z-10 px-6 md:px-14 pb-24">
-        <header className="max-w-4xl mx-auto text-center pt-8 md:pt-16 pb-10 md:pb-14">
-          <span style={{ ...SYNE, letterSpacing: "0.3em" }} className="text-[10px] md:text-[11px] uppercase text-[#F0C81E]">
-            SOLUÇÕES
-          </span>
-          <h1
-            style={{ ...SYNE, letterSpacing: "-0.025em" }}
-            className="text-white mt-4 text-[2.2rem] md:text-[4rem] leading-[0.92]"
-          >
-            Uma ferramenta.<br />
-            <span className="text-white/55">Seis formas de</span> escavar.
-          </h1>
-          <p className="text-white/55 text-[14px] md:text-[16px] mt-7 max-w-2xl mx-auto leading-relaxed">
-            Do jornalista ao cidadão, do advogado ao parlamentar — o Dig Dig se adapta
-            ao seu fluxo. Veja como cada perfil usa a plataforma e qual plano combina.
-          </p>
-        </header>
+      <div className="max-w-7xl mx-auto px-6 md:px-12 pb-28">
+        <div className="flex gap-12 xl:gap-16 pt-14 md:pt-20">
 
-        {/* Quick nav */}
-        <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-2 mb-8">
-          {SOLUCOES.map((s) => (
-            <a
-              key={s.slug}
-              href={`#${s.slug}`}
-              style={{ ...SYNE, letterSpacing: "0.18em" }}
-              className="text-[10px] uppercase px-3.5 py-2 border border-white/15 text-white/65 hover:text-white hover:border-white/40 transition-colors"
-            >
-              {s.publico.split(" ")[0]}
-            </a>
-          ))}
+          {/* ─── Main ─── */}
+          <main className="flex-1 min-w-0">
+
+            {/* Hero */}
+            <header className="pb-12 md:pb-16">
+              <p className="text-[9px] uppercase tracking-[0.32em] text-white/22 mb-7" style={MONO}>
+                SOLUÇÕES — PARA QUEM
+              </p>
+              <h1
+                className="text-[2.4rem] md:text-[3.6rem] font-bold text-white leading-[1.03] tracking-[-0.03em] mb-9"
+                style={INTER}
+              >
+                Uma ferramenta.
+                <br />Seis formas
+                <br /><span className="text-white/28">de escavar.</span>
+              </h1>
+              <p className="text-[15px] md:text-[16px] text-white/70 leading-[1.80] max-w-xl" style={INTER}>
+                Do jornalista ao cidadão, do advogado ao parlamentar — o Dig Dig se adapta
+                ao seu fluxo. Cada perfil tem sua dor específica. Mostramos como resolvemos cada uma.
+              </p>
+
+              {/* Quick nav */}
+              <div className="flex flex-wrap gap-2 mt-10">
+                {SOLUCOES.map((s) => (
+                  <a
+                    key={s.slug}
+                    href={`#${s.slug}`}
+                    className="text-[10px] uppercase tracking-[0.16em] px-3 py-2 border border-white/[0.07] text-white/30 hover:text-white/58 hover:border-white/14 transition"
+                    style={INTER}
+                  >
+                    {s.publico.split(" ")[0]}
+                  </a>
+                ))}
+              </div>
+            </header>
+
+            {/* Solutions */}
+            {SOLUCOES.map((s) => (
+              <SolucaoBloco key={s.slug} sol={s} />
+            ))}
+
+            {/* Footer */}
+            <section className="pt-12 border-t border-white/[0.05] text-center mt-4">
+              <h2
+                className="text-[1.15rem] font-bold text-white/72 mb-3"
+                style={INTER}
+              >
+                Não achou seu perfil?
+              </h2>
+              <p className="text-[13px] text-white/45 leading-relaxed mb-8 max-w-md mx-auto" style={INTER}>
+                O Dig Dig serve qualquer pessoa que precise transformar PDFs públicos em
+                informação acionável. Comece grátis.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+                <a
+                  href="/cadastro"
+                  className="inline-block text-[10px] font-semibold uppercase tracking-[0.18em] px-7 py-3.5 transition-opacity hover:opacity-75"
+                  style={{ ...INTER, background: GOLD, color: "#0a0a0a" }}
+                >
+                  Criar conta grátis
+                </a>
+                <Link
+                  to="/produto"
+                  className="inline-block text-[10px] font-medium uppercase tracking-[0.15em] px-5 py-3.5 text-white/25 hover:text-white/52 transition border border-white/[0.07]"
+                  style={INTER}
+                >
+                  Ver como funciona →
+                </Link>
+              </div>
+              <p className="text-[11px] text-white/20" style={INTER}>
+                Dúvidas:{" "}
+                <a href="mailto:regisalessander@gmail.com" className="hover:text-white/40 transition">
+                  regisalessander@gmail.com
+                </a>
+              </p>
+            </section>
+
+          </main>
+
+          {/* ─── Sidebar ─── */}
+          <PapersSidebar />
         </div>
-
-        <section className="max-w-6xl mx-auto">
-          {SOLUCOES.map((s, i) => (
-            <SolucaoCard key={s.slug} sol={s} index={i} />
-          ))}
-        </section>
-
-        {/* CTA */}
-        <section className="max-w-3xl mx-auto mt-20 md:mt-28 text-center">
-          <h2 style={{ ...SYNE, letterSpacing: "-0.01em" }} className="text-white text-[1.5rem] md:text-[2rem]">
-            Não achou seu perfil?
-          </h2>
-          <p className="text-white/50 text-[14px] mt-4 leading-relaxed">
-            O Dig Dig serve qualquer pessoa que precise transformar PDFs públicos em
-            informação acionável. Comece grátis e veja o que dá pra escavar.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
-            <Link
-              to="/apoiar"
-              style={{ ...SYNE, background: "#F0C81E", color: "#0a1530", letterSpacing: "0.22em" }}
-              className="inline-block text-[11px] uppercase px-7 py-[13px] hover:opacity-90 transition-opacity"
-            >
-              VER PLANOS
-            </Link>
-            <Link
-              to="/apoiar"
-              style={{ ...SYNE, letterSpacing: "0.22em" }}
-              className="inline-block text-white/60 hover:text-white text-[11px] uppercase px-5 py-[13px] transition-colors"
-            >
-              PATROCINAR AUDITORIA →
-            </Link>
-          </div>
-        </section>
-      </main>
+      </div>
     </div>
   );
 }
