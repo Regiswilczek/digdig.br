@@ -1,7 +1,10 @@
 import json
+import logging
 import re
 import uuid
 from decimal import Decimal
+
+logger = logging.getLogger(__name__)
 from anthropic import AsyncAnthropic
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
