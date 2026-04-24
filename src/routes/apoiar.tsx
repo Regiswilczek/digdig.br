@@ -110,7 +110,7 @@ const CAMPANHAS: Campanha[] = [
     nome: "CAU/PR",
     tipo: "Conselho de Arquitetura e Urbanismo do Paraná",
     votos: 142,
-    status: "concluida",
+    status: "em_analise",
   },
   {
     slug: "prefeitura-curitiba",
@@ -381,14 +381,21 @@ function CampanhaCard({ campanha }: { campanha: Campanha }) {
       {campanha.status === "concluida" ? (
         <Link
           to="/"
-          className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/28 hover:text-white/55 transition"
+          className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50 hover:text-white/75 transition"
           style={INTER}
         >
           Ver auditoria →
         </Link>
+      ) : campanha.status === "em_analise" ? (
+        <span
+          className="text-[10px] font-medium uppercase tracking-[0.12em] text-white/40"
+          style={INTER}
+        >
+          Em andamento
+        </span>
       ) : (
         <button
-          className="text-[10px] font-medium uppercase tracking-[0.12em] px-4 py-2.5 border border-white/[0.07] text-white/28 hover:text-white/55 hover:border-white/15 transition w-full"
+          className="text-[10px] font-medium uppercase tracking-[0.12em] px-4 py-2.5 border border-white/[0.10] text-white/42 hover:text-white/65 hover:border-white/20 transition w-full"
           style={INTER}
         >
           ★ Votar
@@ -425,7 +432,7 @@ function ApoiarPage() {
                 <br />todo ano. Ninguém lê.
                 <br /><span className="text-white/28">Nós lemos.</span>
               </h1>
-              <div className="space-y-4 text-[15px] md:text-[16px] text-white/48 leading-[1.80] max-w-xl" style={INTER}>
+              <div className="space-y-4 text-[15px] md:text-[16px] text-white/70 leading-[1.80] max-w-xl" style={INTER}>
                 <p>
                   São portarias, deliberações e resoluções — dados públicos, pagos com dinheiro seu.
                   Estão enterrados em PDFs numerados, sem contexto, sem índice.
@@ -454,7 +461,7 @@ function ApoiarPage() {
                     <p className="text-[1.5rem] font-bold text-white leading-none mb-1" style={MONO}>
                       {s.valor}
                     </p>
-                    <p className="text-[10px] text-white/25 uppercase tracking-[0.12em]" style={INTER}>
+                    <p className="text-[10px] text-white/45 uppercase tracking-[0.12em]" style={INTER}>
                       {s.label}
                     </p>
                   </div>
@@ -469,7 +476,7 @@ function ApoiarPage() {
                   <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-1.5" style={MONO}>
                     Próximas auditorias
                   </p>
-                  <h2 className="text-[1.15rem] font-bold text-white/65" style={INTER}>
+                  <h2 className="text-[1.15rem] font-bold text-white/85" style={INTER}>
                     A comunidade vota. A equipe decide.
                   </h2>
                 </div>
@@ -481,7 +488,7 @@ function ApoiarPage() {
                 </button>
               </div>
 
-              <p className="text-[13px] text-white/35 leading-relaxed mb-6 max-w-lg" style={INTER}>
+              <p className="text-[13px] text-white/58 leading-relaxed mb-6 max-w-lg" style={INTER}>
                 Os órgãos mais votados ficam no topo da fila. A equipe seleciona os próximos
                 conforme a capacidade técnica e o tamanho do acervo — cada casa de poder
                 é diferente, e não vamos assumir uma que não conseguimos escavar bem ainda.
@@ -526,10 +533,10 @@ function ApoiarPage() {
                     <span className="text-[1.3rem] font-bold leading-none" style={{ ...MONO, color: GOLD }}>
                       {p.n}
                     </span>
-                    <h3 className="text-[0.88rem] font-semibold text-white/58" style={INTER}>
+                    <h3 className="text-[0.88rem] font-semibold text-white/78" style={INTER}>
                       {p.titulo}
                     </h3>
-                    <p className="text-[12px] text-white/32 leading-relaxed" style={INTER}>
+                    <p className="text-[12px] text-white/55 leading-relaxed" style={INTER}>
                       {p.texto}
                     </p>
                   </li>
@@ -549,7 +556,7 @@ function ApoiarPage() {
                 <h2 className="text-[1.3rem] font-bold text-white/75 mb-4 leading-snug" style={INTER}>
                   Cada contribuição financia<br />a escavação.
                 </h2>
-                <p className="text-[14px] text-white/42 leading-[1.75] mb-7 max-w-lg" style={INTER}>
+                <p className="text-[14px] text-white/65 leading-[1.75] mb-7 max-w-lg" style={INTER}>
                   Não temos investidor. As contribuições cobrem os custos operacionais — IA,
                   infraestrutura e trabalho humano de investigação. Todo excedente é reinvestido
                   em tecnologia para ampliar a capacidade da ferramenta.
@@ -588,7 +595,7 @@ function ApoiarPage() {
                   Contribuir via PIX ou cartão
                 </a>
 
-                <p className="text-[11px] text-white/28 mt-4" style={INTER}>
+                <p className="text-[11px] text-white/50 mt-4" style={INTER}>
                   Mínimo R$ 25. Quem contribui pela primeira vez ganha 1 mês do plano Investigador.
                 </p>
               </div>
