@@ -10,7 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as Whitepaper03DeliberacoesEPrimeirosAchadosRouteImport } from './routes/whitepaper-03-deliberacoes-e-primeiros-achados'
-import { Route as Whitepaper02CustoEControlRouteImport } from './routes/whitepaper-02-custo-e-controle'
+import { Route as Whitepaper02CustoEControleRouteImport } from './routes/whitepaper-02-custo-e-controle'
 import { Route as Whitepaper01ExtracaoCauprRouteImport } from './routes/whitepaper-01-extracao-caupr'
 import { Route as SolucoesRouteImport } from './routes/solucoes'
 import { Route as ProdutoRouteImport } from './routes/produto'
@@ -27,8 +27,8 @@ const Whitepaper03DeliberacoesEPrimeirosAchadosRoute =
     path: '/whitepaper-03-deliberacoes-e-primeiros-achados',
     getParentRoute: () => rootRouteImport,
   } as any)
-const Whitepaper02CustoEControlRoute =
-  Whitepaper02CustoEControlRouteImport.update({
+const Whitepaper02CustoEControleRoute =
+  Whitepaper02CustoEControleRouteImport.update({
     id: '/whitepaper-02-custo-e-controle',
     path: '/whitepaper-02-custo-e-controle',
     getParentRoute: () => rootRouteImport,
@@ -90,7 +90,7 @@ export interface FileRoutesByFullPath {
   '/produto': typeof ProdutoRoute
   '/solucoes': typeof SolucoesRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
-  '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControlRoute
+  '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
 }
 export interface FileRoutesByTo {
@@ -103,7 +103,7 @@ export interface FileRoutesByTo {
   '/produto': typeof ProdutoRoute
   '/solucoes': typeof SolucoesRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
-  '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControlRoute
+  '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
 }
 export interface FileRoutesById {
@@ -117,7 +117,7 @@ export interface FileRoutesById {
   '/produto': typeof ProdutoRoute
   '/solucoes': typeof SolucoesRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
-  '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControlRoute
+  '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
 }
 export interface FileRouteTypes {
@@ -172,7 +172,7 @@ export interface RootRouteChildren {
   ProdutoRoute: typeof ProdutoRoute
   SolucoesRoute: typeof SolucoesRoute
   Whitepaper01ExtracaoCauprRoute: typeof Whitepaper01ExtracaoCauprRoute
-  Whitepaper02CustoEControlRoute: typeof Whitepaper02CustoEControlRoute
+  Whitepaper02CustoEControleRoute: typeof Whitepaper02CustoEControleRoute
   Whitepaper03DeliberacoesEPrimeirosAchadosRoute: typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
 }
 
@@ -189,7 +189,7 @@ declare module '@tanstack/react-router' {
       id: '/whitepaper-02-custo-e-controle'
       path: '/whitepaper-02-custo-e-controle'
       fullPath: '/whitepaper-02-custo-e-controle'
-      preLoaderRoute: typeof Whitepaper02CustoEControlRouteImport
+      preLoaderRoute: typeof Whitepaper02CustoEControleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/whitepaper-01-extracao-caupr': {
@@ -268,7 +268,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProdutoRoute: ProdutoRoute,
   SolucoesRoute: SolucoesRoute,
   Whitepaper01ExtracaoCauprRoute: Whitepaper01ExtracaoCauprRoute,
-  Whitepaper02CustoEControlRoute: Whitepaper02CustoEControlRoute,
+  Whitepaper02CustoEControleRoute: Whitepaper02CustoEControleRoute,
   Whitepaper03DeliberacoesEPrimeirosAchadosRoute:
     Whitepaper03DeliberacoesEPrimeirosAchadosRoute,
 }

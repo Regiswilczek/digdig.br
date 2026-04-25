@@ -408,7 +408,6 @@ function Nav() {
 // ── Desktop hero ──────────────────────────────────────────────────────────────
 
 function DesktopHero(props: { stats: PublicStats | null }) {
-  const { stats } = props;
   return (
     <main className="hidden md:flex relative z-20 flex-row items-end justify-between gap-8 px-14 pb-10">
       <div className="flex flex-col gap-[18px]">
@@ -449,7 +448,7 @@ function DesktopHero(props: { stats: PublicStats | null }) {
       </div>
 
       <div className="mb-1">
-        <DesktopBadge stats={stats} />
+        <DesktopBadge stats={props.stats ?? null} />
       </div>
     </main>
   );
@@ -457,7 +456,7 @@ function DesktopHero(props: { stats: PublicStats | null }) {
 
 // ── Mobile hero ───────────────────────────────────────────────────────────────
 
-function MobileHero({ stats }: { stats: PublicStats | null }) {
+function MobileHero(props: { stats: PublicStats | null }) {
   return (
     <div
       className="md:hidden relative z-20 flex flex-col px-5 pb-5 gap-5"
@@ -498,7 +497,7 @@ function MobileHero({ stats }: { stats: PublicStats | null }) {
         <br />Indícios aparecem. Você age.
       </p>
 
-      <MobileStats stats={stats} />
+      <MobileStats stats={props.stats ?? null} />
 
       <PoweredByClaude compact fullWidth />
 
