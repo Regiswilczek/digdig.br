@@ -22,6 +22,7 @@ import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as ApoiarRouteImport } from './routes/apoiar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PainelIndexRouteImport } from './routes/painel/index'
+import { Route as PainelSlugRouteImport } from './routes/painel/$slug'
 
 const Whitepaper03DeliberacoesEPrimeirosAchadosRoute =
   Whitepaper03DeliberacoesEPrimeirosAchadosRouteImport.update({
@@ -91,6 +92,11 @@ const PainelIndexRoute = PainelIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelSlugRoute = PainelSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => PainelRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
+  '/painel/$slug': typeof PainelSlugRoute
   '/painel/': typeof PainelIndexRoute
 }
 export interface FileRoutesByTo {
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
+  '/painel/$slug': typeof PainelSlugRoute
   '/painel': typeof PainelIndexRoute
 }
 export interface FileRoutesById {
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
+  '/painel/$slug': typeof PainelSlugRoute
   '/painel/': typeof PainelIndexRoute
 }
 export interface FileRouteTypes {
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
+    | '/painel/$slug'
     | '/painel/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
+    | '/painel/$slug'
     | '/painel'
   id:
     | '__root__'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
+    | '/painel/$slug'
     | '/painel/'
   fileRoutesById: FileRoutesById
 }
@@ -292,14 +304,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelIndexRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/$slug': {
+      id: '/painel/$slug'
+      path: '/$slug'
+      fullPath: '/painel/$slug'
+      preLoaderRoute: typeof PainelSlugRouteImport
+      parentRoute: typeof PainelRoute
+    }
   }
 }
 
 interface PainelRouteChildren {
+  PainelSlugRoute: typeof PainelSlugRoute
   PainelIndexRoute: typeof PainelIndexRoute
 }
 
 const PainelRouteChildren: PainelRouteChildren = {
+  PainelSlugRoute: PainelSlugRoute,
   PainelIndexRoute: PainelIndexRoute,
 }
 
