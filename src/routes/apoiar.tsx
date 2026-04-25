@@ -164,7 +164,7 @@ function ApoiarPage() {
   }, []);
 
   return (
-    <div style={{ ...INTER, background: "#fff", color: TEXT, minHeight: "100vh" }}>
+    <div style={{ ...INTER, background: "#fff", color: TEXT, minHeight: "100vh", overflowX: "hidden" }}>
       {/* ─── Hero with terrain background ─────────────────────────────── */}
       <header
         className="relative overflow-hidden"
@@ -192,7 +192,7 @@ function ApoiarPage() {
         />
 
         {/* Nav */}
-        <nav className="relative z-20" style={{ padding: "0 32px" }}>
+        <nav className="relative z-20 px-6 md:px-8">
           <div
             style={{
               maxWidth: 1100,
@@ -223,8 +223,8 @@ function ApoiarPage() {
 
         {/* Hero copy */}
         <div
-          className="relative z-20"
-          style={{ maxWidth: 1100, margin: "0 auto", padding: "100px 32px 80px" }}
+          className="relative z-20 px-6 md:px-8 pt-16 md:pt-[100px] pb-16 md:pb-20"
+          style={{ maxWidth: 1100, margin: "0 auto" }}
         >
           <p
             style={{
@@ -318,22 +318,16 @@ function ApoiarPage() {
 
       {/* ─── Why support ──────────────────────────────────────────────── */}
       <section
-        style={{
-          maxWidth: 1100,
-          margin: "0 auto",
-          padding: "96px 32px 0",
-        }}
+        className="px-6 md:px-8 pt-20 md:pt-24"
+        style={{ maxWidth: 1100, margin: "0 auto" }}
       >
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 280px) minmax(0, 1fr)",
-            gap: 48,
             alignItems: "start",
-            paddingBottom: 80,
+            paddingBottom: 72,
             borderBottom: `1px solid ${BORDER}`,
           }}
-          className="md:[grid-template-columns:280px_1fr] [grid-template-columns:1fr]"
+          className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] gap-8 md:gap-12"
         >
           <div>
             <p
@@ -362,17 +356,17 @@ function ApoiarPage() {
               Não temos investidor.
             </h2>
           </div>
-          <div style={{ maxWidth: 640 }}>
+          <div style={{ maxWidth: 640, minWidth: 0 }}>
             <p
               style={{
                 ...TIGHT,
-                fontSize: 22,
                 fontWeight: 500,
                 color: TEXT,
                 lineHeight: 1.3,
                 letterSpacing: "-0.01em",
                 margin: "0 0 16px",
               }}
+              className="text-[19px] md:text-[22px]"
             >
               Transparência pública não é privilégio.
             </p>
@@ -387,20 +381,16 @@ function ApoiarPage() {
       </section>
 
       {/* ─── Plans ─────────────────────────────────────────────────────── */}
-      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px" }}>
+      <main className="px-6 md:px-8" style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div>
           {PLANOS.map((p) => (
             <article
               key={p.id}
               style={{
                 borderBottom: `1px solid ${BORDER}`,
-                padding: "56px 0",
-                display: "grid",
-                gridTemplateColumns: "minmax(0, 280px) minmax(0, 1fr) auto",
-                gap: 48,
                 alignItems: "start",
               }}
-              className="md:[grid-template-columns:280px_1fr_auto] [grid-template-columns:1fr]"
+              className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)_auto] gap-6 md:gap-12 py-10 md:py-14"
             >
               {/* Left: name + audience */}
               <div>
