@@ -104,7 +104,7 @@ const MODELOS: Modelo[] = [
 
 function ModelosPage() {
   return (
-    <div style={{ ...INTER, background: "#fff", color: TEXT, minHeight: "100vh" }}>
+    <div style={{ ...INTER, background: "#fff", color: TEXT, minHeight: "100vh", overflowX: "hidden" }}>
       {/* ─── Hero with terrain background ─────────────────────────────── */}
       <header
         className="relative overflow-hidden"
@@ -137,7 +137,7 @@ function ModelosPage() {
         />
 
         {/* Nav */}
-        <nav className="relative z-20" style={{ padding: "0 32px" }}>
+        <nav className="relative z-20 px-6 md:px-8">
           <div
             style={{
               maxWidth: 1100,
@@ -168,11 +168,10 @@ function ModelosPage() {
 
         {/* Hero copy */}
         <div
-          className="relative z-20"
+          className="relative z-20 px-6 md:px-8 pt-20 md:pt-[120px] pb-16 md:pb-20"
           style={{
             maxWidth: 1100,
             margin: "0 auto",
-            padding: "120px 32px 80px",
           }}
         >
           <p
@@ -220,20 +219,19 @@ function ModelosPage() {
       </header>
 
       {/* ─── Models list ───────────────────────────────────────────────── */}
-      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px" }}>
+      <main
+        style={{ maxWidth: 1100, margin: "0 auto" }}
+        className="px-6 md:px-8"
+      >
         <div style={{ borderTop: `1px solid ${BORDER}` }}>
           {MODELOS.map((m) => (
             <article
               key={m.id}
               style={{
                 borderBottom: `1px solid ${BORDER}`,
-                padding: "72px 0",
-                display: "grid",
-                gridTemplateColumns: "minmax(0, 280px) minmax(0, 1fr)",
-                gap: "48px",
                 alignItems: "start",
               }}
-              className="md:[grid-template-columns:280px_1fr] [grid-template-columns:1fr]"
+              className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] gap-8 md:gap-12 py-12 md:py-[72px]"
             >
               {/* Left: name + role */}
               <div>
@@ -255,40 +253,40 @@ function ModelosPage() {
                 <h2
                   style={{
                     ...TIGHT,
-                    fontSize: 44,
                     fontWeight: 600,
                     color: m.disponivel ? TEXT : SUBTLE,
                     margin: 0,
                     letterSpacing: "-0.02em",
                     lineHeight: 1,
                   }}
+                  className="text-[36px] md:text-[44px]"
                 >
                   {m.nome}
                 </h2>
               </div>
 
               {/* Right: content */}
-              <div style={{ maxWidth: 640 }}>
+              <div style={{ maxWidth: 640, minWidth: 0 }}>
                 <p
                   style={{
                     ...TIGHT,
-                    fontSize: 22,
                     fontWeight: 500,
                     color: TEXT,
                     lineHeight: 1.3,
                     letterSpacing: "-0.01em",
                     margin: "0 0 16px",
                   }}
+                  className="text-[19px] md:text-[22px]"
                 >
                   {m.tagline}
                 </p>
                 <p
                   style={{
-                    fontSize: 16,
                     color: MUTED,
                     lineHeight: 1.65,
-                    margin: "0 0 32px",
+                    margin: "0 0 28px",
                   }}
+                  className="text-[15px] md:text-[16px]"
                 >
                   {m.descricao}
                 </p>
@@ -298,10 +296,8 @@ function ModelosPage() {
                     listStyle: "none",
                     padding: 0,
                     margin: 0,
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "12px 32px",
                   }}
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3"
                 >
                   {m.capacidades.map((c) => (
                     <li
