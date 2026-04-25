@@ -1,577 +1,562 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { fetchStats, PublicStats } from "../lib/api";
+import { useEffect, useState } from "react";
+import { ParticleField } from "@/components/ParticleField";
+import { fetchStats, type PublicStats } from "@/lib/api";
 
 export const Route = createFileRoute("/apoiar")({
   head: () => ({
     meta: [
       { title: "Apoiar — Dig Dig" },
-      { name: "description", content: "O Dig Dig é uma ferramenta do povo brasileiro. Acesso gratuito para qualquer cidadão. Apoie com doação ou assine para uso profissional." },
+      {
+        name: "description",
+        content:
+          "O Dig Dig é uma ferramenta pública e gratuita. Quem financia são pessoas e organizações que acreditam que transparência não é privilégio.",
+      },
       { property: "og:title", content: "Apoiar — Dig Dig" },
+      {
+        property: "og:description",
+        content:
+          "Apoie o Dig Dig — uma plataforma de auditoria pública gratuita, financiada por quem acredita.",
+      },
+    ],
+    links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+      },
     ],
   }),
   component: ApoiarPage,
 });
 
-// ─── Tokens ───────────────────────────────────────────────
 const INTER: React.CSSProperties = {
-  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
 };
-
+const TIGHT: React.CSSProperties = {
+  fontFamily: "'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif",
+};
 const MONO: React.CSSProperties = {
-  fontFamily: "'JetBrains Mono', 'IBM Plex Mono', 'Courier New', monospace",
+  fontFamily: "'JetBrains Mono', 'IBM Plex Mono', monospace",
 };
 
-const GOLD = "#F0C81E";
+const TEXT = "#0a0a0a";
+const MUTED = "#5a5a5a";
+const SUBTLE = "#9a9a9a";
+const BORDER = "rgba(0,0,0,0.08)";
 
-// ─── Data ─────────────────────────────────────────────────
-const PLANOS = [
+function fmt(n: number | undefined | null, fallback = "—"): string {
+  if (n == null) return fallback;
+  return n.toLocaleString("pt-BR");
+}
+
+type Plano = {
+  id: string;
+  nome: string;
+  publico: string;
+  preco: string;
+  periodo: string;
+  features: string[];
+  cta: string;
+  ctaHref: string;
+  destaque?: boolean;
+};
+
+const PLANOS: Plano[] = [
   {
-    id: "cidadao", nome: "Gratuito", preco: "R$ 0", periodo: "para sempre",
-    publico: "Qualquer cidadão", cta: "Começar grátis", destaque: false, badge: null,
+    id: "gratuito",
+    nome: "Gratuito",
+    publico: "Qualquer cidadão",
+    preco: "R$ 0",
+    periodo: "para sempre",
     features: [
       "Acesso a todas as fichas de denúncia",
-      "Análises profundas completas (Dig Dig Bud)",
+      "Análises profundas completas",
       "Scores e indícios de irregularidade",
       "Dados de todos os órgãos auditados",
     ],
+    cta: "Começar grátis",
+    ctaHref: "/cadastro",
   },
   {
-    id: "investigador", nome: "Investigador", preco: "R$ 179", periodo: "/mês",
-    publico: "Jornalistas, assessores, candidatos", cta: "Assinar", destaque: false, badge: null,
+    id: "investigador",
+    nome: "Investigador",
+    publico: "Jornalistas, assessores, candidatos",
+    preco: "R$ 179",
+    periodo: "/mês",
     features: [
       "Chat com IA sobre os atos auditados",
-      "5 documentos gerados/mês (PDF ou .md)",
-      "Peças jurídicas, artigos, relatórios",
+      "5 documentos gerados por mês",
+      "Peças jurídicas, artigos e relatórios",
       "Alertas por email de novos atos",
     ],
+    cta: "Assinar",
+    ctaHref: "/cadastro?plano=investigador",
   },
   {
-    id: "patrocinador", nome: "Patrocinador", preco: "R$ 990", periodo: "/ano  (~R$ 82/mês)",
-    publico: "Quem acredita na causa", cta: "Patrocinar", destaque: true, badge: "Apoie a causa",
+    id: "patrocinador",
+    nome: "Patrocinador",
+    publico: "Quem acredita na causa",
+    preco: "R$ 990",
+    periodo: "/ano",
     features: [
       "Tudo do plano Investigador",
       "Cobrança anual com desconto",
-      "Seu nome listado como Patrocinador",
+      "Nome listado como Patrocinador",
       "Badge exclusivo no perfil",
     ],
+    cta: "Patrocinar",
+    ctaHref: "/cadastro?plano=patrocinador",
+    destaque: true,
   },
   {
-    id: "profissional", nome: "Profissional", preco: "R$ 679", periodo: "/mês",
-    publico: "Escritórios jurídicos, assessorias", cta: "Assinar", destaque: false, badge: null,
+    id: "profissional",
+    nome: "Profissional",
+    publico: "Escritórios e assessorias",
+    preco: "R$ 679",
+    periodo: "/mês",
     features: [
-      "Chat com IA (volume estendido)",
-      "15 documentos gerados/mês (PDF ou .md)",
+      "Chat com IA em volume estendido",
+      "15 documentos gerados por mês",
       "Relatórios técnicos completos",
       "Monitoramento de múltiplos órgãos",
     ],
+    cta: "Assinar",
+    ctaHref: "/cadastro?plano=profissional",
   },
   {
-    id: "api", nome: "API & Dados", preco: "R$ 1.998", periodo: "/mês",
-    publico: "Veículos de imprensa, plataformas", cta: "Falar com a gente", destaque: false, badge: null,
+    id: "api",
+    nome: "API & Dados",
+    publico: "Imprensa e plataformas",
+    preco: "R$ 1.998",
+    periodo: "/mês",
     features: [
       "API REST completa + webhooks",
       "Geração de documentos ilimitada",
       "10.000 chamadas/mês incluídas",
       "SLA e suporte direto",
     ],
+    cta: "Falar com a gente",
+    ctaHref: "mailto:regisalessander@gmail.com",
   },
   {
-    id: "tecnico", nome: "Técnico", preco: "Sob consulta", periodo: "",
-    publico: "Órgãos, empresas, mandatos", cta: "Falar com a gente", destaque: false, badge: null,
+    id: "tecnico",
+    nome: "Técnico",
+    publico: "Órgãos, empresas, mandatos",
+    preco: "Sob consulta",
+    periodo: "",
     features: [
       "Monitoramento contínuo personalizado",
       "Estrutura para qualquer base de dados",
       "Peças e relatórios ilimitados",
       "Implantação e suporte dedicado",
     ],
+    cta: "Falar com a gente",
+    ctaHref: "mailto:regisalessander@gmail.com",
   },
 ];
 
-const CAMPANHAS = [
-  { slug: "cau-pr", nome: "CAU/PR", tipo: "Conselho de Arquitetura e Urbanismo do Paraná", votos: 142, status: "em_analise" as const },
-  { slug: "prefeitura-curitiba", nome: "Prefeitura de Curitiba", tipo: "Poder Executivo Municipal — PR", votos: 47, status: "na_fila" as const },
-  { slug: "crm-pr", nome: "CRM/PR", tipo: "Conselho Regional de Medicina do Paraná", votos: 23, status: "na_fila" as const },
-  { slug: "camara-curitiba", nome: "Câmara de Curitiba", tipo: "Poder Legislativo Municipal — PR", votos: 18, status: "na_fila" as const },
-];
-
-// ─── Helpers ──────────────────────────────────────────────
-function fmt(n: number | undefined | null, fallback = "…"): string {
-  if (n == null) return fallback;
-  return n.toLocaleString("pt-BR");
-}
-
-// ─── Nav ──────────────────────────────────────────────────
-function Nav() {
-  return (
-    <nav
-      className="flex items-center justify-between px-6 md:px-12 py-5 border-b border-white/[0.06]"
-      style={INTER}
-    >
-      <Link
-        to="/"
-        className="text-white text-[12px] uppercase tracking-[0.2em] font-bold hover:opacity-55 transition"
-      >
-        DIG DIG
-      </Link>
-      <div className="hidden md:flex items-center gap-8 text-[13px] text-white/30">
-        <Link to="/solucoes" className="hover:text-white/70 transition">Soluções</Link>
-        <Link to="/apoiar" className="text-white/65 font-medium">Apoiar</Link>
-      </div>
-      <a href="/entrar" className="text-[12px] text-white/30 hover:text-white/65 transition">
-        Entrar
-      </a>
-    </nav>
-  );
-}
-
-// ─── Status bar ───────────────────────────────────────────
-function StatusBar({ stats }: { stats: PublicStats | null }) {
-  const analisados = stats?.total_analisados;
-  const total = stats?.total_atos;
-  const criticos = stats?.total_criticos;
-  const laranja = stats?.distribuicao.laranja;
-  const vermelho = stats?.distribuicao.vermelho;
-  return (
-    <div
-      className="border-b border-white/[0.05] py-3.5 px-6 md:px-12 overflow-x-auto"
-      style={{ background: "rgba(255,255,255,0.018)" }}
-    >
-      <div className="flex items-center gap-5 text-[11px] whitespace-nowrap" style={MONO}>
-        <span className="flex items-center gap-2">
-          <span
-            className="h-[6px] w-[6px] rounded-full flex-shrink-0"
-            style={{ background: "#4ade80", boxShadow: "0 0 6px #4ade80" }}
-          />
-          <span style={{ color: "rgba(255,255,255,0.50)" }}>PIPELINE ATIVO</span>
-        </span>
-        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
-        <span style={{ color: "rgba(255,255,255,0.40)" }}>CAU/PR</span>
-        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
-        <span>
-          <span style={{ color: "rgba(255,255,255,0.70)" }}>{fmt(analisados)}</span>
-          <span style={{ color: "rgba(255,255,255,0.28)" }}> / {fmt(total)} documentos analisados</span>
-        </span>
-        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
-        <span>
-          <span style={{ color: GOLD }}>{fmt(criticos)}</span>
-          <span style={{ color: "rgba(255,255,255,0.28)" }}> alertas críticos detectados</span>
-        </span>
-        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
-        <span>
-          <span style={{ color: "#f97316" }}>{fmt(laranja)}</span>
-          <span style={{ color: "rgba(255,255,255,0.28)" }}> laranja</span>
-        </span>
-        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
-        <span>
-          <span style={{ color: "#dc2626" }}>{fmt(vermelho)}</span>
-          <span style={{ color: "rgba(255,255,255,0.28)" }}> vermelho</span>
-        </span>
-      </div>
-    </div>
-  );
-}
-
-
-// ─── Page ─────────────────────────────────────────────────
 function ApoiarPage() {
   const [stats, setStats] = useState<PublicStats | null>(null);
-  useEffect(() => { fetchStats("cau-pr").then(setStats).catch(() => {}); }, []);
+  useEffect(() => {
+    fetchStats("cau-pr").then(setStats).catch(() => {});
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#07080f] text-white overflow-x-hidden" style={INTER}>
-      <Nav />
-      <StatusBar stats={stats} />
+    <div style={{ ...INTER, background: "#fff", color: TEXT, minHeight: "100vh" }}>
+      {/* ─── Hero with terrain background ─────────────────────────────── */}
+      <header
+        className="relative overflow-hidden"
+        style={{ background: "#07080f", minHeight: "min(620px, 78vh)" }}
+      >
+        <ParticleField />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 pb-28">
-        <div className="flex gap-12 xl:gap-16 pt-14 md:pt-20">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0"
+          style={{
+            height: "70%",
+            background:
+              "linear-gradient(to top, rgba(7,8,15,0.92) 25%, rgba(7,8,15,0) 100%)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0"
+          style={{
+            height: "30%",
+            background:
+              "linear-gradient(to bottom, rgba(7,8,15,0.85) 0%, rgba(7,8,15,0) 100%)",
+          }}
+        />
 
-          {/* ─── Main ─── */}
-          <main className="flex-1 min-w-0">
+        {/* Nav */}
+        <nav className="relative z-20" style={{ padding: "0 32px" }}>
+          <div
+            style={{
+              maxWidth: 1100,
+              margin: "0 auto",
+              height: 64,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Link to="/" style={{ textDecoration: "none" }}>
+              <span style={{ ...TIGHT, fontWeight: 700, fontSize: 17, color: "#fff" }}>
+                Dig Dig
+              </span>
+            </Link>
+            <Link
+              to="/"
+              style={{
+                fontSize: 13,
+                color: "rgba(255,255,255,0.6)",
+                textDecoration: "none",
+              }}
+            >
+              ← Voltar
+            </Link>
+          </div>
+        </nav>
 
-            {/* ── Hero ── */}
-            <header className="pb-14 md:pb-18">
-              <p className="text-[9px] uppercase tracking-[0.32em] text-white/22 mb-7" style={MONO}>
-                APOIAR — DIG DIG
-              </p>
-              <h1
-                className="text-[2.4rem] md:text-[3.6rem] font-bold text-white leading-[1.03] tracking-[-0.03em] mb-9"
-                style={INTER}
-              >
-                Uma ferramenta do povo
-                <br />brasileiro. Gratuita.
-                <br /><span className="text-white/28">Financiada por quem acredita.</span>
-              </h1>
-              <div className="space-y-4 text-[15px] md:text-[16px] text-white/70 leading-[1.80] max-w-xl" style={INTER}>
-                <p>
-                  O Dig Dig lê automaticamente os atos administrativos de órgãos públicos brasileiros
-                  e detecta irregularidades legais e morais com IA. O resultado é público — sem paywall,
-                  sem cadastro obrigatório.
-                </p>
-                <p>
-                  Não temos investidor. Quem financia a operação são pessoas e organizações que acreditam
-                  que transparência pública não é privilégio.
-                </p>
-              </div>
+        {/* Hero copy */}
+        <div
+          className="relative z-20"
+          style={{ maxWidth: 1100, margin: "0 auto", padding: "100px 32px 80px" }}
+        >
+          <p
+            style={{
+              ...MONO,
+              fontSize: 11,
+              color: "rgba(255,255,255,0.55)",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              marginBottom: 24,
+            }}
+          >
+            Apoiar
+          </p>
+          <h1
+            style={{
+              ...TIGHT,
+              fontSize: "clamp(40px, 6.5vw, 68px)",
+              fontWeight: 600,
+              lineHeight: 1.02,
+              letterSpacing: "-0.025em",
+              color: "#fff",
+              margin: "0 0 24px",
+              maxWidth: 880,
+            }}
+          >
+            Uma ferramenta pública.<br />
+            <span style={{ color: "rgba(255,255,255,0.55)" }}>
+              Financiada por quem acredita.
+            </span>
+          </h1>
+          <p
+            style={{
+              fontSize: 17,
+              color: "rgba(255,255,255,0.7)",
+              lineHeight: 1.55,
+              maxWidth: 600,
+              margin: "0 0 48px",
+            }}
+          >
+            O Dig Dig lê automaticamente os atos administrativos de órgãos públicos
+            brasileiros e detecta irregularidades com IA. O resultado é aberto —
+            sem paywall, sem cadastro obrigatório.
+          </p>
 
-              <div className="flex flex-wrap gap-x-8 gap-y-4 mt-12 pt-10 border-t border-white/[0.06]">
-                {[
-                  { valor: fmt(stats?.total_atos), label: "documentos coletados" },
-                  { valor: fmt(stats?.total_analisados), label: "analisados" },
-                  { valor: fmt(stats?.total_criticos), label: "casos críticos" },
-                  { valor: "R$ 0", label: "para começar" },
-                ].map((s) => (
-                  <div key={s.label}>
-                    <p className="text-[1.5rem] font-bold text-white leading-none mb-1" style={MONO}>
-                      {s.valor}
-                    </p>
-                    <p className="text-[10px] text-white/45 uppercase tracking-[0.12em]" style={INTER}>
-                      {s.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </header>
-
-            {/* ── O que é isso ── */}
-            <section className="mb-16 md:mb-20">
-              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
-                O que é isso
-              </p>
-              <h2 className="text-[1.15rem] font-bold text-white/85 mb-6" style={INTER}>
-                Uma escavadeira coletiva.
-              </h2>
-              <div className="space-y-4 text-[14px] text-white/62 leading-[1.82] max-w-2xl" style={INTER}>
-                <p>
-                  São portarias, deliberações e resoluções — dados públicos, pagos com dinheiro seu.
-                  Estão enterrados em PDFs numerados, sem contexto, sem índice.{" "}
-                  <strong className="text-white/80">A burocracia conta com isso.</strong>
-                </p>
-                <p>
-                  Usamos IA para escavar esse arquivo. Mapeamos irregularidades legais e morais.
-                  Sinalizamos padrões. Não afirmamos crimes — mostramos o que encontramos,
-                  e você decide o que fazer com isso.
-                </p>
-              </div>
-              <blockquote
-                className="mt-8 pl-5 text-[14px] text-white/72 leading-relaxed italic max-w-lg"
-                style={{ ...INTER, borderLeft: `2px solid ${GOLD}` }}
-              >
-                "É como se todo o Brasil se juntasse para auditar o próprio governo."
-              </blockquote>
-            </section>
-
-            {/* ── Próximas auditorias ── */}
-            <section className="mb-16 md:mb-20" id="auditorias">
-              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
-                Próximas auditorias
-              </p>
-              <h2 className="text-[1.15rem] font-bold text-white/85 mb-4" style={INTER}>
-                A comunidade vota. A equipe decide.
-              </h2>
-              <p className="text-[13px] text-white/48 leading-relaxed mb-6 max-w-lg" style={INTER}>
-                Os órgãos mais votados ficam no topo da fila. A equipe seleciona conforme capacidade
-                técnica real — cada instituição é diferente, e não prometemos o que não conseguimos entregar.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                {CAMPANHAS.map((c) => {
-                  const st = {
-                    concluida: { label: "Auditoria publicada", color: "#4ade80" },
-                    em_analise: { label: "Em análise", color: GOLD },
-                    na_fila: { label: "Na fila", color: "rgba(255,255,255,0.22)" },
-                  }[c.status];
-                  return (
-                    <div key={c.slug} className="border border-white/[0.06] p-5 flex flex-col gap-3">
-                      <div>
-                        <p className="text-[9px] uppercase tracking-[0.14em] mb-1.5" style={{ ...MONO, color: "rgba(255,255,255,0.18)" }}>
-                          {c.tipo}
-                        </p>
-                        <h3 className="text-[0.88rem] font-semibold text-white/78" style={INTER}>
-                          {c.nome}
-                        </h3>
-                      </div>
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="flex items-center gap-2 text-[11px]" style={{ ...INTER, color: st.color }}>
-                          <span className="h-[5px] w-[5px] rounded-full flex-shrink-0" style={{ background: st.color }} />
-                          {st.label}
-                        </span>
-                        <span className="text-[11px]" style={{ ...MONO, color: "rgba(255,255,255,0.22)" }}>
-                          {c.votos} votos
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <button
-                className="text-[10px] uppercase tracking-[0.14em] px-4 py-2.5 border border-white/[0.07] text-white/28 hover:text-white/55 hover:border-white/14 transition"
-                style={INTER}
-              >
-                + Nominar órgão
-              </button>
-            </section>
-
-            {/* ── Como funciona ── */}
-            <section className="mb-16 md:mb-20">
-              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
-                Como funciona
-              </p>
-              <h2 className="text-[1.15rem] font-bold text-white/85 mb-6" style={INTER}>
-                Quatro etapas. Resultado público.
-              </h2>
-              <ol className="grid sm:grid-cols-2 gap-px bg-white/[0.04]">
-                {[
-                  { n: "01", titulo: "Votar", texto: "A comunidade nomina órgãos e distribui votos. Cada usuário tem 3 votos gratuitos por mês." },
-                  { n: "02", titulo: "Decidir", texto: "A equipe seleciona os próximos conforme capacidade real. Sem prometer o que não pode entregar ainda." },
-                  { n: "03", titulo: "Escavar", texto: "A IA analisa todos os documentos disponíveis. Trabalho humano revisa e aprofunda os casos críticos." },
-                  { n: "04", titulo: "Publicar", texto: "O resultado fica público para qualquer pessoa. Gratuito. Sem exceção. Sem paywall." },
-                ].map((p) => (
-                  <li key={p.n} className="bg-[#07080f] p-6 flex flex-col gap-3">
-                    <span className="text-[1.3rem] font-bold leading-none" style={{ ...MONO, color: GOLD }}>
-                      {p.n}
-                    </span>
-                    <h3 className="text-[0.88rem] font-semibold text-white/78" style={INTER}>
-                      {p.titulo}
-                    </h3>
-                    <p className="text-[12px] text-white/55 leading-relaxed" style={INTER}>
-                      {p.texto}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            </section>
-
-            {/* ── Contribuir ── */}
-            <section className="mb-16 md:mb-20" id="contribuir">
-              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
-                Contribuir
-              </p>
-              <h2 className="text-[1.15rem] font-bold text-white/85 mb-4" style={INTER}>
-                Cada contribuição financia a escavação.
-              </h2>
-              <div className="space-y-4 text-[14px] text-white/58 leading-[1.82] max-w-2xl mb-8" style={INTER}>
-                <p>
-                  Não temos investidor. As contribuições cobrem os custos operacionais — IA, infraestrutura
-                  e trabalho humano de investigação. Todo excedente é reinvestido em tecnologia para ampliar
-                  a capacidade da ferramenta.
-                </p>
-                <p className="font-semibold text-white/75">
-                  O Dig Dig pertence às pessoas que o financiam.
-                </p>
-              </div>
-
-              <div className="border border-white/[0.06] p-6 md:p-8 max-w-lg">
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {["R$ 25", "R$ 50", "R$ 100", "Valor livre"].map((v, i) => (
-                    <button
-                      key={v}
-                      className="text-[11px] font-semibold uppercase tracking-[0.14em] px-4 py-2.5 border transition-all"
-                      style={{
-                        ...MONO,
-                        borderColor: i === 1 ? GOLD : "rgba(255,255,255,0.10)",
-                        color: i === 1 ? GOLD : "rgba(255,255,255,0.40)",
-                        background: i === 1 ? `${GOLD}10` : "transparent",
-                      }}
-                    >
-                      {v}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex gap-2 mb-6">
-                  {["Uma vez", "Todo mês"].map((f, i) => (
-                    <button
-                      key={f}
-                      className="text-[11px] font-medium uppercase tracking-[0.14em] px-4 py-2 border transition-all"
-                      style={{
-                        ...MONO,
-                        borderColor: i === 1 ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.07)",
-                        color: i === 1 ? "rgba(255,255,255,0.70)" : "rgba(255,255,255,0.28)",
-                      }}
-                    >
-                      {f}
-                    </button>
-                  ))}
-                </div>
-                <a
-                  href="/contribuir"
-                  className="inline-block text-[10px] font-semibold uppercase tracking-[0.18em] px-7 py-3.5 transition-opacity hover:opacity-75"
-                  style={{ ...INTER, background: GOLD, color: "#0a0a0a" }}
+          {/* Live stats strip */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gap: 32,
+              maxWidth: 760,
+              paddingTop: 32,
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            {[
+              { v: fmt(stats?.total_atos), l: "documentos coletados" },
+              { v: fmt(stats?.total_analisados), l: "analisados" },
+              { v: fmt(stats?.total_criticos), l: "casos críticos" },
+              { v: "R$ 0", l: "para começar" },
+            ].map((s) => (
+              <div key={s.l}>
+                <p
+                  style={{
+                    ...MONO,
+                    fontSize: 22,
+                    fontWeight: 500,
+                    color: "#fff",
+                    margin: 0,
+                    lineHeight: 1.1,
+                  }}
                 >
-                  Contribuir via PIX ou cartão
-                </a>
-                <p className="mt-3 text-[11px] text-white/25" style={INTER}>
-                  Mínimo R$ 25 · Primeira contribuição ganha 1 mês de Apoio Ativo
+                  {s.v}
+                </p>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(255,255,255,0.45)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    marginTop: 6,
+                  }}
+                >
+                  {s.l}
                 </p>
               </div>
-            </section>
-
-            {/* ── Apoio institucional ── */}
-            <section className="mb-16 md:mb-20">
-              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
-                Apoio institucional
-              </p>
-              <h2 className="text-[1.15rem] font-bold text-white/85 mb-4" style={INTER}>
-                Empresas e organizações.
-              </h2>
-              <p className="text-[14px] text-white/52 leading-relaxed mb-5 max-w-xl" style={INTER}>
-                Empresas e organizações que acreditam na transparência pública podem se tornar
-                Apoiadores Oficiais do Dig Dig. O modelo é negociado diretamente — sem tabela de preços,
-                sem pacote fechado.
-              </p>
-              <a
-                href="mailto:apoie@digdig.com.br"
-                className="text-[13px] font-semibold transition-colors hover:text-white/70"
-                style={{ ...INTER, color: "rgba(255,255,255,0.48)" }}
-              >
-                apoie@digdig.com.br →
-              </a>
-            </section>
-
-            {/* ── Níveis de apoio ── */}
-            <section className="mb-16 md:mb-20" id="planos">
-              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
-                Planos
-              </p>
-              <h2 className="text-[1.15rem] font-bold text-white/85 mb-4" style={INTER}>
-                O dado é aberto. O trabalho é cobrado.
-              </h2>
-              <p className="text-[13px] text-white/48 leading-relaxed mb-8 max-w-lg" style={INTER}>
-                Todas as fichas, análises e denúncias são gratuitas para qualquer cidadão. Os planos pagos
-                desbloqueiam o chat com IA e a geração de documentos prontos — peças jurídicas, artigos e
-                relatórios em PDF ou .md.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {PLANOS.map((plano) => (
-                  <div
-                    key={plano.id}
-                    className="border p-5 flex flex-col"
-                    style={{ borderColor: plano.destaque ? `${GOLD}44` : "rgba(255,255,255,0.06)" }}
-                  >
-                    {plano.destaque && (
-                      <span
-                        className="inline-block text-[8px] font-semibold uppercase tracking-[0.22em] px-2 py-1 mb-3 self-start"
-                        style={{ color: GOLD, background: `${GOLD}15` }}
-                      >
-                        {plano.badge ?? "destaque"}
-                      </span>
-                    )}
-                    <p className="text-[9px] uppercase tracking-[0.18em] mb-2" style={{ ...INTER, color: "rgba(255,255,255,0.22)" }}>
-                      {plano.publico}
-                    </p>
-                    <h3 className="text-[0.88rem] font-semibold text-white/75 mb-1" style={INTER}>
-                      {plano.nome}
-                    </h3>
-                    <div className="flex items-baseline gap-1 mb-4">
-                      <span className="text-[1.4rem] font-bold leading-none" style={{ ...MONO, color: plano.destaque ? GOLD : "rgba(255,255,255,0.85)" }}>
-                        {plano.preco}
-                      </span>
-                      <span className="text-[11px] text-white/28" style={MONO}>{plano.periodo}</span>
-                    </div>
-                    <ul className="space-y-1.5 mb-5 flex-1">
-                      {plano.features.map((f) => (
-                        <li key={f} className="flex items-start gap-2 text-[11px] text-white/48 leading-relaxed" style={INTER}>
-                          <span className="flex-shrink-0 mt-[5px] h-[4px] w-[4px] rounded-full" style={{ background: plano.destaque ? GOLD : "rgba(255,255,255,0.22)" }} />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="pt-3.5 border-t border-white/[0.05] mt-auto">
-                      <a
-                        href="/cadastro"
-                        className="inline-block text-[10px] font-semibold uppercase tracking-[0.14em] px-4 py-2.5 transition-opacity hover:opacity-75"
-                        style={plano.destaque
-                          ? { ...INTER, background: GOLD, color: "#0a0a0a" }
-                          : { ...INTER, border: "1px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.30)" }}
-                      >
-                        {plano.cta}
-                      </a>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-5 text-[11px] text-white/22" style={MONO}>
-                Cartão ou PIX · Sem fidelidade · Notas fiscais emitidas automaticamente.
-              </p>
-            </section>
-
-            {/* ── Para onde vai o dinheiro ── */}
-            <section className="mb-16 md:mb-20">
-              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
-                Para onde vai o dinheiro
-              </p>
-              <h2 className="text-[1.15rem] font-bold text-white/85 mb-6" style={INTER}>
-                Radical transparência.
-              </h2>
-              <div className="flex flex-wrap gap-x-8 gap-y-4 pt-6 border-t border-white/[0.05] mb-8">
-                {[
-                  { v: fmt(stats?.total_atos), l: "documentos coletados" },
-                  { v: fmt(stats?.total_analisados), l: "documentos analisados" },
-                  { v: fmt(stats?.total_criticos), l: "casos críticos" },
-                  { v: "R$ 0", l: "para acessar os dados" },
-                ].map((s) => (
-                  <div key={s.l}>
-                    <p className="text-[1.3rem] font-bold text-white leading-none mb-1" style={MONO}>{s.v}</p>
-                    <p className="text-[10px] text-white/45 uppercase tracking-[0.12em]" style={INTER}>{s.l}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="border-t border-white/[0.05]">
-                {[
-                  { item: "Infraestrutura de IA", pct: 55, desc: "API Anthropic — o custo de analisar cada documento público" },
-                  { item: "Servidores & Hospedagem", pct: 25, desc: "Railway, Supabase, Redis — o que mantém o sistema vivo" },
-                  { item: "Desenvolvimento", pct: 20, desc: "Manutenção, novas instituições, melhorias contínuas" },
-                ].map(({ item, pct, desc }) => (
-                  <div key={item} className="border-b border-white/[0.05] py-5 flex flex-col sm:flex-row gap-2 sm:gap-8 sm:items-center">
-                    <div className="flex-1">
-                      <p className="text-[0.88rem] font-semibold text-white/72 mb-1" style={INTER}>{item}</p>
-                      <p className="text-[12px] text-white/40" style={INTER}>{desc}</p>
-                    </div>
-                    <div className="flex-shrink-0 sm:w-40">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="h-[2px] flex-1 mr-3" style={{ background: "rgba(255,255,255,0.06)" }}>
-                          <div className="h-full" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${GOLD}, ${GOLD}66)` }} />
-                        </div>
-                        <span className="text-[12px] font-bold flex-shrink-0" style={{ ...MONO, color: GOLD }}>{pct}%</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* ── Footer CTA ── */}
-            <section className="pt-10 border-t border-white/[0.05] text-center">
-              <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
-                <a
-                  href="/cadastro"
-                  className="inline-block text-[10px] font-semibold uppercase tracking-[0.18em] px-7 py-3.5 transition-opacity hover:opacity-75"
-                  style={{ ...INTER, background: GOLD, color: "#0a0a0a" }}
-                >
-                  Criar conta grátis
-                </a>
-                <Link
-                  to="/solucoes"
-                  className="inline-block text-[10px] font-medium uppercase tracking-[0.15em] px-5 py-3.5 text-white/25 hover:text-white/52 transition border border-white/[0.07]"
-                  style={INTER}
-                >
-                  Ver como funciona →
-                </Link>
-              </div>
-              <p className="text-[11px] text-white/20" style={INTER}>
-                Dúvidas:{" "}
-                <a href="mailto:regisalessander@gmail.com" className="hover:text-white/40 transition">
-                  regisalessander@gmail.com
-                </a>
-              </p>
-            </section>
-
-          </main>
-
+            ))}
+          </div>
         </div>
-      </div>
+      </header>
+
+      {/* ─── Why support ──────────────────────────────────────────────── */}
+      <section
+        style={{
+          maxWidth: 1100,
+          margin: "0 auto",
+          padding: "96px 32px 0",
+        }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 280px) minmax(0, 1fr)",
+            gap: 48,
+            alignItems: "start",
+            paddingBottom: 80,
+            borderBottom: `1px solid ${BORDER}`,
+          }}
+          className="md:[grid-template-columns:280px_1fr] [grid-template-columns:1fr]"
+        >
+          <div>
+            <p
+              style={{
+                ...MONO,
+                fontSize: 11,
+                color: SUBTLE,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                marginBottom: 12,
+              }}
+            >
+              Por quê
+            </p>
+            <h2
+              style={{
+                ...TIGHT,
+                fontSize: 32,
+                fontWeight: 600,
+                color: TEXT,
+                margin: 0,
+                letterSpacing: "-0.02em",
+                lineHeight: 1.1,
+              }}
+            >
+              Não temos investidor.
+            </h2>
+          </div>
+          <div style={{ maxWidth: 640 }}>
+            <p
+              style={{
+                ...TIGHT,
+                fontSize: 22,
+                fontWeight: 500,
+                color: TEXT,
+                lineHeight: 1.3,
+                letterSpacing: "-0.01em",
+                margin: "0 0 16px",
+              }}
+            >
+              Transparência pública não é privilégio.
+            </p>
+            <p style={{ fontSize: 16, color: MUTED, lineHeight: 1.65, margin: 0 }}>
+              Quem financia a operação são pessoas e organizações que acreditam nisso.
+              Você pode contribuir de duas formas: assinando um plano pago para uso
+              profissional, ou simplesmente patrocinando o projeto para que ele
+              continue gratuito para qualquer cidadão.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Plans ─────────────────────────────────────────────────────── */}
+      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px" }}>
+        <div>
+          {PLANOS.map((p) => (
+            <article
+              key={p.id}
+              style={{
+                borderBottom: `1px solid ${BORDER}`,
+                padding: "56px 0",
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 280px) minmax(0, 1fr) auto",
+                gap: 48,
+                alignItems: "start",
+              }}
+              className="md:[grid-template-columns:280px_1fr_auto] [grid-template-columns:1fr]"
+            >
+              {/* Left: name + audience */}
+              <div>
+                <p
+                  style={{
+                    ...MONO,
+                    fontSize: 11,
+                    color: p.destaque ? TEXT : SUBTLE,
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                    marginBottom: 12,
+                  }}
+                >
+                  {p.publico}
+                  {p.destaque && (
+                    <span style={{ marginLeft: 8, color: SUBTLE }}>· apoie</span>
+                  )}
+                </p>
+                <h3
+                  style={{
+                    ...TIGHT,
+                    fontSize: 36,
+                    fontWeight: 600,
+                    color: TEXT,
+                    margin: 0,
+                    letterSpacing: "-0.02em",
+                    lineHeight: 1,
+                  }}
+                >
+                  {p.nome}
+                </h3>
+                <p
+                  style={{
+                    ...TIGHT,
+                    fontSize: 20,
+                    color: MUTED,
+                    margin: "16px 0 0",
+                    fontWeight: 500,
+                  }}
+                >
+                  <span style={{ color: TEXT }}>{p.preco}</span>
+                  {p.periodo && (
+                    <span style={{ color: SUBTLE, fontSize: 15, marginLeft: 4 }}>
+                      {p.periodo}
+                    </span>
+                  )}
+                </p>
+              </div>
+
+              {/* Middle: features */}
+              <div style={{ maxWidth: 520 }}>
+                <ul
+                  style={{
+                    listStyle: "none",
+                    padding: 0,
+                    margin: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                  }}
+                >
+                  {p.features.map((f) => (
+                    <li
+                      key={f}
+                      style={{
+                        fontSize: 15,
+                        color: MUTED,
+                        lineHeight: 1.55,
+                        paddingLeft: 18,
+                        position: "relative",
+                      }}
+                    >
+                      <span
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          top: 9,
+                          width: 4,
+                          height: 4,
+                          borderRadius: "50%",
+                          background: TEXT,
+                        }}
+                      />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Right: CTA */}
+              <div style={{ paddingTop: 4 }}>
+                <a
+                  href={p.ctaHref}
+                  style={{
+                    ...INTER,
+                    display: "inline-block",
+                    fontSize: 14,
+                    fontWeight: 500,
+                    padding: "12px 22px",
+                    borderRadius: 4,
+                    textDecoration: "none",
+                    color: p.destaque ? "#fff" : TEXT,
+                    background: p.destaque ? TEXT : "transparent",
+                    border: p.destaque
+                      ? `1px solid ${TEXT}`
+                      : `1px solid ${BORDER}`,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {p.cta} →
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {/* ─── Footer note ─────────────────────────────────────────────── */}
+        <section style={{ padding: "96px 0 120px", textAlign: "center" }}>
+          <p
+            style={{
+              ...TIGHT,
+              fontSize: 24,
+              fontWeight: 500,
+              color: TEXT,
+              letterSpacing: "-0.01em",
+              margin: "0 0 16px",
+              maxWidth: 540,
+              marginInline: "auto",
+              lineHeight: 1.3,
+            }}
+          >
+            Tudo que o Dig Dig encontra fica acessível.
+          </p>
+          <p
+            style={{
+              fontSize: 15,
+              color: MUTED,
+              lineHeight: 1.6,
+              maxWidth: 480,
+              margin: "0 auto 32px",
+            }}
+          >
+            Os planos pagos desbloqueiam chat com IA e geração de documentos.
+            Conteúdo, fichas e análises permanecem livres para qualquer pessoa.
+          </p>
+          <p style={{ fontSize: 13, color: SUBTLE }}>
+            Dúvidas:{" "}
+            <a
+              href="mailto:regisalessander@gmail.com"
+              style={{ color: MUTED, textDecoration: "underline" }}
+            >
+              regisalessander@gmail.com
+            </a>
+          </p>
+        </section>
+      </main>
     </div>
   );
 }
