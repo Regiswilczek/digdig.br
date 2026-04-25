@@ -61,7 +61,7 @@ CRITÉRIOS DE ANÁLISE OBRIGATÓRIOS:
 Responda SEMPRE em JSON válido com esta estrutura exata:
 {{
   "nivel_alerta": "verde|amarelo|laranja|vermelho",
-  "score_risco": 0,
+  "score_risco": <inteiro de 0 a 100, onde 0=sem risco e 100=risco crítico máximo>,
   "resumo": "2-3 frases",
   "indicios": [{{"categoria": "legal|moral|etica|processual", "tipo": "string", "descricao": "string", "artigo_violado": "string|null", "gravidade": "baixa|media|alta|critica"}}],
   "pessoas_extraidas": [{{"nome": "string", "cargo": "string", "tipo_aparicao": "nomeado|exonerado|assina|membro_comissao|processado|mencionado"}}],

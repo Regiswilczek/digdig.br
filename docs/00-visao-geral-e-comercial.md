@@ -66,16 +66,26 @@ Estimativa: **2–5 dias por órgão**. O custo de IA é marginal; o custo real 
 
 ## 3. Modelo de Negócio
 
+### Posicionamento: O dado é aberto. O trabalho é cobrado.
+
+Todo o conteúdo gerado — fichas de denúncia, análises profundas (Sonnet), scores de risco, indícios e pessoas identificadas — é **gratuito e público**. Qualquer cidadão acessa sem cadastro.
+
+A cobrança recai sobre **uso de IA produtiva**: chat conversacional sobre os atos auditados e geração de documentos prontos (peças jurídicas, artigos para blogs, relatórios em PDF ou .md).
+
 ### Planos de Assinatura
 
-| Plano | Preço | Chat/mês | Exportação | Para quem |
+| Plano | Preço | Chat IA | Docs gerados/mês | Para quem |
 |---|---|---|---|---|
-| **Cidadão** | R$ 0 | 5 perguntas | Nenhuma | Qualquer brasileiro — leitura e compreensão básica |
-| **Investigador** | R$ 197/mês | 200 | PDF e HTML | Jornalistas, pesquisadores, fiscais políticos |
-| **Profissional** | R$ 597/mês | 1.000 | CSV, JSON, PDF, HTML | Escritórios jurídicos, assessorias, veículos de imprensa |
-| **API & Dados** | R$ 1.997/mês | via API | API REST + webhooks | Plataformas, agregadores, pesquisa acadêmica |
+| **Gratuito** | R$ 0 | — | — | Qualquer cidadão — acesso completo a todos os dados e análises |
+| **Investigador** | R$ 179/mês | ✅ Teto R$30/mês | 5 (PDF ou .md) | Jornalistas, assessores, candidatos |
+| **Patrocinador** ⭐ | R$ 990/ano (~R$82/mês) | ✅ Teto R$30/mês | 5 (PDF ou .md) | Quem apoia a causa — plano anual com desconto + nome listado |
+| **Profissional** | R$ 679/mês | ✅ Teto R$114/mês | 15 (PDF ou .md) | Escritórios jurídicos, assessorias, mandatos |
+| **API & Dados** | R$ 1.998/mês | via API ilimitado | Ilimitado via API | Plataformas, redações, pesquisa acadêmica |
+| **Técnico** | Sob consulta | Ilimitado | Ilimitado | Órgãos públicos, empresas, monitoramento contínuo |
 
 Pagamentos processados via **Mercado Pago** (Brasil-nativo, PIX, cartão, boleto).
+
+**Teto de tokens:** O custo de IA por usuário é controlado por plano. Um usuário Investigador custa no máximo R$30/mês em tokens — garantindo margem positiva em qualquer volume de uso.
 
 ### Doações Voluntárias
 

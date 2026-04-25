@@ -6,9 +6,7 @@ export const Route = createFileRoute("/painel/")({
   beforeLoad: () => {
     throw redirect({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      to: "/painel/$slug" as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      params: { slug: "cau-pr" } as any,
+      to: "/painel/chat" as any,
     });
   },
   component: () => null,

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { fetchPainelAto, type PainelAto } from "../../../lib/api-auth";
+import { fetchPainelAto, type PainelAto, type HaikuIndicio, type HaikuPessoa } from "../../../lib/api-auth";
 import { ExternalLink, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/painel/$slug/ato/$id")({
@@ -80,8 +80,12 @@ function AtoDetailPage() {
     return () => { cancelled = true; };
   }, [slug, id]);
 
-  // Backend enforces plan gate — if resultado_sonnet or recomendacao_campanha is present, user is Investigador+
-  const investigador = ato !== null && (ato.resultado_sonnet !== null || ato.recomendacao_campanha !== null);
+  const GRAVIDADE_BADGE: Record<string, string> = {
+    critica: "bg-red-500/20 text-red-400 border border-red-500/30",
+    alta: "bg-orange-500/20 text-orange-400 border border-orange-500/30",
+    media: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
+    baixa: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+  };
 
   if (loading) {
     return (
@@ -99,9 +103,13 @@ function AtoDetailPage() {
     );
   }
 
+  const haiku = ato.resultado_haiku;
+  const indicios: HaikuIndicio[] = haiku?.indicios ?? [];
+  const pessoasHaiku: HaikuPessoa[] = haiku?.pessoas_extraidas ?? [];
+
   const sonnet = ato.resultado_sonnet;
-  const irregularidades = (sonnet?.irregularidades as string[] | undefined) ?? [];
-  const pessoas = (sonnet?.pessoas as string[] | undefined) ?? [];
+  const sonnetAprofundada = sonnet?.analise_aprofundada as Record<string, unknown> | undefined;
+  const narrativaCompleta = sonnetAprofundada?.narrativa_completa as string | undefined;
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 max-w-3xl space-y-6">
@@ -140,6 +148,9 @@ function AtoDetailPage() {
               })
             : "data não disponível"}
         </p>
+        {ato.ementa && (
+          <p className="text-[13px] text-white/50 mt-1 italic">{ato.ementa}</p>
+        )}
       </div>
 
       {/* Resumo executivo — todos os planos */}
@@ -149,51 +160,69 @@ function AtoDetailPage() {
         </Section>
       )}
 
-      {/* Análise profunda — Investigador+ */}
-      <Section title="Análise Profunda [Investigador+]" locked={!investigador}>
-        {investigador && !sonnet && (
-          <p className="text-white/40">Análise Sonnet ainda não disponível para este ato.</p>
-        )}
-        {investigador && sonnet && (
-          <p className="whitespace-pre-wrap">
-            {(sonnet.analise_profunda as string) ?? "—"}
-          </p>
-        )}
-      </Section>
-
-      {/* Irregularidades */}
-      {irregularidades.length > 0 && (
-        <Section title="Irregularidades">
-          <ul className="space-y-1.5">
-            {irregularidades.map((item, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <span className="text-red-400 mt-0.5 flex-shrink-0">•</span>
-                <span>{item}</span>
+      {/* Indícios detectados — todos os planos (Haiku) */}
+      {indicios.length > 0 && (
+        <Section title="Indícios Detectados">
+          <ul className="space-y-3">
+            {indicios.map((indicio, i) => (
+              <li key={i} className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-3 space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${GRAVIDADE_BADGE[indicio.gravidade] ?? "bg-white/10 text-white/50"}`}>
+                    {indicio.gravidade}
+                  </span>
+                  <span className="text-[11px] text-white/40 uppercase tracking-wide">{indicio.categoria}</span>
+                  <span className="text-[11px] text-white/25">·</span>
+                  <span className="text-[11px] text-white/40">{indicio.tipo}</span>
+                </div>
+                <p className="text-[13px] text-white/75">{indicio.descricao}</p>
+                {indicio.artigo_violado && (
+                  <p className="text-[11px] text-white/35">Artigo violado: {indicio.artigo_violado}</p>
+                )}
               </li>
             ))}
           </ul>
         </Section>
       )}
 
-      {/* Pessoas identificadas — Investigador+ */}
-      <Section title="Pessoas Identificadas [Investigador+]" locked={!investigador}>
-        {investigador && pessoas.length === 0 && (
-          <p className="text-white/40">Nenhuma pessoa identificada neste ato.</p>
-        )}
-        {investigador && pessoas.length > 0 && (
-          <ul className="space-y-1">
-            {pessoas.map((p, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <span className="text-white/30 mt-0.5">•</span>
-                <span>{p}</span>
+      {indicios.length === 0 && haiku && (
+        <Section title="Indícios Detectados">
+          <p className="text-white/40 text-[13px]">Nenhum indício de irregularidade identificado.</p>
+        </Section>
+      )}
+
+      {/* Pessoas identificadas — todos os planos (Haiku) */}
+      {pessoasHaiku.length > 0 && (
+        <Section title="Pessoas Mencionadas">
+          <ul className="space-y-2">
+            {pessoasHaiku.map((p, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <span className="text-white/20 mt-0.5 text-[11px]">{i + 1}.</span>
+                <div>
+                  <span className="text-[13px] text-white/80 font-medium">{p.nome}</span>
+                  {p.cargo && (
+                    <span className="text-[12px] text-white/40 ml-2">— {p.cargo}</span>
+                  )}
+                  {p.tipo_aparicao && (
+                    <p className="text-[11px] text-white/30">{p.tipo_aparicao}</p>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
+        </Section>
+      )}
+
+      {/* Análise profunda */}
+      <Section title="Análise Aprofundada">
+        {narrativaCompleta ? (
+          <p className="whitespace-pre-wrap">{narrativaCompleta}</p>
+        ) : (
+          <p className="text-white/40 text-[13px]">Análise detalhada ainda não disponível para este ato.</p>
         )}
       </Section>
 
       {/* Recomendação */}
-      {ato.recomendacao_campanha && investigador && (
+      {ato.recomendacao_campanha && (
         <Section title="Recomendação">
           <p className="whitespace-pre-wrap">{ato.recomendacao_campanha}</p>
         </Section>
@@ -205,6 +234,17 @@ function AtoDetailPage() {
           {ato.url_pdf && (
             <a
               href={ato.url_pdf}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-[13px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-colors"
+            >
+              <ExternalLink size={13} />
+              Documento original no CAU/PR
+            </a>
+          )}
+          {ato.url_original && !ato.url_pdf && (
+            <a
+              href={ato.url_original}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-[13px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-colors"

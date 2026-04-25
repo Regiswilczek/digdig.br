@@ -21,6 +21,28 @@ export async function fetchAuthed(
 
 // ─── Painel API types ─────────────────────────────────────────────────────────
 
+export interface HaikuIndicio {
+  categoria: string;
+  tipo: string;
+  descricao: string;
+  artigo_violado: string | null;
+  gravidade: "baixa" | "media" | "alta" | "critica";
+}
+
+export interface HaikuPessoa {
+  nome: string;
+  cargo: string;
+  tipo_aparicao: string;
+}
+
+export interface ResultadoHaiku {
+  indicios: HaikuIndicio[];
+  pessoas_extraidas: HaikuPessoa[];
+  referencias_atos: string[];
+  requer_aprofundamento: boolean;
+  motivo_aprofundamento: string | null;
+}
+
 export interface PainelAto {
   id: string;
   numero: string;
@@ -33,6 +55,7 @@ export interface PainelAto {
   nivel_alerta: "verde" | "amarelo" | "laranja" | "vermelho" | null;
   score_risco: number;
   resumo_executivo: string | null;
+  resultado_haiku: ResultadoHaiku | null;
   resultado_sonnet: Record<string, unknown> | null;
   recomendacao_campanha: string | null;
 }

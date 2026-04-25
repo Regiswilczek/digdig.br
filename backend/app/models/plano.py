@@ -25,5 +25,9 @@ class Plano(Base, TimestampMixin):
     max_assentos: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     descricao: Mapped[str | None] = mapped_column(Text, nullable=True)
     ativo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    limite_exportacoes_mensal: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    teto_tokens_brl: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    e_anual: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    preco_anual: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
 
     users: Mapped[list["User"]] = relationship(back_populates="plano")

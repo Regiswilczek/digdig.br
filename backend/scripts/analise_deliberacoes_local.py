@@ -31,7 +31,7 @@ load_dotenv(ROOT / ".env")
 import uuid
 from sqlalchemy import select, update, func
 from app.database import async_session_factory
-from app.models.ato import Ato, RodadaAnalise
+from app.models.ato import Ato, RodadaAnalise, ConteudoAto
 from app.models.analise import Analise
 from app.services.haiku_service import analisar_ato_haiku, montar_system_prompt
 
@@ -59,13 +59,13 @@ async def main():
             print(f"AVISO: rodada está '{rodada.status}' — não é possível continuar.")
             return
 
-        # 2. Buscar deliberações pendentes
+        # 2. Buscar deliberações pendentes (PDF ou HTML — qualquer que tenha texto extraído)
         atos_r = await db.execute(
             select(Ato)
+            .join(ConteudoAto, ConteudoAto.ato_id == Ato.id)
             .where(
                 Ato.tenant_id == TENANT_ID,
                 Ato.tipo == "deliberacao",
-                Ato.pdf_baixado == True,
                 Ato.processado == False,
             )
             .order_by(Ato.data_publicacao.asc().nulls_last())
@@ -155,10 +155,12 @@ async def main():
 
         # 6. Verificar conclusão
         pendentes_r = await db.execute(
-            select(func.count()).where(
+            select(func.count())
+            .select_from(Ato)
+            .join(ConteudoAto, ConteudoAto.ato_id == Ato.id)
+            .where(
                 Ato.tenant_id == TENANT_ID,
                 Ato.tipo == "deliberacao",
-                Ato.pdf_baixado == True,
                 Ato.processado == False,
             )
         )

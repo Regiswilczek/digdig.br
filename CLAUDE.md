@@ -157,10 +157,14 @@ Cache: Anthropic prompt caching — regimento 68k tokens, ephemeral 5min TTL
 
 | Plano | Preço | Chat/mês | Órgãos |
 |-------|-------|----------|--------|
-| Cidadão | R$0 | 5 | Todos (leitura) |
-| Investigador | R$197/mês | 200 | Todos |
-| Profissional | R$597/mês | 1.000 | Todos |
-| API & Dados | R$1.997/mês | via API | Todos + API REST |
+| Gratuito | R$0 | — | Todos os dados (leitura completa, tudo aberto) |
+| Investigador | R$179/mês | chat + 5 docs/mês | Todos |
+| Profissional | R$679/mês | chat + 15 docs/mês | Todos |
+| Patrocinador | R$990/ano (~R$82/mês) | chat + 5 docs/mês | Todos + badge de apoiador |
+| API & Dados | R$1.998/mês | via API ilimitado | Todos + API REST |
+| Técnico | Sob consulta | ilimitado | Personalizado |
+
+**Modelo:** Todo conteúdo gerado (fichas, análises profundas, denúncias, scores) é gratuito e aberto. Planos pagos desbloqueiam chat com IA e geração de documentos prontos (peças jurídicas, artigos, relatórios em PDF/.md).
 
 ---
 
@@ -183,7 +187,7 @@ Custo de IA por novo órgão: ~$5–10 (portarias com texto nativo)
 3. **Prompt caching obrigatório** — system prompt do pipeline deve usar `cache_control`
 4. **RLS em tudo** — toda tabela com `tenant_id` precisa de política RLS ativa
 5. **Logs em toda ação significativa** — usar `AuditLog.registrar()` nos endpoints
-6. **Validar plano antes de servir dados** — verificar `user.plano` antes de retornar conteúdo
+6. **Validar plano antes de servir chat/exportação** — conteúdo (fichas, análises) é livre para todos; só chat e geração de documentos requerem verificação de plano
 7. **Nunca commitar secrets** — toda variável sensível vai em `.env`
 8. **Verificar rodada ativa antes de disparar nova** — usar `GET /pnl/orgaos/{slug}/rodadas`
 9. **Scraper roda local** — não tentar rodar `scrape_local.py` no Railway

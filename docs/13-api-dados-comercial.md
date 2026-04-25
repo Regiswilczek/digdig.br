@@ -13,7 +13,7 @@
 
 ## 1. O que o Plano API & Dados Inclui
 
-O plano API & Dados (R$ 1.997/mês) é o nível mais completo da plataforma Dig Dig.
+O plano API & Dados (R$ 1.998/mês) é o nível mais completo da plataforma Dig Dig para integração técnica. Para monitoramento contínuo personalizado, consulte o plano Técnico (sob consulta).
 Ele foi projetado para equipes técnicas que precisam integrar dados de auditoria em seus
 próprios sistemas — dashboards de redação, ferramentas de campanha, sistemas de due
 diligence ou pipelines de pesquisa.

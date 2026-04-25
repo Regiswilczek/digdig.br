@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models.tenant import Tenant
 from app.models.ato import Ato, RodadaAnalise
 from app.models.analise import Analise
-from app.dependencies.auth import get_current_user, is_investigador_plus
+from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/painel", tags=["painel"])
 
@@ -140,7 +140,6 @@ async def get_ato(
         raise HTTPException(status_code=404, detail="Ato não encontrado")
 
     ato, analise = row
-    investigador = is_investigador_plus(current_user["plano"])
 
     return {
         "id": str(ato.id),
@@ -156,12 +155,9 @@ async def get_ato(
         "nivel_alerta": analise.nivel_alerta if analise else None,
         "score_risco": analise.score_risco if analise else 0,
         "resumo_executivo": analise.resumo_executivo if analise else None,
-        "resultado_sonnet": (
-            analise.resultado_sonnet if analise and investigador else None
-        ),
-        "recomendacao_campanha": (
-            analise.recomendacao_campanha if analise and investigador else None
-        ),
+        "resultado_haiku": analise.resultado_haiku if analise else None,
+        "resultado_sonnet": analise.resultado_sonnet if analise else None,
+        "recomendacao_campanha": analise.recomendacao_campanha if analise else None,
     }
 
 

@@ -69,52 +69,75 @@ Isso é o que mantém a empresa viva juridicamente e politicamente. Neutralidade
 
 ## 2. Modelo de Receita
 
-### Assinaturas mensais
+### Posicionamento: o dado é aberto, o trabalho é cobrado
 
-| Plano | Preço | Chat/mês | Exportação | Assentos | Para quem |
-|---|---|---|---|---|---|
-| **Cidadão** | R$ 0 | 5 perguntas | Nenhuma | 1 | Quem quer ler e entender, sem compromisso |
-| **Investigador** | R$ 197/mês | 200 | PDF e HTML | 1 | Jornalista, vereador, candidato, militante ativo |
-| **Profissional** | R$ 597/mês | 1.000 | CSV, JSON, PDF, HTML | 2 | Escritório jurídico, assessoria política, ONG |
-| **API & Dados** | R$ 1.997/mês | — | API REST + webhooks | 5 | Veículos de imprensa, plataformas, pesquisadores |
+Todo conteúdo gerado — fichas de denúncia, análises profundas (Sonnet), scores, indícios, pessoas identificadas — é **público e gratuito**. Não há paywall sobre informação.
+
+A cobrança é sobre **uso produtivo de IA**: chat conversacional e geração de documentos prontos (peças jurídicas, artigos para blogs, relatórios em PDF ou .md).
+
+### Planos
+
+| Plano | Preço | Chat IA | Docs gerados/mês | Para quem |
+|---|---|---|---|---|
+| **Gratuito** | R$ 0 | — | — | Qualquer cidadão — acesso total a dados e análises |
+| **Investigador** | R$ 179/mês | ✅ Teto R$30/mês tokens | 5 (PDF ou .md) | Jornalistas, assessores, candidatos |
+| **Patrocinador** ⭐ | R$ 990/ano (~R$82/mês) | ✅ Teto R$30/mês tokens | 5 (PDF ou .md) | Quem apoia a causa — desconto anual + nome listado |
+| **Profissional** | R$ 679/mês | ✅ Teto R$114/mês tokens | 15 (PDF ou .md) | Escritórios jurídicos, assessorias, mandatos |
+| **API & Dados** | R$ 1.998/mês | via API ilimitado | Ilimitado | Plataformas, redações, pesquisa acadêmica |
+| **Técnico** | Sob consulta | Ilimitado | Ilimitado | Órgãos públicos, empresas, monitoramento contínuo |
 
 ### Detalhamento por plano
 
-**Cidadão (R$0)**
-- Acesso de leitura a todos os órgãos ativos na plataforma
-- Visualização das fichas de análise completas (classificação, indícios, contexto)
-- 5 perguntas de chat por mês (sem histórico)
-- Sem exportação, sem alertas
-- Objetivo: volume, viralização, legitimidade política do produto
+**Gratuito (R$0)**
+- Acesso completo a todas as fichas, análises profundas e denúncias de todos os órgãos
+- Nenhum chat, nenhum documento gerado
+- Objetivo: transparência radical, viralização orgânica, legitimidade política do produto
 
-**Investigador (R$197/mês)**
-- Tudo do Cidadão
-- 200 perguntas de chat com histórico completo
-- Alertas por email quando novo ato do órgão selecionado é publicado e analisado
-- Exportação em PDF e HTML das fichas de denúncia
-- Filtros avançados por data, tipo de ato, nível de alerta
-- Objetivo: monetizar o usuário que usa ativamente — jornalista freelance, candidato a cargo eletivo, assessor parlamentar
+**Investigador (R$179/mês)**
+- Chat com IA sobre os atos auditados
+- Teto de R$30/mês em custos de tokens (equivale a ~15–25 conversas no Sonnet)
+- 5 documentos gerados por mês (peças jurídicas, artigos, relatórios em PDF ou .md)
+- Alertas por email de novos atos
+- Objetivo: jornalista freelance, assessor parlamentar, candidato a cargo eletivo
 
-**Profissional (R$597/mês)**
+**Patrocinador (R$990/ano)**
 - Tudo do Investigador
-- 1.000 perguntas de chat
-- Exportação em CSV e JSON (para integração com outras ferramentas)
-- 2 assentos (times pequenos)
-- Histórico completo e auditável de todas as perguntas feitas
+- Cobrança anual = R$82/mês (vs R$179 mensal — desconto de ~54%)
+- Nome listado publicamente como Patrocinador no site
+- Badge exclusivo no perfil
+- Objetivo: fidelizar usuários que acreditam na causa com vínculo de longo prazo
+
+**Profissional (R$679/mês)**
+- Chat com IA em volume estendido (teto R$114/mês em tokens)
+- 15 documentos gerados por mês
+- Relatórios técnicos, monitoramento de múltiplos órgãos
 - Objetivo: escritórios jurídicos, assessorias políticas, ONGs com operação continuada
 
-**API & Dados (R$1.997/mês)**
+**API & Dados (R$1.998/mês)**
 - Acesso completo via API REST e webhooks
-- 10.000 calls/mês
-- 5 assentos com permissões granulares
-- SLA de disponibilidade com suporte prioritário
-- Objetivo: veículos de imprensa que querem integrar dados ao próprio CMS, plataformas de compliance, pesquisadores acadêmicos com financiamento
+- 10.000 calls/mês incluídas
+- Geração de documentos ilimitada via API
+- SLA com suporte prioritário
+- Objetivo: redações que integram dados ao CMS, plataformas de compliance
 
-### Política de upgrade/downgrade
+**Técnico (sob consulta)**
+- Monitoramento contínuo personalizado para qualquer base de dados
+- Sem limite de uso — estrutura dedicada
+- Para órgãos públicos (controle interno), empresas privadas, mandatos legislativos
+- Implantação e suporte dedicado
+
+### Controle de custo de tokens
+
+O teto de tokens por plano é calculado para garantir margem:
+- R$30/mês ≈ US$6 → ~15–25 conversas longas no Sonnet, ou ~200 no Haiku
+- R$114/mês ≈ US$23 → volume robusto para uso profissional diário
+- Ao atingir o teto, o usuário vê aviso e pode aguardar a renovação mensal
+
+### Política de billing
 
 - Upgrade: imediato, cobra diferença proporcional
 - Downgrade: ativo até fim do ciclo atual
-- Anual: 2 meses grátis (equivale a ~17% de desconto) — disponível a partir do mês 3
+- Patrocinador: cobrança anual única via Mercado Pago
 
 ---
 
