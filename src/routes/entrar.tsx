@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/entrar")({
   component: EntrarPage,
@@ -183,7 +184,9 @@ function useAuthForm() {
 
   const isLogin = mode === "login";
 
-  function onSubmit(e: React.FormEvent) {
+  const navigate = useNavigate();
+
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (!email || !password || (!isLogin && !name)) {
@@ -191,14 +194,35 @@ function useAuthForm() {
       return;
     }
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    try {
+      if (isLogin) {
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (authError) throw authError;
+      } else {
+        const { error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { nome: name } },
+        });
+        if (authError) throw authError;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      navigate({ to: "/painel" as any });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao autenticar.";
       setError(
-        "Autenticação ainda não está conectada. Em breve você poderá " +
-          (isLogin ? "entrar" : "criar sua conta") +
-          ".",
+        msg === "Invalid login credentials"
+          ? "Email ou senha incorretos."
+          : msg === "User already registered"
+            ? "Este email já está cadastrado."
+            : msg,
       );
-    }, 600);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return {
