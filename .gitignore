@@ -36,6 +36,9 @@ build/
 .env.*
 !.env.example
 
+# Git worktrees
+.worktrees/
+
 # OS / Editor
 .vscode/*
 !.vscode/extensions.json
