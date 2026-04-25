@@ -233,9 +233,16 @@ function PoweredByClaude({ compact = false, fullWidth = false }: { compact?: boo
   );
 }
 
-function DesktopBadge({ stats }: { stats: PublicStats | null }) {
-  const total = stats ? stats.total_atos.toLocaleString("pt-BR") : "1.789";
-  const criticos = stats ? stats.total_criticos : null;
+function Skeleton({ w, h = "1em", className = "" }: { w: string; h?: string; className?: string }) {
+  return (
+    <span
+      className={`inline-block rounded-sm animate-pulse ${className}`}
+      style={{ width: w, height: h, background: "rgba(255,255,255,0.10)", verticalAlign: "middle" }}
+    />
+  );
+}
+
+function DesktopBadge({ stats, loading }: { stats: PublicStats | null; loading: boolean }) {
   return (
     <div className="flex flex-col gap-[3px] select-none flex-shrink-0 w-[215px]">
       <PoweredByClaude fullWidth />
@@ -252,7 +259,7 @@ function DesktopBadge({ stats }: { stats: PublicStats | null }) {
           ATOS MAPEADOS:
         </p>
         <p className="text-[3rem] font-bold text-white leading-none tabular-nums mb-3">
-          {total}
+          {loading ? <Skeleton w="120px" h="3rem" /> : stats ? stats.total_atos.toLocaleString("pt-BR") : "—"}
         </p>
         <div style={{ borderTop: "1px dashed rgba(255,255,255,0.16)" }} className="mb-[7px]" />
         <div className="flex items-center justify-between">
@@ -260,7 +267,7 @@ function DesktopBadge({ stats }: { stats: PublicStats | null }) {
             INDÍCIOS IDENTIFICADOS
           </span>
           <span className="text-[#00cc46] font-bold text-sm leading-none">
-            {criticos !== null ? criticos : "✓"}
+            {loading ? <Skeleton w="24px" h="14px" /> : stats ? stats.total_criticos : "—"}
           </span>
         </div>
       </div>
@@ -270,9 +277,7 @@ function DesktopBadge({ stats }: { stats: PublicStats | null }) {
 
 // ── Mobile stats — 2-column strip (mirrors desktop card) ─────────────────────
 
-function MobileStats({ stats }: { stats: PublicStats | null }) {
-  const total = stats ? stats.total_atos.toLocaleString("pt-BR") : "1.789";
-  const criticos = stats ? stats.total_criticos : null;
+function MobileStats({ stats, loading }: { stats: PublicStats | null; loading: boolean }) {
   return (
     <div className="border border-white/10 bg-black/55 select-none rounded-lg overflow-hidden">
       {/* Top row: alert */}
@@ -292,7 +297,7 @@ function MobileStats({ stats }: { stats: PublicStats | null }) {
             ATOS MAPEADOS:
           </span>
           <span className="text-[2.4rem] font-bold text-white tabular-nums leading-none">
-            {total}
+            {loading ? <Skeleton w="100px" h="2.4rem" /> : stats ? stats.total_atos.toLocaleString("pt-BR") : "—"}
           </span>
         </div>
       </div>
@@ -303,7 +308,7 @@ function MobileStats({ stats }: { stats: PublicStats | null }) {
           INDÍCIOS IDENTIFICADOS
         </span>
         <span className="text-[#00cc46] font-bold text-base leading-none">
-          {criticos !== null ? criticos : "✓"}
+          {loading ? <Skeleton w="24px" h="16px" /> : stats ? stats.total_criticos : "—"}
         </span>
       </div>
     </div>
@@ -407,7 +412,7 @@ function Nav() {
 
 // ── Desktop hero ──────────────────────────────────────────────────────────────
 
-function DesktopHero(props: { stats: PublicStats | null }) {
+function DesktopHero({ stats, loading }: { stats: PublicStats | null; loading: boolean }) {
   return (
     <main className="hidden md:flex relative z-20 flex-row items-end justify-between gap-8 px-14 pb-10">
       <div className="flex flex-col gap-[18px]">
@@ -448,7 +453,7 @@ function DesktopHero(props: { stats: PublicStats | null }) {
       </div>
 
       <div className="mb-1">
-        <DesktopBadge stats={props.stats ?? null} />
+        <DesktopBadge stats={stats} loading={loading} />
       </div>
     </main>
   );
@@ -456,7 +461,7 @@ function DesktopHero(props: { stats: PublicStats | null }) {
 
 // ── Mobile hero ───────────────────────────────────────────────────────────────
 
-function MobileHero(props: { stats: PublicStats | null }) {
+function MobileHero({ stats, loading }: { stats: PublicStats | null; loading: boolean }) {
   return (
     <div
       className="md:hidden relative z-20 flex flex-col px-5 pb-5 gap-5"
@@ -497,7 +502,7 @@ function MobileHero(props: { stats: PublicStats | null }) {
         <br />Indícios aparecem. Você age.
       </p>
 
-      <MobileStats stats={props.stats ?? null} />
+      <MobileStats stats={stats} loading={loading} />
 
       <PoweredByClaude compact fullWidth />
 
@@ -517,9 +522,13 @@ function MobileHero(props: { stats: PublicStats | null }) {
 
 function HomePage() {
   const [stats, setStats] = useState<PublicStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStats("cau-pr").then(setStats).catch(() => {/* usa fallback hardcoded */});
+    fetchStats("cau-pr")
+      .then(setStats)
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -555,8 +564,8 @@ function HomePage() {
         style={{ height: "30%", background: "linear-gradient(to bottom, rgba(7,8,15,0.85) 0%, rgba(7,8,15,0) 100%)" }}
       />
 
-      <DesktopHero stats={stats} />
-      <MobileHero stats={stats} />
+      <DesktopHero stats={stats} loading={loading} />
+      <MobileHero stats={stats} loading={loading} />
     </div>
   );
 }
