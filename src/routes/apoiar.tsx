@@ -27,24 +27,64 @@ const GOLD = "#F0C81E";
 // ─── Data ─────────────────────────────────────────────────
 const PLANOS = [
   {
-    id: "cidadao", nome: "Acesso Livre", preco: "R$ 0", periodo: "para sempre",
-    publico: "Qualquer brasileiro", cta: "Começar grátis", destaque: false,
-    features: ["Leitura completa de todas as auditorias", "5 perguntas no chat por mês", "3 votos/mês nas próximas auditorias"],
+    id: "cidadao", nome: "Gratuito", preco: "R$ 0", periodo: "para sempre",
+    publico: "Qualquer cidadão", cta: "Começar grátis", destaque: false, badge: null,
+    features: [
+      "Acesso a todas as fichas de denúncia",
+      "Análises profundas completas (Dig Dig Bud)",
+      "Scores e indícios de irregularidade",
+      "Dados de todos os órgãos auditados",
+    ],
   },
   {
-    id: "investigador", nome: "Apoio Ativo", preco: "R$ 197", periodo: "/mês",
-    publico: "Jornalistas, candidatos, assessores", cta: "Apoiar", destaque: true,
-    features: ["200 perguntas no chat por mês", "Exportação em PDF e HTML", "Fichas de denúncia prontas", "Alertas por email de novos atos"],
+    id: "investigador", nome: "Investigador", preco: "R$ 179", periodo: "/mês",
+    publico: "Jornalistas, assessores, candidatos", cta: "Assinar", destaque: false, badge: null,
+    features: [
+      "Chat com IA sobre os atos auditados",
+      "5 documentos gerados/mês (PDF ou .md)",
+      "Peças jurídicas, artigos, relatórios",
+      "Alertas por email de novos atos",
+    ],
   },
   {
-    id: "profissional", nome: "Apoio Institucional", preco: "R$ 597", periodo: "/mês",
-    publico: "Escritórios jurídicos, assessorias", cta: "Apoiar", destaque: false,
-    features: ["1.000 perguntas no chat por mês", "Exportação CSV, JSON, PDF, HTML", "Relatórios técnicos completos", "2 assentos incluídos"],
+    id: "patrocinador", nome: "Patrocinador", preco: "R$ 990", periodo: "/ano  (~R$ 82/mês)",
+    publico: "Quem acredita na causa", cta: "Patrocinar", destaque: true, badge: "Apoie a causa",
+    features: [
+      "Tudo do plano Investigador",
+      "Cobrança anual com desconto",
+      "Seu nome listado como Patrocinador",
+      "Badge exclusivo no perfil",
+    ],
   },
   {
-    id: "api", nome: "Ferramentas Avançadas", preco: "R$ 1.997", periodo: "/mês",
-    publico: "Veículos de imprensa, plataformas", cta: "Falar com a gente", destaque: false,
-    features: ["API de dados + webhooks", "10.000 chamadas por mês", "5 assentos com permissões", "SLA e suporte direto"],
+    id: "profissional", nome: "Profissional", preco: "R$ 679", periodo: "/mês",
+    publico: "Escritórios jurídicos, assessorias", cta: "Assinar", destaque: false, badge: null,
+    features: [
+      "Chat com IA (volume estendido)",
+      "15 documentos gerados/mês (PDF ou .md)",
+      "Relatórios técnicos completos",
+      "Monitoramento de múltiplos órgãos",
+    ],
+  },
+  {
+    id: "api", nome: "API & Dados", preco: "R$ 1.998", periodo: "/mês",
+    publico: "Veículos de imprensa, plataformas", cta: "Falar com a gente", destaque: false, badge: null,
+    features: [
+      "API REST completa + webhooks",
+      "Geração de documentos ilimitada",
+      "10.000 chamadas/mês incluídas",
+      "SLA e suporte direto",
+    ],
+  },
+  {
+    id: "tecnico", nome: "Técnico", preco: "Sob consulta", periodo: "",
+    publico: "Órgãos, empresas, mandatos", cta: "Falar com a gente", destaque: false, badge: null,
+    features: [
+      "Monitoramento contínuo personalizado",
+      "Estrutura para qualquer base de dados",
+      "Peças e relatórios ilimitados",
+      "Implantação e suporte dedicado",
+    ],
   },
 ];
 
@@ -477,17 +517,18 @@ function ApoiarPage() {
             {/* ── Níveis de apoio ── */}
             <section className="mb-16 md:mb-20" id="planos">
               <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-2" style={MONO}>
-                Ferramentas avançadas para profissionais
+                Planos
               </p>
               <h2 className="text-[1.15rem] font-bold text-white/85 mb-4" style={INTER}>
-                Níveis de apoio.
+                O dado é aberto. O trabalho é cobrado.
               </h2>
               <p className="text-[13px] text-white/48 leading-relaxed mb-8 max-w-lg" style={INTER}>
-                O acesso ao banco auditado é gratuito para qualquer cidadão. Os níveis são para quem usa
-                a plataforma profissionalmente — jornalistas, escritórios, veículos, assessorias.
+                Todas as fichas, análises e denúncias são gratuitas para qualquer cidadão. Os planos pagos
+                desbloqueiam o chat com IA e a geração de documentos prontos — peças jurídicas, artigos e
+                relatórios em PDF ou .md.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {PLANOS.map((plano) => (
                   <div
                     key={plano.id}
@@ -499,7 +540,7 @@ function ApoiarPage() {
                         className="inline-block text-[8px] font-semibold uppercase tracking-[0.22em] px-2 py-1 mb-3 self-start"
                         style={{ color: GOLD, background: `${GOLD}15` }}
                       >
-                        mais popular
+                        {plano.badge ?? "destaque"}
                       </span>
                     )}
                     <p className="text-[9px] uppercase tracking-[0.18em] mb-2" style={{ ...INTER, color: "rgba(255,255,255,0.22)" }}>

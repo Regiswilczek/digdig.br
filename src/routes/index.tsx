@@ -333,6 +333,7 @@ function Nav() {
 
   const links = [
     { to: "/solucoes", label: "Soluções" },
+    { to: "/modelos", label: "Modelos" },
     { to: "/apoiar", label: "Apoiar" },
   ] as const;
 

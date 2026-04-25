@@ -57,7 +57,7 @@ const SOLUCOES: Solucao[] = [
       "Exportação em CSV/PDF para a redação",
       "Alertas por email ao detectar novo padrão",
     ],
-    planoSugerido: "Investigador — R$ 197/mês",
+    planoSugerido: "Investigador — R$ 179/mês",
     cor: GOLD,
   },
   {
@@ -71,7 +71,7 @@ const SOLUCOES: Solucao[] = [
       "Grafo de relacionamentos entre nomeados",
       "Exportação em PDF formatado para autos",
     ],
-    planoSugerido: "Profissional — R$ 597/mês",
+    planoSugerido: "Profissional — R$ 679/mês",
     cor: "#3b6fa0",
   },
   {
@@ -85,7 +85,7 @@ const SOLUCOES: Solucao[] = [
       "Detecção de quebra de quórum",
       "Chat para preparar pronunciamentos",
     ],
-    planoSugerido: "Profissional — R$ 597/mês",
+    planoSugerido: "Profissional — R$ 679/mês",
     cor: "#00823c",
   },
   {
@@ -99,7 +99,7 @@ const SOLUCOES: Solucao[] = [
       "Material para TV e redes com fontes",
       "Até 5 assessores no plano Profissional",
     ],
-    planoSugerido: "Profissional — R$ 597/mês",
+    planoSugerido: "Profissional — R$ 679/mês",
     cor: "#a78bfa",
   },
   {
@@ -113,7 +113,7 @@ const SOLUCOES: Solucao[] = [
       "Pode nominar qualquer órgão público",
       "Resultados públicos — sem paywall",
     ],
-    planoSugerido: "Acesso Livre — Grátis",
+    planoSugerido: "Gratuito — R$ 0",
     cor: "#e8a87c",
   },
   {
@@ -127,7 +127,7 @@ const SOLUCOES: Solucao[] = [
       "5 assentos incluídos para a equipe",
       "SLA e suporte técnico dedicado",
     ],
-    planoSugerido: "API & Dados — R$ 1.997/mês",
+    planoSugerido: "API & Dados — R$ 1.998/mês",
     cor: "#67e8f9",
   },
 ];
@@ -524,13 +524,13 @@ function SolucoesPage() {
                   },
                   {
                     n: "03",
-                    titulo: "Triagem — Haiku 4.5",
+                    titulo: "Triagem — Dig Dig Piper",
                     texto: "Cada ato recebe nível de alerta: verde / amarelo / laranja / vermelho. Baixo custo, escala milhar de atos por hora.",
                     detalhe: `${fmt(stats?.total_analisados)} documentos triados — ${fmt(stats?.total_criticos)} casos críticos`,
                   },
                   {
                     n: "04",
-                    titulo: "Análise — Sonnet 4.6",
+                    titulo: "Análise — Dig Dig Bud",
                     texto: "Atos críticos viram fichas com violação de regimento, citação direta e sugestão de questionamento público.",
                     detalhe: `${fmt(stats?.distribuicao.vermelho)} vermelhos com fichas de denúncia geradas`,
                   },

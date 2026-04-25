@@ -17,12 +17,15 @@ import { Route as ProdutoRouteImport } from './routes/produto'
 import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as PatrocineRouteImport } from './routes/patrocine'
 import { Route as PainelRouteImport } from './routes/painel'
+import { Route as ModelosRouteImport } from './routes/modelos'
 import { Route as ExplorarRouteImport } from './routes/explorar'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as ApoiarRouteImport } from './routes/apoiar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PainelIndexRouteImport } from './routes/painel/index'
+import { Route as PainelChatRouteImport } from './routes/painel/chat'
 import { Route as PainelSlugRouteImport } from './routes/painel/$slug'
+import { Route as PainelSlugIndexRouteImport } from './routes/painel/$slug/index'
 import { Route as PainelSlugAtoIdRouteImport } from './routes/painel/$slug/ato.$id'
 
 const Whitepaper03DeliberacoesEPrimeirosAchadosRoute =
@@ -68,6 +71,11 @@ const PainelRoute = PainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModelosRoute = ModelosRouteImport.update({
+  id: '/modelos',
+  path: '/modelos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExplorarRoute = ExplorarRouteImport.update({
   id: '/explorar',
   path: '/explorar',
@@ -93,10 +101,20 @@ const PainelIndexRoute = PainelIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelChatRoute = PainelChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => PainelRoute,
+} as any)
 const PainelSlugRoute = PainelSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => PainelRoute,
+} as any)
+const PainelSlugIndexRoute = PainelSlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PainelSlugRoute,
 } as any)
 const PainelSlugAtoIdRoute = PainelSlugAtoIdRouteImport.update({
   id: '/ato/$id',
@@ -109,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/apoiar': typeof ApoiarRoute
   '/entrar': typeof EntrarRoute
   '/explorar': typeof ExplorarRoute
+  '/modelos': typeof ModelosRoute
   '/painel': typeof PainelRouteWithChildren
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
@@ -118,7 +137,9 @@ export interface FileRoutesByFullPath {
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
   '/painel/$slug': typeof PainelSlugRouteWithChildren
+  '/painel/chat': typeof PainelChatRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/$slug/': typeof PainelSlugIndexRoute
   '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
 export interface FileRoutesByTo {
@@ -126,6 +147,7 @@ export interface FileRoutesByTo {
   '/apoiar': typeof ApoiarRoute
   '/entrar': typeof EntrarRoute
   '/explorar': typeof ExplorarRoute
+  '/modelos': typeof ModelosRoute
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
@@ -133,8 +155,9 @@ export interface FileRoutesByTo {
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
-  '/painel/$slug': typeof PainelSlugRouteWithChildren
+  '/painel/chat': typeof PainelChatRoute
   '/painel': typeof PainelIndexRoute
+  '/painel/$slug': typeof PainelSlugIndexRoute
   '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
 export interface FileRoutesById {
@@ -143,6 +166,7 @@ export interface FileRoutesById {
   '/apoiar': typeof ApoiarRoute
   '/entrar': typeof EntrarRoute
   '/explorar': typeof ExplorarRoute
+  '/modelos': typeof ModelosRoute
   '/painel': typeof PainelRouteWithChildren
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
@@ -152,7 +176,9 @@ export interface FileRoutesById {
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
   '/painel/$slug': typeof PainelSlugRouteWithChildren
+  '/painel/chat': typeof PainelChatRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/$slug/': typeof PainelSlugIndexRoute
   '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
 export interface FileRouteTypes {
@@ -162,6 +188,7 @@ export interface FileRouteTypes {
     | '/apoiar'
     | '/entrar'
     | '/explorar'
+    | '/modelos'
     | '/painel'
     | '/patrocine'
     | '/precos'
@@ -171,7 +198,9 @@ export interface FileRouteTypes {
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
     | '/painel/$slug'
+    | '/painel/chat'
     | '/painel/'
+    | '/painel/$slug/'
     | '/painel/$slug/ato/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -179,6 +208,7 @@ export interface FileRouteTypes {
     | '/apoiar'
     | '/entrar'
     | '/explorar'
+    | '/modelos'
     | '/patrocine'
     | '/precos'
     | '/produto'
@@ -186,8 +216,9 @@ export interface FileRouteTypes {
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
-    | '/painel/$slug'
+    | '/painel/chat'
     | '/painel'
+    | '/painel/$slug'
     | '/painel/$slug/ato/$id'
   id:
     | '__root__'
@@ -195,6 +226,7 @@ export interface FileRouteTypes {
     | '/apoiar'
     | '/entrar'
     | '/explorar'
+    | '/modelos'
     | '/painel'
     | '/patrocine'
     | '/precos'
@@ -204,7 +236,9 @@ export interface FileRouteTypes {
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
     | '/painel/$slug'
+    | '/painel/chat'
     | '/painel/'
+    | '/painel/$slug/'
     | '/painel/$slug/ato/$id'
   fileRoutesById: FileRoutesById
 }
@@ -213,6 +247,7 @@ export interface RootRouteChildren {
   ApoiarRoute: typeof ApoiarRoute
   EntrarRoute: typeof EntrarRoute
   ExplorarRoute: typeof ExplorarRoute
+  ModelosRoute: typeof ModelosRoute
   PainelRoute: typeof PainelRouteWithChildren
   PatrocineRoute: typeof PatrocineRoute
   PrecosRoute: typeof PrecosRoute
@@ -281,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/modelos': {
+      id: '/modelos'
+      path: '/modelos'
+      fullPath: '/modelos'
+      preLoaderRoute: typeof ModelosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/explorar': {
       id: '/explorar'
       path: '/explorar'
@@ -316,12 +358,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelIndexRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/chat': {
+      id: '/painel/chat'
+      path: '/chat'
+      fullPath: '/painel/chat'
+      preLoaderRoute: typeof PainelChatRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/painel/$slug': {
       id: '/painel/$slug'
       path: '/$slug'
       fullPath: '/painel/$slug'
       preLoaderRoute: typeof PainelSlugRouteImport
       parentRoute: typeof PainelRoute
+    }
+    '/painel/$slug/': {
+      id: '/painel/$slug/'
+      path: '/'
+      fullPath: '/painel/$slug/'
+      preLoaderRoute: typeof PainelSlugIndexRouteImport
+      parentRoute: typeof PainelSlugRoute
     }
     '/painel/$slug/ato/$id': {
       id: '/painel/$slug/ato/$id'
@@ -334,10 +390,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface PainelSlugRouteChildren {
+  PainelSlugIndexRoute: typeof PainelSlugIndexRoute
   PainelSlugAtoIdRoute: typeof PainelSlugAtoIdRoute
 }
 
 const PainelSlugRouteChildren: PainelSlugRouteChildren = {
+  PainelSlugIndexRoute: PainelSlugIndexRoute,
   PainelSlugAtoIdRoute: PainelSlugAtoIdRoute,
 }
 
@@ -347,11 +405,13 @@ const PainelSlugRouteWithChildren = PainelSlugRoute._addFileChildren(
 
 interface PainelRouteChildren {
   PainelSlugRoute: typeof PainelSlugRouteWithChildren
+  PainelChatRoute: typeof PainelChatRoute
   PainelIndexRoute: typeof PainelIndexRoute
 }
 
 const PainelRouteChildren: PainelRouteChildren = {
   PainelSlugRoute: PainelSlugRouteWithChildren,
+  PainelChatRoute: PainelChatRoute,
   PainelIndexRoute: PainelIndexRoute,
 }
 
@@ -363,6 +423,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApoiarRoute: ApoiarRoute,
   EntrarRoute: EntrarRoute,
   ExplorarRoute: ExplorarRoute,
+  ModelosRoute: ModelosRoute,
   PainelRoute: PainelRouteWithChildren,
   PatrocineRoute: PatrocineRoute,
   PrecosRoute: PrecosRoute,
