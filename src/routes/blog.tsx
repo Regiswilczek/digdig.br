@@ -84,12 +84,12 @@ const INTER_TIGHT: React.CSSProperties = {
   fontFamily: "'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
 };
 
-const GOLD = "#F0C81E";
-const BG = "#0a0a0a";
-const SURFACE = "#111";
-const BORDER = "rgba(255,255,255,0.08)";
-const TEXT = "rgba(255,255,255,0.88)";
-const MUTED = "rgba(255,255,255,0.45)";
+const BG = "#ffffff";
+const TEXT = "#0a0a0a";
+const MUTED = "#6b6b6b";
+const SUBTLE = "#a0a0a0";
+const BORDER = "rgba(0,0,0,0.08)";
+const BORDER_STRONG = "rgba(0,0,0,0.16)";
 
 function BlogPage() {
   return (
@@ -101,23 +101,23 @@ function BlogPage() {
           top: 0,
           zIndex: 50,
           borderBottom: `1px solid ${BORDER}`,
-          background: "rgba(10,10,10,0.92)",
+          background: "rgba(255,255,255,0.85)",
           backdropFilter: "blur(12px)",
-          padding: "0 24px",
+          padding: "0 32px",
         }}
       >
         <div
           style={{
-            maxWidth: 960,
+            maxWidth: 880,
             margin: "0 auto",
-            height: 52,
+            height: 64,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
           }}
         >
           <Link to="/" style={{ textDecoration: "none" }}>
-            <span style={{ ...INTER_TIGHT, fontWeight: 700, fontSize: 18, color: GOLD }}>
+            <span style={{ ...INTER_TIGHT, fontWeight: 700, fontSize: 17, color: TEXT, letterSpacing: "-0.01em" }}>
               Dig Dig
             </span>
           </Link>
@@ -133,25 +133,19 @@ function BlogPage() {
       {/* Header */}
       <header
         style={{
-          maxWidth: 960,
+          maxWidth: 880,
           margin: "0 auto",
-          padding: "64px 24px 40px",
-          borderBottom: `1px solid ${BORDER}`,
+          padding: "120px 32px 80px",
         }}
       >
         <div
           style={{
-            display: "inline-block",
-            background: "rgba(240,200,30,0.12)",
-            border: `1px solid rgba(240,200,30,0.25)`,
-            borderRadius: 4,
-            padding: "3px 10px",
-            fontSize: 11,
-            fontWeight: 600,
-            color: GOLD,
-            letterSpacing: "0.08em",
+            fontSize: 12,
+            fontWeight: 500,
+            color: SUBTLE,
+            letterSpacing: "0.12em",
             textTransform: "uppercase",
-            marginBottom: 16,
+            marginBottom: 32,
           }}
         >
           Pesquisas & White Papers
@@ -159,24 +153,25 @@ function BlogPage() {
         <h1
           style={{
             ...INTER_TIGHT,
-            fontSize: "clamp(28px, 5vw, 42px)",
+            fontSize: "clamp(36px, 6vw, 56px)",
             fontWeight: 700,
-            margin: "0 0 16px",
-            lineHeight: 1.15,
-            color: "#fff",
+            margin: "0 0 24px",
+            lineHeight: 1.05,
+            letterSpacing: "-0.02em",
+            color: TEXT,
           }}
         >
           O que encontramos,<br />como encontramos.
         </h1>
-        <p style={{ fontSize: 16, color: MUTED, margin: 0, maxWidth: 560, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 17, color: MUTED, margin: 0, maxWidth: 580, lineHeight: 1.55 }}>
           Documentação pública de cada etapa da auditoria do CAU/PR — metodologia, custos reais,
           achados e lições. Atualizado a cada rodada significativa.
         </p>
       </header>
 
       {/* Papers list */}
-      <main style={{ maxWidth: 960, margin: "0 auto", padding: "48px 24px 96px" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <main style={{ maxWidth: 880, margin: "0 auto", padding: "0 32px 120px" }}>
+        <div style={{ borderTop: `1px solid ${BORDER}` }}>
           {PAPERS.map((p) => (
             <Link
               key={p.numero}
@@ -185,24 +180,26 @@ function BlogPage() {
             >
               <article
                 style={{
-                  background: SURFACE,
-                  border: `1px solid ${BORDER}`,
-                  borderRadius: 8,
-                  padding: "28px 32px",
+                  borderBottom: `1px solid ${BORDER}`,
+                  padding: "40px 0",
                   display: "grid",
-                  gridTemplateColumns: "56px 1fr auto",
-                  gap: "0 24px",
+                  gridTemplateColumns: "80px 1fr auto",
+                  gap: "0 32px",
                   alignItems: "start",
-                  transition: "border-color 0.15s, background 0.15s",
+                  transition: "opacity 0.15s",
                   cursor: "pointer",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(240,200,30,0.3)";
-                  (e.currentTarget as HTMLElement).style.background = "#161616";
+                  const arrow = (e.currentTarget as HTMLElement).querySelector("[data-arrow]") as HTMLElement | null;
+                  if (arrow) arrow.style.transform = "translate(2px, -2px)";
+                  const title = (e.currentTarget as HTMLElement).querySelector("[data-title]") as HTMLElement | null;
+                  if (title) title.style.color = MUTED;
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = BORDER;
-                  (e.currentTarget as HTMLElement).style.background = SURFACE;
+                  const arrow = (e.currentTarget as HTMLElement).querySelector("[data-arrow]") as HTMLElement | null;
+                  if (arrow) arrow.style.transform = "translate(0,0)";
+                  const title = (e.currentTarget as HTMLElement).querySelector("[data-title]") as HTMLElement | null;
+                  if (title) title.style.color = TEXT;
                 }}
               >
                 {/* Number */}
@@ -210,10 +207,11 @@ function BlogPage() {
                   style={{
                     ...INTER_TIGHT,
                     fontSize: 13,
-                    fontWeight: 700,
-                    color: GOLD,
-                    paddingTop: 3,
+                    fontWeight: 500,
+                    color: SUBTLE,
+                    paddingTop: 6,
                     letterSpacing: "0.04em",
+                    fontVariantNumeric: "tabular-nums",
                   }}
                 >
                   Nº {p.numero}
@@ -221,13 +219,12 @@ function BlogPage() {
 
                 {/* Content */}
                 <div>
-                  <div style={{ marginBottom: 4 }}>
+                  <div style={{ marginBottom: 8 }}>
                     <span
                       style={{
-                        fontSize: 11,
-                        color: MUTED,
-                        letterSpacing: "0.06em",
-                        textTransform: "uppercase",
+                        fontSize: 12,
+                        color: SUBTLE,
+                        letterSpacing: "0.04em",
                         fontWeight: 500,
                       }}
                     >
@@ -235,23 +232,27 @@ function BlogPage() {
                     </span>
                   </div>
                   <h2
+                    data-title
                     style={{
                       ...INTER_TIGHT,
-                      fontSize: 20,
+                      fontSize: 24,
                       fontWeight: 700,
-                      color: "#fff",
-                      margin: "0 0 4px",
-                      lineHeight: 1.25,
+                      color: TEXT,
+                      margin: "0 0 8px",
+                      lineHeight: 1.2,
+                      letterSpacing: "-0.015em",
+                      transition: "color 0.15s",
                     }}
                   >
                     {p.titulo}
                   </h2>
                   <p
                     style={{
-                      fontSize: 13,
-                      color: "rgba(240,200,30,0.7)",
-                      margin: "0 0 12px",
-                      fontWeight: 500,
+                      fontSize: 15,
+                      color: TEXT,
+                      margin: "0 0 16px",
+                      fontWeight: 400,
+                      lineHeight: 1.4,
                     }}
                   >
                     {p.subtitulo}
@@ -260,25 +261,22 @@ function BlogPage() {
                     style={{
                       fontSize: 14,
                       color: MUTED,
-                      margin: "0 0 16px",
+                      margin: "0 0 20px",
                       lineHeight: 1.6,
-                      maxWidth: 640,
+                      maxWidth: 620,
                     }}
                   >
                     {p.resumo}
                   </p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
                     {p.tags.map((tag) => (
                       <span
                         key={tag}
                         style={{
-                          fontSize: 11,
-                          padding: "2px 8px",
-                          borderRadius: 3,
-                          background: "rgba(255,255,255,0.06)",
-                          border: `1px solid rgba(255,255,255,0.1)`,
-                          color: "rgba(255,255,255,0.5)",
+                          fontSize: 12,
+                          color: SUBTLE,
                           fontWeight: 500,
+                          letterSpacing: "0.02em",
                         }}
                       >
                         {tag}
@@ -288,8 +286,15 @@ function BlogPage() {
                 </div>
 
                 {/* Arrow */}
-                <div style={{ paddingTop: 4, color: MUTED }}>
-                  <ArrowUpRight size={18} />
+                <div
+                  data-arrow
+                  style={{
+                    paddingTop: 6,
+                    color: SUBTLE,
+                    transition: "transform 0.2s ease",
+                  }}
+                >
+                  <ArrowUpRight size={20} strokeWidth={1.5} />
                 </div>
               </article>
             </Link>
@@ -300,9 +305,10 @@ function BlogPage() {
         <p
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.2)",
-            marginTop: 48,
+            color: SUBTLE,
+            marginTop: 64,
             textAlign: "center",
+            lineHeight: 1.6,
           }}
         >
           Todos os dados são derivados diretamente dos atos oficiais publicados pelo CAU/PR.
@@ -313,3 +319,4 @@ function BlogPage() {
     </div>
   );
 }
+
