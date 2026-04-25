@@ -1,111 +1,138 @@
 # Visão Geral e Modelo Comercial
 ## Plataforma de Auditoria de Atos Administrativos Públicos
 
-**Data:** 22 de abril de 2026  
+**Data:** 24 de abril de 2026  
 **Responsável:** Regis Alessander Wilczek  
-**Status:** Planejamento aprovado — aguardando implementação
+**Status:** MVP em produção — pipeline Haiku em andamento (CAU/PR)
 
 ---
 
 ## 1. O Produto
 
-Uma plataforma SaaS que audita automaticamente atos administrativos de órgãos públicos brasileiros usando inteligência artificial, detectando irregularidades legais, morais e éticas — e apresentando os resultados de forma acessível para jornalistas, advogados, campanhas políticas e cidadãos.
+O Dig Dig é uma ferramenta de fiscalização pública que audita automaticamente atos administrativos de órgãos públicos brasileiros usando inteligência artificial. O sistema baixa os PDFs dos sites oficiais, extrai o texto completo, classifica o nível de risco com Claude Haiku, aprofunda os casos críticos com Claude Sonnet e apresenta os resultados — irregularidades, padrões, pessoas envolvidas e fichas de denúncia — para jornalistas, cidadãos engajados, advogados e pesquisadores.
+
+**Origem real:** Regis passou anos fazendo isso manualmente — primeiro como assessor parlamentar na Câmara de Curitiba (onde descobriu o escândalo da água San Pelegrino), depois como Chefe de Gabinete e Assessor Especial no CAU/PR. O Dig Dig é a ferramenta que não existia enquanto esse trabalho era feito a mão.
 
 ### Proposta de Valor
 
-- **Para campanhas políticas:** evidências concretas e documentadas de má gestão, apresentadas de forma profissional
-- **Para jornalistas:** banco de dados auditado de irregularidades, com links para documentos originais
-- **Para advogados e ONGs:** base técnica para denúncias formais, com referência a artigos violados
-- **Para cidadãos:** transparência real, não apenas acesso a documentos ilegíveis
+- **Para jornalistas:** banco de dados auditado com links para fontes primárias e fichas de denúncia prontas
+- **Para cidadãos engajados:** entender o que está acontecendo em um órgão sem ser especialista em direito
+- **Para advogados e ONGs:** levantamento técnico com referência a artigos violados para embasar denúncias formais
+- **Para pesquisadores e fiscais políticos:** dados estruturados, exportáveis, rastreáveis até o documento original
 
-### Diferencial Competitivo
+### Diferencial
 
 Não existe hoje no Brasil nenhuma ferramenta que:
-1. Baixe automaticamente documentos de órgãos públicos
-2. Extraia o texto completo dos PDFs
-3. Use IA para analisar irregularidades legais E morais/éticas
-4. Construa um grafo de relacionamentos entre pessoas e atos
-5. Gere tanto relatórios técnicos quanto fichas de denúncia prontas para uso
+1. Baixe automaticamente e audite documentos de órgãos públicos com IA
+2. Separe irregularidades **legais** (violações diretas ao regimento) de **morais/éticas** (nepotismo, perseguição, concentração de poder)
+3. Construa o grafo de relacionamentos entre pessoas, cargos e atos ao longo do tempo
+4. Gere fichas de denúncia prontas para uso em imprensa, advocacia e transparência pública
+5. Faça tudo isso a um custo previsível — ~$0,012 por ato analisado
+
+### O que a IA não faz
+
+A IA não afirma crimes. Usa linguagem de indício, suspeita e padrão irregular. A conclusão jurídica é sempre do advogado ou do jornalista. O Dig Dig fornece evidências documentadas — não vereditos.
 
 ---
 
 ## 2. Estratégia de Lançamento
 
-### Fase 1 — Lançamento com CAU-PR (MVP)
-- Sistema completo no ar com todos os painéis funcionando
-- Apenas o CAU/PR disponível como instituição ativa
-- Marketing: "O primeiro órgão auditado é o CAU/PR — mais em breve"
-- Objetivo: validar o produto, gerar primeiros clientes, criar caso de estudo
+### Fase 1 — MVP com CAU/PR
 
-### Fase 2 — Expansão por Órgão
-Cada novo órgão adicionado é um evento de produto:
+O CAU/PR é o primeiro órgão auditado porque é o que Regis conhece por dentro. Todos os 551 atos publicados entre 2017 e 2026 estão sendo analisados. Os resultados são o caso de estudo que prova o produto.
+
+**Marketing:** conteúdo orgânico — white papers técnicos, análises publicadas em redes, transparência total sobre o processo. O produto se vende pelo que encontra.
+
+### Fase 2 — Expansão por interesse e doações
+
+Cada novo órgão auditado é decidido pela comunidade: quem doa via /apoiar indica prioridades. Não há campanha de crowdfunding com meta e prazo — há uma fila de órgãos priorizados pelo interesse demonstrado.
+
+Órgãos naturais para a próxima fase:
 - Câmaras Municipais (Curitiba, São Paulo, Rio...)
 - Conselhos Profissionais (CREA, CRM, OAB estaduais...)
-- Autarquias estaduais
-- Tribunais de Contas (complexidade maior)
+- Autarquias estaduais e federais
+- Tribunais de Contas (mais complexos)
 
-### Custo de Adicionar Novo Órgão
-Para cada novo órgão é necessário:
-1. Configurar o scraper (URL, paginação, estrutura HTML)
+### Custo de adicionar novo órgão
+
+1. Configurar o scraper (URL, paginação, estrutura HTML/PDF)
 2. Inserir o regimento/lei orgânica como base de conhecimento
-3. Definir as regras específicas daquele órgão
-4. Rodar a análise inicial (~$7-15 em API Claude)
-5. Revisar e publicar
+3. Rodar análise inicial (~$7–15 em API Claude)
+4. Revisar, publicar, comunicar
 
-Estimativa de esforço: **2-5 dias por órgão**.
+Estimativa: **2–5 dias por órgão**. O custo de IA é marginal; o custo real é o tempo de configuração e revisão.
 
 ---
 
 ## 3. Modelo de Negócio
 
-### Planos
+### Planos de Assinatura
 
-| Plano | Preço | Chat/mês | Exportação | Assentos | Para quem |
-|---|---|---|---|---|---|
-| **Cidadão** | R$ 0 | 5 perguntas | Nenhuma | 1 | Qualquer brasileiro — leitura e compreensão |
-| **Investigador** | R$ 197/mês | 200 | PDF e HTML | 1 | Jornalistas, candidatos, militantes |
-| **Profissional** | R$ 597/mês | 1.000 | CSV, JSON, PDF, HTML | 2 | Escritórios jurídicos, assessorias políticas |
-| **API & Dados** | R$ 1.997/mês | via API | API REST + webhooks | 5 | Veículos de imprensa, plataformas, pesquisadores |
+| Plano | Preço | Chat/mês | Exportação | Para quem |
+|---|---|---|---|---|
+| **Cidadão** | R$ 0 | 5 perguntas | Nenhuma | Qualquer brasileiro — leitura e compreensão básica |
+| **Investigador** | R$ 197/mês | 200 | PDF e HTML | Jornalistas, pesquisadores, fiscais políticos |
+| **Profissional** | R$ 597/mês | 1.000 | CSV, JSON, PDF, HTML | Escritórios jurídicos, assessorias, veículos de imprensa |
+| **API & Dados** | R$ 1.997/mês | via API | API REST + webhooks | Plataformas, agregadores, pesquisa acadêmica |
 
-### Receitas Adicionais
-- **Análise sob demanda:** cliente envia um órgão específico, equipe configura e entrega em 5-7 dias — R$ 1.500 por órgão
-- **Relatório personalizado:** síntese executiva customizada por um analista humano + IA — R$ 500-2.000
+Pagamentos processados via **Mercado Pago** (Brasil-nativo, PIX, cartão, boleto).
+
+### Doações Voluntárias
+
+A página `/apoiar` permite contribuições sem contraprestação — quem acredita no projeto e quer ver mais órgãos auditados contribui como quiser. Não há meta pública nem termômetro. As doações financiam a infraestrutura e o tempo de configuração de novos órgãos.
 
 ### Projeção de Receita (conservadora)
 
-| Mês | Cidadão | Investigador | Profissional | MRR |
-|-----|---------|--------------|--------------|-----|
-| 1 | 50 | 5 | 0 | R$ 1.485 |
-| 3 | 200 | 20 | 2 | R$ 7.934 |
-| 6 | 500 | 50 | 5 | R$ 19.835 |
-| 12 | 1000 | 120 | 15 | R$ 50.565 |
+| Mês | Investigador | Profissional | API & Dados | MRR |
+|-----|--------------|--------------|-------------|-----|
+| 1 | 5 | 0 | 0 | R$ 985 |
+| 3 | 20 | 2 | 0 | R$ 5.134 |
+| 6 | 50 | 5 | 1 | R$ 14.842 |
+| 12 | 120 | 15 | 3 | R$ 38.876 |
 
 ---
 
 ## 4. Público-Alvo e Personas
 
-### Persona 1 — O Candidato / Chapa de Oposição
-- Precisa de munição documentada para debates e campanha
-- Não tem tempo para ler 1.800 portarias
-- Quer fichas de denúncia prontas para usar em entrevistas
-- **Plano:** Investigador
+### Persona 1 — O Jornalista Investigativo
 
-### Persona 2 — O Jornalista Investigativo
-- Cobre política local ou conselhos profissionais
+- Cobre política local, conselhos profissionais, autarquias
 - Precisa de dados verificáveis com links para fontes primárias
-- Quer alertas quando novos atos suspeitos forem publicados
+- Quer fichas de denúncia com referências a artigos, prontas para publicar
 - **Plano:** Investigador ou API & Dados
 
+### Persona 2 — O Fiscal Político / Conselheiro de Oposição
+
+- Acompanha um órgão específico (câmara, conselho, autarquia)
+- Precisa de evidências documentadas para debates, audiências públicas, recursos
+- Não tem tempo para ler centenas de portarias manualmente
+- **Plano:** Investigador
+
 ### Persona 3 — O Advogado / Escritório
-- Atua em processos administrativos
+
+- Atua em processos administrativos ou ações populares
 - Precisa de levantamento completo de precedentes e irregularidades
 - Quer exportar relatórios técnicos com referências legais
 - **Plano:** Profissional
 
 ### Persona 4 — O Cidadão Engajado / Ativista
-- Acompanha um órgão específico
+
+- Acompanha um órgão por interesse cívico ou pessoal
 - Quer entender o que está acontecendo sem ser especialista
-- **Plano:** Free
+- Usa o chat para fazer perguntas em linguagem natural
+- **Plano:** Free ou Investigador
+
+### Persona 5 — O Pesquisador / Acadêmico
+
+- Estuda governança, transparência ou controle social
+- Precisa de dados estruturados para análise quantitativa
+- **Plano:** API & Dados
+
+### Persona 6 — O Veículo de Imprensa / Plataforma de Dados
+
+- Quer integrar os dados do Dig Dig em sua própria plataforma
+- Consome via API REST com webhooks para novos alertas
+- **Plano:** API & Dados
 
 ---
 
@@ -115,6 +142,8 @@ Estimativa de esforço: **2-5 dias por órgão**.
 
 **Tagline:** "Escavamos os atos públicos. Você decide o que fazer com o que encontramos."
 
+**Tom:** transparência radical, linguagem técnica acessível, sem alarmismo e sem partidarismo. O produto encontra padrões — a interpretação é do usuário.
+
 **Domínio:** digdig.com.br / app.digdig.com.br / api.digdig.com.br
 
 ---
@@ -122,14 +151,15 @@ Estimativa de esforço: **2-5 dias por órgão**.
 ## 6. Métricas de Sucesso
 
 ### Produto
-- Tempo médio de análise por ato: < 30 segundos
-- Taxa de falsos positivos (alertas incorretos): < 10%
+- Tempo médio de análise por ato (Haiku): < 30 segundos
+- Taxa de falsos positivos: < 10%
 - PDFs baixados com sucesso: > 95%
-- Disponibilidade do sistema: 99,5%
+- Disponibilidade: 99,5%
 
 ### Negócio
-- CAC (Custo de Aquisição de Cliente): < R$ 200
-- LTV (Lifetime Value) Pro: > R$ 2.000
+- CAC: < R$ 200
+- LTV Investigador: > R$ 1.200 (6 meses)
+- LTV Profissional: > R$ 3.600 (6 meses)
 - Churn mensal: < 5%
 - NPS: > 40
 
@@ -137,21 +167,29 @@ Estimativa de esforço: **2-5 dias por órgão**.
 
 ## 7. Roadmap de Produto
 
-### v1.0 — Lançamento (mês 1-3)
-- [x] CAU-PR auditado e publicado
-- [x] Dashboard com filtros e busca
-- [x] Fichas de denúncia exportáveis
-- [x] Sistema de planos (Free/Pro/Enterprise)
-- [x] Autenticação e multi-tenancy
+### v1.0 — Lançamento (em andamento)
+- [x] CAU/PR analisado (portarias 2017–2026)
+- [x] Pipeline Haiku + Sonnet em produção
+- [x] White Papers técnicos publicados
+- [ ] Dashboard com dados reais conectados
+- [ ] Sistema de planos + Mercado Pago
+- [ ] Chat conversacional (RAG)
 
-### v1.5 — Crescimento (mês 4-6)
-- [ ] 3-5 novos órgãos adicionados
+### v1.5 — Expansão (meses 4–6)
+- [ ] 3–5 novos órgãos adicionados
+- [ ] Deliberações do CAU/PR (595 atos via HTML)
+- [ ] OCR para portarias escaneadas (2018–2021)
 - [ ] Alertas por email (novos atos suspeitos)
-- [ ] API pública para Enterprise
-- [ ] App mobile (visualização)
+- [ ] API pública (plano API & Dados)
 
-### v2.0 — Escala (mês 7-12)
-- [ ] 20+ órgãos ativos
-- [ ] Comparativo entre órgãos ("CAU-PR vs CAU-SC")
-- [ ] Integração com portais de transparência (dados de contratos, licitações)
-- [ ] Dashboard para imprensa (acesso press)
+### v2.0 — Inteligência Expandida (meses 7–12)
+- [ ] **Gastos com diárias e passagens** — monitoramento automático de despesas de viagem de servidores e conselheiros, cruzamento com calendário de eventos e quórum de votações
+- [ ] **Cartões corporativos** — análise de gastos com cartões institucionais, detecção de padrões anômalos por beneficiário, período ou fornecedor
+- [ ] **Pedidos de informação automáticos (LAI)** — quando a IA detecta indício e não há documento público, o sistema elabora automaticamente o texto do pedido via Lei de Acesso à Informação e notifica o usuário
+- [ ] **Todos os órgãos públicos do Brasil** — escalabilidade horizontal com configuração padronizada de scraper; o objetivo final é cobrir câmaras municipais, conselhos federais e estaduais, autarquias e tribunais de contas de todo o país
+
+### v3.0 — Plataforma (2027+)
+- [ ] Comparativo entre órgãos da mesma categoria
+- [ ] Integração com dados de contratos e licitações (portal da transparência)
+- [ ] Dashboard público para imprensa (acesso press sem login)
+- [ ] Grafo nacional de pessoas com múltiplas aparições em órgãos diferentes

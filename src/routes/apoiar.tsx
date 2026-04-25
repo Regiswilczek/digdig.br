@@ -210,10 +210,10 @@ function PapersSidebar() {
     },
     {
       n: "03",
-      titulo: "Os Primeiros Vermelhos",
-      desc: "Quando o pipeline chegou nos anos anteriores e encontrou os primeiros casos críticos.",
-      to: null,
-      publicado: false,
+      titulo: "Quando as Deliberações Falam Mais Alto",
+      desc: "757 deliberações únicas, a descoberta da WP REST API e 41% de casos críticos nos primeiros achados.",
+      to: "/whitepaper-03-deliberacoes-e-primeiros-achados" as const,
+      publicado: true,
     },
   ];
 
@@ -659,7 +659,7 @@ function ApoiarPage() {
                 {([
                   { n: "01", titulo: "Como Automatizamos a Auditoria do CAU/PR com IA", desc: "A origem do projeto, a arquitetura e os 7 problemas reais que tivemos que resolver.", to: "/whitepaper-01-extracao-caupr" as const, publicado: true },
                   { n: "02", titulo: "Quando a IA Custa Mais do Que Deveria", desc: "Como detectamos e corrigimos $20 em chamadas de API não rastreadas — 4 camadas de solução.", to: "/whitepaper-02-custo-e-controle" as const, publicado: true },
-                  { n: "03", titulo: "Os Primeiros Vermelhos", desc: "Quando o pipeline chegou nos anos anteriores e encontrou os primeiros casos críticos.", to: null, publicado: false },
+                  { n: "03", titulo: "Quando as Deliberações Falam Mais Alto", desc: "757 deliberações únicas, a descoberta da WP REST API e 41% de casos críticos nos primeiros achados.", to: "/whitepaper-03-deliberacoes-e-primeiros-achados" as const, publicado: true },
                 ] as const).map((p) => (
                   <div
                     key={p.n}

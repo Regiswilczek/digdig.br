@@ -55,12 +55,24 @@ Responda em JSON com esta estrutura:
 
 
 def parse_sonnet_response(raw_text: str) -> dict:
+    # Strip markdown code fences before parsing
+    text = re.sub(r"^```(?:json)?\s*\n?", "", raw_text.strip(), flags=re.MULTILINE)
+    text = re.sub(r"\n?```\s*$", "", text.strip(), flags=re.MULTILINE)
     try:
-        result = json.loads(raw_text)
+        result = json.loads(text)
         if result.get("nivel_alerta_confirmado") not in NIVEIS_VALIDOS:
             result["nivel_alerta_confirmado"] = "laranja"
         return result
     except json.JSONDecodeError:
+        json_match = re.search(r"\{.*\}", text, re.DOTALL)
+        if json_match:
+            try:
+                result = json.loads(json_match.group())
+                if result.get("nivel_alerta_confirmado") not in NIVEIS_VALIDOS:
+                    result["nivel_alerta_confirmado"] = "laranja"
+                return result
+            except json.JSONDecodeError:
+                pass
         nivel_match = re.search(r'"nivel_alerta_confirmado"\s*:\s*"(\w+)"', raw_text)
         nivel = nivel_match.group(1) if nivel_match else "laranja"
         return {
@@ -155,7 +167,7 @@ async def analisar_ato_sonnet(
 
     response = await client.messages.create(
         model=settings.claude_sonnet_model,
-        max_tokens=3000,
+        max_tokens=8000,
         system=[
             {
                 "type": "text",

@@ -288,7 +288,7 @@
 
     <p>No White Paper anterior documentei o processo de construção da pipeline de auditoria: o scraper local para contornar o bloqueio de IP do servidor do CAU/PR, os 151 PDFs escaneados sem camada de texto, os sete problemas técnicos que precisaram ser resolvidos antes de uma rodada completa funcionar.</p>
 
-    <p>Quando terminei de escrever aquele texto, o pipeline estava rodando. O worker Celery no Railway analisava portaria por portaria, enviando cada texto ao Claude Haiku com o regimento interno de 68 mil tokens cacheado como contexto. O banco mostrava progresso constante.</p>
+    <p>Quando terminei de escrever aquele texto, o pipeline estava rodando. O <strong>Dig Dig</strong> analisava portaria por portaria — cada texto cruzado com o regimento interno de 68 mil tokens cacheado, usando o cérebro de IA da Anthropic como motor. O banco mostrava progresso constante.</p>
 
     <div class="stat-row">
       <div class="stat"><span class="num">262</span><span class="desc">portarias analisadas</span></div>
@@ -296,7 +296,7 @@
       <div class="stat"><span class="num">$3,09</span><span class="desc">custo registrado no banco</span></div>
     </div>
 
-    <p>Aí abri o Claude Console.</p>
+    <p>Aí abri o painel de uso da API de IA.</p>
 
     <p><strong>$23,72.</strong></p>
 
@@ -306,7 +306,7 @@
 
     <h2>A Conta Que Não Fechava</h2>
 
-    <p>Minha primeira hipótese foi custo de desenvolvimento. Durante a sessão anterior corrigimos sete bugs diferentes: flush prematuro no SQLAlchemy, rodada_id nulo passado como UUID, constraint NOT NULL violada no banco, JSON malformado do Haiku, event loop do asyncio conflitando com o Celery fork. Cada ciclo de debug executava o script de teste — e cada execução carregava os 68 mil tokens do regimento como escrita de cache a $0,068 por janela de 5 minutos.</p>
+    <p>Minha primeira hipótese foi custo de desenvolvimento. Durante a sessão anterior corrigimos sete bugs diferentes: flush prematuro no SQLAlchemy, rodada_id nulo passado como UUID, constraint NOT NULL violada no banco, JSON malformado na resposta da IA, event loop do asyncio conflitando com o Celery fork. Cada ciclo de debug executava o script de teste — e cada execução carregava os 68 mil tokens do regimento como escrita de cache a $0,068 por janela de 5 minutos.</p>
 
     <p>Mas mesmo somando todas as execuções de teste, a conta não chegava a $20 de diferença.</p>
 
@@ -329,7 +329,7 @@ ORDER BY criado_em;</code></pre>
         <tr>
           <th>Rodada</th>
           <th>Status</th>
-          <th>Haiku</th>
+          <th>Analisados</th>
           <th>Criado em</th>
         </tr>
       </thead>
@@ -407,7 +407,7 @@ if ativa_result.scalar_one_or_none():
 
     <h3>Camada 2 — Idempotência no serviço</h3>
 
-    <p>Antes de chamar a API do Haiku, o serviço verifica se <code>ato.processado == true</code>. Se o ato já foi analisado, retorna o resultado existente sem fazer nenhuma chamada de API.</p>
+    <p>Antes de cada análise, o serviço verifica se <code>ato.processado == true</code>. Se o Dig Dig já processou aquele ato, retorna o resultado existente sem fazer nenhuma chamada de API.</p>
 
 <pre><code># haiku_service.py
 if ato.processado:
@@ -494,7 +494,7 @@ WHERE status IN ('em_progresso', 'pendente');</code></pre>
 
     <p>As quatro camadas implementadas codificam exatamente esse princípio: verificar antes de agir, tornar cada ação idempotente, e ter um limite automático que para o sistema quando algo sai do esperado.</p>
 
-    <p>A rodada atual ainda está em progresso. Os próximos papers vão documentar o que o Haiku encontrou.</p>
+    <p>A rodada atual ainda está em progresso. Os próximos papers vão documentar o que o Dig Dig encontrou.</p>
 
     <div class="signature">
       <div class="name">Regis Wilczek</div>

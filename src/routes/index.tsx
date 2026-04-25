@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import claudeLogo from "@/assets/claude-logo.png";
+import { fetchStats } from "@/lib/api";
+import type { PublicStats } from "@/lib/api";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -231,7 +233,9 @@ function PoweredByClaude({ compact = false, fullWidth = false }: { compact?: boo
   );
 }
 
-function DesktopBadge() {
+function DesktopBadge({ stats }: { stats: PublicStats | null }) {
+  const total = stats ? stats.total_atos.toLocaleString("pt-BR") : "1.789";
+  const criticos = stats ? stats.total_criticos : null;
   return (
     <div className="flex flex-col gap-[3px] select-none flex-shrink-0 w-[215px]">
       <PoweredByClaude fullWidth />
@@ -248,14 +252,16 @@ function DesktopBadge() {
           ATOS MAPEADOS:
         </p>
         <p className="text-[3rem] font-bold text-white leading-none tabular-nums mb-3">
-          1.789
+          {total}
         </p>
         <div style={{ borderTop: "1px dashed rgba(255,255,255,0.16)" }} className="mb-[7px]" />
         <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono text-white/40 tracking-[0.12em] uppercase">
             INDÍCIOS IDENTIFICADOS
           </span>
-          <span className="text-[#00cc46] font-bold text-sm leading-none">✓</span>
+          <span className="text-[#00cc46] font-bold text-sm leading-none">
+            {criticos !== null ? criticos : "✓"}
+          </span>
         </div>
       </div>
     </div>
@@ -264,7 +270,9 @@ function DesktopBadge() {
 
 // ── Mobile stats — 2-column strip (mirrors desktop card) ─────────────────────
 
-function MobileStats() {
+function MobileStats({ stats }: { stats: PublicStats | null }) {
+  const total = stats ? stats.total_atos.toLocaleString("pt-BR") : "1.789";
+  const criticos = stats ? stats.total_criticos : null;
   return (
     <div className="border border-white/10 bg-black/55 select-none rounded-lg overflow-hidden">
       {/* Top row: alert */}
@@ -277,14 +285,14 @@ function MobileStats() {
         </span>
       </div>
 
-      {/* Main row: count + checkmark */}
+      {/* Main row: count */}
       <div className="flex items-end justify-between px-4 pt-3 pb-3">
         <div className="flex flex-col">
           <span className="text-[9px] font-mono text-white/40 tracking-[0.18em] uppercase mb-1">
             ATOS MAPEADOS:
           </span>
           <span className="text-[2.4rem] font-bold text-white tabular-nums leading-none">
-            1.789
+            {total}
           </span>
         </div>
       </div>
@@ -294,7 +302,9 @@ function MobileStats() {
         <span className="text-[9px] font-mono text-white/40 tracking-[0.14em] uppercase">
           INDÍCIOS IDENTIFICADOS
         </span>
-        <span className="text-[#00cc46] font-bold text-base leading-none">✓</span>
+        <span className="text-[#00cc46] font-bold text-base leading-none">
+          {criticos !== null ? criticos : "✓"}
+        </span>
       </div>
     </div>
   );
@@ -438,7 +448,7 @@ function DesktopHero() {
       </div>
 
       <div className="mb-1">
-        <DesktopBadge />
+        <DesktopBadge stats={stats} />
       </div>
     </main>
   );
@@ -487,7 +497,7 @@ function MobileHero() {
         <br />Indícios aparecem. Você age.
       </p>
 
-      <MobileStats />
+      <MobileStats stats={stats} />
 
       <PoweredByClaude compact fullWidth />
 
@@ -506,6 +516,12 @@ function MobileHero() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 function HomePage() {
+  const [stats, setStats] = useState<PublicStats | null>(null);
+
+  useEffect(() => {
+    fetchStats("cau-pr").then(setStats).catch(() => {/* usa fallback hardcoded */});
+  }, []);
+
   return (
     <div
       className="relative bg-[#07080f] overflow-hidden flex flex-col"

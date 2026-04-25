@@ -77,6 +77,10 @@ async def salvar_pessoas(
                 update(Pessoa).where(Pessoa.id == pessoa.id).values(**new_values)
             )
 
+        # aparicoes_pessoa.data_ato é NOT NULL — pula se o ato não tem data_publicacao
+        if data_ato is None:
+            continue
+
         # Check if AparicaoPessoa already exists for this ato
         ap_result = await db.execute(
             select(AparicaoPessoa).where(

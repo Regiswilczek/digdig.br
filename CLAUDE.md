@@ -61,7 +61,7 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 | Decisão | O que foi escolhido | Por quê |
 |---------|--------------------|---------| 
 | Modelos de IA | Haiku 4.5 (triagem) + Sonnet 4.6 (análise + chat) | Custo ~$5/rodada portarias, Sonnet resolve tudo |
-| Sonnet só no vermelho | Laranja não vai para Sonnet | Controle de custo — laranja é caro em volume |
+| Sonnet no vermelho + laranja | Ambos vão para Sonnet na mesma rodada | Cache write do regimento é pago uma vez ($0,255); laranjas seguintes custam ~$0,06 cada via cache read — amortizado vale a pena |
 | Backend | FastAPI + Celery + Redis | Async nativo, fila real para jobs longos |
 | Frontend | Lovable + React + Vite + shadcn/ui + TanStack Router | Deploy gerenciado pela Lovable, integrado ao GitHub |
 | Banco | PostgreSQL via Supabase | Auth + Storage + RLS inclusos |

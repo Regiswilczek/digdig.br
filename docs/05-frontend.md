@@ -1,8 +1,10 @@
 # Frontend — Páginas, Componentes e Fluxos
 
 **Stack:** React + Vite + shadcn/ui + TanStack Router (via Lovable)  
-**Deploy:** Lovable  
-**Auth:** Supabase Auth (client-side)
+**Deploy:** Lovable (produção gerenciada, integrada ao GitHub)  
+**Auth:** Supabase Auth (client-side)  
+**Design:** Inter (editorial, todas as páginas públicas) + Mono para labels  
+**Atualizado em:** 24 de abril de 2026
 
 ---
 
@@ -10,103 +12,188 @@
 
 ```
 / (público)
-├── /                       → Landing page
-├── /planos                 → Página de preços
-├── /patrocinar             → Patrocine uma Auditoria (termômetros públicos)
-│   └── /patrocinar/[slug]  → Campanha específica de uma instituição
-├── /sobre                  → Sobre o projeto
-├── /login                  → Login
-├── /cadastro               → Cadastro
-├── /reset-senha            → Reset de senha
+├── /                             → Landing page
+├── /solucoes                     → Página de produto + narrativa completa (ex-/produto + ex-/planos)
+├── /apoiar                       → Apoio, doações, white papers
+├── /produto                      → redirect → /solucoes (TanStack beforeLoad)
+│
+├── /whitepaper-01-extracao-caupr → White Paper Nº 01 (HTML estático)
+├── /whitepaper-02-custo-e-controle → White Paper Nº 02 (HTML estático)
+│
+├── /login                        → Login
+├── /cadastro                     → Cadastro
+├── /reset-senha                  → Reset de senha
 │
 └── /app (autenticado)
-    ├── /app                → Dashboard geral (lista de órgãos acessíveis)
-    ├── /app/[orgao]        → Dashboard do órgão
+    ├── /app                      → Dashboard geral (lista de órgãos acessíveis)
+    ├── /app/[orgao]              → Dashboard do órgão
     │   ├── /app/[orgao]/atos           → Lista de atos com filtros
     │   ├── /app/[orgao]/atos/[id]      → Detalhe do ato + análise
     │   ├── /app/[orgao]/pessoas        → Lista de pessoas
     │   ├── /app/[orgao]/pessoas/[id]   → Perfil da pessoa
     │   ├── /app/[orgao]/grafo          → Visualização do grafo
     │   ├── /app/[orgao]/padroes        → Padrões detectados
+    │   ├── /app/[orgao]/chat           → Chat conversacional (RAG)
     │   └── /app/[orgao]/relatorios     → Relatórios e exportações
     └── /app/configuracoes              → Perfil, plano, billing
 
-/admin (role = admin)
-    ├── /admin              → Painel admin
-    ├── /admin/orgaos       → Gerenciar órgãos
-    ├── /admin/rodadas      → Gerenciar rodadas de análise
-    └── /admin/custos       → Dashboard de custos IA
+/pnl (admin, autenticado via role)
+    ├── /pnl/orgaos           → Gerenciar órgãos (CRUD + rodadas)
+    ├── /pnl/rodadas          → Listar rodadas de análise
+    └── /pnl/custos           → Dashboard de custos IA
 ```
+
+**Rotas removidas / redirecionadas:**
+- `/planos` → redireciona para `/apoiar`
+- `/patrocinar` → redireciona para `/apoiar`
+- `/produto` → redireciona para `/solucoes`
 
 ---
 
-## 2. Páginas Públicas
+## 2. Navegação Principal (pública)
 
-### 2.1 Landing Page (`/`)
+Todas as páginas públicas compartilham a mesma nav:
+
+```
+[DIG DIG]           [Soluções]  [Apoiar]        [Entrar]
+```
+
+- Sem "Início", "Planos", "Patrocinar" ou "Produto" na nav
+- Link ativo destacado com `font-medium text-white/85` (Inter)
+- CTA "Entrar" leva ao `/login`
+
+---
+
+## 3. Páginas Públicas
+
+### 3.1 Landing Page (`/`)
+
+**Tom:** direto, jornalístico, sem jargão comercial  
+**Seções:**
+1. **Hero** — headline, subtítulo explicativo, CTA "Ver Soluções" + status da rodada atual
+2. **Como funciona** — 4 passos em grid `gap-px`: coleta de PDFs → extração de texto → triagem Haiku → aprofundamento Sonnet
+3. **Níveis de alerta** — grid 2×2 com verde/amarelo/laranja/vermelho e critérios
+4. **CTA** — link para /solucoes e /apoiar
+
+**StatusBar:** faixa discreta abaixo do hero mostrando progresso da análise atual (atos analisados, porcentagem) — sem valor em dinheiro.
+
+---
+
+### 3.2 Soluções (`/solucoes`) — página principal do produto
+
+Esta é a página de maior conteúdo do site. Serve como produto, narrativa, manifesto e vendas ao mesmo tempo. Substituiu `/produto` e `/planos`.
+
+**Layout geral:** `max-w-[780px] mx-auto` com `PapersSidebar` fixada à direita em desktop (`lg:block hidden`, `sticky top-32`).
+
+**Seções em ordem:**
+
+1. **Hero editorial** — label MONO "O QUE É O DIG DIG", título Inter, parágrafo introdutório
+
+2. **O que nos diferencia** — 4 cards `border-white/[0.06]`:
+   - Separação legal vs. moral/ética
+   - Grafo de relacionamentos ao longo do tempo
+   - Linguagem de indício, nunca de condenação
+   - Custo previsível: ~$0,012 por ato
+
+3. **Pipeline** — 4 passos em `grid sm:grid-cols-2 gap-px bg-white/[0.04]` com filhos `bg-[#07080f]`:
+   - Coleta automática de PDFs
+   - Extração de texto (pdfplumber)
+   - Triagem Haiku (todos os atos)
+   - Aprofundamento Sonnet (vermelho)
+
+4. **Níveis de alerta** — grid 2×2 com verde/amarelo/laranja/vermelho
+
+5. **Exemplo de ficha de denúncia** — mockup real com dados anonimizados
+
+6. **Padrões detectados** — stats das portarias já analisadas (ex.: "168 amarelos, 93 verdes, 1 laranja")
+
+7. **Chat demo** — screenshot ou mockup do chat conversacional
+
+8. **Tabela de features** — comparativo por plano (Cidadão / Investigador / Profissional / API & Dados)
+
+9. **Quem usa** — 6 perfis compactos em grid 2 colunas:
+   - Jornalista Investigativo
+   - Fiscal Político / Conselheiro
+   - Advogado / Escritório
+   - Cidadão Engajado
+   - Pesquisador / Acadêmico
+   - Veículo de Imprensa / Plataforma
+
+10. **Roadmap** — 4 itens com status:
+    - `Em desenvolvimento` — Gastos com diárias e passagens
+    - `Em desenvolvimento` — Cartões corporativos
+    - `Planejado` — Pedidos de informação automáticos (LAI)
+    - `Planejado` — Todos os órgãos públicos do Brasil
+
+11. **White Papers mobile** (`lg:hidden`) — mirror da `PapersSidebar` para telas menores, antes do CTA final
+
+12. **CTA final** — botão para `/apoiar` e para cadastro
+
+---
+
+### 3.3 Apoiar (`/apoiar`) — suporte e doações
+
+**Substitui** `/patrocinar` e `/planos`. Página editorial unificada.
 
 **Seções:**
-1. **Hero** — headline impactante, CTA "Acesse Grátis", screenshot do dashboard
-2. **Problema** — "1.800 atos publicados. Quem leu?" — contexto sobre opacidade pública
-3. **Como Funciona** — 3 passos animados: coleta → IA → relatório
-4. **Órgãos Disponíveis** — cards dos órgãos (CAU-PR ativo, demais "em breve")
-5. **Exemplo de Irregularidade** — screenshot de uma ficha de denúncia real (anonimizada no MVP)
-6. **Depoimentos** — após lançamento
-7. **Planos** — tabela de preços resumida
-8. **CTA Final** — "Comece gratuitamente"
-9. **Footer** — links, contato, LGPD
+1. **Hero** — label MONO "APOIE O DIG DIG", título sobre transparência pública como bem comum
+2. **Manifesto** — por que o projeto existe, de onde vem, o que representa
+3. **Como apoiar** — doação voluntária (Mercado Pago), assinaturas, compartilhar
+4. **`PapersSidebar`** à direita em desktop — os dois white papers publicados
+5. **White Papers inline** (`lg:hidden`) — cards dos papers para mobile antes do CTA
+6. **CTA** — link de doação + link para cadastro gratuito
 
-### 2.2 Planos (`/planos`)
-
-- Tabela comparativa Free / Pro / Enterprise
-- Toggle mensal/anual (com desconto)
-- FAQ sobre o produto
-- CTA por plano → checkout Stripe
-
-### 2.3 Patrocine uma Auditoria (`/patrocinar`)
-
-Página pública (sem login) que exibe as campanhas ativas de crowdfunding para análise de novas instituições.
-
-**Layout:**
-```
-[Header: "Escolha o próximo órgão a ser auditado"]
-[Subtítulo: "Quando uma campanha atingir R$ 3.000, executamos a análise completa."]
-
-[Grid de cards de campanha]
-┌─────────────────────────────────────────────┐
-│  Câmara Municipal de Curitiba               │
-│  📍 Curitiba, PR                            │
-│  ████████████░░░░░░░  68% — R$ 2.040/3.000 │
-│  127 apoiadores · 23 dias restantes         │
-│  [Apoiar com R$25+]  [Votar grátis (3/mês)] │
-└─────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────┐
-│  CRM/PR — Conselho Regional de Medicina     │
-│  📍 Paraná                                  │
-│  ███░░░░░░░░░░░░░░░░  22% — R$ 660/3.000   │
-│  44 apoiadores · 51 dias restantes          │
-│  [Apoiar com R$25+]  [Votar grátis (3/mês)] │
-└─────────────────────────────────────────────┘
-```
-
-**Página de campanha individual (`/patrocinar/[slug]`):**
-- Header com nome da instituição e progresso detalhado
-- Lista de últimas doações (nome ou "Anônimo" + valor se público)
-- Formulário de doação (mínimo R$25, integração Stripe)
-- Botão de voto gratuito (requer login, 3 votos/mês por usuário)
-- Seção "O que você recebe": 1 mês Investigador grátis (primeira doação) + badge Patrocinador + acesso 48h antes
-
-**Funcionalidades:**
-- Termômetro animado com progresso em tempo real
-- Compartilhamento social nativo (cópia de link, Twitter/X, WhatsApp)
-- Notificação por email ao atingir a meta (para todos os apoiadores)
-- Contador de votos gratuitos restantes (visível após login)
+**Sem:** termômetros públicos de meta, contador de apoiadores, mecânica de campanha.
 
 ---
 
-## 3. App Autenticado
+### 3.4 White Papers
 
-### 3.1 Dashboard Geral (`/app`)
+Dois documentos publicados como rotas estáticas — servem conteúdo HTML diretamente.
+
+| Rota | Arquivo | Conteúdo |
+|------|---------|----------|
+| `/whitepaper-01-extracao-caupr` | `docs/whitepaper-01-extracao-caupr.html` | Extração de 551 atos do CAU/PR: scraper, pdfplumber, portarias escaneadas, desafios técnicos |
+| `/whitepaper-02-custo-e-controle` | `docs/whitepaper-02-custo-e-controle.html` | $23 perdidos em rodadas paralelas, diagnóstico, 4 camadas de proteção, custo real por ato |
+
+Ambos são acessíveis sem login. São o principal instrumento de marketing orgânico do projeto.
+
+---
+
+## 4. Design System (páginas públicas)
+
+### Constantes de estilo (definidas por arquivo como `React.CSSProperties`)
+
+```typescript
+const INTER = { fontFamily: "'Inter', sans-serif" }
+const MONO  = { fontFamily: "'IBM Plex Mono', monospace" }
+const GOLD  = { color: "#c9a84c" }
+```
+
+### Paleta
+- Background: `#07080f`
+- Texto principal: `text-white/85`
+- Labels MONO: `text-white/22`, `text-[9px]`, `tracking-[0.28em]`, uppercase
+- Bordas: `border-white/[0.06]`
+- Cards: `bg-[#07080f]` com `border border-white/[0.06] p-6`
+
+### Sem gradients, sem Syne
+Todas as páginas públicas usam Inter. Syne foi removido. Sem `bg-gradient-*` ou `text-gradient`.
+
+### StatusBar
+Faixa de status do pipeline acima do fold em `/`. Mostra atos analisados + percentual da rodada ativa. Não exibe custo em dinheiro.
+
+### PapersSidebar
+- `hidden lg:block` — desktop apenas
+- `sticky top-32`, 260px de largura
+- Lista os dois white papers com número MONO e título Inter
+- Todas as páginas públicas com conteúdo longo devem incluí-la
+
+---
+
+## 5. App Autenticado (`/app`)
+
+### 5.1 Dashboard Geral (`/app`)
 
 Cards dos órgãos acessíveis pelo plano do usuário:
 ```
@@ -120,295 +207,165 @@ Cards dos órgãos acessíveis pelo plano do usuário:
 
 ┌─────────────────────────────────┐
 │  Câmara de Curitiba    🔒      │
-│  Em breve — disponível em Pro  │
-│  [Fazer Upgrade →]             │
+│  Em breve                      │
 └─────────────────────────────────┘
 ```
 
 ---
 
-### 3.2 Dashboard do Órgão (`/app/[orgao]`)
+### 5.2 Dashboard do Órgão (`/app/[orgao]`)
 
-**Layout:**
 ```
 [Header: nome do órgão + última análise + botão "Exportar"]
 
-[KPIs em cards]
-🔴 12 Críticos   🟠 45 Graves   🟡 180 Suspeitos   🟢 934 Conformes
+[KPIs]
+🔴 Críticos   🟠 Graves   🟡 Suspeitos   🟢 Conformes
 
 [Linha do Tempo — gráfico de barras por mês]
-  mostra distribuição de alertas ao longo do tempo
 
 [Top 5 Irregularidades Mais Graves]
-  lista rápida com link para o ato
 
 [Padrões Detectados]
-  cards dos padrões globais (perseguição política, concentração poder...)
 
-[Pessoas em Destaque]
-  top 5 pessoas com mais aparições suspeitas
+[Pessoas em Destaque — top 5 com mais aparições suspeitas]
 
 [Acesso Rápido]
-  → Ver todos os atos    → Grafo de pessoas    → Relatórios
+→ Ver todos os atos    → Grafo de pessoas    → Chat    → Relatórios
 ```
 
 ---
 
-### 3.3 Lista de Atos (`/app/[orgao]/atos`)
+### 5.3 Lista de Atos (`/app/[orgao]/atos`)
 
-**Filtros (sidebar ou toolbar):**
-- Tipo: Portaria / Deliberação / Portaria Normativa
-- Nível: 🔴 Crítico / 🟠 Grave / 🟡 Suspeito / 🟢 Conforme
-- Período: date picker de/até
-- Busca full-text: campo de pesquisa
-- Pessoa: autocomplete de nomes
+**Filtros:** Tipo | Nível de alerta | Período | Busca full-text | Pessoa
 
-**Tabela de resultados:**
+**Tabela:**
 ```
 Nº    Tipo        Data       Ementa (truncada)              Alerta    Ações
 678   Portaria    02/04/26   Prorroga Comissão Processante  🔴 CRÍTICO  [Ver] [Ficha]
 677   Portaria    19/03/26   Nomeia para Cargo em Comissão  🟡 ATENÇÃO  [Ver] [Ficha]
 ```
 
-Paginação + opção de visualização em cards.
-
 ---
 
-### 3.4 Detalhe do Ato (`/app/[orgao]/atos/[id]`)
+### 5.4 Detalhe do Ato (`/app/[orgao]/atos/[id]`)
 
 ```
 [Breadcrumb: CAU-PR > Atos > Portaria 678]
 
-┌──────────────────────────────────────────────────┐
-│  PORTARIA PRESIDENCIAL Nº 678              🔴   │
-│  02 de Abril de 2026                            │
-│  [📄 Ver PDF Original]  [🎯 Exportar Ficha]    │
-└──────────────────────────────────────────────────┘
+PORTARIA PRESIDENCIAL Nº 678  🔴
+02 de Abril de 2026
+[📄 Ver PDF Original]  [🎯 Exportar Ficha]
 
 [EMENTA]
-Prorroga o prazo da Comissão Processante nomeada pela Portaria nº 580...
-
 [TEXTO COMPLETO — expansível]
-...
 
 [ANÁLISE DA IA]
-  📊 Score de Risco: 87/100
-  
-  ⚖️ IRREGULARIDADES LEGAIS
-  ┌─ Prazo excedido — Alta gravidade
-  │  A comissão processante ultrapassa 240 dias o prazo máximo...
-  │  Artigo violado: Art. 89, §3º do Regimento Interno
-  └─
-  
-  🎭 IRREGULARIDADES MORAIS/ÉTICAS
-  ┌─ Perseguição Política — Crítica
-  │  O processado aparece em manifestações contra a gestão...
-  └─
-  
-  📝 RESUMO EXECUTIVO
-  "Desde abril de 2025, a gestão mantém aberto..."
-  
-  🎯 FICHA DE DENÚNCIA
-  [ver ficha completa]
+  Score de Risco: 87/100
+  IRREGULARIDADES LEGAIS: ...
+  IRREGULARIDADES MORAIS/ÉTICAS: ...
+  RESUMO EXECUTIVO: ...
+  [FICHA DE DENÚNCIA]
 
 [PESSOAS ENVOLVIDAS]
-  Avatar + nome + cargo + link para perfil
-
 [ATOS RELACIONADOS]
-  Portaria 580 → Portaria 667 → Portaria 673 → [este] 678
-
-[HISTÓRICO DE ANÁLISE]
-  Analisado por Haiku + Sonnet em 22/04/2026
+[HISTÓRICO DE ANÁLISE: Haiku + Sonnet, data]
 ```
 
 ---
 
-### 3.5 Ficha de Denúncia (modal ou página)
+### 5.5 Ficha de Denúncia (modal ou página dedicada)
 
-```
-╔══════════════════════════════════════════════════════════╗
-║  FICHA DE DENÚNCIA — CAU/PR                             ║
-║  Irregularidade Nº 12 | Gerada em 22/04/2026           ║
-╠══════════════════════════════════════════════════════════╣
-║                                                          ║
-║  TÍTULO                                                  ║
-║  CAU/PR mantém processo disciplinar aberto por mais     ║
-║  de 1 ano para afastar opositor                         ║
-║                                                          ║
-║  O FATO                                                  ║
-║  A Portaria 678/2026 prorroga pela 4ª vez a Comissão   ║
-║  Processante instaurada em abril/2025, totalizando      ║
-║  360 dias de investigação sem conclusão.                ║
-║                                                          ║
-║  IRREGULARIDADE LEGAL                                    ║
-║  Violação do Art. 89, §3º do Regimento Interno:        ║
-║  prazo máximo de 120 dias, prorrogável uma vez.         ║
-║                                                          ║
-║  IRREGULARIDADE MORAL                                    ║
-║  Uso do processo disciplinar como instrumento de        ║
-║  perseguição política.                                   ║
-║                                                          ║
-║  EVIDÊNCIAS                                             ║
-║  • Portaria 580/2025 — instauração em 07/04/2025       ║
-║  • Portaria 667/2026 — recondução em 02/02/2026        ║
-║  • Portaria 673/2026 — prorrogação em 02/03/2026       ║
-║  • Portaria 678/2026 — prorrogação em 02/04/2026       ║
-║                                                          ║
-║  IMPACTO                                                 ║
-║  O processado está impedido de exercer funções no       ║
-║  CAU/PR há mais de 1 ano.                               ║
-║                                                          ║
-║  [📋 Copiar texto]  [⬇️ Baixar PDF]  [🔗 Compartilhar]  ║
-╚══════════════════════════════════════════════════════════╝
-```
+Gerada pelo Sonnet para atos críticos. Contém:
+- Título jornalístico
+- O fato (o que aconteceu)
+- Irregularidade legal (artigo violado)
+- Irregularidade moral/ética (padrão)
+- Evidências (lista de atos relacionados com datas)
+- Impacto
+
+Ações: Copiar texto | Baixar PDF | Compartilhar
 
 ---
 
-### 3.6 Lista de Pessoas (`/app/[orgao]/pessoas`)
+### 5.6 Chat com IA (`/app/[orgao]/chat`)
 
-Grid de cards ou tabela:
+Interface conversacional com acesso ao banco de atos analisados via RAG (Sonnet 4.6).
+
 ```
-[João da Silva]           [Maria Costa]
-Assessor Técnico          Presidente Comissão X
-23 aparições • Suspeito   15 aparições
-[Ver perfil →]            [Ver perfil →]
+[Sidebar: histórico de sessões]
+[Área principal: mensagens com streaming]
+[Input + sugestões contextuais]
+[Contador de cota restante do plano]
 ```
 
-Filtros: tipo de aparição, suspeito sim/não, busca por nome.
+Comportamento por plano:
+- Cidadão: 5 perguntas/mês
+- Investigador: 200/mês
+- Profissional: 1.000/mês
+- API & Dados: via API
 
 ---
 
-### 3.7 Grafo de Relacionamentos (`/app/[orgao]/grafo`)
+### 5.7 Outras páginas do app
 
-Visualização interativa usando `vis-network` ou `react-force-graph`:
-- Nós = pessoas/entidades, coloridos por nível de suspeita
-- Arestas = relações (nomeador→nomeado, mesma comissão, processador→processado)
-- Zoom, pan, clique no nó abre modal com detalhes
-- Filtros: mostrar só suspeitos, por tipo de relação, período
-
----
-
-### 3.8 Padrões Detectados (`/app/[orgao]/padroes`)
-
-Cards por padrão:
-```
-┌─────────────────────────────────────────────┐
-│ 🔴 PERSEGUIÇÃO POLÍTICA VIA PROCESSO        │
-│ DISCIPLINAR                                 │
-│                                             │
-│ 4 atos envolvidos • 2 pessoas • 2025-2026   │
-│                                             │
-│ "Desde abril de 2025, a gestão do CAU/PR   │
-│ mantém aberto um processo disciplinar..."   │
-│                                             │
-│ [Ver atos envolvidos] [Exportar ficha]      │
-└─────────────────────────────────────────────┘
-```
+| Rota | Conteúdo |
+|------|----------|
+| `/app/[orgao]/pessoas` | Grid/tabela de pessoas extraídas, filtros por tipo de aparição |
+| `/app/[orgao]/pessoas/[id]` | Perfil: todos os atos, cargos ao longo do tempo, score |
+| `/app/[orgao]/grafo` | Grafo interativo de relacionamentos (vis-network / react-force-graph) |
+| `/app/[orgao]/padroes` | Cards de padrões detectados pela análise transversal |
+| `/app/[orgao]/relatorios` | Geração e download de relatórios (HTML, PDF, CSV, JSON) |
+| `/app/configuracoes` | Perfil do usuário, plano ativo, billing (Mercado Pago) |
 
 ---
 
-### 3.9 Chat com IA (`/app/[orgao]/chat`)
+## 6. Painel Admin (`/pnl`)
 
-Interface conversacional para o usuário perguntar sobre os dados em linguagem natural.
-
-```
-┌─────────────────────────────────────────────────────┐
-│  CAU/PR — Chat com a IA              [Nova conversa]│
-│  [Histórico ▼]                                      │
-├──────────────┬──────────────────────────────────────┤
-│ CONVERSAS    │                                      │
-│              │  🤖 Olá! Analisei 1.789 atos do     │
-│ Hoje         │  CAU/PR. Exemplos do que posso fazer:│
-│ • Exonerações│  → "Quais as 5 piores irregulars?"  │
-│ • Portaria   │  → "Me fale sobre a Portaria 678"   │
-│   678        │  → "Prepare texto para debate"      │
-│              │                                      │
-│ Ontem        │  👤 Qual a relação entre exonerações │
-│ • Padrões    │  de 2025 e processos abertos?       │
-│              │                              14:32   │
-│              │  🤖 Encontrei um padrão claro...    │
-│              │  [resposta completa com citações]   │
-│              │                              14:32   │
-│              │  👍 👎  [Copiar] [Exportar]         │
-│              │                                      │
-├──────────────┴──────────────────────────────────────┤
-│  [Digite sua pergunta...              ]  [Enviar →] │
-│  💡 [5 piores casos] [Pessoas suspeitas] [Padrões]  │
-└─────────────────────────────────────────────────────┘
-```
-
-**Funcionalidades:**
-- Streaming da resposta (texto aparece em tempo real)
-- Memória dentro da sessão (a IA lembra do contexto anterior)
-- Sugestões de perguntas contextuais
-- Feedback 👍/👎 por resposta
-- "Copiar resposta" e "Exportar conversa"
-- Histórico de sessões anteriores (30 dias)
-- Indicador de cota restante do plano
-
-**Comportamento por plano:**
-- Cidadão: 5 perguntas/mês — badge com contador visível
-- Investigador: 200 perguntas/mês — contador discreto
-- Profissional: 1.000 perguntas/mês — contador discreto
-- API & Dados: via API (sem limite de chat direto) — sem contador
-
-### 3.10 Relatórios (`/app/[orgao]/relatorios`)
-
-- Botão "Gerar Relatório" com opções de tipo e filtros
-- Lista de relatórios gerados com data e download
-- Preview inline do relatório HTML
-- Exportação em: HTML, PDF (via print), JSON, CSV
+| Rota | Função |
+|------|--------|
+| `/pnl/orgaos` | Lista de tenants, criar/editar, disparar rodada |
+| `/pnl/rodadas` | Listar rodadas com status, progresso, custo, log de erros |
+| `/pnl/custos` | Gráfico de gastos por mês, breakdown Haiku vs Sonnet |
 
 ---
 
-## 4. Painel Admin (`/admin`)
-
-### Gerenciar Órgãos
-- Lista de todos os tenants com status
-- Formulário para adicionar novo órgão (scraper config, regimento)
-- Botão "Disparar Análise" por órgão
-- Status da rodada em tempo real (WebSocket ou polling)
-
-### Rodadas de Análise
-- Lista de rodadas com status, progresso, custo
-- Log de erros por ato
-- Custo total por modelo
-
-### Dashboard de Custos
-- Gráfico de gasto por mês
-- Breakdown Haiku vs Sonnet
-- Projeção do mês atual
-
----
-
-## 5. Componentes Reutilizáveis
+## 7. Componentes Reutilizáveis
 
 | Componente | Descrição |
 |-----------|-----------|
 | `AlertaBadge` | Badge colorido com nível de alerta |
 | `AtoCard` | Card resumido de um ato |
-| `IrregularidadeItem` | Item de irregularidade com ícone e gravidade |
+| `IrregularidadeItem` | Item com ícone e gravidade |
 | `PessoaAvatar` | Avatar + nome + cargo + badge de suspeita |
 | `GraficoLinhaTempo` | Recharts: distribuição de alertas por mês |
 | `FichaDenuncia` | Template completo da ficha |
 | `StatusRodada` | Progress bar + % com polling automático |
+| `PapersSidebar` | Sidebar fixa com links dos white papers (desktop only) |
 | `FiltroPainel` | Sidebar com filtros combinados |
 | `ExportMenu` | Menu dropdown com opções de exportação |
 
 ---
 
-## 6. Estados de Loading e Erro
+## 8. Responsividade
 
-- Skeleton loaders em todas as listas
-- Error boundaries com mensagem amigável + botão retry
-- Toast notifications para ações (exportar, gerar relatório)
-- Empty states ilustrados ("Nenhuma irregularidade encontrada neste período")
+- **Mobile:** PapersSidebar oculta (`hidden lg:block`); seção inline `lg:hidden` antes do CTA final em /solucoes e /apoiar
+- **Tablet:** layout de 2 colunas
+- **Desktop:** layout completo com PapersSidebar fixa
+- **Grafo:** desktop-only (complexidade visual incompatível com touch)
 
 ---
 
-## 7. Responsividade
+## 9. Estado Atual (abril 2026)
 
-- Mobile: navegação por drawer/bottom sheet, tabelas com scroll horizontal
-- Tablet: layout de 2 colunas
-- Desktop: layout completo com sidebar
-- O grafo de relacionamentos é desktop-only (complexidade visual)
+| Página | Status |
+|--------|--------|
+| `/` (landing) | Em produção via Lovable |
+| `/solucoes` | Em produção (reescrita editorial, narrativa completa) |
+| `/apoiar` | Em produção (página unificada) |
+| `/produto` | Em produção (redireciona para /solucoes) |
+| `/whitepaper-01-extracao-caupr` | Em produção |
+| `/whitepaper-02-custo-e-controle` | Em produção |
+| `/app/*` | Estrutura de rotas existe, dashboard sem dados reais |
+| Chat RAG | Não implementado |
+| Billing Mercado Pago | Não implementado |

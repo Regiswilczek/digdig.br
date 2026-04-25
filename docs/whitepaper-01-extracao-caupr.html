@@ -294,12 +294,12 @@
     <ul>
       <li><strong>Backend:</strong> FastAPI + Celery + Redis no Railway</li>
       <li><strong>Banco:</strong> PostgreSQL via Supabase (29 tabelas, Row Level Security para multi-tenancy)</li>
-      <li><strong>IA:</strong> Claude Haiku 4.5 para triagem em lote + Claude Sonnet 4.6 para análise profunda dos casos críticos</li>
+      <li><strong>IA:</strong> Cérebro da Anthropic (Claude) integrado ao Dig Dig — triagem de todos os atos em lote e análise aprofundada dos casos críticos</li>
       <li><strong>Frontend:</strong> React + Vite + shadcn/ui via Lovable</li>
       <li><strong>PDFs:</strong> pdfplumber para extração de texto</li>
     </ul>
 
-    <p>A lógica do pipeline é em duas fases. O <strong>Haiku</strong> — modelo rápido e barato — analisa todos os atos e classifica em quatro níveis: verde (conforme), amarelo (suspeito), laranja (indício moderado-grave) e vermelho (indício crítico). O <strong>Sonnet</strong> entra só nos casos vermelho, gerando análise aprofundada, ficha de denúncia e mapeamento de pessoas.</p>
+    <p>A lógica do <strong>Dig Dig</strong> é em duas fases. Na primeira, um motor de triagem analisa todos os atos e classifica em quatro níveis: verde (conforme), amarelo (suspeito), laranja (indício moderado-grave) e vermelho (indício crítico). Na segunda, uma análise aprofundada entra nos casos vermelho e laranja, gerando ficha de denúncia estruturada e mapeamento de pessoas envolvidas.</p>
 
     <p>O custo estimado por rodada completa: algo em torno de R$25–30.</p>
 
@@ -364,9 +364,9 @@
 
     <p>Resolvemos com uma migration explícita adicionando os defaults de timestamp em todas as 29 tabelas, e ajustando o código para não fazer <code>flush()</code> antes de preencher todos os campos obrigatórios.</p>
 
-    <h3>Problema 6: O Haiku não retornava JSON limpo</h3>
+    <h3>Problema 6: A IA não retornava JSON limpo</h3>
 
-    <p>Configuramos o Haiku para sempre responder em JSON com uma estrutura específica. Na prática, às vezes ele envolvia a resposta em blocos de código markdown — <code>```json ... ```</code> — ou adicionava uma frase introdutória antes do JSON.</p>
+    <p>O Dig Dig é configurado para receber respostas sempre em JSON com uma estrutura específica. Na prática, a IA às vezes envolvia a resposta em blocos de código markdown — <code>```json ... ```</code> — ou adicionava uma frase introdutória antes do JSON.</p>
 
     <p>A função de parse inicial só tentava <code>json.loads()</code> direto. Falha, cai no fallback, salva "análise incompleta" no banco.</p>
 
@@ -384,7 +384,7 @@
 
     <p>O impacto: a primeira chamada de cada janela de 5 minutos precisa escrever o regimento inteiro no cache da Anthropic (custo de escrita: $1,00/1M tokens ≈ $0,068 por janela). As chamadas seguintes leem do cache a $0,08/1M tokens — dez vezes mais barato.</p>
 
-    <p>Na prática, cada ato custa entre $0,008 (cache quente) e $0,071 (cache frio). A média real na rodada está em $0,013 por ato, confirmando que o cache está funcionando. Para 398 portarias, a projeção é <strong>~$4,80 total para a fase Haiku</strong>.</p>
+    <p>Na prática, o Dig Dig gasta entre $0,008 (cache quente) e $0,071 (cache frio) por análise. A média real na rodada está em $0,013 por ato, confirmando que o cache está funcionando. Para 398 portarias, a projeção é <strong>~$4,80 total para a triagem completa</strong>.</p>
 
     <hr>
 
@@ -392,7 +392,7 @@
 
     <p>O pipeline está rodando.</p>
 
-    <p>O worker Celery no Railway está analisando portaria por portaria: lê o texto, envia para o Haiku com o regimento interno cacheado como contexto, recebe o JSON com classificação, indícios e pessoas extraídas, salva tudo no banco.</p>
+    <p>O <strong>Dig Dig</strong> está analisando portaria por portaria: lê o texto, cruza com o regimento interno de 68 mil tokens cacheado como contexto, retorna a classificação, os indícios detectados e as pessoas identificadas, salva tudo no banco.</p>
 
     <p>Dos primeiros atos processados:</p>
     <ul>
@@ -401,7 +401,7 @@
       <li><strong>0% laranja/vermelho</strong> até agora</li>
     </ul>
 
-    <p>O Haiku está processando do mais recente para o mais antigo, então os atos de 2026 e 2025 vêm primeiro. Os casos mais graves tendem a aparecer quando chegar nos anos anteriores, onde comissões processantes, exonerações em massa e nomeações questionáveis foram mais frequentes.</p>
+    <p>O Dig Dig processa do mais recente para o mais antigo — os atos de 2026 e 2025 vêm primeiro. Os casos mais graves tendem a aparecer quando chegar nos anos anteriores, onde comissões processantes, exonerações em massa e nomeações questionáveis foram mais frequentes.</p>
 
     <hr>
 
@@ -410,7 +410,7 @@
     <ol>
       <li><strong>Deliberações via scraper HTML</strong> — as 595 deliberações que existem só como HTML precisam de um scraper diferente</li>
       <li><strong>OCR nas portarias escaneadas</strong> — as 151 portarias de 2018–2021 precisam de Tesseract para ter o texto extraído</li>
-      <li><strong>Fase Sonnet</strong> — quando o Haiku terminar, o Sonnet vai aprofundar os casos vermelho: análise detalhada, ficha de denúncia pronta para uso, mapeamento completo de pessoas</li>
+      <li><strong>Análise aprofundada</strong> — quando a triagem terminar, o Dig Dig vai detalhar os casos críticos: análise profunda, ficha de denúncia pronta para uso, mapeamento completo de pessoas</li>
       <li><strong>Dashboard web</strong> — o frontend já existe, falta conectar na API com os resultados reais</li>
       <li><strong>Chat conversacional</strong> — o usuário poderá perguntar "mostre todas as portarias envolvendo comissões processantes em 2023" e receber uma resposta com contexto</li>
     </ol>
