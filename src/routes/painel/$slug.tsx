@@ -329,8 +329,8 @@ function TabAtos({ slug, tipo }: { slug: string; tipo: "portaria" | "deliberacao
               >
                 <td className="px-4 py-2.5 text-white/80 font-medium whitespace-nowrap">
                   <Link
-                    to={"/painel/$slug/ato/$id" as any}
-                    params={{ slug, id: ato.id } as any}
+                    to="/painel/$slug/ato/$id"
+                    params={{ slug, id: ato.id }}
                     className="hover:text-white transition-colors"
                   >
                     {ato.numero}
@@ -338,8 +338,8 @@ function TabAtos({ slug, tipo }: { slug: string; tipo: "portaria" | "deliberacao
                 </td>
                 <td className="px-4 py-2.5 text-white/55 max-w-[280px]">
                   <Link
-                    to={"/painel/$slug/ato/$id" as any}
-                    params={{ slug, id: ato.id } as any}
+                    to="/painel/$slug/ato/$id"
+                    params={{ slug, id: ato.id }}
                     className="hover:text-white/80 transition-colors"
                   >
                     {ato.ementa
@@ -371,8 +371,8 @@ function TabAtos({ slug, tipo }: { slug: string; tipo: "portaria" | "deliberacao
                       </a>
                     )}
                     <Link
-                      to={"/painel/$slug/ato/$id" as any}
-                      params={{ slug, id: ato.id } as any}
+                      to="/painel/$slug/ato/$id"
+                      params={{ slug, id: ato.id }}
                       title="Ver ficha"
                       className="text-white/30 hover:text-white/70 transition-colors"
                     >
@@ -484,8 +484,8 @@ function TabDenuncias({ slug }: { slug: string }) {
 
             <div className="flex gap-2 pt-1">
               <Link
-                to={"/painel/$slug/ato/$id" as any}
-                params={{ slug, id: ato.id } as any}
+                to="/painel/$slug/ato/$id"
+                params={{ slug, id: ato.id }}
                 className="px-3 py-1.5 rounded-lg text-[12px] bg-white/[0.06] border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               >
                 Ver ficha completa

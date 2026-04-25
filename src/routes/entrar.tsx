@@ -214,8 +214,7 @@ function useAuthForm() {
           return;
         }
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      navigate({ to: "/painel" as any });
+      navigate({ to: "/painel" });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro ao autenticar.";
       setError(
@@ -227,6 +226,23 @@ function useAuthForm() {
       );
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function resetPassword() {
+    if (!email) {
+      setError("Digite seu email para recuperar a senha.");
+      return;
+    }
+    setSubmitting(true);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    });
+    setSubmitting(false);
+    if (resetError) {
+      setError(resetError.message);
+    } else {
+      setError("Email de recuperação enviado! Verifique sua caixa de entrada.");
     }
   }
 
@@ -243,6 +259,7 @@ function useAuthForm() {
     submitting,
     error,
     onSubmit,
+    resetPassword,
   };
 }
 
@@ -275,6 +292,7 @@ function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
     submitting,
     error,
     onSubmit,
+    resetPassword,
   } = f;
 
   return (
@@ -448,6 +466,7 @@ function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
                 {isLogin && (
                   <button
                     type="button"
+                    onClick={resetPassword}
                     className="text-[10px] uppercase tracking-[0.16em] text-white/45 hover:text-white transition-colors"
                   >
                     Esqueci
@@ -556,6 +575,7 @@ function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
     submitting,
     error,
     onSubmit,
+    resetPassword,
   } = f;
 
   return (
@@ -673,6 +693,7 @@ function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
                   {isLogin && (
                     <button
                       type="button"
+                      onClick={resetPassword}
                       className="text-[10px] uppercase tracking-[0.16em] text-white/40 hover:text-white/70 transition-colors"
                     >
                       Esqueci

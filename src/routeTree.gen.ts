@@ -23,6 +23,7 @@ import { Route as ApoiarRouteImport } from './routes/apoiar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PainelIndexRouteImport } from './routes/painel/index'
 import { Route as PainelSlugRouteImport } from './routes/painel/$slug'
+import { Route as PainelSlugAtoIdRouteImport } from './routes/painel/$slug/ato.$id'
 
 const Whitepaper03DeliberacoesEPrimeirosAchadosRoute =
   Whitepaper03DeliberacoesEPrimeirosAchadosRouteImport.update({
@@ -97,6 +98,11 @@ const PainelSlugRoute = PainelSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelSlugAtoIdRoute = PainelSlugAtoIdRouteImport.update({
+  id: '/ato/$id',
+  path: '/ato/$id',
+  getParentRoute: () => PainelSlugRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -111,8 +117,9 @@ export interface FileRoutesByFullPath {
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
-  '/painel/$slug': typeof PainelSlugRoute
+  '/painel/$slug': typeof PainelSlugRouteWithChildren
   '/painel/': typeof PainelIndexRoute
+  '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,8 +133,9 @@ export interface FileRoutesByTo {
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
-  '/painel/$slug': typeof PainelSlugRoute
+  '/painel/$slug': typeof PainelSlugRouteWithChildren
   '/painel': typeof PainelIndexRoute
+  '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,8 +151,9 @@ export interface FileRoutesById {
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
-  '/painel/$slug': typeof PainelSlugRoute
+  '/painel/$slug': typeof PainelSlugRouteWithChildren
   '/painel/': typeof PainelIndexRoute
+  '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -163,6 +172,7 @@ export interface FileRouteTypes {
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
     | '/painel/$slug'
     | '/painel/'
+    | '/painel/$slug/ato/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
     | '/painel/$slug'
     | '/painel'
+    | '/painel/$slug/ato/$id'
   id:
     | '__root__'
     | '/'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
     | '/painel/$slug'
     | '/painel/'
+    | '/painel/$slug/ato/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -311,16 +323,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelSlugRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/$slug/ato/$id': {
+      id: '/painel/$slug/ato/$id'
+      path: '/ato/$id'
+      fullPath: '/painel/$slug/ato/$id'
+      preLoaderRoute: typeof PainelSlugAtoIdRouteImport
+      parentRoute: typeof PainelSlugRoute
+    }
   }
 }
 
+interface PainelSlugRouteChildren {
+  PainelSlugAtoIdRoute: typeof PainelSlugAtoIdRoute
+}
+
+const PainelSlugRouteChildren: PainelSlugRouteChildren = {
+  PainelSlugAtoIdRoute: PainelSlugAtoIdRoute,
+}
+
+const PainelSlugRouteWithChildren = PainelSlugRoute._addFileChildren(
+  PainelSlugRouteChildren,
+)
+
 interface PainelRouteChildren {
-  PainelSlugRoute: typeof PainelSlugRoute
+  PainelSlugRoute: typeof PainelSlugRouteWithChildren
   PainelIndexRoute: typeof PainelIndexRoute
 }
 
 const PainelRouteChildren: PainelRouteChildren = {
-  PainelSlugRoute: PainelSlugRoute,
+  PainelSlugRoute: PainelSlugRouteWithChildren,
   PainelIndexRoute: PainelIndexRoute,
 }
 
@@ -345,12 +376,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { fetchPainelAto, type PainelAto } from "../../../lib/api-auth";
-import { supabase } from "../../../lib/supabase";
 import { ExternalLink, ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/painel/$slug/ato/$id" as any)({
+export const Route = createFileRoute("/painel/$slug/ato/$id")({
   component: AtoDetailPage,
 });
 
@@ -60,20 +59,14 @@ function Section({
 }
 
 function AtoDetailPage() {
-  const { slug, id } = Route.useParams() as { slug: string; id: string };
+  const { slug, id } = Route.useParams();
   const [ato, setAto] = useState<PainelAto | null>(null);
-  const [plano, setPlano] = useState<string>("cidadão");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (cancelled) return;
-      if (session?.user?.user_metadata?.plano) {
-        setPlano(session.user.user_metadata.plano);
-      }
       try {
         const data = await fetchPainelAto(slug, id);
         if (!cancelled) setAto(data);
@@ -87,9 +80,8 @@ function AtoDetailPage() {
     return () => { cancelled = true; };
   }, [slug, id]);
 
-  const investigador = ["investigador", "profissional", "api & dados"].includes(
-    plano.toLowerCase().trim(),
-  );
+  // Backend enforces plan gate — if resultado_sonnet or recomendacao_campanha is present, user is Investigador+
+  const investigador = ato !== null && (ato.resultado_sonnet !== null || ato.recomendacao_campanha !== null);
 
   if (loading) {
     return (
@@ -115,8 +107,8 @@ function AtoDetailPage() {
     <div className="flex-1 overflow-y-auto px-6 py-5 max-w-3xl space-y-6">
       {/* Back */}
       <Link
-        to={"/painel/$slug" as any}
-        params={{ slug } as any}
+        to="/painel/$slug"
+        params={{ slug }}
         className="inline-flex items-center gap-1.5 text-[12px] text-white/40 hover:text-white/70 transition-colors"
       >
         <ArrowLeft size={13} />
