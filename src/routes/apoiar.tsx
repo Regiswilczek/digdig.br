@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { fetchStats, PublicStats } from "../lib/api";
 
 export const Route = createFileRoute("/apoiar")({
   head: () => ({
@@ -53,6 +55,12 @@ const CAMPANHAS = [
   { slug: "camara-curitiba", nome: "Câmara de Curitiba", tipo: "Poder Legislativo Municipal — PR", votos: 18, status: "na_fila" as const },
 ];
 
+// ─── Helpers ──────────────────────────────────────────────
+function fmt(n: number | undefined | null, fallback = "…"): string {
+  if (n == null) return fallback;
+  return n.toLocaleString("pt-BR");
+}
+
 // ─── Nav ──────────────────────────────────────────────────
 function Nav() {
   return (
@@ -78,7 +86,12 @@ function Nav() {
 }
 
 // ─── Status bar ───────────────────────────────────────────
-function StatusBar() {
+function StatusBar({ stats }: { stats: PublicStats | null }) {
+  const analisados = stats?.total_analisados;
+  const total = stats?.total_atos;
+  const criticos = stats?.total_criticos;
+  const laranja = stats?.distribuicao.laranja;
+  const vermelho = stats?.distribuicao.vermelho;
   return (
     <div
       className="border-b border-white/[0.05] py-3.5 px-6 md:px-12 overflow-x-auto"
@@ -96,22 +109,22 @@ function StatusBar() {
         <span style={{ color: "rgba(255,255,255,0.40)" }}>CAU/PR</span>
         <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
         <span>
-          <span style={{ color: "rgba(255,255,255,0.70)" }}>228</span>
-          <span style={{ color: "rgba(255,255,255,0.28)" }}> / 543 documentos analisados</span>
+          <span style={{ color: "rgba(255,255,255,0.70)" }}>{fmt(analisados)}</span>
+          <span style={{ color: "rgba(255,255,255,0.28)" }}> / {fmt(total)} documentos analisados</span>
         </span>
         <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
         <span>
-          <span style={{ color: GOLD }}>61</span>
+          <span style={{ color: GOLD }}>{fmt(criticos)}</span>
           <span style={{ color: "rgba(255,255,255,0.28)" }}> alertas críticos detectados</span>
         </span>
         <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
         <span>
-          <span style={{ color: "#f97316" }}>56</span>
+          <span style={{ color: "#f97316" }}>{fmt(laranja)}</span>
           <span style={{ color: "rgba(255,255,255,0.28)" }}> laranja</span>
         </span>
         <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
         <span>
-          <span style={{ color: "#dc2626" }}>5</span>
+          <span style={{ color: "#dc2626" }}>{fmt(vermelho)}</span>
           <span style={{ color: "rgba(255,255,255,0.28)" }}> vermelho</span>
         </span>
       </div>
@@ -208,10 +221,13 @@ function PapersSidebar() {
 
 // ─── Page ─────────────────────────────────────────────────
 function ApoiarPage() {
+  const [stats, setStats] = useState<PublicStats | null>(null);
+  useEffect(() => { fetchStats("cau-pr").then(setStats).catch(() => {}); }, []);
+
   return (
     <div className="min-h-screen bg-[#07080f] text-white overflow-x-hidden" style={INTER}>
       <Nav />
-      <StatusBar />
+      <StatusBar stats={stats} />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 pb-28">
         <div className="flex gap-12 xl:gap-16 pt-14 md:pt-20">
@@ -246,9 +262,9 @@ function ApoiarPage() {
 
               <div className="flex flex-wrap gap-x-8 gap-y-4 mt-12 pt-10 border-t border-white/[0.06]">
                 {[
-                  { valor: "1.789", label: "documentos coletados" },
-                  { valor: "686", label: "analisados" },
-                  { valor: "61", label: "casos críticos" },
+                  { valor: fmt(stats?.total_atos), label: "documentos coletados" },
+                  { valor: fmt(stats?.total_analisados), label: "analisados" },
+                  { valor: fmt(stats?.total_criticos), label: "casos críticos" },
                   { valor: "R$ 0", label: "para começar" },
                 ].map((s) => (
                   <div key={s.label}>
@@ -535,9 +551,9 @@ function ApoiarPage() {
               </h2>
               <div className="flex flex-wrap gap-x-8 gap-y-4 pt-6 border-t border-white/[0.05] mb-8">
                 {[
-                  { v: "$4,45", l: "gasto na rodada atual" },
-                  { v: "228", l: "documentos analisados" },
-                  { v: "~$0,02", l: "custo por documento" },
+                  { v: fmt(stats?.total_atos), l: "documentos coletados" },
+                  { v: fmt(stats?.total_analisados), l: "documentos analisados" },
+                  { v: fmt(stats?.total_criticos), l: "casos críticos" },
                   { v: "R$ 0", l: "para acessar os dados" },
                 ].map((s) => (
                   <div key={s.l}>

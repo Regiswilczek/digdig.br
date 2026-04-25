@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, ChevronRight, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { fetchStats, PublicStats } from "../lib/api";
 
 export const Route = createFileRoute("/solucoes")({
   head: () => ({
@@ -25,6 +27,11 @@ const MONO: React.CSSProperties = {
 };
 
 const GOLD = "#F0C81E";
+
+function fmt(n: number | undefined | null, fallback = "…"): string {
+  if (n == null) return fallback;
+  return n.toLocaleString("pt-BR");
+}
 
 // ─── Types ────────────────────────────────────────────────
 type Solucao = {
@@ -150,7 +157,13 @@ function Nav() {
 }
 
 // ─── Status bar ───────────────────────────────────────────
-function StatusBar() {
+function StatusBar({ stats }: { stats: PublicStats | null }) {
+  const portAnalisadas = stats?.por_tipo.portaria.analisados;
+  const portTotal = stats?.por_tipo.portaria.total;
+  const delibAnalisadas = stats?.por_tipo.deliberacao.analisados;
+  const delibTotal = stats?.por_tipo.deliberacao.total;
+  const criticos = stats?.total_criticos;
+  const laranja = stats?.distribuicao.laranja;
   return (
     <div
       className="border-b border-white/[0.05] py-3.5 px-6 md:px-12 overflow-x-auto"
@@ -168,13 +181,23 @@ function StatusBar() {
         <span style={{ color: "rgba(255,255,255,0.40)" }}>CAU/PR</span>
         <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
         <span>
-          <span style={{ color: "rgba(255,255,255,0.70)" }}>262</span>
-          <span style={{ color: "rgba(255,255,255,0.28)" }}> / 400 portarias analisadas</span>
+          <span style={{ color: "rgba(255,255,255,0.70)" }}>{fmt(portAnalisadas)}</span>
+          <span style={{ color: "rgba(255,255,255,0.28)" }}> / {fmt(portTotal)} documentos analisados</span>
         </span>
         <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
         <span>
-          <span style={{ color: GOLD }}>1</span>
-          <span style={{ color: "rgba(255,255,255,0.28)" }}> alerta laranja detectado</span>
+          <span style={{ color: "rgba(255,255,255,0.70)" }}>{fmt(delibAnalisadas)}</span>
+          <span style={{ color: "rgba(255,255,255,0.28)" }}> / {fmt(delibTotal)} deliberações</span>
+        </span>
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span>
+          <span style={{ color: GOLD }}>{fmt(criticos)}</span>
+          <span style={{ color: "rgba(255,255,255,0.28)" }}> críticos</span>
+        </span>
+        <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
+        <span>
+          <span style={{ color: "#f97316" }}>{fmt(laranja)}</span>
+          <span style={{ color: "rgba(255,255,255,0.28)" }}> laranja</span>
         </span>
       </div>
     </div>
@@ -368,10 +391,13 @@ function SolucoesPage() {
     },
   ];
 
+  const [stats, setStats] = useState<PublicStats | null>(null);
+  useEffect(() => { fetchStats("cau-pr").then(setStats).catch(() => {}); }, []);
+
   return (
     <div className="min-h-screen bg-[#07080f] text-white overflow-x-hidden" style={INTER}>
       <Nav />
-      <StatusBar />
+      <StatusBar stats={stats} />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 pb-28">
         <div className="flex gap-12 xl:gap-16 pt-14 md:pt-20">
@@ -407,9 +433,9 @@ function SolucoesPage() {
 
               <div className="flex flex-wrap gap-x-8 gap-y-4 mt-12 pt-10 border-t border-white/[0.06]">
                 {[
-                  { valor: "1.789", label: "atos coletados" },
-                  { valor: "262", label: "analisados" },
-                  { valor: "136", label: "ad referendum" },
+                  { valor: fmt(stats?.total_atos), label: "documentos coletados" },
+                  { valor: fmt(stats?.total_analisados), label: "analisados" },
+                  { valor: fmt(stats?.total_criticos), label: "casos críticos" },
                   { valor: "R$ 0", label: "para começar" },
                 ].map((s) => (
                   <div key={s.label}>
@@ -488,25 +514,25 @@ function SolucoesPage() {
                     n: "01",
                     titulo: "Coleta",
                     texto: "O sistema de coleta baixa 100% dos atos do site oficial. PDFs ficam armazenados — nada se perde quando a gestão muda o site.",
-                    detalhe: "1.789 atos coletados no CAU/PR",
+                    detalhe: `${fmt(stats?.total_atos)} documentos coletados no CAU/PR`,
                   },
                   {
                     n: "02",
                     titulo: "Extração de texto",
                     texto: "Nossa tecnologia de extração processa o texto nativo dos PDFs. Para documentos escaneados, a leitura de documentos escaneados garante cobertura total.",
-                    detalhe: "400 portarias com texto extraído",
+                    detalhe: `${fmt(stats?.por_tipo.portaria.total)} documentos com texto extraído`,
                   },
                   {
                     n: "03",
                     titulo: "Triagem — Haiku 4.5",
                     texto: "Cada ato recebe nível de alerta: verde / amarelo / laranja / vermelho. Baixo custo, escala milhar de atos por hora.",
-                    detalhe: "136 ad referendum sinalizados (7,6% do total)",
+                    detalhe: `${fmt(stats?.total_analisados)} documentos triados — ${fmt(stats?.total_criticos)} casos críticos`,
                   },
                   {
                     n: "04",
                     titulo: "Análise — Sonnet 4.6",
                     texto: "Atos críticos viram fichas com violação de regimento, citação direta e sugestão de questionamento público.",
-                    detalhe: "32 prorrogações de comissão processante aprofundadas",
+                    detalhe: `${fmt(stats?.distribuicao.vermelho)} vermelhos com fichas de denúncia geradas`,
                   },
                 ].map((e) => (
                   <li key={e.n} className="bg-[#07080f] p-6 flex flex-col gap-3">
@@ -657,11 +683,11 @@ function SolucoesPage() {
               </h2>
               <div className="flex flex-wrap gap-x-8 gap-y-5 pt-6 border-t border-white/[0.05] mb-8">
                 {[
-                  { v: "1.789", l: "atos analisados" },
-                  { v: "136", l: "ad referendum" },
-                  { v: "32", l: "prorrogações suspeitas" },
-                  { v: "154", l: "nomeações comissionadas" },
-                  { v: "7,6%", l: "ratio ad referendum" },
+                  { v: fmt(stats?.total_atos), l: "documentos coletados" },
+                  { v: fmt(stats?.total_analisados), l: "analisados" },
+                  { v: fmt(stats?.total_criticos), l: "casos críticos" },
+                  { v: fmt(stats?.distribuicao.laranja), l: "laranja" },
+                  { v: fmt(stats?.distribuicao.vermelho), l: "vermelho" },
                 ].map((s) => (
                   <div key={s.l}>
                     <p className="text-[1.3rem] font-bold text-white leading-none mb-1" style={MONO}>{s.v}</p>
@@ -677,10 +703,10 @@ function SolucoesPage() {
                       Alerta de padrão — CAU/PR (2020–2026)
                     </p>
                     <p className="text-[13px] text-white/68 leading-relaxed" style={INTER}>
-                      <strong className="text-white/88">136 atos Ad Referendum</strong> em 5 anos —
-                      indício de concentração de poder na presidência sem deliberação plenária.{" "}
-                      <strong className="text-white/88">32 prorrogações de comissões processantes</strong> —
-                      possível uso do instrumento disciplinar com finalidade política.
+                      <strong className="text-white/88">{fmt(stats?.total_criticos)} casos críticos</strong> detectados —
+                      indício de irregularidades legais e morais em atos administrativos do CAU/PR.{" "}
+                      <strong className="text-white/88">{fmt(stats?.distribuicao.vermelho)} vermelhos</strong> com
+                      possível violação direta do regimento interno — fichas de denúncia em geração.
                     </p>
                   </div>
                 </div>
