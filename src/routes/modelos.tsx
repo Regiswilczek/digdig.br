@@ -104,7 +104,7 @@ const MODELOS: Modelo[] = [
 
 function ModelosPage() {
   return (
-    <div style={{ ...INTER, background: "#fff", color: TEXT, minHeight: "100vh" }}>
+    <div style={{ ...INTER, background: "#fff", color: TEXT, minHeight: "100vh", overflowX: "hidden" }}>
       {/* ─── Hero with terrain background ─────────────────────────────── */}
       <header
         className="relative overflow-hidden"
@@ -137,7 +137,7 @@ function ModelosPage() {
         />
 
         {/* Nav */}
-        <nav className="relative z-20" style={{ padding: "0 32px" }}>
+        <nav className="relative z-20 px-6 md:px-8">
           <div
             style={{
               maxWidth: 1100,
@@ -168,11 +168,10 @@ function ModelosPage() {
 
         {/* Hero copy */}
         <div
-          className="relative z-20"
+          className="relative z-20 px-6 md:px-8 pt-20 md:pt-[120px] pb-16 md:pb-20"
           style={{
             maxWidth: 1100,
             margin: "0 auto",
-            padding: "120px 32px 80px",
           }}
         >
           <p
