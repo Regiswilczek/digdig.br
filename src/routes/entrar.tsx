@@ -563,6 +563,12 @@ function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
                 : "Crie sua conta gratuita e comece a investigar atos públicos."}
             </p>
 
+            <p className="text-[12px] text-white/35 leading-relaxed mb-8">
+              A comunidade Dig Dig já analisou mais de{" "}
+              <span className="text-white/70 font-semibold">1.300 atos administrativos</span>.
+              <br />Junte-se à escavação.
+            </p>
+
             <div className="flex items-center border border-white/10 bg-white/[0.02] mb-6 p-0.5">
               <button
                 type="button"

@@ -439,7 +439,7 @@ function DesktopHero({ stats, loading }: { stats: PublicStats | null; loading: b
         </h1>
 
         <p className="text-white/38 leading-relaxed" style={{ fontSize: "clamp(0.78rem, 1.1vw, 0.90rem)", maxWidth: 340 }}>
-          Analisamos milhares de documentos oficiais com IA.
+          Devolvemos o controle aos cidadãos, traduzindo milhares de documentos oficiais com IA.
           <br />Indícios aparecem. Você decide o que fazer.
         </p>
 
@@ -450,6 +450,13 @@ function DesktopHero({ stats, loading }: { stats: PublicStats | null; loading: b
         >
           EXPLORAR AUDITORIA
         </a>
+        <Link
+          to="/apoiar"
+          style={{ ...SYNE, letterSpacing: "0.16em" }}
+          className="self-start text-white/45 text-[10px] uppercase hover:text-white/70 transition-colors"
+        >
+          Entenda nosso propósito →
+        </Link>
       </div>
 
       <div className="mb-1">
@@ -498,7 +505,7 @@ function MobileHero({ stats, loading }: { stats: PublicStats | null; loading: bo
       </h1>
 
       <p className="text-white/45 text-[13.5px] leading-relaxed max-w-[300px]">
-        Analisamos documentos públicos com IA.
+        Devolvemos o controle aos cidadãos, traduzindo documentos públicos com IA.
         <br />Indícios aparecem. Você age.
       </p>
 
@@ -514,6 +521,13 @@ function MobileHero({ stats, loading }: { stats: PublicStats | null; loading: bo
         EXPLORAR AUDITORIA
         <span aria-hidden className="text-[14px]">→</span>
       </a>
+      <Link
+        to="/apoiar"
+        style={{ ...SYNE, letterSpacing: "0.16em" }}
+        className="text-center text-white/40 text-[10px] uppercase hover:text-white/60 transition-colors"
+      >
+        Entenda nosso propósito →
+      </Link>
     </div>
   );
 }

@@ -106,16 +106,16 @@ const SOLUCOES: Solucao[] = [
       "Pode nominar qualquer órgão público",
       "Resultados públicos — sem paywall",
     ],
-    planoSugerido: "Cidadão — Grátis",
+    planoSugerido: "Acesso Livre — Grátis",
     cor: "#e8a87c",
   },
   {
     slug: "api",
     publico: "Empresas e redações",
-    titulo: "Dados estruturados de atos públicos via API REST.",
+    titulo: "Dados estruturados de atos públicos via API de dados.",
     dor: "Sua plataforma precisa de dados de atos públicos — raspar manualmente não escala.",
     beneficios: [
-      "10.000 chamadas/mês via API REST",
+      "10.000 chamadas/mês via API de dados",
       "Webhooks de novos atos e alertas",
       "5 assentos incluídos para a equipe",
       "SLA e suporte técnico dedicado",
@@ -328,7 +328,7 @@ function SolucoesPage() {
       texto: "Tudo em PDF, CSV ou JSON. Material pronto para a redação, petição inicial ou plenário.",
     },
     {
-      titulo: "API REST",
+      titulo: "API de dados",
       texto: "Plano API & Dados libera 10.000 chamadas/mês com webhooks de novos atos e alertas.",
     },
     {
@@ -388,9 +388,9 @@ function SolucoesPage() {
                 className="text-[2.4rem] md:text-[3.6rem] font-bold text-white leading-[1.03] tracking-[-0.03em] mb-9"
                 style={INTER}
               >
-                Uma escavadeira digital
-                <br />para os arquivos
-                <br /><span className="text-white/28">do poder público.</span>
+                A tecnologia a serviço
+                <br />da transparência:
+                <br /><span className="text-white/28">iluminando os arquivos do poder público.</span>
               </h1>
               <div className="space-y-4 text-[15px] md:text-[16px] text-white/70 leading-[1.80] max-w-xl" style={INTER}>
                 <p>
@@ -487,13 +487,13 @@ function SolucoesPage() {
                   {
                     n: "01",
                     titulo: "Coleta",
-                    texto: "Scraper baixa 100% dos atos do site oficial. PDFs ficam armazenados — nada se perde quando a gestão muda o site.",
+                    texto: "O sistema de coleta baixa 100% dos atos do site oficial. PDFs ficam armazenados — nada se perde quando a gestão muda o site.",
                     detalhe: "1.789 atos coletados no CAU/PR",
                   },
                   {
                     n: "02",
                     titulo: "Extração de texto",
-                    texto: "pdfplumber extrai o texto nativo dos PDFs. Para documentos escaneados, OCR via Tesseract garante cobertura total.",
+                    texto: "Nossa tecnologia de extração processa o texto nativo dos PDFs. Para documentos escaneados, a leitura de documentos escaneados garante cobertura total.",
                     detalhe: "400 portarias com texto extraído",
                   },
                   {
@@ -735,7 +735,7 @@ function SolucoesPage() {
                 </div>
               </div>
               <p className="mt-4 text-[11px] text-white/25" style={INTER}>
-                Plano Cidadão: 5 perguntas/mês · Investigador: 200/mês · Profissional: 1.000/mês
+                Acesso Livre: 5 perguntas/mês · Apoio Ativo: 200/mês · Apoio Institucional: 1.000/mês
               </p>
             </section>
 
@@ -779,6 +779,10 @@ function SolucoesPage() {
               <p className="text-[13px] text-white/48 leading-relaxed mb-6 max-w-lg" style={INTER}>
                 O acesso ao banco auditado é gratuito para qualquer cidadão. Os planos existem
                 para quem usa profissionalmente — volume de chat, exportações, API e alertas.
+              </p>
+
+              <p className="text-[9px] uppercase tracking-[0.24em] text-white/25 mb-6" style={{ fontFamily: "'Space Mono', monospace" }}>
+                Para cidadãos, jornalistas e profissionais de transparência
               </p>
 
               {/* Quick nav */}

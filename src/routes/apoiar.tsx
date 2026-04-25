@@ -49,7 +49,7 @@ type Campanha = {
 const PLANOS: Plano[] = [
   {
     id: "cidadao",
-    nome: "Cidadão",
+    nome: "Acesso Livre",
     preco: "R$ 0",
     periodo: "para sempre",
     publico: "Qualquer brasileiro",
@@ -61,11 +61,11 @@ const PLANOS: Plano[] = [
   },
   {
     id: "investigador",
-    nome: "Investigador",
+    nome: "Apoio Ativo",
     preco: "R$ 197",
     periodo: "/mês",
     publico: "Jornalistas, candidatos, assessores",
-    cta: "Assinar",
+    cta: "Apoiar",
     destaque: true,
     features: [
       "200 perguntas no chat por mês",
@@ -76,11 +76,11 @@ const PLANOS: Plano[] = [
   },
   {
     id: "profissional",
-    nome: "Profissional",
+    nome: "Apoio Institucional",
     preco: "R$ 597",
     periodo: "/mês",
     publico: "Escritórios jurídicos, assessorias",
-    cta: "Assinar",
+    cta: "Apoiar",
     features: [
       "1.000 perguntas no chat por mês",
       "Exportação CSV, JSON, PDF, HTML",
@@ -90,13 +90,13 @@ const PLANOS: Plano[] = [
   },
   {
     id: "api",
-    nome: "API & Dados",
+    nome: "Ferramentas Avançadas",
     preco: "R$ 1.997",
     periodo: "/mês",
     publico: "Veículos de imprensa, plataformas",
     cta: "Falar com a gente",
     features: [
-      "API REST + webhooks",
+      "API de dados + webhooks",
       "10.000 calls por mês",
       "5 assentos com permissões",
       "SLA e suporte direto",
@@ -596,7 +596,7 @@ function ApoiarPage() {
                 </a>
 
                 <p className="text-[11px] text-white/50 mt-4" style={INTER}>
-                  Mínimo R$ 25. Quem contribui pela primeira vez ganha 1 mês do plano Investigador.
+                  Mínimo R$ 25. Quem contribui pela primeira vez ganha 1 mês do nível Apoio Ativo.
                 </p>
               </div>
             </section>
@@ -629,10 +629,10 @@ function ApoiarPage() {
             <section className="mb-16 md:mb-20" id="planos">
               <div className="mb-6 pb-5 border-b border-white/[0.05]">
                 <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-1.5" style={MONO}>
-                  Licença comercial
+                  Ferramentas Avançadas para Profissionais
                 </p>
                 <h2 className="text-[1.15rem] font-bold text-white/65 mb-2" style={INTER}>
-                  Para uso profissional
+                  Níveis de Apoio
                 </h2>
                 <p className="text-[13px] text-white/35 leading-relaxed max-w-lg" style={INTER}>
                   O acesso ao banco auditado é gratuito para qualquer cidadão brasileiro. Os planos
@@ -648,6 +648,32 @@ function ApoiarPage() {
               <p className="mt-5 text-[11px] text-white/20 leading-relaxed" style={INTER}>
                 Cartão ou PIX · Sem fidelidade · Notas fiscais emitidas automaticamente.
               </p>
+
+              {/* Transparência financeira */}
+              <div className="mt-16 pt-10 border-t" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
+                <p className="text-[9px] uppercase tracking-[0.28em] text-white/25 mb-3" style={{ fontFamily: "'Space Mono', monospace" }}>
+                  Para onde vai o dinheiro
+                </p>
+                <h2 className="text-[1.3rem] font-bold mb-6" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.01em" }}>
+                  Radical transparência.
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { item: "Infraestrutura de IA", pct: "55%", desc: "API Anthropic — o custo de analisar cada ato" },
+                    { item: "Servidores & Hospedagem", pct: "25%", desc: "Railway, Supabase, Redis — o que mantém o sistema vivo" },
+                    { item: "Desenvolvimento", pct: "20%", desc: "Manutenção, novas instituições, melhorias contínuas" },
+                  ].map(({ item, pct, desc }) => (
+                    <div key={item} className="border p-4" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+                      <div className="text-[1.8rem] font-bold text-white mb-1" style={{ fontFamily: "'Syne', sans-serif" }}>{pct}</div>
+                      <div className="text-[11px] text-white/70 font-medium mb-1">{item}</div>
+                      <div className="text-[11px] text-white/35">{desc}</div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[12px] text-white/30 mt-5 leading-relaxed">
+                  O acesso básico sempre será gratuito. Contribuições de Apoio Ativo e Apoio Institucional financiam os servidores e permitem que o projeto continue expandindo para novas instituições.
+                </p>
+              </div>
             </section>
 
             {/* White Papers — mobile only */}
