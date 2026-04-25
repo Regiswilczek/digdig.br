@@ -9,14 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Whitepaper03DeliberacoesEPrimeirosAchadosRouteImport } from './routes/whitepaper-03-deliberacoes-e-primeiros-achados'
+import { Route as Whitepaper02CustoEControlRouteImport } from './routes/whitepaper-02-custo-e-controle'
 import { Route as Whitepaper01ExtracaoCauprRouteImport } from './routes/whitepaper-01-extracao-caupr'
 import { Route as SolucoesRouteImport } from './routes/solucoes'
 import { Route as ProdutoRouteImport } from './routes/produto'
 import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as PatrocineRouteImport } from './routes/patrocine'
+import { Route as ExplorarRouteImport } from './routes/explorar'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as ApoiarRouteImport } from './routes/apoiar'
 import { Route as IndexRouteImport } from './routes/index'
 
+const Whitepaper03DeliberacoesEPrimeirosAchadosRoute =
+  Whitepaper03DeliberacoesEPrimeirosAchadosRouteImport.update({
+    id: '/whitepaper-03-deliberacoes-e-primeiros-achados',
+    path: '/whitepaper-03-deliberacoes-e-primeiros-achados',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Whitepaper02CustoEControlRoute =
+  Whitepaper02CustoEControlRouteImport.update({
+    id: '/whitepaper-02-custo-e-controle',
+    path: '/whitepaper-02-custo-e-controle',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const Whitepaper01ExtracaoCauprRoute =
   Whitepaper01ExtracaoCauprRouteImport.update({
     id: '/whitepaper-01-extracao-caupr',
@@ -43,9 +59,19 @@ const PatrocineRoute = PatrocineRouteImport.update({
   path: '/patrocine',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExplorarRoute = ExplorarRouteImport.update({
+  id: '/explorar',
+  path: '/explorar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EntrarRoute = EntrarRouteImport.update({
   id: '/entrar',
   path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApoiarRoute = ApoiarRouteImport.update({
+  id: '/apoiar',
+  path: '/apoiar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -56,74 +82,116 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/apoiar': typeof ApoiarRoute
   '/entrar': typeof EntrarRoute
+  '/explorar': typeof ExplorarRoute
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
   '/solucoes': typeof SolucoesRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
+  '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControlRoute
+  '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/apoiar': typeof ApoiarRoute
   '/entrar': typeof EntrarRoute
+  '/explorar': typeof ExplorarRoute
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
   '/solucoes': typeof SolucoesRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
+  '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControlRoute
+  '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/apoiar': typeof ApoiarRoute
   '/entrar': typeof EntrarRoute
+  '/explorar': typeof ExplorarRoute
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
   '/solucoes': typeof SolucoesRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
+  '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControlRoute
+  '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/apoiar'
     | '/entrar'
+    | '/explorar'
     | '/patrocine'
     | '/precos'
     | '/produto'
     | '/solucoes'
     | '/whitepaper-01-extracao-caupr'
+    | '/whitepaper-02-custo-e-controle'
+    | '/whitepaper-03-deliberacoes-e-primeiros-achados'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/apoiar'
     | '/entrar'
+    | '/explorar'
     | '/patrocine'
     | '/precos'
     | '/produto'
     | '/solucoes'
     | '/whitepaper-01-extracao-caupr'
+    | '/whitepaper-02-custo-e-controle'
+    | '/whitepaper-03-deliberacoes-e-primeiros-achados'
   id:
     | '__root__'
     | '/'
+    | '/apoiar'
     | '/entrar'
+    | '/explorar'
     | '/patrocine'
     | '/precos'
     | '/produto'
     | '/solucoes'
     | '/whitepaper-01-extracao-caupr'
+    | '/whitepaper-02-custo-e-controle'
+    | '/whitepaper-03-deliberacoes-e-primeiros-achados'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApoiarRoute: typeof ApoiarRoute
   EntrarRoute: typeof EntrarRoute
+  ExplorarRoute: typeof ExplorarRoute
   PatrocineRoute: typeof PatrocineRoute
   PrecosRoute: typeof PrecosRoute
   ProdutoRoute: typeof ProdutoRoute
   SolucoesRoute: typeof SolucoesRoute
   Whitepaper01ExtracaoCauprRoute: typeof Whitepaper01ExtracaoCauprRoute
+  Whitepaper02CustoEControlRoute: typeof Whitepaper02CustoEControlRoute
+  Whitepaper03DeliberacoesEPrimeirosAchadosRoute: typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/whitepaper-03-deliberacoes-e-primeiros-achados': {
+      id: '/whitepaper-03-deliberacoes-e-primeiros-achados'
+      path: '/whitepaper-03-deliberacoes-e-primeiros-achados'
+      fullPath: '/whitepaper-03-deliberacoes-e-primeiros-achados'
+      preLoaderRoute: typeof Whitepaper03DeliberacoesEPrimeirosAchadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/whitepaper-02-custo-e-controle': {
+      id: '/whitepaper-02-custo-e-controle'
+      path: '/whitepaper-02-custo-e-controle'
+      fullPath: '/whitepaper-02-custo-e-controle'
+      preLoaderRoute: typeof Whitepaper02CustoEControlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/whitepaper-01-extracao-caupr': {
       id: '/whitepaper-01-extracao-caupr'
       path: '/whitepaper-01-extracao-caupr'
@@ -159,11 +227,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatrocineRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/explorar': {
+      id: '/explorar'
+      path: '/explorar'
+      fullPath: '/explorar'
+      preLoaderRoute: typeof ExplorarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/entrar': {
       id: '/entrar'
       path: '/entrar'
       fullPath: '/entrar'
       preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apoiar': {
+      id: '/apoiar'
+      path: '/apoiar'
+      fullPath: '/apoiar'
+      preLoaderRoute: typeof ApoiarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -178,12 +260,17 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApoiarRoute: ApoiarRoute,
   EntrarRoute: EntrarRoute,
+  ExplorarRoute: ExplorarRoute,
   PatrocineRoute: PatrocineRoute,
   PrecosRoute: PrecosRoute,
   ProdutoRoute: ProdutoRoute,
   SolucoesRoute: SolucoesRoute,
   Whitepaper01ExtracaoCauprRoute: Whitepaper01ExtracaoCauprRoute,
+  Whitepaper02CustoEControlRoute: Whitepaper02CustoEControlRoute,
+  Whitepaper03DeliberacoesEPrimeirosAchadosRoute:
+    Whitepaper03DeliberacoesEPrimeirosAchadosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
