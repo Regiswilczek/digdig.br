@@ -407,7 +407,7 @@ function Nav() {
 
 // ── Desktop hero ──────────────────────────────────────────────────────────────
 
-function DesktopHero() {
+function DesktopHero({ stats }: { stats: PublicStats | null }) {
   return (
     <main className="hidden md:flex relative z-20 flex-row items-end justify-between gap-8 px-14 pb-10">
       <div className="flex flex-col gap-[18px]">
@@ -456,7 +456,7 @@ function DesktopHero() {
 
 // ── Mobile hero ───────────────────────────────────────────────────────────────
 
-function MobileHero() {
+function MobileHero({ stats }: { stats: PublicStats | null }) {
   return (
     <div
       className="md:hidden relative z-20 flex flex-col px-5 pb-5 gap-5"
@@ -555,8 +555,8 @@ function HomePage() {
         style={{ height: "30%", background: "linear-gradient(to bottom, rgba(7,8,15,0.85) 0%, rgba(7,8,15,0) 100%)" }}
       />
 
-      <DesktopHero />
-      <MobileHero />
+      <DesktopHero stats={stats} />
+      <MobileHero stats={stats} />
     </div>
   );
 }
