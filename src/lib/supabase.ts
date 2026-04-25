@@ -5,16 +5,27 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as
   | string
   | undefined;
 
-// Do NOT throw at module load — that crashes every route that imports this file
-// (including SSR for `/painel`), turning the whole site into a 500.
-// Instead, export `null` when env vars are missing and let callers handle it.
-export const supabase: SupabaseClient | null =
+// A lazy stub used when env vars are missing. We intentionally do NOT throw at
+// module load — that would crash every route that imports this file (including
+// SSR for `/painel`, `/entrar`, etc.) and turn the whole site into a 500.
+// Instead, errors only fire when something actually tries to use Supabase.
+function createMissingEnvStub(): SupabaseClient {
+  const handler: ProxyHandler<object> = {
+    get() {
+      throw new Error(
+        "Supabase não está configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (ou ative Lovable Cloud).",
+      );
+    },
+  };
+  return new Proxy({}, handler) as unknown as SupabaseClient;
+}
+
+export const supabase: SupabaseClient =
   supabaseUrl && supabaseAnonKey
     ? createClient(supabaseUrl, supabaseAnonKey)
-    : null;
+    : createMissingEnvStub();
 
-if (!supabase && typeof window !== "undefined") {
-  // Client-side warning only; avoids noisy SSR logs on every request.
+if ((!supabaseUrl || !supabaseAnonKey) && typeof window !== "undefined") {
   console.warn(
     "[supabase] VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY not set — auth and painel features disabled.",
   );
