@@ -202,12 +202,17 @@ function useAuthForm() {
         });
         if (authError) throw authError;
       } else {
-        const { error: authError } = await supabase.auth.signUp({
+        const { data: signUpData, error: authError } = await supabase.auth.signUp({
           email,
           password,
           options: { data: { nome: name } },
         });
         if (authError) throw authError;
+        if (!signUpData.session) {
+          setSubmitting(false);
+          setError("Cadastro realizado! Verifique seu email para confirmar a conta.");
+          return;
+        }
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       navigate({ to: "/painel" as any });
