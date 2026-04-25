@@ -320,4 +320,3 @@ function BlogPage() {
   );
 }
 
-void BORDER_STRONG;
