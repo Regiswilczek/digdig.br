@@ -16,10 +16,12 @@ import { Route as SolucoesRouteImport } from './routes/solucoes'
 import { Route as ProdutoRouteImport } from './routes/produto'
 import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as PatrocineRouteImport } from './routes/patrocine'
+import { Route as PainelRouteImport } from './routes/painel'
 import { Route as ExplorarRouteImport } from './routes/explorar'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as ApoiarRouteImport } from './routes/apoiar'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PainelIndexRouteImport } from './routes/painel/index'
 
 const Whitepaper03DeliberacoesEPrimeirosAchadosRoute =
   Whitepaper03DeliberacoesEPrimeirosAchadosRouteImport.update({
@@ -59,6 +61,11 @@ const PatrocineRoute = PatrocineRouteImport.update({
   path: '/patrocine',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelRoute = PainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExplorarRoute = ExplorarRouteImport.update({
   id: '/explorar',
   path: '/explorar',
@@ -79,12 +86,18 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelIndexRoute = PainelIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PainelRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/apoiar': typeof ApoiarRoute
   '/entrar': typeof EntrarRoute
   '/explorar': typeof ExplorarRoute
+  '/painel': typeof PainelRouteWithChildren
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
@@ -92,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
+  '/painel/': typeof PainelIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -105,6 +119,7 @@ export interface FileRoutesByTo {
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
+  '/painel': typeof PainelIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -112,6 +127,7 @@ export interface FileRoutesById {
   '/apoiar': typeof ApoiarRoute
   '/entrar': typeof EntrarRoute
   '/explorar': typeof ExplorarRoute
+  '/painel': typeof PainelRouteWithChildren
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
@@ -119,6 +135,7 @@ export interface FileRoutesById {
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
+  '/painel/': typeof PainelIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,6 +144,7 @@ export interface FileRouteTypes {
     | '/apoiar'
     | '/entrar'
     | '/explorar'
+    | '/painel'
     | '/patrocine'
     | '/precos'
     | '/produto'
@@ -134,6 +152,7 @@ export interface FileRouteTypes {
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
+    | '/painel/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -147,12 +166,14 @@ export interface FileRouteTypes {
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
+    | '/painel'
   id:
     | '__root__'
     | '/'
     | '/apoiar'
     | '/entrar'
     | '/explorar'
+    | '/painel'
     | '/patrocine'
     | '/precos'
     | '/produto'
@@ -160,6 +181,7 @@ export interface FileRouteTypes {
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
+    | '/painel/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -167,6 +189,7 @@ export interface RootRouteChildren {
   ApoiarRoute: typeof ApoiarRoute
   EntrarRoute: typeof EntrarRoute
   ExplorarRoute: typeof ExplorarRoute
+  PainelRoute: typeof PainelRouteWithChildren
   PatrocineRoute: typeof PatrocineRoute
   PrecosRoute: typeof PrecosRoute
   ProdutoRoute: typeof ProdutoRoute
@@ -227,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatrocineRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel': {
+      id: '/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof PainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/explorar': {
       id: '/explorar'
       path: '/explorar'
@@ -255,14 +285,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel/': {
+      id: '/painel/'
+      path: '/'
+      fullPath: '/painel/'
+      preLoaderRoute: typeof PainelIndexRouteImport
+      parentRoute: typeof PainelRoute
+    }
   }
 }
+
+interface PainelRouteChildren {
+  PainelIndexRoute: typeof PainelIndexRoute
+}
+
+const PainelRouteChildren: PainelRouteChildren = {
+  PainelIndexRoute: PainelIndexRoute,
+}
+
+const PainelRouteWithChildren =
+  PainelRoute._addFileChildren(PainelRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApoiarRoute: ApoiarRoute,
   EntrarRoute: EntrarRoute,
   ExplorarRoute: ExplorarRoute,
+  PainelRoute: PainelRouteWithChildren,
   PatrocineRoute: PatrocineRoute,
   PrecosRoute: PrecosRoute,
   ProdutoRoute: ProdutoRoute,
