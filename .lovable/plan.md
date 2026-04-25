@@ -1,70 +1,63 @@
+## Problema
 
+O site publicado (`digdig.com.br`) está retornando **500 HTTPError** em todas as requisições. Os logs do worker confirmam isso:
 
-## Diagnóstico — o que está pesando
+```
+[2026-04-25T06:19:38Z] [error] {"status":500,"unhandled":true,"message":"HTTPError"}
+```
 
-Após revisar todas as rotas, identifiquei **3 causas reais** de lentidão e da tela branca depois de algum tempo. Não é falta de code-splitting (TanStack já faz isso por rota automaticamente).
+E o console do preview mostra repetidamente:
 
-### 1. `ParticleField` na home — consumo absurdo de CPU/GPU (causa nº 1 da tela branca)
+```
+Expected `onLoad` listener to be a function, instead got a value of `string` type. onLoad string
+```
 
-`src/routes/index.tsx` desenha um canvas em `requestAnimationFrame` infinito:
-- Loop `for` percorrendo cada 4 pixels da tela inteira → em 1475×887 = **~81.000 iterações por frame**
-- Cada iteração faz `Math.sin × 3`, `Math.pow`, mix de cores e `ctx.fillRect`
-- Roda **60× por segundo, para sempre**, mesmo quando a aba está em segundo plano (em alguns navegadores)
-- Mesmo após navegar para `/produto`, se o usuário voltar via cache do roteador, o canvas reinicia
+## Causa raiz
 
-Sintoma: depois de minutos a aba fica sem responder, GPU satura, ventoinha liga e o navegador pode matar a renderização → tela branca.
+Em `src/routes/__root.tsx` (linhas 50–55), o `<link>` de carregamento assíncrono das fontes do Google passa `onLoad` como **string**:
 
-### 2. `backdrop-blur-sm` espalhado em dezenas de cards
+```tsx
+{
+  rel: "stylesheet",
+  href: "https://fonts.googleapis.com/css2?family=Syne...",
+  media: "print",
+  onLoad: "this.media='all'",   // ← string, não função
+} as any,
+```
 
-Toda página (`produto`, `precos`, `patrocine`, `solucoes`) usa `backdrop-blur-sm` em cards + gradientes radiais de fundo. Cada card vira uma camada composta na GPU. Em `/produto` há ~20 cards com blur empilhados sobre gradientes — re-blur a cada scroll.
+- No **dev** (Node SSR + hidratação no browser), o React 19 só loga um warning e segue.
+- Em **produção** (Cloudflare Worker SSR), o renderer do React 19 trata isso como erro fatal e responde **500** para a página inteira.
 
-### 3. Google Fonts bloqueante + `&display=swap` sem `preload`
+Esse é o truque clássico de "preload de fonte sem bloquear", mas em React precisa ser um pouco diferente: o atributo `onload="..."` (HTML) só funciona se for serializado como atributo HTML cru, não como prop React.
 
-`__root.tsx` carrega Syne + JetBrains Mono via `<link rel="stylesheet">` síncrono. Como adicionei `preconnect` no turno anterior, melhorou, mas o stylesheet ainda bloqueia o paint inicial.
+## Correção
 
----
+1. **Em `src/routes/__root.tsx`**, remover o objeto de link com `onLoad: "this.media='all'"` e substituir por uma versão simples que carrega as fontes normalmente:
 
-## Plano de correção
+   ```tsx
+   {
+     rel: "stylesheet",
+     href: "https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+   },
+   ```
 
-### A. Tornar o `ParticleField` barato e pausável (impacto maior)
+   Como `display=swap` já está na URL, o texto renderiza imediatamente com a fonte de fallback enquanto Syne/Inter carregam — o efeito de "non-blocking" é preservado pelo navegador sem precisar do truque `media=print` + `onload`.
 
-1. **Cap em 30 fps** (não 60) — corta consumo pela metade sem perda visual perceptível em padrão lento.
-2. **Aumentar `STEP` de 4 → 6** em telas grandes — reduz iterações por frame em ~55%.
-3. **Pausar quando aba não está visível**: ouvir `document.visibilitychange` e cancelar o RAF quando `hidden`.
-4. **Pausar quando o canvas sai do viewport**: `IntersectionObserver` — se o usuário scrollar para fora, não anima.
-5. **Respeitar `prefers-reduced-motion`**: desenhar 1 frame estático e parar.
-6. **Usar `OffscreenCanvas` quando suportado** (opcional, baixa prioridade).
+2. (Opcional, recomendado) **Verificar se há outros `onLoad`/`onError` como string** em rotas (head links, scripts) e converter para forma segura:
 
-### B. Reduzir `backdrop-blur` em `/produto`, `/precos`, `/patrocine`, `/solucoes`
+   ```bash
+   rg -n 'onLoad:\s*"|onError:\s*"' src/
+   ```
 
-Trocar `backdrop-blur-sm` por **fundo sólido** (`bg-[#0d0f1a]/90` ou similar). Visualmente quase idêntico em fundo escuro, mas elimina a camada composta. Manter blur apenas em **1-2 elementos hero** se desejado.
-
-### C. Otimizar carregamento de fontes
-
-- Adicionar `&text=` subset? Não — fontes são usadas em todo lugar.
-- Mudar `<link rel="stylesheet">` para `media="print" onload="this.media='all'"` (carrega async, não bloqueia paint).
-- Manter os `preconnect` que já estão lá.
-
-### D. Limpeza geral
-
-- Remover gradientes radiais sobrepostos em `/precos` e `/patrocine` (são 2-3 camadas absolutas com `radial-gradient` cobrindo a tela inteira — re-pintadas em scroll).
-- Garantir que listas grandes usem `key` estável (já estão ok).
-
----
-
-## Arquivos a editar
-
-- `src/routes/index.tsx` — refatorar `ParticleField` (itens A1-A5)
-- `src/routes/produto.tsx` — remover `backdrop-blur-sm` dos ~20 cards
-- `src/routes/precos.tsx` — remover `backdrop-blur-sm` + simplificar fundo radial
-- `src/routes/patrocine.tsx` — mesmo tratamento
-- `src/routes/solucoes.tsx` — mesmo tratamento
-- `src/routes/__root.tsx` — carregamento async das fontes
+3. Republicar o site.
 
 ## Resultado esperado
 
-- CPU em idle na home cai de ~40-60% para <10%
-- Sem mais tela branca após tempo ocioso
-- First paint das páginas internas ~150-300ms mais rápido
-- Scroll suave em todas as páginas
+- `digdig.com.br` volta a renderizar normalmente (sem 500).
+- O warning repetido no console (`onLoad string`) desaparece.
+- Possivelmente também resolve o erro de hidratação observado em `/solucoes` (a árvore React era abortada antes de completar a hidratação por causa do mesmo prop inválido no `<head>`).
 
+## Não está no escopo desta correção
+
+- O erro `Failed to fetch` em `/public/orgaos/cau-pr/stats` (CORS/rede do Railway) — é independente e a página renderiza mesmo sem stats.
+- A página `/whitepaper-01-extracao-caupr` que você pediu antes — já existe.
