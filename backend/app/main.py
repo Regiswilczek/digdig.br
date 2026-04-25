@@ -6,6 +6,7 @@ from app.routers import health, webhooks
 from app.routers.admin import router as admin_router
 from app.routers.honeypot import router as honeypot_router
 from app.routers.public import router as public_router
+from app.routers.painel import router as painel_router
 
 
 def create_app() -> FastAPI:
@@ -36,6 +37,7 @@ def create_app() -> FastAPI:
     app.include_router(admin_router)
     app.include_router(honeypot_router)
     app.include_router(public_router)
+    app.include_router(painel_router)
 
     return app
 
