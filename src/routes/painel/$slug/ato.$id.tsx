@@ -67,22 +67,29 @@ function AtoDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let cancelled = false;
+    async function load() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled) return;
       if (session?.user?.user_metadata?.plano) {
         setPlano(session.user.user_metadata.plano);
       }
-    });
-
-    fetchPainelAto(slug, id)
-      .then(setAto)
-      .catch(() => setError("Não foi possível carregar o ato."))
-      .finally(() => setLoading(false));
+      try {
+        const data = await fetchPainelAto(slug, id);
+        if (!cancelled) setAto(data);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Não foi possível carregar o ato.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
   }, [slug, id]);
 
-  const investigador =
-    plano === "investigador" ||
-    plano === "profissional" ||
-    plano === "api & dados";
+  const investigador = ["investigador", "profissional", "api & dados"].includes(
+    plano.toLowerCase().trim(),
+  );
 
   if (loading) {
     return (
@@ -177,10 +184,10 @@ function AtoDetailPage() {
       )}
 
       {/* Pessoas identificadas — Investigador+ */}
-      <Section
-        title="Pessoas Identificadas [Investigador+]"
-        locked={!investigador || !pessoas.length}
-      >
+      <Section title="Pessoas Identificadas [Investigador+]" locked={!investigador}>
+        {investigador && pessoas.length === 0 && (
+          <p className="text-white/40">Nenhuma pessoa identificada neste ato.</p>
+        )}
         {investigador && pessoas.length > 0 && (
           <ul className="space-y-1">
             {pessoas.map((p, i) => (
