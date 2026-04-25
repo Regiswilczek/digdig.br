@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ParticleField } from "@/components/ParticleField";
 
 export const Route = createFileRoute("/modelos")({
   head: () => ({
@@ -9,7 +8,21 @@ export const Route = createFileRoute("/modelos")({
       {
         name: "description",
         content:
-          "Conheça os motores de inteligência do Dig Dig: Piper, Bud e Zew — especializados em auditoria de atos públicos brasileiros.",
+          "Os três motores de IA do Dig Dig: Piper (triagem), Bud (análise profunda) e Zew (investigação histórica).",
+      },
+      { property: "og:title", content: "Modelos — Dig Dig" },
+      {
+        property: "og:description",
+        content:
+          "Piper, Bud e Zew — os modelos do Dig Dig especializados em auditoria de atos públicos.",
+      },
+    ],
+    links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
       },
     ],
   }),
@@ -17,344 +30,385 @@ export const Route = createFileRoute("/modelos")({
 });
 
 const INTER: React.CSSProperties = {
-  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+};
+const TIGHT: React.CSSProperties = {
+  fontFamily: "'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif",
 };
 const MONO: React.CSSProperties = {
-  fontFamily: "'JetBrains Mono', 'IBM Plex Mono', 'Courier New', monospace",
+  fontFamily: "'JetBrains Mono', 'IBM Plex Mono', monospace",
 };
-const GOLD = "#F0C81E";
-const BG = "#07080f";
 
-type Benchmark = { label: string; value: string };
+const TEXT = "#0a0a0a";
+const MUTED = "#5a5a5a";
+const SUBTLE = "#9a9a9a";
+const BORDER = "rgba(0,0,0,0.08)";
 
 type Modelo = {
   id: string;
   nome: string;
-  badge: string;
-  badgeColor: string;
+  papel: string;
   tagline: string;
   descricao: string;
-  poder: string;
-  benchmarks: Benchmark[];
-  auditoria: string[];
-  posicionamento: string;
+  capacidades: string[];
   disponivel: boolean;
 };
 
 const MODELOS: Modelo[] = [
   {
     id: "piper",
-    nome: "Dig Dig Piper",
-    badge: "TRIAGEM",
-    badgeColor: "#4ade80",
+    nome: "Piper",
+    papel: "Triagem",
     tagline: "O que ninguém leria manualmente.",
     descricao:
-      "O Piper lê o que ninguém leria manualmente. Processa milhares de atos por hora, classifica cada um em verde, amarelo, laranja ou vermelho, extrai nomes, datas e vínculos — tudo antes que qualquer analista humano abra o primeiro PDF. É a base de toda investigação no Dig Dig.",
-    poder:
-      "Velocidade e escala sem precedentes para cobertura total de acervos públicos.",
-    benchmarks: [
-      { label: "MMLU", value: "73,5%" },
-      { label: "GPQA", value: "33,3%" },
-      { label: "Precisão estrutural", value: "75,9%" },
+      "Lê o acervo inteiro. Classifica cada ato em verde, amarelo, laranja ou vermelho, extrai nomes, datas e vínculos — tudo antes que qualquer analista humano abra o primeiro PDF.",
+    capacidades: [
+      "Classificação em 4 níveis de alerta",
+      "Extração de pessoas, datas e vínculos",
+      "Cobertura total — nenhum ato escapa",
+      "Milhares de documentos por sessão",
     ],
-    auditoria: [
-      "Classifica cada ato em 4 níveis de alerta",
-      "Extrai pessoas, datas e vínculos automaticamente",
-      "Garante cobertura total do acervo — nenhum ato escapa",
-      "Opera em escala de milhares de documentos por sessão",
-    ],
-    posicionamento:
-      "Disponível em todos os planos. O primeiro filtro que garante que nada passa em branco.",
     disponivel: true,
   },
   {
     id: "bud",
-    nome: "Dig Dig Bud",
-    badge: "ANÁLISE PROFUNDA",
-    badgeColor: "#f97316",
+    nome: "Bud",
+    papel: "Análise profunda",
     tagline: "A suspeita vira argumento.",
     descricao:
-      "O Bud é o analista que transforma um padrão irregular em argumento. Pega os casos marcados pelo Piper, lê o regimento interno, cita o artigo violado, descreve o padrão e sugere o questionamento público correto. A ficha que o Bud gera é o que um advogado levaria semanas para construir.",
-    poder:
-      "Raciocínio jurídico aplicado a documentos técnicos em linguagem pública e acionável.",
-    benchmarks: [
-      { label: "MMLU", value: "88,7%" },
-      { label: "GPQA", value: "59,4%" },
-      { label: "Raciocínio estruturado", value: "93,7%" },
+      "O analista que transforma um padrão irregular em argumento. Lê o regimento, cita o artigo violado, descreve o padrão e sugere o questionamento público correto.",
+    capacidades: [
+      "Fichas com citação direta do regimento",
+      "Identifica artigo violado e descreve padrão",
+      "Sugere o questionamento público",
+      "Suspeita vira evidência estruturada",
     ],
-    auditoria: [
-      "Gera fichas com citação direta do regimento interno",
-      "Identifica o artigo violado e descreve o padrão",
-      "Sugere o questionamento público correto",
-      "Transforma suspeita em evidência estruturada e acionável",
-    ],
-    posicionamento:
-      "Exclusivo para planos Investigador e superiores. Onde a investigação vira produto.",
     disponivel: true,
   },
   {
     id: "zew",
-    nome: "Dig Dig Zew",
-    badge: "EM BREVE",
-    badgeColor: GOLD,
+    nome: "Zew",
+    papel: "Investigação histórica",
     tagline: "Uma gestão inteira sob análise.",
     descricao:
-      "O Zew não analisa um ato — analisa uma gestão. Capaz de cruzar décadas de documentos, identificar padrões de comportamento que só aparecem ao longo do tempo: nepotismo acumulado, concentração progressiva de poder, perseguição sistemática disfarçada em portarias numeradas. O que o Piper e o Bud fazem ato por ato, o Zew faz sobre toda a história de uma instituição.",
-    poder:
-      "Investigação sistêmica e histórica — padrões que só existem em escala de anos.",
-    benchmarks: [
-      { label: "MMLU", value: "91,4%+" },
-      { label: "GPQA", value: "74,9%" },
-      { label: "Raciocínio estendido", value: "nativo" },
+      "Não analisa um ato — analisa uma gestão. Cruza décadas de documentos para identificar padrões que só aparecem ao longo do tempo: nepotismo acumulado, concentração de poder, perseguição sistemática.",
+    capacidades: [
+      "Cruzamento entre períodos distintos",
+      "Padrões longitudinais ao longo de anos",
+      "Comparação entre órgãos diferentes",
+      "Investigação de gestões completas",
     ],
-    auditoria: [
-      "Cruzamento de documentos de períodos distintos",
-      "Detecção de padrões longitudinais ao longo de anos",
-      "Análise comparativa entre órgãos diferentes",
-      "Investigação de gestões completas, não atos isolados",
-    ],
-    posicionamento:
-      "Em desenvolvimento. Será o motor de investigação histórica do Dig Dig.",
     disponivel: false,
   },
 ];
 
-function BadgeChip({ label, color }: { label: string; color: string }) {
-  return (
-    <span
-      style={{
-        ...MONO,
-        color,
-        border: `1px solid ${color}33`,
-        background: `${color}11`,
-      }}
-      className="inline-block text-[10px] tracking-widest uppercase px-3 py-1 rounded-sm"
-    >
-      {label}
-    </span>
-  );
-}
-
-function BenchmarkBar({ label, value }: Benchmark) {
-  return (
-    <div className="flex items-center justify-between py-3 border-b border-white/8">
-      <span className="text-[12px] text-white/50" style={INTER}>
-        {label}
-      </span>
-      <span
-        className="text-[13px] font-semibold"
-        style={{ ...MONO, color: GOLD }}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
-
-function NotifyForm() {
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email) return;
-    setSent(true);
-  }
-
-  if (sent) {
-    return (
-      <p className="text-[13px] mt-2" style={{ ...INTER, color: GOLD }}>
-        ✓ Avisaremos quando o Zew chegar.
-      </p>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="flex gap-2 mt-2">
-      <input
-        type="email"
-        required
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="seu@email.com"
-        className="flex-1 bg-white/5 border border-white/15 rounded-sm px-4 py-2 text-[13px] text-white placeholder:text-white/30 outline-none focus:border-white/30 transition-colors"
-        style={INTER}
-      />
-      <button
-        type="submit"
-        className="px-4 py-2 text-[12px] font-semibold uppercase tracking-wider rounded-sm transition-opacity hover:opacity-80"
-        style={{ ...MONO, background: GOLD, color: BG }}
-      >
-        Avisar
-      </button>
-    </form>
-  );
-}
-
-function ModeloSection({ modelo, index }: { modelo: Modelo; index: number }) {
-  const isZew = !modelo.disponivel;
-  const isEven = index % 2 === 0;
-
-  return (
-    <section
-      style={{
-        background: isZew
-          ? `linear-gradient(180deg, #0d0e1a 0%, ${BG} 100%)`
-          : BG,
-        borderTop: isZew
-          ? `1px solid ${GOLD}22`
-          : "1px solid rgba(255,255,255,0.06)",
-      }}
-      className="w-full py-24 px-6 md:px-14"
-    >
-      <div className="max-w-5xl mx-auto">
-        <div
-          className={`grid md:grid-cols-2 gap-16 items-start ${
-            !isEven ? "md:[&>*:first-child]:order-2" : ""
-          }`}
-        >
-          {/* Identidade */}
-          <div className="flex flex-col gap-6">
-            <BadgeChip label={modelo.badge} color={modelo.badgeColor} />
-
-            <div>
-              <h2
-                className="text-[2.2rem] md:text-[2.8rem] font-bold leading-tight text-white mb-3"
-                style={INTER}
-              >
-                {modelo.nome}
-              </h2>
-              <p
-                className="text-[1.05rem] font-medium"
-                style={{ ...INTER, color: modelo.badgeColor }}
-              >
-                {modelo.tagline}
-              </p>
-            </div>
-
-            <p
-              className="text-[15px] text-white/65 leading-relaxed"
-              style={INTER}
-            >
-              {modelo.descricao}
-            </p>
-
-            <p
-              className="text-[13px] text-white/40 leading-relaxed border-l-2 pl-4"
-              style={{ ...INTER, borderColor: modelo.badgeColor + "55" }}
-            >
-              {modelo.poder}
-            </p>
-
-            <p className="text-[12px] text-white/30 mt-1" style={INTER}>
-              {modelo.posicionamento}
-            </p>
-
-            {isZew && <NotifyForm />}
-          </div>
-
-          {/* Benchmarks + auditoria */}
-          <div className="flex flex-col gap-10">
-            <div>
-              <p
-                className="text-[10px] text-white/25 uppercase tracking-widest mb-4"
-                style={MONO}
-              >
-                Benchmarks
-              </p>
-              <div>
-                {modelo.benchmarks.map((b) => (
-                  <BenchmarkBar key={b.label} {...b} />
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p
-                className="text-[10px] text-white/25 uppercase tracking-widest mb-4"
-                style={MONO}
-              >
-                No contexto de auditoria pública
-              </p>
-              <ul className="flex flex-col gap-4">
-                {modelo.auditoria.map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <span
-                      style={{ color: modelo.badgeColor }}
-                      className="mt-[2px] shrink-0 text-[13px] font-bold"
-                    >
-                      →
-                    </span>
-                    <span
-                      className="text-[13px] text-white/55 leading-relaxed"
-                      style={INTER}
-                    >
-                      {item}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function ModelosPage() {
   return (
-    <div style={{ background: BG, minHeight: "100vh" }}>
-      {/* Hero */}
-      <section className="w-full pt-32 pb-24 px-6 md:px-14 border-b border-white/6">
-        <div className="max-w-5xl mx-auto">
-          <p
-            className="text-[10px] text-white/25 uppercase tracking-widest mb-6"
-            style={MONO}
+    <div style={{ ...INTER, background: "#fff", color: TEXT, minHeight: "100vh" }}>
+      {/* ─── Hero with terrain background ─────────────────────────────── */}
+      <header
+        className="relative overflow-hidden"
+        style={{
+          background: "#07080f",
+          minHeight: "min(560px, 70vh)",
+        }}
+      >
+        <ParticleField />
+
+        {/* Bottom fade for legibility */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0"
+          style={{
+            height: "70%",
+            background:
+              "linear-gradient(to top, rgba(7,8,15,0.92) 25%, rgba(7,8,15,0) 100%)",
+          }}
+        />
+        {/* Top fade for nav */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0"
+          style={{
+            height: "30%",
+            background:
+              "linear-gradient(to bottom, rgba(7,8,15,0.85) 0%, rgba(7,8,15,0) 100%)",
+          }}
+        />
+
+        {/* Nav */}
+        <nav className="relative z-20" style={{ padding: "0 32px" }}>
+          <div
+            style={{
+              maxWidth: 1100,
+              margin: "0 auto",
+              height: 64,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
           >
-            Tecnologia
+            <Link to="/" style={{ textDecoration: "none" }}>
+              <span style={{ ...TIGHT, fontWeight: 700, fontSize: 17, color: "#fff" }}>
+                Dig Dig
+              </span>
+            </Link>
+            <Link
+              to="/"
+              style={{
+                fontSize: 13,
+                color: "rgba(255,255,255,0.6)",
+                textDecoration: "none",
+              }}
+            >
+              ← Voltar
+            </Link>
+          </div>
+        </nav>
+
+        {/* Hero copy */}
+        <div
+          className="relative z-20"
+          style={{
+            maxWidth: 1100,
+            margin: "0 auto",
+            padding: "120px 32px 80px",
+          }}
+        >
+          <p
+            style={{
+              ...MONO,
+              fontSize: 11,
+              color: "rgba(255,255,255,0.55)",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              marginBottom: 24,
+            }}
+          >
+            Modelos
           </p>
           <h1
-            className="text-[3rem] md:text-[5rem] font-bold leading-none text-white mb-8"
-            style={INTER}
+            style={{
+              ...TIGHT,
+              fontSize: "clamp(40px, 6.5vw, 68px)",
+              fontWeight: 600,
+              lineHeight: 1.02,
+              letterSpacing: "-0.025em",
+              color: "#fff",
+              margin: "0 0 24px",
+              maxWidth: 820,
+            }}
           >
-            Os Modelos
-            <br />
-            <span style={{ color: GOLD }}>Dig Dig</span>
+            Três modelos.<br />
+            <span style={{ color: "rgba(255,255,255,0.55)" }}>
+              Um único pipeline de auditoria pública.
+            </span>
           </h1>
           <p
-            className="max-w-xl text-[16px] text-white/55 leading-relaxed"
-            style={INTER}
+            style={{
+              fontSize: 17,
+              color: "rgba(255,255,255,0.7)",
+              lineHeight: 1.55,
+              maxWidth: 600,
+              margin: 0,
+            }}
           >
-            Não são assistentes genéricos. São motores construídos para uma
-            tarefa específica — auditar atos administrativos públicos com
-            precisão jurídica, escala industrial e linguagem que qualquer
-            cidadão entende.
+            Cada modelo do Dig Dig é construído para um momento específico da
+            investigação — da triagem em escala à análise profunda de uma gestão inteira.
           </p>
         </div>
-      </section>
+      </header>
 
-      {/* Seções */}
-      {MODELOS.map((modelo, i) => (
-        <ModeloSection key={modelo.id} modelo={modelo} index={i} />
-      ))}
+      {/* ─── Models list ───────────────────────────────────────────────── */}
+      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px" }}>
+        <div style={{ borderTop: `1px solid ${BORDER}` }}>
+          {MODELOS.map((m) => (
+            <article
+              key={m.id}
+              style={{
+                borderBottom: `1px solid ${BORDER}`,
+                padding: "72px 0",
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 280px) minmax(0, 1fr)",
+                gap: "48px",
+                alignItems: "start",
+              }}
+              className="md:[grid-template-columns:280px_1fr] [grid-template-columns:1fr]"
+            >
+              {/* Left: name + role */}
+              <div>
+                <p
+                  style={{
+                    ...MONO,
+                    fontSize: 11,
+                    color: SUBTLE,
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                    marginBottom: 12,
+                  }}
+                >
+                  {m.papel}
+                  {!m.disponivel && (
+                    <span style={{ marginLeft: 8, color: SUBTLE }}>· em breve</span>
+                  )}
+                </p>
+                <h2
+                  style={{
+                    ...TIGHT,
+                    fontSize: 44,
+                    fontWeight: 600,
+                    color: m.disponivel ? TEXT : SUBTLE,
+                    margin: 0,
+                    letterSpacing: "-0.02em",
+                    lineHeight: 1,
+                  }}
+                >
+                  {m.nome}
+                </h2>
+              </div>
 
-      {/* Footer da página */}
-      <section className="w-full py-16 px-6 md:px-14 border-t border-white/6">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <p className="text-[13px] text-white/30" style={INTER}>
-            Cada modelo é especializado. Juntos, cobrem todo o ciclo de
-            investigação.
-          </p>
-          <a
-            href="/explorar"
-            className="inline-flex items-center gap-2 text-[13px] font-medium text-white/60 hover:text-white transition-colors"
-            style={INTER}
-          >
-            Ver atos auditados <ArrowRight className="h-4 w-4" />
-          </a>
+              {/* Right: content */}
+              <div style={{ maxWidth: 640 }}>
+                <p
+                  style={{
+                    ...TIGHT,
+                    fontSize: 22,
+                    fontWeight: 500,
+                    color: TEXT,
+                    lineHeight: 1.3,
+                    letterSpacing: "-0.01em",
+                    margin: "0 0 16px",
+                  }}
+                >
+                  {m.tagline}
+                </p>
+                <p
+                  style={{
+                    fontSize: 16,
+                    color: MUTED,
+                    lineHeight: 1.65,
+                    margin: "0 0 32px",
+                  }}
+                >
+                  {m.descricao}
+                </p>
+
+                <ul
+                  style={{
+                    listStyle: "none",
+                    padding: 0,
+                    margin: 0,
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "12px 32px",
+                  }}
+                >
+                  {m.capacidades.map((c) => (
+                    <li
+                      key={c}
+                      style={{
+                        fontSize: 14,
+                        color: MUTED,
+                        lineHeight: 1.5,
+                        paddingLeft: 16,
+                        position: "relative",
+                      }}
+                    >
+                      <span
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          top: 9,
+                          width: 4,
+                          height: 4,
+                          borderRadius: "50%",
+                          background: m.disponivel ? TEXT : SUBTLE,
+                        }}
+                      />
+                      {c}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          ))}
         </div>
-      </section>
+
+        {/* ─── Footer note ─────────────────────────────────────────────── */}
+        <section
+          style={{
+            padding: "80px 0 120px",
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              ...TIGHT,
+              fontSize: 24,
+              fontWeight: 500,
+              color: TEXT,
+              letterSpacing: "-0.01em",
+              margin: "0 0 16px",
+              maxWidth: 540,
+              marginInline: "auto",
+              lineHeight: 1.3,
+            }}
+          >
+            Os três rodam sobre a mesma base de dados pública.
+          </p>
+          <p
+            style={{
+              fontSize: 15,
+              color: MUTED,
+              lineHeight: 1.6,
+              maxWidth: 480,
+              margin: "0 auto 32px",
+            }}
+          >
+            Tudo que o Dig Dig encontra — fichas, análises, padrões — fica acessível.
+            Sem paywall no conteúdo.
+          </p>
+          <div
+            style={{
+              display: "inline-flex",
+              gap: 12,
+              flexWrap: "wrap",
+              justifyContent: "center",
+            }}
+          >
+            <Link
+              to="/explorar"
+              style={{
+                ...INTER,
+                fontSize: 14,
+                fontWeight: 500,
+                color: "#fff",
+                background: TEXT,
+                padding: "12px 24px",
+                borderRadius: 4,
+                textDecoration: "none",
+              }}
+            >
+              Explorar resultados
+            </Link>
+            <Link
+              to="/blog"
+              style={{
+                ...INTER,
+                fontSize: 14,
+                fontWeight: 500,
+                color: TEXT,
+                border: `1px solid ${BORDER}`,
+                padding: "12px 24px",
+                borderRadius: 4,
+                textDecoration: "none",
+              }}
+            >
+              Ler white papers
+            </Link>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
