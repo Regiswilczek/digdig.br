@@ -345,13 +345,13 @@ function ApoiarPage() {
             <h2
               style={{
                 ...TIGHT,
-                fontSize: 32,
                 fontWeight: 600,
                 color: TEXT,
                 margin: 0,
                 letterSpacing: "-0.02em",
                 lineHeight: 1.1,
               }}
+              className="text-[26px] md:text-[32px]"
             >
               Não temos investidor.
             </h2>
@@ -412,13 +412,13 @@ function ApoiarPage() {
                 <h3
                   style={{
                     ...TIGHT,
-                    fontSize: 36,
                     fontWeight: 600,
                     color: TEXT,
                     margin: 0,
                     letterSpacing: "-0.02em",
                     lineHeight: 1,
                   }}
+                  className="text-[30px] md:text-[36px]"
                 >
                   {p.nome}
                 </h3>
