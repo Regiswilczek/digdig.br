@@ -8,12 +8,13 @@ export async function fetchAuthed(
   const {
     data: { session },
   } = await supabase.auth.getSession();
+  if (!session) throw new Error("Sessão expirada. Faça login novamente.");
   return fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
       ...(options.headers ?? {}),
-      Authorization: `Bearer ${session?.access_token ?? ""}`,
+      Authorization: `Bearer ${session.access_token}`,
     },
   });
 }
@@ -46,7 +47,7 @@ export interface PainelAtosResponse {
 
 export interface PainelRodada {
   id: string;
-  status: string;
+  status: "pendente" | "em_progresso" | "concluida" | "cancelada";
   total_atos: number;
   atos_analisados_haiku: number;
   atos_analisados_sonnet: number;
