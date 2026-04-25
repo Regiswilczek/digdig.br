@@ -15,17 +15,14 @@ export const Route = createFileRoute("/apoiar")({
   component: ApoiarPage,
 });
 
-const INTER: React.CSSProperties = {
-  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-};
-
-const MONO: React.CSSProperties = {
-  fontFamily: "'JetBrains Mono', 'IBM Plex Mono', 'Courier New', monospace",
-};
-
+// ── Design tokens ─────────────────────────────────────────────────────────────
+const SYNE: React.CSSProperties = { fontFamily: "'Syne', system-ui, sans-serif", fontWeight: 800 };
+const MONO: React.CSSProperties = { fontFamily: "'Space Mono', 'Courier New', monospace" };
+const INTER: React.CSSProperties = { fontFamily: "'Inter', system-ui, sans-serif" };
 const GOLD = "#F0C81E";
+const BG = "#07080f";
 
-// ─── Types ────────────────────────────────────────────────
+// ── Data ──────────────────────────────────────────────────────────────────────
 type Plano = {
   id: string;
   nome: string;
@@ -37,15 +34,6 @@ type Plano = {
   features: string[];
 };
 
-type Campanha = {
-  slug: string;
-  nome: string;
-  tipo: string;
-  votos: number;
-  status: "concluida" | "em_analise" | "na_fila";
-};
-
-// ─── Data ─────────────────────────────────────────────────
 const PLANOS: Plano[] = [
   {
     id: "cidadao",
@@ -54,10 +42,7 @@ const PLANOS: Plano[] = [
     periodo: "para sempre",
     publico: "Qualquer brasileiro",
     cta: "Começar grátis",
-    features: [
-      "Leitura completa de todas as auditorias",
-      "5 perguntas no chat por mês",
-    ],
+    features: ["Leitura completa de todas as auditorias", "5 perguntas no chat por mês"],
   },
   {
     id: "investigador",
@@ -104,74 +89,57 @@ const PLANOS: Plano[] = [
   },
 ];
 
-const CAMPANHAS: Campanha[] = [
-  {
-    slug: "cau-pr",
-    nome: "CAU/PR",
-    tipo: "Conselho de Arquitetura e Urbanismo do Paraná",
-    votos: 142,
-    status: "em_analise",
-  },
-  {
-    slug: "prefeitura-curitiba",
-    nome: "Prefeitura de Curitiba",
-    tipo: "Poder Executivo Municipal — PR",
-    votos: 47,
-    status: "na_fila",
-  },
-  {
-    slug: "crm-pr",
-    nome: "CRM/PR",
-    tipo: "Conselho Regional de Medicina do Paraná",
-    votos: 23,
-    status: "na_fila",
-  },
-  {
-    slug: "camara-curitiba",
-    nome: "Câmara de Curitiba",
-    tipo: "Poder Legislativo Municipal — PR",
-    votos: 18,
-    status: "na_fila",
-  },
+const CAMPANHAS = [
+  { slug: "cau-pr", nome: "CAU/PR", tipo: "Conselho de Arquitetura e Urbanismo do Paraná", votos: 142, status: "em_analise" as const },
+  { slug: "prefeitura-curitiba", nome: "Prefeitura de Curitiba", tipo: "Poder Executivo Municipal — PR", votos: 47, status: "na_fila" as const },
+  { slug: "crm-pr", nome: "CRM/PR", tipo: "Conselho Regional de Medicina do Paraná", votos: 23, status: "na_fila" as const },
+  { slug: "camara-curitiba", nome: "Câmara de Curitiba", tipo: "Poder Legislativo Municipal — PR", votos: 18, status: "na_fila" as const },
 ];
 
-// ─── Nav ──────────────────────────────────────────────────
+const PAPERS = [
+  { n: "01", titulo: "Como Automatizamos a Auditoria do CAU/PR com IA", desc: "A origem do projeto, a arquitetura e os 7 problemas reais que tivemos que resolver.", to: "/whitepaper-01-extracao-caupr" as const, publicado: true },
+  { n: "02", titulo: "Quando a IA Custa Mais do Que Deveria", desc: "Como detectamos e corrigimos $20 em chamadas de API não rastreadas — 4 camadas de solução.", to: "/whitepaper-02-custo-e-controle" as const, publicado: true },
+  { n: "03", titulo: "Quando as Deliberações Falam Mais Alto", desc: "757 deliberações únicas, a descoberta da WP REST API e 41% de casos críticos nos primeiros achados.", to: "/whitepaper-03-deliberacoes-e-primeiros-achados" as const, publicado: true },
+];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[9px] uppercase tracking-[0.32em] mb-0" style={{ ...MONO, color: "rgba(255,255,255,0.22)" }}>
+      {children}
+    </p>
+  );
+}
+
+function Divider() {
+  return <div className="w-full border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }} />;
+}
+
+// ── Nav ───────────────────────────────────────────────────────────────────────
 function Nav() {
   return (
-    <nav
-      className="flex items-center justify-between px-6 md:px-12 py-5 border-b border-white/[0.06]"
-      style={INTER}
-    >
-      <Link
-        to="/"
-        className="text-white text-[12px] uppercase tracking-[0.2em] font-bold hover:opacity-55 transition"
-      >
+    <nav className="flex items-center justify-between px-6 md:px-12 py-5 border-b" style={{ ...INTER, borderColor: "rgba(255,255,255,0.06)" }}>
+      <Link to="/" className="text-white text-[12px] uppercase tracking-[0.2em] font-bold hover:opacity-55 transition" style={SYNE}>
         DIG DIG
       </Link>
       <div className="hidden md:flex items-center gap-8 text-[13px] text-white/30">
         <Link to="/solucoes" className="hover:text-white/70 transition">Soluções</Link>
         <Link to="/apoiar" className="text-white/65 font-medium">Apoiar</Link>
       </div>
-      <a href="/entrar" className="text-[12px] text-white/30 hover:text-white/65 transition">
+      <a href="/entrar" className="text-[12px] text-white/30 hover:text-white/65 transition" style={INTER}>
         Entrar
       </a>
     </nav>
   );
 }
 
-// ─── Status bar ───────────────────────────────────────────
+// ── Status bar ────────────────────────────────────────────────────────────────
 function StatusBar() {
   return (
-    <div
-      className="border-b border-white/[0.05] py-3.5 px-6 md:px-12 overflow-x-auto"
-      style={{ background: "rgba(255,255,255,0.018)" }}
-    >
+    <div className="border-b py-3.5 px-6 md:px-12 overflow-x-auto" style={{ background: "rgba(255,255,255,0.018)", borderColor: "rgba(255,255,255,0.05)" }}>
       <div className="flex items-center gap-5 text-[11px] whitespace-nowrap" style={MONO}>
         <span className="flex items-center gap-2">
-          <span
-            className="h-[6px] w-[6px] rounded-full flex-shrink-0"
-            style={{ background: "#4ade80", boxShadow: "0 0 6px #4ade80" }}
-          />
+          <span className="h-[6px] w-[6px] rounded-full flex-shrink-0 animate-pulse" style={{ background: "#4ade80", boxShadow: "0 0 6px #4ade80" }} />
           <span style={{ color: "rgba(255,255,255,0.50)" }}>PIPELINE ATIVO</span>
         </span>
         <span style={{ color: "rgba(255,255,255,0.18)" }}>·</span>
@@ -191,248 +159,73 @@ function StatusBar() {
   );
 }
 
-// ─── Papers sidebar ───────────────────────────────────────
+// ── Papers sidebar ────────────────────────────────────────────────────────────
 function PapersSidebar() {
-  const papers = [
-    {
-      n: "01",
-      titulo: "Como Automatizamos a Auditoria do CAU/PR com IA",
-      desc: "A origem do projeto, a arquitetura e os 7 problemas reais que tivemos que resolver.",
-      to: "/whitepaper-01-extracao-caupr" as const,
-      publicado: true,
-    },
-    {
-      n: "02",
-      titulo: "Quando a IA Custa Mais do Que Deveria",
-      desc: "Como detectamos e corrigimos $20 em chamadas de API não rastreadas — 4 camadas de solução.",
-      to: "/whitepaper-02-custo-e-controle" as const,
-      publicado: true,
-    },
-    {
-      n: "03",
-      titulo: "Quando as Deliberações Falam Mais Alto",
-      desc: "757 deliberações únicas, a descoberta da WP REST API e 41% de casos críticos nos primeiros achados.",
-      to: "/whitepaper-03-deliberacoes-e-primeiros-achados" as const,
-      publicado: true,
-    },
-  ];
-
   return (
     <aside className="hidden lg:block flex-shrink-0" style={{ width: "260px" }}>
       <div className="sticky" style={{ top: "32px" }}>
-        <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-4" style={MONO}>
-          White Papers
-        </p>
-        <div className="flex flex-col gap-3">
-          {papers.map((p) => (
-            <div
-              key={p.n}
-              className="border border-white/[0.06] p-5"
-              style={!p.publicado ? { borderColor: "rgba(255,255,255,0.03)" } : undefined}
-            >
-              <p
-                className="text-[9px] uppercase tracking-[0.16em] mb-2.5 flex items-center gap-2"
-                style={{ ...MONO, color: "rgba(255,255,255,0.20)" }}
-              >
+        <SectionLabel>White Papers</SectionLabel>
+        <Divider />
+        <div className="flex flex-col gap-0 mt-4">
+          {PAPERS.map((p) => (
+            <div key={p.n} className="border-b py-5" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+              <p className="text-[9px] uppercase tracking-[0.16em] mb-2" style={{ ...MONO, color: "rgba(255,255,255,0.18)" }}>
                 Nº {p.n}
-                {!p.publicado && (
-                  <span style={{ color: "rgba(255,255,255,0.14)" }}>— em breve</span>
-                )}
               </p>
-              <h4
-                className="text-[0.82rem] font-semibold leading-snug mb-2"
-                style={{
-                  ...INTER,
-                  color: p.publicado ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.25)",
-                }}
-              >
+              <h4 className="text-[0.82rem] font-semibold leading-snug mb-2" style={{ ...INTER, color: "rgba(255,255,255,0.65)" }}>
                 {p.titulo}
               </h4>
-              <p
-                className="text-[11px] leading-relaxed mb-3"
-                style={{
-                  ...INTER,
-                  color: p.publicado ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)",
-                }}
-              >
+              <p className="text-[11px] leading-relaxed mb-3" style={{ ...INTER, color: "rgba(255,255,255,0.28)" }}>
                 {p.desc}
               </p>
-              {p.publicado && p.to ? (
-                <Link
-                  to={p.to}
-                  className="text-[10px] font-semibold uppercase tracking-[0.14em] transition hover:opacity-80"
-                  style={{ ...INTER, color: "rgba(255,255,255,0.35)" }}
-                >
+              {p.publicado && p.to && (
+                <Link to={p.to} className="text-[10px] font-semibold uppercase tracking-[0.14em] transition hover:opacity-80" style={{ ...INTER, color: "rgba(255,255,255,0.35)" }}>
                   Ler →
                 </Link>
-              ) : (
-                <span
-                  className="text-[10px] uppercase tracking-[0.14em]"
-                  style={{ ...INTER, color: "rgba(255,255,255,0.16)" }}
-                >
-                  Em breve
-                </span>
               )}
             </div>
           ))}
         </div>
-        <p
-          className="mt-5 text-[11px] leading-relaxed"
-          style={{ ...INTER, color: "rgba(255,255,255,0.18)" }}
-        >
-          Registro técnico público sobre a construção do Dig Dig — metodologia, decisões e números reais.
+        <p className="mt-5 text-[11px] leading-relaxed" style={{ ...INTER, color: "rgba(255,255,255,0.18)" }}>
+          Registro técnico público — metodologia, decisões e números reais.
         </p>
       </div>
     </aside>
   );
 }
 
-// ─── Plan row ─────────────────────────────────────────────
-function PlanoRow({ plano }: { plano: Plano }) {
-  return (
-    <div
-      className="relative border-b border-white/[0.05] py-7"
-      style={{ paddingLeft: plano.destaque ? "20px" : "0" }}
-    >
-      {plano.destaque && (
-        <div className="absolute left-0 top-4 bottom-4" style={{ width: "2px", background: GOLD }} />
-      )}
-      <div className="flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
-        <div className="flex-shrink-0" style={{ minWidth: "190px" }}>
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-[1.15rem] font-semibold text-white/80" style={INTER}>
-              {plano.nome}
-            </span>
-            {plano.destaque && (
-              <span
-                className="text-[9px] font-semibold uppercase tracking-[0.18em] px-2 py-1"
-                style={{ ...INTER, color: GOLD, background: `${GOLD}18` }}
-              >
-                mais popular
-              </span>
-            )}
-          </div>
-          <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-[1.7rem] font-bold text-white leading-none" style={INTER}>
-              {plano.preco}
-            </span>
-            <span className="text-[12px] text-white/25 ml-1" style={INTER}>{plano.periodo}</span>
-          </div>
-          <p className="mt-1 text-[11px] text-white/22" style={INTER}>{plano.publico}</p>
-        </div>
-        <ul className="flex-1 grid sm:grid-cols-2 gap-x-5 gap-y-1.5">
-          {plano.features.map((f) => (
-            <li key={f} className="flex items-start gap-2 text-[13px] text-white/40 leading-relaxed" style={INTER}>
-              <span className="flex-shrink-0 text-white/15">—</span>
-              {f}
-            </li>
-          ))}
-        </ul>
-        <div className="flex-shrink-0">
-          <a
-            href="/cadastro"
-            className="inline-block text-[10px] font-semibold uppercase tracking-[0.18em] px-5 py-3 transition-opacity hover:opacity-75"
-            style={
-              plano.destaque
-                ? { ...INTER, background: GOLD, color: "#0a0a0a" }
-                : { ...INTER, border: "1px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.35)" }
-            }
-          >
-            {plano.cta}
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Campaign card ────────────────────────────────────────
-function CampanhaCard({ campanha }: { campanha: Campanha }) {
-  const statusConfig = {
-    concluida: { label: "Auditoria publicada", color: "#4ade80" },
-    em_analise: { label: "Em análise", color: GOLD },
-    na_fila: { label: "Na fila", color: "rgba(255,255,255,0.25)" },
-  }[campanha.status];
-
-  return (
-    <div className="border border-white/[0.06] p-5 flex flex-col gap-4">
-      <div>
-        <p className="text-[9px] uppercase tracking-[0.14em] text-white/20 mb-2" style={INTER}>
-          {campanha.tipo}
-        </p>
-        <h3 className="text-[0.95rem] font-semibold text-white/72" style={INTER}>
-          {campanha.nome}
-        </h3>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-[11px]" style={{ ...INTER, color: statusConfig.color }}>
-          <span
-            className="h-[5px] w-[5px] rounded-full flex-shrink-0"
-            style={{ background: statusConfig.color }}
-          />
-          {statusConfig.label}
-        </span>
-        <span className="text-[11px] text-white/28" style={MONO}>
-          {campanha.votos} votos
-        </span>
-      </div>
-
-      {campanha.status === "concluida" ? (
-        <Link
-          to="/"
-          className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50 hover:text-white/75 transition"
-          style={INTER}
-        >
-          Ver auditoria →
-        </Link>
-      ) : campanha.status === "em_analise" ? (
-        <span
-          className="text-[10px] font-medium uppercase tracking-[0.12em] text-white/40"
-          style={INTER}
-        >
-          Em andamento
-        </span>
-      ) : (
-        <button
-          className="text-[10px] font-medium uppercase tracking-[0.12em] px-4 py-2.5 border border-white/[0.10] text-white/42 hover:text-white/65 hover:border-white/20 transition w-full"
-          style={INTER}
-        >
-          ★ Votar
-        </button>
-      )}
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────
+// ── Page ──────────────────────────────────────────────────────────────────────
 function ApoiarPage() {
   return (
-    <div className="min-h-screen bg-[#07080f] text-white overflow-x-hidden" style={INTER}>
+    <div className="min-h-screen text-white overflow-x-hidden" style={{ background: BG, ...INTER }}>
       <Nav />
       <StatusBar />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 pb-28">
-        <div className="flex gap-12 xl:gap-16 pt-14 md:pt-20">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 pb-32">
+        <div className="flex gap-14 xl:gap-20 pt-16 md:pt-24">
 
-          {/* ─── Main ─── */}
+          {/* ── Main ── */}
           <main className="flex-1 min-w-0">
 
-            {/* Manifesto */}
-            <header className="pb-14 md:pb-18">
-              <p className="text-[9px] uppercase tracking-[0.32em] text-white/22 mb-7" style={MONO}>
+            {/* ── MANIFESTO ─────────────────────────────────────── */}
+            <header className="pb-0">
+              <p className="text-[9px] uppercase tracking-[0.36em] mb-10" style={{ ...MONO, color: "rgba(255,255,255,0.18)" }}>
                 NASCE O DIG DIG — ABRIL 2026
               </p>
+
               <h1
-                className="text-[2.4rem] md:text-[3.6rem] font-bold text-white leading-[1.03] tracking-[-0.03em] mb-9"
-                style={INTER}
+                className="font-bold text-white leading-[1.01] mb-12"
+                style={{ ...SYNE, fontSize: "clamp(2.6rem, 5.5vw, 4.8rem)", letterSpacing: "-0.03em" }}
               >
                 Centenas de documentos
                 <br />oficiais são publicados
-                <br />todo ano. Ninguém lê.
-                <br /><span className="text-white/28">Nós lemos.</span>
+                <br />todo ano.{" "}
+                <span style={{ color: "rgba(255,255,255,0.22)" }}>Ninguém lê.</span>
+                <br />
+                <span style={{ color: GOLD }}>Nós lemos.</span>
               </h1>
-              <div className="space-y-4 text-[15px] md:text-[16px] text-white/70 leading-[1.80] max-w-xl" style={INTER}>
+
+              <div className="space-y-5 max-w-xl" style={{ fontSize: "clamp(0.95rem, 1.4vw, 1.05rem)", color: "rgba(255,255,255,0.58)", lineHeight: 1.85 }}>
                 <p>
                   São portarias, deliberações e resoluções — dados públicos, pagos com dinheiro seu.
                   Estão enterrados em PDFs numerados, sem contexto, sem índice.
@@ -443,314 +236,432 @@ function ApoiarPage() {
                   Sinalizamos padrões. Não afirmamos crimes — mostramos o que encontramos,
                   e você decide o que fazer com isso.
                 </p>
-                <p>
+                <p style={{ color: "rgba(255,255,255,0.80)", fontStyle: "italic" }}>
                   É como se todo o Brasil se juntasse para auditar o próprio governo.
                   Uma escavadeira coletiva.
                 </p>
               </div>
+            </header>
 
-              {/* Stats */}
-              <div className="flex flex-wrap gap-x-8 gap-y-4 mt-12 pt-10 border-t border-white/[0.06]">
+            {/* ── STATS STRIP ───────────────────────────────────── */}
+            <div className="mt-16 mb-20">
+              <Divider />
+              <div className="grid grid-cols-2 md:grid-cols-4">
                 {[
-                  { valor: "1.789", label: "atos coletados" },
-                  { valor: "262", label: "já analisados" },
-                  { valor: "1", label: "laranja detectado" },
-                  { valor: "R$ 0", label: "para começar" },
-                ].map((s) => (
-                  <div key={s.label}>
-                    <p className="text-[1.5rem] font-bold text-white leading-none mb-1" style={MONO}>
+                  { valor: "1.789", label: "atos coletados", cor: "white" },
+                  { valor: "262", label: "já analisados", cor: "white" },
+                  { valor: "1", label: "laranja detectado", cor: GOLD },
+                  { valor: "R$ 0", label: "para começar", cor: "#4ade80" },
+                ].map((s, i) => (
+                  <div
+                    key={s.label}
+                    className="py-8 px-0 flex flex-col justify-between"
+                    style={{
+                      borderRight: i < 3 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                      paddingLeft: i === 0 ? 0 : "clamp(1rem, 3vw, 2.5rem)",
+                    }}
+                  >
+                    <span
+                      className="font-bold leading-none tabular-nums block mb-2"
+                      style={{ ...SYNE, fontSize: "clamp(2rem, 4vw, 3.2rem)", color: s.cor }}
+                    >
                       {s.valor}
-                    </p>
-                    <p className="text-[10px] text-white/45 uppercase tracking-[0.12em]" style={INTER}>
+                    </span>
+                    <span className="text-[10px] uppercase tracking-[0.18em]" style={{ ...MONO, color: "rgba(255,255,255,0.30)" }}>
                       {s.label}
-                    </p>
+                    </span>
                   </div>
                 ))}
               </div>
-            </header>
+              <Divider />
+            </div>
 
-            {/* Próximas auditorias */}
-            <section className="mb-16 md:mb-20" id="auditorias">
-              <div className="flex items-start justify-between mb-5 flex-wrap gap-3">
+            {/* ── PRÓXIMAS AUDITORIAS ───────────────────────────── */}
+            <section className="mb-24" id="auditorias">
+              <div className="flex items-end justify-between mb-8 gap-4 flex-wrap">
                 <div>
-                  <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-1.5" style={MONO}>
-                    Próximas auditorias
-                  </p>
-                  <h2 className="text-[1.15rem] font-bold text-white/85" style={INTER}>
-                    A comunidade vota. A equipe decide.
+                  <SectionLabel>Próximas auditorias</SectionLabel>
+                  <h2 className="text-[1.9rem] font-bold text-white mt-2 leading-tight" style={{ ...SYNE, letterSpacing: "-0.02em" }}>
+                    A comunidade vota.<br />A equipe decide.
                   </h2>
                 </div>
                 <button
-                  className="text-[10px] uppercase tracking-[0.14em] px-4 py-2.5 border border-white/[0.07] text-white/28 hover:text-white/55 hover:border-white/14 transition flex-shrink-0"
-                  style={INTER}
+                  className="text-[10px] uppercase tracking-[0.16em] px-5 py-3 border transition flex-shrink-0 hover:border-white/20 hover:text-white/60"
+                  style={{ ...MONO, borderColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.28)" }}
                 >
                   + Nominar órgão
                 </button>
               </div>
 
-              <p className="text-[13px] text-white/58 leading-relaxed mb-6 max-w-lg" style={INTER}>
+              <p className="text-[14px] leading-relaxed mb-8 max-w-lg" style={{ color: "rgba(255,255,255,0.45)" }}>
                 Os órgãos mais votados ficam no topo da fila. A equipe seleciona os próximos
                 conforme a capacidade técnica e o tamanho do acervo — cada casa de poder
                 é diferente, e não vamos assumir uma que não conseguimos escavar bem ainda.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {CAMPANHAS.map((c) => (
-                  <CampanhaCard key={c.slug} campanha={c} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-px" style={{ background: "rgba(255,255,255,0.05)" }}>
+                {CAMPANHAS.map((c) => {
+                  const statusConfig = {
+                    concluida: { label: "Auditoria publicada", color: "#4ade80" },
+                    em_analise: { label: "Em análise", color: GOLD },
+                    na_fila: { label: "Na fila", color: "rgba(255,255,255,0.22)" },
+                  }[c.status];
+                  return (
+                    <div key={c.slug} className="p-6 flex flex-col gap-5" style={{ background: BG }}>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.14em] mb-2" style={{ ...MONO, color: "rgba(255,255,255,0.18)" }}>
+                          {c.tipo}
+                        </p>
+                        <h3 className="text-[1.05rem] font-bold" style={{ ...SYNE, color: "rgba(255,255,255,0.80)", letterSpacing: "-0.01em" }}>
+                          {c.nome}
+                        </h3>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-2 text-[11px]" style={{ ...INTER, color: statusConfig.color }}>
+                          <span className="h-[5px] w-[5px] rounded-full flex-shrink-0" style={{ background: statusConfig.color }} />
+                          {statusConfig.label}
+                        </span>
+                        <span className="text-[11px]" style={{ ...MONO, color: "rgba(255,255,255,0.25)" }}>
+                          {c.votos} votos
+                        </span>
+                      </div>
+                      {c.status === "na_fila" && (
+                        <button
+                          className="text-[10px] font-medium uppercase tracking-[0.14em] px-4 py-3 border text-center transition hover:border-white/20 hover:text-white/55 w-full"
+                          style={{ ...MONO, borderColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.32)" }}
+                        >
+                          ★ Votar
+                        </button>
+                      )}
+                      {c.status === "em_analise" && (
+                        <span className="text-[10px] uppercase tracking-[0.14em]" style={{ ...MONO, color: GOLD }}>
+                          Em andamento →
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* ── COMO FUNCIONA ─────────────────────────────────── */}
+            <section className="mb-24">
+              <SectionLabel>Como funciona</SectionLabel>
+              <Divider />
+              <div className="mt-0">
+                {[
+                  { n: "01", titulo: "Votar", texto: "A comunidade nomina órgãos e distribui votos. Cada usuário tem 3 votos gratuitos por mês." },
+                  { n: "02", titulo: "Decidir", texto: "A equipe seleciona os próximos conforme capacidade real. Sem prometer o que não pode entregar ainda." },
+                  { n: "03", titulo: "Escavar", texto: "A IA analisa todos os documentos disponíveis. Trabalho humano revisa e aprofunda os casos críticos." },
+                  { n: "04", titulo: "Publicar", texto: "O resultado fica público para qualquer pessoa. Gratuito. Sem exceção. Sem paywall." },
+                ].map((p) => (
+                  <div
+                    key={p.n}
+                    className="flex items-start gap-6 md:gap-10 py-8 border-b"
+                    style={{ borderColor: "rgba(255,255,255,0.05)" }}
+                  >
+                    <span
+                      className="flex-shrink-0 leading-none select-none"
+                      style={{ ...SYNE, fontSize: "clamp(2.8rem, 5vw, 4.2rem)", color: GOLD, opacity: 0.9, letterSpacing: "-0.03em" }}
+                    >
+                      {p.n}
+                    </span>
+                    <div className="pt-1 md:pt-2">
+                      <h3 className="text-[1.15rem] font-bold text-white mb-2" style={{ ...SYNE, letterSpacing: "-0.01em" }}>
+                        {p.titulo}
+                      </h3>
+                      <p className="text-[14px] leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
+                        {p.texto}
+                      </p>
+                    </div>
+                  </div>
                 ))}
               </div>
             </section>
 
-            {/* Como funciona */}
-            <section className="mb-16 md:mb-20">
-              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-6" style={MONO}>
-                Como funciona
-              </p>
-              <ol className="grid sm:grid-cols-2 gap-px bg-white/[0.04]">
-                {[
-                  {
-                    n: "01",
-                    titulo: "Votar",
-                    texto: "A comunidade nomina órgãos e distribui votos. Cada usuário tem 3 votos gratuitos por mês.",
-                  },
-                  {
-                    n: "02",
-                    titulo: "Decidir",
-                    texto: "A equipe seleciona os próximos conforme capacidade real. Sem prometer o que não pode entregar ainda.",
-                  },
-                  {
-                    n: "03",
-                    titulo: "Escavar",
-                    texto: "A IA analisa todos os documentos disponíveis. Trabalho humano revisa e aprofunda os casos críticos.",
-                  },
-                  {
-                    n: "04",
-                    titulo: "Publicar",
-                    texto: "O resultado fica público para qualquer pessoa. Gratuito. Sem exceção. Sem paywall.",
-                  },
-                ].map((p) => (
-                  <li key={p.n} className="bg-[#07080f] p-6 flex flex-col gap-3">
-                    <span className="text-[1.3rem] font-bold leading-none" style={{ ...MONO, color: GOLD }}>
-                      {p.n}
-                    </span>
-                    <h3 className="text-[0.88rem] font-semibold text-white/78" style={INTER}>
-                      {p.titulo}
-                    </h3>
-                    <p className="text-[12px] text-white/55 leading-relaxed" style={INTER}>
-                      {p.texto}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            </section>
+            {/* ── CONTRIBUIR ────────────────────────────────────── */}
+            <section className="mb-24" id="contribuir">
+              <div
+                className="relative px-8 md:px-12 py-12 md:py-14 overflow-hidden"
+                style={{ background: "rgba(240,200,30,0.04)", border: `1px solid ${GOLD}22` }}
+              >
+                {/* decorative large number */}
+                <div
+                  aria-hidden
+                  className="absolute right-6 top-4 select-none pointer-events-none"
+                  style={{ ...SYNE, fontSize: "clamp(6rem, 14vw, 11rem)", color: `${GOLD}08`, lineHeight: 1, letterSpacing: "-0.05em" }}
+                >
+                  R$
+                </div>
 
-            {/* Divider */}
-            <div className="border-t border-white/[0.05] mb-16 md:mb-20" />
-
-            {/* Contribuição */}
-            <section className="mb-16 md:mb-20" id="contribuir">
-              <div className="border border-white/[0.06] p-8 md:p-10">
-                <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-3" style={MONO}>
-                  Contribuir
-                </p>
-                <h2 className="text-[1.3rem] font-bold text-white/75 mb-4 leading-snug" style={INTER}>
-                  Cada contribuição financia<br />a escavação.
+                <SectionLabel>Contribuir</SectionLabel>
+                <h2
+                  className="font-bold text-white mt-3 mb-5 leading-tight"
+                  style={{ ...SYNE, fontSize: "clamp(1.7rem, 3.5vw, 2.6rem)", letterSpacing: "-0.025em" }}
+                >
+                  Cada contribuição<br />financia a escavação.
                 </h2>
-                <p className="text-[14px] text-white/65 leading-[1.75] mb-7 max-w-lg" style={INTER}>
+                <p className="text-[15px] leading-relaxed mb-10 max-w-lg" style={{ color: "rgba(255,255,255,0.55)" }}>
                   Não temos investidor. As contribuições cobrem os custos operacionais — IA,
                   infraestrutura e trabalho humano de investigação. Todo excedente é reinvestido
-                  em tecnologia para ampliar a capacidade da ferramenta.
-                  O Dig Dig pertence às pessoas que o financiam.
+                  em tecnologia para ampliar a capacidade da ferramenta.{" "}
+                  <strong style={{ color: "rgba(255,255,255,0.80)" }}>O Dig Dig pertence às pessoas que o financiam.</strong>
                 </p>
 
-                <div className="flex flex-wrap gap-2 mb-5">
-                  {["R$ 25", "R$ 50", "R$ 100", "Valor livre"].map((v) => (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {["R$ 25", "R$ 50", "R$ 100", "Valor livre"].map((v, i) => (
                     <button
                       key={v}
-                      className="text-[11px] font-semibold uppercase tracking-[0.14em] px-5 py-2.5 border border-white/[0.10] text-white/45 hover:border-white/28 hover:text-white/70 transition"
-                      style={INTER}
+                      className="text-[11px] font-semibold uppercase tracking-[0.16em] px-5 py-3 border transition"
+                      style={{
+                        ...MONO,
+                        borderColor: i === 0 ? GOLD : "rgba(255,255,255,0.12)",
+                        color: i === 0 ? GOLD : "rgba(255,255,255,0.45)",
+                        background: i === 0 ? `${GOLD}10` : "transparent",
+                      }}
                     >
                       {v}
                     </button>
                   ))}
                 </div>
 
-                <div className="flex gap-2 mb-7">
-                  {["Uma vez", "Todo mês"].map((f) => (
+                <div className="flex gap-2 mb-9">
+                  {[{ label: "Uma vez", ativo: false }, { label: "Todo mês", ativo: true }].map(({ label, ativo }) => (
                     <button
-                      key={f}
-                      className="text-[11px] font-medium uppercase tracking-[0.12em] px-4 py-2 border border-white/[0.08] text-white/35 hover:border-white/22 hover:text-white/60 transition"
-                      style={INTER}
+                      key={label}
+                      className="text-[11px] font-medium uppercase tracking-[0.14em] px-5 py-2.5 border transition"
+                      style={{
+                        ...MONO,
+                        borderColor: ativo ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.08)",
+                        color: ativo ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.28)",
+                      }}
                     >
-                      {f}
+                      {label}
                     </button>
                   ))}
                 </div>
 
                 <a
                   href="/contribuir"
-                  className="inline-block text-[10px] font-semibold uppercase tracking-[0.18em] px-7 py-3.5 transition-opacity hover:opacity-75"
-                  style={{ ...INTER, background: GOLD, color: "#0a0a0a" }}
+                  className="inline-block text-[11px] font-bold uppercase tracking-[0.2em] px-8 py-4 transition-all hover:opacity-85 active:scale-[0.99]"
+                  style={{ ...SYNE, background: GOLD, color: "#07080f" }}
                 >
                   Contribuir via PIX ou cartão
                 </a>
 
-                <p className="text-[11px] text-white/50 mt-4" style={INTER}>
-                  Mínimo R$ 25. Quem contribui pela primeira vez ganha 1 mês do nível Apoio Ativo.
+                <p className="text-[11px] mt-5" style={{ ...INTER, color: "rgba(255,255,255,0.35)" }}>
+                  Mínimo R$ 25 · Quem contribui pela primeira vez ganha 1 mês de Apoio Ativo
                 </p>
               </div>
             </section>
 
-            {/* Apoio institucional */}
-            <section className="mb-16 md:mb-20">
-              <div className="border-t border-b border-white/[0.05] py-8">
-                <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-3" style={MONO}>
-                  Apoio institucional
-                </p>
-                <p className="text-[14px] text-white/42 leading-[1.75] max-w-lg mb-4" style={INTER}>
+            {/* ── APOIO INSTITUCIONAL ───────────────────────────── */}
+            <section className="mb-24">
+              <div className="py-10 border-t border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                <SectionLabel>Apoio institucional</SectionLabel>
+                <h2 className="text-[1.5rem] font-bold text-white mt-3 mb-4" style={{ ...SYNE, letterSpacing: "-0.015em" }}>
+                  Empresas e organizações.
+                </h2>
+                <p className="text-[14px] leading-relaxed max-w-lg mb-6" style={{ color: "rgba(255,255,255,0.42)" }}>
                   Empresas e organizações que acreditam na transparência pública podem se tornar
                   Apoiadores Oficiais do Dig Dig. O modelo é negociado diretamente — sem tabela de preços,
                   sem pacote fechado.
                 </p>
                 <a
                   href="mailto:apoie@digdig.com.br"
-                  className="text-[13px] font-medium text-white/45 hover:text-white/68 transition"
-                  style={INTER}
+                  className="text-[13px] font-semibold transition hover:text-white/70"
+                  style={{ ...INTER, color: "rgba(255,255,255,0.50)" }}
                 >
                   apoie@digdig.com.br →
                 </a>
               </div>
             </section>
 
-            {/* Divider */}
-            <div className="border-t border-white/[0.05] mb-16 md:mb-20" />
+            {/* ── NÍVEIS DE APOIO ───────────────────────────────── */}
+            <section className="mb-24" id="planos">
+              <SectionLabel>Ferramentas avançadas para profissionais</SectionLabel>
+              <h2 className="text-[1.9rem] font-bold text-white mt-2 mb-3" style={{ ...SYNE, letterSpacing: "-0.02em" }}>
+                Níveis de Apoio
+              </h2>
+              <p className="text-[14px] leading-relaxed max-w-lg mb-10" style={{ color: "rgba(255,255,255,0.35)" }}>
+                O acesso ao banco auditado é gratuito para qualquer cidadão brasileiro. Os níveis
+                são para quem usa a plataforma profissionalmente — jornalistas, escritórios, veículos,
+                assessorias. Exportação, alertas, volume de chat, API.
+              </p>
 
-            {/* Planos */}
-            <section className="mb-16 md:mb-20" id="planos">
-              <div className="mb-6 pb-5 border-b border-white/[0.05]">
-                <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-1.5" style={MONO}>
-                  Ferramentas Avançadas para Profissionais
-                </p>
-                <h2 className="text-[1.15rem] font-bold text-white/65 mb-2" style={INTER}>
-                  Níveis de Apoio
-                </h2>
-                <p className="text-[13px] text-white/35 leading-relaxed max-w-lg" style={INTER}>
-                  O acesso ao banco auditado é gratuito para qualquer cidadão brasileiro. Os planos
-                  são para quem usa a plataforma profissionalmente — jornalistas, escritórios, veículos,
-                  assessorias. Exportação, alertas, volume de chat, API.
-                </p>
+              <div className="flex flex-col">
+                {PLANOS.map((plano) => (
+                  <div
+                    key={plano.id}
+                    className="relative py-8 border-b"
+                    style={{
+                      borderColor: "rgba(255,255,255,0.06)",
+                      paddingLeft: plano.destaque ? "20px" : "0",
+                    }}
+                  >
+                    {plano.destaque && (
+                      <div className="absolute left-0 inset-y-4" style={{ width: "2px", background: GOLD }} />
+                    )}
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
+                      <div className="flex-shrink-0" style={{ minWidth: "200px" }}>
+                        <div className="flex items-center gap-3 flex-wrap mb-2">
+                          <span className="text-[1.15rem] font-bold" style={{ ...SYNE, color: plano.destaque ? "white" : "rgba(255,255,255,0.72)", letterSpacing: "-0.01em" }}>
+                            {plano.nome}
+                          </span>
+                          {plano.destaque && (
+                            <span
+                              className="text-[8px] font-bold uppercase tracking-[0.2em] px-2 py-1"
+                              style={{ ...MONO, color: GOLD, background: `${GOLD}18` }}
+                            >
+                              mais popular
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-[1.9rem] font-bold leading-none" style={{ ...SYNE, color: plano.destaque ? GOLD : "white" }}>
+                            {plano.preco}
+                          </span>
+                          <span className="text-[12px] ml-1" style={{ ...MONO, color: "rgba(255,255,255,0.25)" }}>
+                            {plano.periodo}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[11px]" style={{ ...INTER, color: "rgba(255,255,255,0.22)" }}>
+                          {plano.publico}
+                        </p>
+                      </div>
+
+                      <ul className="flex-1 grid sm:grid-cols-2 gap-x-5 gap-y-2">
+                        {plano.features.map((f) => (
+                          <li key={f} className="flex items-start gap-2 text-[13px] leading-relaxed" style={{ ...INTER, color: "rgba(255,255,255,0.40)" }}>
+                            <span className="flex-shrink-0 mt-0.5" style={{ color: plano.destaque ? `${GOLD}60` : "rgba(255,255,255,0.15)" }}>—</span>
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div className="flex-shrink-0">
+                        <a
+                          href="/cadastro"
+                          className="inline-block text-[10px] font-bold uppercase tracking-[0.2em] px-6 py-3.5 transition-all hover:opacity-80"
+                          style={
+                            plano.destaque
+                              ? { ...SYNE, background: GOLD, color: "#07080f" }
+                              : { ...MONO, border: "1px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.32)" }
+                          }
+                        >
+                          {plano.cta}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {PLANOS.map((p) => (
-                <PlanoRow key={p.id} plano={p} />
-              ))}
-
-              <p className="mt-5 text-[11px] text-white/20 leading-relaxed" style={INTER}>
+              <p className="mt-5 text-[11px]" style={{ ...MONO, color: "rgba(255,255,255,0.18)" }}>
                 Cartão ou PIX · Sem fidelidade · Notas fiscais emitidas automaticamente.
               </p>
-
-              {/* Transparência financeira */}
-              <div className="mt-16 pt-10 border-t" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
-                <p className="text-[9px] uppercase tracking-[0.28em] text-white/25 mb-3" style={{ fontFamily: "'Space Mono', monospace" }}>
-                  Para onde vai o dinheiro
-                </p>
-                <h2 className="text-[1.3rem] font-bold mb-6" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.01em" }}>
-                  Radical transparência.
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[
-                    { item: "Infraestrutura de IA", pct: "55%", desc: "API Anthropic — o custo de analisar cada ato" },
-                    { item: "Servidores & Hospedagem", pct: "25%", desc: "Railway, Supabase, Redis — o que mantém o sistema vivo" },
-                    { item: "Desenvolvimento", pct: "20%", desc: "Manutenção, novas instituições, melhorias contínuas" },
-                  ].map(({ item, pct, desc }) => (
-                    <div key={item} className="border p-4" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-                      <div className="text-[1.8rem] font-bold text-white mb-1" style={{ fontFamily: "'Syne', sans-serif" }}>{pct}</div>
-                      <div className="text-[11px] text-white/70 font-medium mb-1">{item}</div>
-                      <div className="text-[11px] text-white/35">{desc}</div>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-[12px] text-white/30 mt-5 leading-relaxed">
-                  O acesso básico sempre será gratuito. Contribuições de Apoio Ativo e Apoio Institucional financiam os servidores e permitem que o projeto continue expandindo para novas instituições.
-                </p>
-              </div>
             </section>
 
-            {/* White Papers — mobile only */}
-            <section className="lg:hidden mb-14">
-              <p className="text-[9px] uppercase tracking-[0.28em] text-white/22 mb-4" style={MONO}>
-                White Papers
-              </p>
-              <div className="flex flex-col gap-3 mb-4">
-                {([
-                  { n: "01", titulo: "Como Automatizamos a Auditoria do CAU/PR com IA", desc: "A origem do projeto, a arquitetura e os 7 problemas reais que tivemos que resolver.", to: "/whitepaper-01-extracao-caupr" as const, publicado: true },
-                  { n: "02", titulo: "Quando a IA Custa Mais do Que Deveria", desc: "Como detectamos e corrigimos $20 em chamadas de API não rastreadas — 4 camadas de solução.", to: "/whitepaper-02-custo-e-controle" as const, publicado: true },
-                  { n: "03", titulo: "Quando as Deliberações Falam Mais Alto", desc: "757 deliberações únicas, a descoberta da WP REST API e 41% de casos críticos nos primeiros achados.", to: "/whitepaper-03-deliberacoes-e-primeiros-achados" as const, publicado: true },
-                ] as const).map((p) => (
+            {/* ── RADICAL TRANSPARÊNCIA ─────────────────────────── */}
+            <section className="mb-24">
+              <SectionLabel>Para onde vai o dinheiro</SectionLabel>
+              <h2 className="font-bold text-white mt-2 mb-10" style={{ ...SYNE, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", letterSpacing: "-0.02em" }}>
+                Radical transparência.
+              </h2>
+
+              <div className="flex flex-col gap-0">
+                {[
+                  { item: "Infraestrutura de IA", pct: 55, desc: "API Anthropic — o custo de analisar cada ato público" },
+                  { item: "Servidores & Hospedagem", pct: 25, desc: "Railway, Supabase, Redis — o que mantém o sistema vivo" },
+                  { item: "Desenvolvimento", pct: 20, desc: "Manutenção, novas instituições, melhorias contínuas" },
+                ].map(({ item, pct, desc }, i) => (
                   <div
-                    key={p.n}
-                    className="border border-white/[0.06] p-5"
-                    style={!p.publicado ? { borderColor: "rgba(255,255,255,0.03)" } : undefined}
+                    key={item}
+                    className="py-7 border-b flex flex-col md:flex-row md:items-center gap-4 md:gap-8"
+                    style={{ borderColor: i === 0 ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.05)" }}
                   >
-                    <p
-                      className="text-[9px] uppercase tracking-[0.16em] mb-2.5 flex items-center gap-2"
-                      style={{ ...MONO, color: "rgba(255,255,255,0.20)" }}
-                    >
+                    <div className="flex-shrink-0" style={{ width: "clamp(60px, 8vw, 90px)" }}>
+                      <span
+                        className="font-bold leading-none block"
+                        style={{ ...SYNE, fontSize: "clamp(2rem, 4vw, 3rem)", color: GOLD }}
+                      >
+                        {pct}%
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[13px] font-semibold" style={{ ...INTER, color: "rgba(255,255,255,0.72)" }}>
+                          {item}
+                        </span>
+                      </div>
+                      <div className="h-[3px] w-full mb-2" style={{ background: "rgba(255,255,255,0.05)" }}>
+                        <div
+                          className="h-full"
+                          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${GOLD}, ${GOLD}88)` }}
+                        />
+                      </div>
+                      <p className="text-[12px]" style={{ ...INTER, color: "rgba(255,255,255,0.30)" }}>
+                        {desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-[13px] leading-relaxed mt-8 max-w-lg" style={{ ...INTER, color: "rgba(255,255,255,0.30)" }}>
+                O acesso básico sempre será gratuito. Contribuições de Apoio Ativo e Apoio Institucional
+                financiam os servidores e permitem que o projeto continue expandindo para novas instituições.
+              </p>
+            </section>
+
+            {/* ── WHITE PAPERS mobile ───────────────────────────── */}
+            <section className="lg:hidden mb-20">
+              <SectionLabel>White Papers</SectionLabel>
+              <Divider />
+              <div className="flex flex-col mt-4">
+                {PAPERS.map((p) => (
+                  <div key={p.n} className="border-b py-6" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+                    <p className="text-[9px] uppercase tracking-[0.16em] mb-2" style={{ ...MONO, color: "rgba(255,255,255,0.18)" }}>
                       Nº {p.n}
-                      {!p.publicado && <span style={{ color: "rgba(255,255,255,0.14)" }}>— em breve</span>}
                     </p>
-                    <h4
-                      className="text-[0.82rem] font-semibold leading-snug mb-2"
-                      style={{ ...INTER, color: p.publicado ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.25)" }}
-                    >
+                    <h4 className="text-[0.88rem] font-semibold leading-snug mb-2" style={{ ...INTER, color: "rgba(255,255,255,0.65)" }}>
                       {p.titulo}
                     </h4>
-                    <p
-                      className="text-[11px] leading-relaxed mb-3"
-                      style={{ ...INTER, color: p.publicado ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.16)" }}
-                    >
+                    <p className="text-[12px] leading-relaxed mb-3" style={{ ...INTER, color: "rgba(255,255,255,0.28)" }}>
                       {p.desc}
                     </p>
-                    {p.publicado && p.to ? (
-                      <Link
-                        to={p.to}
-                        className="text-[10px] font-semibold uppercase tracking-[0.14em] transition hover:opacity-80"
-                        style={{ ...INTER, color: "rgba(255,255,255,0.35)" }}
-                      >
+                    {p.publicado && p.to && (
+                      <Link to={p.to} className="text-[10px] font-semibold uppercase tracking-[0.14em] transition hover:opacity-80" style={{ ...INTER, color: "rgba(255,255,255,0.35)" }}>
                         Ler →
                       </Link>
-                    ) : (
-                      <span className="text-[10px] uppercase tracking-[0.14em]" style={{ ...INTER, color: "rgba(255,255,255,0.16)" }}>
-                        Em breve
-                      </span>
                     )}
                   </div>
                 ))}
               </div>
-              <p className="text-[11px] leading-relaxed" style={{ ...INTER, color: "rgba(255,255,255,0.18)" }}>
-                Registro técnico público sobre a construção do Dig Dig — metodologia, decisões e números reais.
-              </p>
             </section>
 
-            {/* Footer */}
-            <section className="pt-10 border-t border-white/[0.05] text-center">
+            {/* ── FOOTER CTA ────────────────────────────────────── */}
+            <section className="pt-12 border-t text-center" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+              <p className="text-[13px] mb-8" style={{ ...INTER, color: "rgba(255,255,255,0.28)" }}>
+                Pronto para começar a escavar?
+              </p>
               <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
                 <a
                   href="/cadastro"
-                  className="inline-block text-[10px] font-semibold uppercase tracking-[0.18em] px-7 py-3.5 transition-opacity hover:opacity-75"
-                  style={{ ...INTER, background: GOLD, color: "#0a0a0a" }}
+                  className="inline-block text-[11px] font-bold uppercase tracking-[0.2em] px-8 py-4 transition-all hover:opacity-85"
+                  style={{ ...SYNE, background: GOLD, color: "#07080f" }}
                 >
                   Criar conta grátis
                 </a>
                 <Link
                   to="/"
-                  className="inline-block text-[10px] font-medium uppercase tracking-[0.15em] px-5 py-3.5 text-white/25 hover:text-white/52 transition border border-white/[0.07]"
-                  style={INTER}
+                  className="inline-block text-[10px] font-medium uppercase tracking-[0.15em] px-6 py-4 border transition hover:border-white/14 hover:text-white/45"
+                  style={{ ...MONO, border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.25)" }}
                 >
                   ← Início
                 </Link>
               </div>
-              <p className="text-[11px] text-white/20" style={INTER}>
+              <p className="text-[11px]" style={{ ...INTER, color: "rgba(255,255,255,0.18)" }}>
                 Dúvidas:{" "}
                 <a href="mailto:regisalessander@gmail.com" className="hover:text-white/40 transition">
                   regisalessander@gmail.com
@@ -760,7 +671,7 @@ function ApoiarPage() {
 
           </main>
 
-          {/* ─── Sidebar ─── */}
+          {/* ── Sidebar ── */}
           <PapersSidebar />
         </div>
       </div>
