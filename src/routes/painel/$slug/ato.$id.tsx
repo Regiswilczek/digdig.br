@@ -158,10 +158,10 @@ function AtoDetailPage() {
       )}
 
       {/* Análise profunda — Investigador+ */}
-      <Section
-        title="Análise Profunda [Investigador+]"
-        locked={!investigador || !sonnet}
-      >
+      <Section title="Análise Profunda [Investigador+]" locked={!investigador}>
+        {investigador && !sonnet && (
+          <p className="text-white/40">Análise Sonnet ainda não disponível para este ato.</p>
+        )}
         {investigador && sonnet && (
           <p className="whitespace-pre-wrap">
             {(sonnet.analise_profunda as string) ?? "—"}
