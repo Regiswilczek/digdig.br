@@ -407,7 +407,8 @@ function Nav() {
 
 // ── Desktop hero ──────────────────────────────────────────────────────────────
 
-function DesktopHero({ stats }: { stats: PublicStats | null }) {
+function DesktopHero(props: { stats: PublicStats | null }) {
+  const { stats } = props;
   return (
     <main className="hidden md:flex relative z-20 flex-row items-end justify-between gap-8 px-14 pb-10">
       <div className="flex flex-col gap-[18px]">
