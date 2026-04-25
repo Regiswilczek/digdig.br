@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>O Que a Máquina Encontrou — Dig Dig</title>
-  <meta name="description" content="White Paper Nº 04: os resultados reais de 1.096 atos do CAU/PR analisados por IA — distribuição, padrões dominantes, os cinco casos mais graves e o que o Sonnet encontrou.">
+  <meta name="description" content="White Paper Nº 04: os resultados reais de 1.096 atos do CAU/PR analisados por IA — distribuição, padrões dominantes, os cinco casos mais graves e o que o Dig Dig Bug encontrou.">
   <meta property="og:title" content="O Que a Máquina Encontrou — Dig Dig">
   <meta property="og:description" content="White Paper Nº 04 do Dig Dig: 1.096 atos do CAU/PR, 21 fichas de denúncia, e o padrão central — controle presidencial dos mecanismos disciplinares como instrumento político.">
   <meta property="og:type" content="article">
@@ -316,7 +316,7 @@
 
     <p>Nos três White Papers anteriores documentei a jornada técnica: como extraímos os PDFs do CAU/PR, como controlamos o custo depois de um incidente de $23 com workers paralelos, e como abrimos as deliberações via WordPress REST API depois de descobrir que o site bloqueava scrapers com JavaScript.</p>
     <p>Este paper é diferente. Não é sobre como chegamos — é sobre o que encontramos.</p>
-    <p>Em abril de 2026, o Dig Dig concluiu a análise inicial de <strong>1.096 atos administrativos do CAU/PR</strong> — portarias de 2022 a 2026 com texto nativo extraível, mais as primeiras deliberações processadas. Os 21 casos mais graves passaram por análise aprofundada com Claude Sonnet, que gerou fichas de denúncia estruturadas com identificação de padrões, pessoas envolvidas e recomendações de ação.</p>
+    <p>Em abril de 2026, o Dig Dig concluiu a análise inicial de <strong>1.096 atos administrativos do CAU/PR</strong> — portarias de 2022 a 2026 com texto nativo extraível, mais as primeiras deliberações processadas. Os 21 casos mais graves passaram por análise aprofundada com o Dig Dig Bug, que gerou fichas de denúncia estruturadas com identificação de padrões, pessoas envolvidas e recomendações de ação.</p>
     <p>O que segue é um relatório preliminar desses resultados.</p>
 
     <hr>
@@ -366,14 +366,14 @@
     <p>O amarelo dominante não é ruído — é a natureza dos atos administrativos. Qualquer portaria de nomeação que não explicita os critérios de escolha é suspeita por omissão. Qualquer prorrogação de prazo sem motivação expressa levanta uma observação. O amarelo diz: "algo aqui merece olhar mais de perto". O laranja e o vermelho dizem: "encontramos algo."</p>
 
     <div class="callout">
-      10,5% dos atos — 115 no total — apresentaram indício suficiente para análise aprofundada. Desses, 21 já têm ficha de denúncia completa. Os demais estão na fila do Sonnet.
+      10,5% dos atos — 115 no total — apresentaram indício suficiente para análise aprofundada. Desses, 21 já têm ficha de denúncia completa. Os demais estão na fila do Dig Dig Bug.
     </div>
 
     <hr>
 
     <h2>Os Quatro Padrões Dominantes</h2>
 
-    <p>Depois de analisar individualmente cada ficha de denúncia gerada pelo Sonnet, quatro padrões emergiram de forma recorrente. Nenhum deles aparece em um único ato isolado — é a serialidade que os torna significativos.</p>
+    <p>Depois de analisar individualmente cada ficha de denúncia gerada pelo Dig Dig Bug, quatro padrões emergiram de forma recorrente. Nenhum deles aparece em um único ato isolado — é a serialidade que os torna significativos.</p>
 
     <h3>1. Controle presidencial dos mecanismos disciplinares</h3>
     <p>O padrão mais frequente — e o mais grave — é o uso dos processos administrativos disciplinares como instrumento de poder político. Em múltiplos atos, os presidentes do CAU/PR instauraram sindicâncias e processos disciplinares por ato unilateral, sem deliberação plenária prévia; prorrogaram os prazos sucessivamente, também por portaria presidencial, sem submeter ao plenário; compuseram as comissões exclusivamente com servidores administrativos subordinados à presidência, excluindo conselheiros titulares; e mantiveram o objeto e o investigado em sigilo durante meses ou anos de tramitação.</p>
@@ -384,7 +384,7 @@
     <p>O servidor Cleverson João Veiga aparece em 31 atos. Leandro Reguelin, em 31. André Felipe Casagrande, em 33. Nenhum deles é conselheiro eleito. Todos aparecem em posições de controle processual — como membros de comissões de sindicância e inquérito — com frequência desproporcional para servidores não-titulares.</p>
 
     <h3>3. Gestão paralela da vice-presidência</h3>
-    <p>Em pelo menos quatro portarias analisadas pelo Sonnet, o Vice-Presidente Jeancarlo Versetti assinou atos de natureza presidencial — abertura e prorrogação de processos disciplinares — sem que os atos registrassem o instrumento formal de substituição: afastamento, licença ou delegação documentada do presidente titular.</p>
+    <p>Em pelo menos quatro portarias analisadas pelo Dig Dig Bug, o Vice-Presidente Jeancarlo Versetti assinou atos de natureza presidencial — abertura e prorrogação de processos disciplinares — sem que os atos registrassem o instrumento formal de substituição: afastamento, licença ou delegação documentada do presidente titular.</p>
     <p>Isoladamente, cada caso poderia ser explicado por ausência informal e assinatura de urgência. Em série, configura um padrão de presidência paralela: um segundo centro de decisão operando sem transparência sobre os pressupostos de sua autoridade.</p>
 
     <h3>4. Opacidade como estrutura</h3>
@@ -395,7 +395,7 @@
 
     <h2>Os Cinco Casos Mais Graves</h2>
 
-    <p>Os cinco atos com maior score de risco na análise Sonnet:</p>
+    <p>Os cinco atos com maior score de risco na análise do Dig Dig Bug:</p>
 
     <div class="case-block">
       <div class="case-header">
@@ -403,7 +403,7 @@
         <span class="case-score vermelho">Vermelho · Score 95</span>
       </div>
       <p class="case-pattern">Padrão: Gestão disciplinar autocrática — processo de 18 meses em sigilo total</p>
-      <p>Em agosto de 2024, o Presidente Walter Gustavo Linzmeyer instaurou um Processo Administrativo Disciplinar por ato unilateral. O investigado e o objeto da investigação permanecem não identificados publicamente até fevereiro de 2026 — 18 meses depois. A comissão processante foi composta exclusivamente por servidores administrativos subordinados à presidência, em violação direta ao regimento que exige conselheiro titular. A Portaria 667 é a terceira recondução desse processo — cada uma delas por portaria presidencial, sem deliberação plenária. O Sonnet identificou incoerências cronológicas no próprio texto do ato: a data de assinatura conflita com datas internas do documento.</p>
+      <p>Em agosto de 2024, o Presidente Walter Gustavo Linzmeyer instaurou um Processo Administrativo Disciplinar por ato unilateral. O investigado e o objeto da investigação permanecem não identificados publicamente até fevereiro de 2026 — 18 meses depois. A comissão processante foi composta exclusivamente por servidores administrativos subordinados à presidência, em violação direta ao regimento que exige conselheiro titular. A Portaria 667 é a terceira recondução desse processo — cada uma delas por portaria presidencial, sem deliberação plenária. O Dig Dig Bug identificou incoerências cronológicas no próprio texto do ato: a data de assinatura conflita com datas internas do documento.</p>
     </div>
 
     <div class="case-block">
@@ -430,7 +430,7 @@
         <span class="case-score vermelho">Vermelho · Score 87</span>
       </div>
       <p class="case-pattern">Padrão: Composição cirúrgica de comissão — reconstituição direcionada para resultado predeterminado</p>
-      <p>Em setembro de 2024, uma comissão processante foi constituída por três membros. Em data não declarada, a comissão foi descontinuada. Em abril de 2025, o Vice-Presidente Versetti reinstaura o processo e substitui um membro da comissão — mantendo os dois de maior experiência institucional e inserindo um substituto com histórico mínimo de atuação em atos formais. O padrão é descontinuação seguida de reinstaura com troca pontual: o suficiente para alterar a composição sem levantar suspeita sobre a totalidade do processo. O Sonnet classificou como "composição direcionada para resultado processual predeterminado".</p>
+      <p>Em setembro de 2024, uma comissão processante foi constituída por três membros. Em data não declarada, a comissão foi descontinuada. Em abril de 2025, o Vice-Presidente Versetti reinstaura o processo e substitui um membro da comissão — mantendo os dois de maior experiência institucional e inserindo um substituto com histórico mínimo de atuação em atos formais. O padrão é descontinuação seguida de reinstaura com troca pontual: o suficiente para alterar a composição sem levantar suspeita sobre a totalidade do processo. O Dig Dig Bug classificou como "composição direcionada para resultado processual predeterminado".</p>
     </div>
 
     <div class="case-block">
@@ -439,7 +439,7 @@
         <span class="case-score vermelho">Vermelho · Score 87</span>
       </div>
       <p class="case-pattern">Padrão: 11 meses de processo oculto com substituição unilateral de membro</p>
-      <p>O Presidente Linzmeyer instaurou comissão processante em abril de 2025 para investigar o Processo SEI nº 00169.000714/2024-81 — cujo objeto e investigado seguem não identificados publicamente. Em março de 2026, sem resolver o processo, alterou a composição da comissão por portaria presidencial unilateral, sem deliberação plenária, e prorrogou o prazo. O volume excepcional de aparições de Linzmeyer nos registros institucionais — 136 atos só nas portarias com texto extraído — e a vagueza sistemática sobre os processos disciplinares em curso configuram, nas palavras do Sonnet, "risco grave de instrumentalização do processo administrativo para fins de controle político-disciplinar interno."</p>
+      <p>O Presidente Linzmeyer instaurou comissão processante em abril de 2025 para investigar o Processo SEI nº 00169.000714/2024-81 — cujo objeto e investigado seguem não identificados publicamente. Em março de 2026, sem resolver o processo, alterou a composição da comissão por portaria presidencial unilateral, sem deliberação plenária, e prorrogou o prazo. O volume excepcional de aparições de Linzmeyer nos registros institucionais — 136 atos só nas portarias com texto extraído — e a vagueza sistemática sobre os processos disciplinares em curso configuram, nas palavras do Dig Dig Bug, "risco grave de instrumentalização do processo administrativo para fins de controle político-disciplinar interno."</p>
     </div>
 
     <hr>
@@ -447,13 +447,13 @@
     <h2>Quando o Sistema se Autocorrige</h2>
 
     <p>Um dos resultados mais importantes não veio de um caso grave — veio de um caso onde o sistema reconheceu que havia errado.</p>
-    <p>A Portaria 234/2020 foi classificada como vermelho pelo Haiku com score alto. A análise aprofundada do Sonnet chegou a uma conclusão diferente:</p>
+    <p>A Portaria 234/2020 foi classificada como vermelho pelo Dig Dig Piper com score alto. A análise aprofundada do Dig Dig Bug chegou a uma conclusão diferente:</p>
 
     <div class="callout alert">
-      "A análise aprofundada NÃO CONFIRMA a suspeita inicial classificada como VERMELHO pelo sistema Haiku. O documento submetido é um arquivo digitalizado ilegível, do qual não foi possível extrair qualquer dado concreto: nome do nomeado, cargo, unidade, remuneração, fundamentação legal ou identidade do signatário. A classificação 'VERMELHO' atribuída pelo Haiku foi produto de inferências em cascata sobre um documento sem conteúdo verificável, o que configura risco metodológico grave de falso positivo."
+      "A análise aprofundada NÃO CONFIRMA a suspeita inicial classificada como VERMELHO pelo Dig Dig Piper. O documento submetido é um arquivo digitalizado ilegível, do qual não foi possível extrair qualquer dado concreto: nome do nomeado, cargo, unidade, remuneração, fundamentação legal ou identidade do signatário. A classificação 'VERMELHO' atribuída pelo Dig Dig Piper foi produto de inferências em cascata sobre um documento sem conteúdo verificável, o que configura risco metodológico grave de falso positivo."
     </div>
 
-    <p>O Sonnet rebaixou o caso, documentou o erro do Haiku e recomendou uma ação específica: solicitar ao CAU/PR, via Lei de Acesso à Informação, a versão legível do documento. O sistema não afirmou o erro do predecessor silenciosamente — escreveu sobre ele com precisão técnica.</p>
+    <p>O Dig Dig Bug rebaixou o caso, documentou o erro do Dig Dig Piper e recomendou uma ação específica: solicitar ao CAU/PR, via Lei de Acesso à Informação, a versão legível do documento. O sistema não afirmou o erro do predecessor silenciosamente — escreveu sobre ele com precisão técnica.</p>
     <p>Isso importa para a credibilidade do projeto. Um sistema que só sinaliza irregularidades não é auditoria — é alarme. Um sistema que também sinaliza quando a suspeita não se sustenta é uma ferramenta que pode ser confiada.</p>
 
     <hr>
@@ -501,7 +501,7 @@
 
     <p>Este relatório cobre apenas uma parte do universo de atos do CAU/PR. O pipeline completo ainda inclui:</p>
     <ul>
-      <li><strong>~80 casos laranja/vermelho</strong> aguardando análise Sonnet — as fichas de denúncia mais graves ainda não foram geradas para todos os atos classificados criticamente pelo Haiku</li>
+      <li><strong>~80 casos laranja/vermelho</strong> aguardando análise do Dig Dig Bug — as fichas de denúncia mais graves ainda não foram geradas para todos os atos classificados criticamente pelo Dig Dig Piper</li>
       <li><strong>151 portarias escaneadas (2018–2021)</strong> — o período anterior ao que foi analisado, que cobre os anos de formação da gestão atual. Precisam de OCR com Tesseract para extração de texto.</li>
       <li><strong>Deliberações plenárias</strong> — como documentado no White Paper Nº 03, as deliberações têm taxa de casos críticos de 41%, contra 10,5% das portarias. A análise completa das deliberações ainda está em andamento.</li>
       <li><strong>Chat conversacional</strong> — com os atos e fichas no banco, a próxima camada é permitir perguntas em linguagem natural: "quais portarias mencionam esse nome?", "mostre os processos disciplinares instaurados sem deliberação plenária".</li>

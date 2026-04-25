@@ -21,6 +21,7 @@ import { Route as PainelRouteImport } from './routes/painel'
 import { Route as ModelosRouteImport } from './routes/modelos'
 import { Route as ExplorarRouteImport } from './routes/explorar'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as BlogRouteImport } from './routes/blog'
 import { Route as ApoiarRouteImport } from './routes/apoiar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PainelIndexRouteImport } from './routes/painel/index'
@@ -93,6 +94,11 @@ const EntrarRoute = EntrarRouteImport.update({
   path: '/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApoiarRoute = ApoiarRouteImport.update({
   id: '/apoiar',
   path: '/apoiar',
@@ -132,6 +138,7 @@ const PainelSlugAtoIdRoute = PainelSlugAtoIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/apoiar': typeof ApoiarRoute
+  '/blog': typeof BlogRoute
   '/entrar': typeof EntrarRoute
   '/explorar': typeof ExplorarRoute
   '/modelos': typeof ModelosRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/apoiar': typeof ApoiarRoute
+  '/blog': typeof BlogRoute
   '/entrar': typeof EntrarRoute
   '/explorar': typeof ExplorarRoute
   '/modelos': typeof ModelosRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/apoiar': typeof ApoiarRoute
+  '/blog': typeof BlogRoute
   '/entrar': typeof EntrarRoute
   '/explorar': typeof ExplorarRoute
   '/modelos': typeof ModelosRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/apoiar'
+    | '/blog'
     | '/entrar'
     | '/explorar'
     | '/modelos'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/apoiar'
+    | '/blog'
     | '/entrar'
     | '/explorar'
     | '/modelos'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/apoiar'
+    | '/blog'
     | '/entrar'
     | '/explorar'
     | '/modelos'
@@ -258,6 +270,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApoiarRoute: typeof ApoiarRoute
+  BlogRoute: typeof BlogRoute
   EntrarRoute: typeof EntrarRoute
   ExplorarRoute: typeof ExplorarRoute
   ModelosRoute: typeof ModelosRoute
@@ -358,6 +371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntrarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/apoiar': {
       id: '/apoiar'
       path: '/apoiar'
@@ -442,6 +462,7 @@ const PainelRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApoiarRoute: ApoiarRoute,
+  BlogRoute: BlogRoute,
   EntrarRoute: EntrarRoute,
   ExplorarRoute: ExplorarRoute,
   ModelosRoute: ModelosRoute,

@@ -7,7 +7,7 @@ export const Route = createFileRoute("/whitepaper-01-extracao-caupr")({
       {
         name: "description",
         content:
-          "White Paper Nº 01: o processo, a arquitetura e os obstáculos reais ao auditar 1.789 atos administrativos do CAU/PR com Claude Haiku e Sonnet.",
+          "White Paper Nº 01: o processo, a arquitetura e os obstáculos reais ao auditar 1.789 atos administrativos do CAU/PR com Dig Dig Piper e Dig Dig Bug.",
       },
       { property: "og:title", content: "Como Automatizamos a Auditoria do CAU/PR com IA" },
       {
@@ -109,11 +109,11 @@ function WhitepaperPage() {
         <ul>
           <li><strong>Backend:</strong> FastAPI + Celery + Redis no Railway</li>
           <li><strong>Banco:</strong> PostgreSQL via Supabase (29 tabelas, Row Level Security para multi-tenancy)</li>
-          <li><strong>IA:</strong> Claude Haiku 4.5 para triagem em lote + Claude Sonnet 4.6 para análise profunda dos casos críticos</li>
+          <li><strong>IA:</strong> Dig Dig Piper para triagem em lote + Dig Dig Bug para análise profunda dos casos críticos</li>
           <li><strong>Frontend:</strong> React + Vite + shadcn/ui via Lovable</li>
           <li><strong>PDFs:</strong> pdfplumber para extração de texto</li>
         </ul>
-        <p>A lógica do pipeline é em duas fases. O <strong>Haiku</strong> — modelo rápido e barato — analisa todos os atos e classifica em quatro níveis: verde (conforme), amarelo (suspeito), laranja (indício moderado-grave) e vermelho (indício crítico). O <strong>Sonnet</strong> entra só nos casos vermelho, gerando análise aprofundada, ficha de denúncia e mapeamento de pessoas.</p>
+        <p>A lógica do pipeline é em duas fases. O <strong>Dig Dig Piper</strong> — triagem rápida em lote — analisa todos os atos e classifica em quatro níveis: verde (conforme), amarelo (suspeito), laranja (indício moderado-grave) e vermelho (indício crítico). O <strong>Dig Dig Bug</strong> entra só nos casos vermelho, gerando análise aprofundada, ficha de denúncia e mapeamento de pessoas.</p>
         <p>O custo estimado por rodada completa: algo em torno de R$25–30.</p>
 
         <hr />
@@ -157,8 +157,8 @@ function WhitepaperPage() {
         <p>O resultado eram erros de integridade na hora de salvar: <code>null value in column "nivel_alerta" violates not-null constraint</code>. A coluna tinha texto no modelo dizendo que aceitava nulo, mas o banco discordava.</p>
         <p>Resolvemos com uma migration explícita adicionando os defaults de timestamp em todas as 29 tabelas, e ajustando o código para não fazer <code>flush()</code> antes de preencher todos os campos obrigatórios.</p>
 
-        <h3>Problema 6: O Haiku não retornava JSON limpo</h3>
-        <p>Configuramos o Haiku para sempre responder em JSON com uma estrutura específica. Na prática, às vezes ele envolvia a resposta em blocos de código markdown — <code>```json ... ```</code> — ou adicionava uma frase introdutória antes do JSON.</p>
+        <h3>Problema 6: O Dig Dig Piper não retornava JSON limpo</h3>
+        <p>Configuramos o Dig Dig Piper para sempre responder em JSON com uma estrutura específica. Na prática, às vezes ele envolvia a resposta em blocos de código markdown — <code>```json ... ```</code> — ou adicionava uma frase introdutória antes do JSON.</p>
         <p>A função de parse inicial só tentava <code>json.loads()</code> direto. Falha, cai no fallback, salva "análise incompleta" no banco.</p>
         <p>Refizemos com 4 níveis de fallback:</p>
         <ol>
@@ -171,20 +171,20 @@ function WhitepaperPage() {
         <h3>Problema 7: Custo do regimento no prompt</h3>
         <p>O regimento interno do CAU/PR tem 201.814 caracteres — aproximadamente 68.000 tokens. Isso é muito mais do que os ~8.000 tokens que estimamos na documentação inicial.</p>
         <p>O impacto: a primeira chamada de cada janela de 5 minutos precisa escrever o regimento inteiro no cache da Anthropic (custo de escrita: $1,00/1M tokens ≈ $0,068 por janela). As chamadas seguintes leem do cache a $0,08/1M tokens — dez vezes mais barato.</p>
-        <p>Na prática, cada ato custa entre $0,008 (cache quente) e $0,071 (cache frio). A média real na rodada está em $0,013 por ato, confirmando que o cache está funcionando. Para 398 portarias, a projeção é <strong>~$4,80 total para a fase Haiku</strong>.</p>
+        <p>Na prática, cada ato custa entre $0,008 (cache quente) e $0,071 (cache frio). A média real na rodada está em $0,013 por ato, confirmando que o cache está funcionando. Para 398 portarias, a projeção é <strong>~$4,80 total para a fase Dig Dig Piper</strong>.</p>
 
         <hr />
 
         <h2>Onde Estamos Agora</h2>
         <p>O pipeline está rodando.</p>
-        <p>O worker Celery no Railway está analisando portaria por portaria: lê o texto, envia para o Haiku com o regimento interno cacheado como contexto, recebe o JSON com classificação, indícios e pessoas extraídas, salva tudo no banco.</p>
+        <p>O worker Celery no Railway está analisando portaria por portaria: lê o texto, envia para o Dig Dig Piper com o regimento interno cacheado como contexto, recebe o JSON com classificação, indícios e pessoas extraídas, salva tudo no banco.</p>
         <p>Dos primeiros atos processados:</p>
         <ul>
           <li><strong>~40% verde</strong> — atos conformes, sem irregularidades detectadas</li>
           <li><strong>~60% amarelo</strong> — suspeitos, requerem atenção</li>
           <li><strong>0% laranja/vermelho</strong> até agora</li>
         </ul>
-        <p>O Haiku está processando do mais recente para o mais antigo, então os atos de 2026 e 2025 vêm primeiro. Os casos mais graves tendem a aparecer quando chegar nos anos anteriores, onde comissões processantes, exonerações em massa e nomeações questionáveis foram mais frequentes.</p>
+        <p>O Dig Dig Piper está processando do mais recente para o mais antigo, então os atos de 2026 e 2025 vêm primeiro. Os casos mais graves tendem a aparecer quando chegar nos anos anteriores, onde comissões processantes, exonerações em massa e nomeações questionáveis foram mais frequentes.</p>
 
         <hr />
 
@@ -192,7 +192,7 @@ function WhitepaperPage() {
         <ol>
           <li><strong>Deliberações via scraper HTML</strong> — as 595 deliberações que existem só como HTML precisam de um scraper diferente</li>
           <li><strong>OCR nas portarias escaneadas</strong> — as 151 portarias de 2018–2021 precisam de Tesseract para ter o texto extraído</li>
-          <li><strong>Fase Sonnet</strong> — quando o Haiku terminar, o Sonnet vai aprofundar os casos vermelho: análise detalhada, ficha de denúncia pronta para uso, mapeamento completo de pessoas</li>
+          <li><strong>Fase Dig Dig Bug</strong> — quando o Dig Dig Piper terminar, o Dig Dig Bug vai aprofundar os casos vermelho: análise detalhada, ficha de denúncia pronta para uso, mapeamento completo de pessoas</li>
           <li><strong>Dashboard web</strong> — o frontend já existe, falta conectar na API com os resultados reais</li>
           <li><strong>Chat conversacional</strong> — o usuário poderá perguntar "mostre todas as portarias envolvendo comissões processantes em 2023" e receber uma resposta com contexto</li>
         </ol>

@@ -97,7 +97,7 @@ function Whitepaper02Page() {
 
         <h2>Onde Paramos</h2>
         <p>No White Paper anterior documentei o processo de construção da pipeline de auditoria: o scraper local para contornar o bloqueio de IP do servidor do CAU/PR, os 151 PDFs escaneados sem camada de texto, os sete problemas técnicos que precisaram ser resolvidos antes de uma rodada completa funcionar.</p>
-        <p>Quando terminei de escrever aquele texto, o pipeline estava rodando. O worker Celery no Railway analisava portaria por portaria, enviando cada texto ao Claude Haiku com o regimento interno de 68 mil tokens cacheado como contexto. O banco mostrava progresso constante.</p>
+        <p>Quando terminei de escrever aquele texto, o pipeline estava rodando. O worker Celery no Railway analisava portaria por portaria, enviando cada texto ao Dig Dig Piper com o regimento interno de 68 mil tokens cacheado como contexto. O banco mostrava progresso constante.</p>
 
         <div className="stat-row">
           <div className="stat"><span className="num">262</span><span className="desc">portarias analisadas</span></div>
@@ -112,7 +112,7 @@ function Whitepaper02Page() {
         <hr />
 
         <h2>A Conta Que Não Fechava</h2>
-        <p>Minha primeira hipótese foi custo de desenvolvimento. Durante a sessão anterior corrigimos sete bugs diferentes: flush prematuro no SQLAlchemy, rodada_id nulo passado como UUID, constraint NOT NULL violada no banco, JSON malformado do Haiku, event loop do asyncio conflitando com o Celery fork. Cada ciclo de debug executava o script de teste — e cada execução carregava os 68 mil tokens do regimento como escrita de cache a $0,068 por janela de 5 minutos.</p>
+        <p>Minha primeira hipótese foi custo de desenvolvimento. Durante a sessão anterior corrigimos sete bugs diferentes: flush prematuro no SQLAlchemy, rodada_id nulo passado como UUID, constraint NOT NULL violada no banco, JSON malformado do Dig Dig Piper, event loop do asyncio conflitando com o Celery fork. Cada ciclo de debug executava o script de teste — e cada execução carregava os 68 mil tokens do regimento como escrita de cache a $0,068 por janela de 5 minutos.</p>
         <p>Mas mesmo somando todas as execuções de teste, a conta não chegava a $20 de diferença. O banco registrava 262 análises com custo médio de $0,0118 cada. Para chegar em $23,72 ao custo médio registrado, seriam necessárias 2.009 chamadas à API. Tínhamos 400 atos para analisar. Algo estava chamando a API muito mais do que deveria.</p>
 
         <hr />
@@ -127,7 +127,7 @@ ORDER BY criado_em;`}</code></pre>
 
         <table>
           <thead>
-            <tr><th>Rodada</th><th>Status</th><th>Haiku</th><th>Criado em</th></tr>
+            <tr><th>Rodada</th><th>Status</th><th>Piper</th><th>Criado em</th></tr>
           </thead>
           <tbody>
             <tr><td><code>a8480297</code></td><td className="erro">concluida</td><td>0</td><td>20:06</td></tr>
@@ -149,7 +149,7 @@ ORDER BY criado_em;`}</code></pre>
         <table>
           <thead><tr><th>Origem</th><th>Estimativa</th></tr></thead>
           <tbody>
-            <tr><td>3 rodadas de debug (concluida, haiku=0)</td><td>~$14</td></tr>
+            <tr><td>3 rodadas de debug (concluida, Piper=0)</td><td>~$14</td></tr>
             <tr><td>2 rodadas paralelas duplicando trabalho</td><td>~$4</td></tr>
             <tr><td>Rodada atual (rastreada no banco)</td><td>$3,09</td></tr>
             <tr><td>Scripts de teste e desenvolvimento</td><td>~$2</td></tr>
@@ -185,7 +185,7 @@ if ativa_result.scalar_one_or_none():
     })`}</code></pre>
 
         <h3>Camada 2 — Idempotência no serviço</h3>
-        <p>Antes de chamar a API do Haiku, o serviço verifica se <code>ato.processado == true</code>. Se o ato já foi analisado, retorna o resultado existente sem fazer nenhuma chamada de API. Retries de Celery, reinicializações de worker, rodadas paralelas que escapem do guard — nada disso gera chamada extra para atos já processados.</p>
+        <p>Antes de chamar a API do Dig Dig Piper, o serviço verifica se <code>ato.processado == true</code>. Se o ato já foi analisado, retorna o resultado existente sem fazer nenhuma chamada de API. Retries de Celery, reinicializações de worker, rodadas paralelas que escapem do guard — nada disso gera chamada extra para atos já processados.</p>
         <pre><code>{`if ato.processado:
     existing = await db.execute(
         select(Analise).where(Analise.ato_id == ato_id)
@@ -235,7 +235,7 @@ WHERE status IN ('em_progresso', 'pendente');`}</code></pre>
         <p>A proteção precisa existir em três lugares ao mesmo tempo. O endpoint evita a criação do problema. O serviço garante que retries sejam gratuitos. O banco garante que o serviço não seja o único guardião.</p>
         <p>Há uma lição mais ampla sobre desenvolvimento com APIs de IA: o ambiente de produção e o ambiente de debug compartilham as mesmas chaves de API e os mesmos créditos. Durante o desenvolvimento normal de software, chamar a mesma função dez vezes enquanto você resolve um bug custa basicamente zero. Com LLMs, cada chamada tem preço. O reflexo de "executa de novo para ver o que acontece" precisa ser substituído por "verifica o estado antes de executar".</p>
         <p>As quatro camadas implementadas codificam exatamente esse princípio: verificar antes de agir, tornar cada ação idempotente, e ter um limite automático que para o sistema quando algo sai do esperado.</p>
-        <p>A rodada atual ainda está em progresso. Os próximos papers vão documentar o que o Haiku encontrou.</p>
+        <p>A rodada atual ainda está em progresso. Os próximos papers vão documentar o que o Dig Dig Piper encontrou.</p>
 
         <div className="signature">
           <div className="name">Regis Wilczek</div>
