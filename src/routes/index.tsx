@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import claudeLogo from "@/assets/claude-logo.png";
 import { fetchStats } from "@/lib/api";
 import type { PublicStats } from "@/lib/api";
+import { ParticleField } from "@/components/ParticleField";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -34,172 +35,8 @@ const SCANLINE_MOBILE: React.CSSProperties = {
   backgroundClip: "text",
 };
 
-// ── Terrain canvas ────────────────────────────────────────────────────────────
-// Imperative canvas — created outside React reconciler to avoid SSR/Strict Mode.
+// ── Terrain canvas (extracted to @/components/ParticleField) ─────────────────
 
-function ParticleField() {
-  const wrapRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const wrap = wrapRef.current;
-    if (!wrap || typeof window === "undefined") return;
-
-    // Respect reduced-motion preference: render a single static frame and stop.
-    const reducedMotion =
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const cv = document.createElement("canvas");
-    cv.setAttribute("aria-hidden", "true");
-    cv.style.cssText =
-      "position:absolute;top:0;left:0;width:100%;height:100%;display:block";
-    wrap.appendChild(cv);
-
-    const ctx = cv.getContext("2d")!;
-    let t = 0;
-    let raf = 0;
-    let alive = true;
-    let visible = true;       // viewport visibility
-    let tabVisible = !document.hidden;
-    let lastFrame = 0;
-    const FRAME_MS = 1000 / 30; // cap at 30fps
-
-    function resize() {
-      cv.width  = wrap!.clientWidth  || window.innerWidth;
-      cv.height = wrap!.clientHeight || window.innerHeight;
-    }
-
-    function drawFrame() {
-      const W = cv.width;
-      const H = cv.height;
-      if (W < 2 || H < 2) return;
-
-      ctx.clearRect(0, 0, W, H);
-
-      const STEP = 6;
-      const PIX  = 3;
-
-      // Brazil flag palette (deep, slightly desaturated for dark bg)
-      const BLUE   = [10,  35, 110];   // #0a236e
-      const GREEN  = [0,  130,  60];   // #00823c
-      const YELLOW = [240, 200,  30];  // #f0c81e
-
-      const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-      const mix = (c1: number[], c2: number[], t: number) => [
-        lerp(c1[0], c2[0], t),
-        lerp(c1[1], c2[1], t),
-        lerp(c1[2], c2[2], t),
-      ];
-
-      for (let py = 0; py < H; py += STEP) {
-        const ny = py / H;
-        for (let px = 0; px < W; px += STEP) {
-          const nx = px / W;
-
-          // Flowing wave field — smooth, full-screen, no center artefact
-          const w1 = Math.sin(nx * 4.2 + ny * 2.6 + t * 0.35);
-          const w2 = Math.sin(nx * 1.9 - ny * 3.4 - t * 0.22);
-          const w3 = Math.cos((nx + ny) * 3.1 + t * 0.18);
-          const raw = (w1 * 0.42 + w2 * 0.33 + w3 * 0.25) * 0.5 + 0.5;
-
-          // Ridge for dot density / brightness
-          const ridge = Math.pow(1 - Math.abs(2 * raw - 1), 1.8);
-
-          const THRESH = 0.30;
-          if (ridge < THRESH) continue;
-          const norm = (ridge - THRESH) / (1 - THRESH);
-
-          // Diagonal flag-band coordinate (bottom-left → top-right)
-          // Slow drift over time so the flag "breathes"
-          const band = (nx * 0.55 + (1 - ny) * 0.45 + Math.sin(t * 0.12) * 0.04 + raw * 0.08) % 1;
-
-          // 3 bands like a flag: green → yellow → blue, smooth transitions
-          let col: number[];
-          if (band < 0.40) {
-            const u = band / 0.40;            // green dominant, fading to yellow
-            col = mix(GREEN, YELLOW, Math.pow(u, 1.6));
-          } else if (band < 0.62) {
-            const u = (band - 0.40) / 0.22;   // yellow core
-            col = mix(YELLOW, mix(YELLOW, BLUE, 0.5), u);
-          } else {
-            const u = (band - 0.62) / 0.38;   // blue
-            col = mix(mix(YELLOW, BLUE, 0.5), BLUE, Math.pow(u, 0.8));
-          }
-
-          // Brightness modulation
-          const intensity = 0.40 + norm * 0.65;
-          const r = Math.min(255, Math.round(col[0] * intensity));
-          const g = Math.min(255, Math.round(col[1] * intensity));
-          const b = Math.min(255, Math.round(col[2] * intensity));
-
-          const alpha = Math.min(0.85, 0.35 + norm * 0.50);
-          ctx.fillStyle = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
-          ctx.fillRect(px, py, PIX, PIX);
-        }
-      }
-    }
-
-    function tick(now: number) {
-      if (!alive) return;
-      if (!visible || !tabVisible) {
-        // Don't schedule next frame; we'll resume via observers/listeners.
-        return;
-      }
-      if (now - lastFrame >= FRAME_MS) {
-        lastFrame = now;
-        drawFrame();
-        t += 0.024;
-      }
-      raf = requestAnimationFrame(tick);
-    }
-
-    function start() {
-      if (!alive || reducedMotion) return;
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(tick);
-    }
-
-    function onVisibility() {
-      tabVisible = !document.hidden;
-      if (tabVisible) start();
-      else cancelAnimationFrame(raf);
-    }
-
-    resize();
-    window.addEventListener("resize", resize);
-    document.addEventListener("visibilitychange", onVisibility);
-
-    // Pause when off-screen
-    const io = new IntersectionObserver(
-      (entries) => {
-        visible = entries[0]?.isIntersecting ?? true;
-        if (visible) start();
-        else cancelAnimationFrame(raf);
-      },
-      { threshold: 0.01 }
-    );
-    io.observe(wrap);
-
-    if (reducedMotion) {
-      // Single static frame
-      drawFrame();
-    } else {
-      start();
-    }
-
-    return () => {
-      alive = false;
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
-      document.removeEventListener("visibilitychange", onVisibility);
-      io.disconnect();
-      cv.remove();
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return <div ref={wrapRef} aria-hidden="true" className="absolute inset-0" />;
-}
 
 // ── Shared headline word ──────────────────────────────────────────────────────
 
