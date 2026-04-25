@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/entrar")({
   component: EntrarPage,
@@ -183,7 +184,9 @@ function useAuthForm() {
 
   const isLogin = mode === "login";
 
-  function onSubmit(e: React.FormEvent) {
+  const navigate = useNavigate();
+
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (!email || !password || (!isLogin && !name)) {
@@ -191,14 +194,56 @@ function useAuthForm() {
       return;
     }
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    try {
+      if (isLogin) {
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (authError) throw authError;
+      } else {
+        const { data: signUpData, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { nome: name } },
+        });
+        if (authError) throw authError;
+        if (!signUpData.session) {
+          setSubmitting(false);
+          setError("Cadastro realizado! Verifique seu email para confirmar a conta.");
+          return;
+        }
+      }
+      navigate({ to: "/painel" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao autenticar.";
       setError(
-        "Autenticação ainda não está conectada. Em breve você poderá " +
-          (isLogin ? "entrar" : "criar sua conta") +
-          ".",
+        msg === "Invalid login credentials"
+          ? "Email ou senha incorretos."
+          : msg === "User already registered"
+            ? "Este email já está cadastrado."
+            : msg,
       );
-    }, 600);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function resetPassword() {
+    if (!email) {
+      setError("Digite seu email para recuperar a senha.");
+      return;
+    }
+    setSubmitting(true);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    });
+    setSubmitting(false);
+    if (resetError) {
+      setError(resetError.message);
+    } else {
+      setError("Email de recuperação enviado! Verifique sua caixa de entrada.");
+    }
   }
 
   return {
@@ -214,6 +259,7 @@ function useAuthForm() {
     submitting,
     error,
     onSubmit,
+    resetPassword,
   };
 }
 
@@ -246,6 +292,7 @@ function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
     submitting,
     error,
     onSubmit,
+    resetPassword,
   } = f;
 
   return (
@@ -419,6 +466,7 @@ function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
                 {isLogin && (
                   <button
                     type="button"
+                    onClick={resetPassword}
                     className="text-[10px] uppercase tracking-[0.16em] text-white/45 hover:text-white transition-colors"
                   >
                     Esqueci
@@ -527,6 +575,7 @@ function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
     submitting,
     error,
     onSubmit,
+    resetPassword,
   } = f;
 
   return (
@@ -644,6 +693,7 @@ function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
                   {isLogin && (
                     <button
                       type="button"
+                      onClick={resetPassword}
                       className="text-[10px] uppercase tracking-[0.16em] text-white/40 hover:text-white/70 transition-colors"
                     >
                       Esqueci
