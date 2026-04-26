@@ -39,6 +39,11 @@ build/
 # Git worktrees
 .worktrees/
 
+# Pesquisa local (documentos físicos e prints — não fazem parte do código)
+DOCUMENTOS QUE CONSEGUI NA MAO/
+Pesquisa portal da transparencia/
+backend/scripts/_transparencia_html.tmp
+
 # OS / Editor
 .vscode/*
 !.vscode/extensions.json
