@@ -453,7 +453,7 @@ function PainelLayout() {
 
       {/* ── Desktop sidebar ──────────────────────────────────── */}
       <aside
-        className="hidden md:flex w-[240px] flex-shrink-0 flex-col bg-white"
+        className="hidden md:flex w-[260px] flex-shrink-0 flex-col bg-white"
         style={{ borderRight: `1px solid ${BORDER}` }}
       >
         <SidebarContent
