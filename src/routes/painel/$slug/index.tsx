@@ -157,10 +157,12 @@ function RealtimeFeed({
   slug,
   initialItems,
   isLive,
+  variant = "aside",
 }: {
   slug: string;
   initialItems: AnaliseRecente[] | null;
   isLive: boolean;
+  variant?: "aside" | "inline";
 }) {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [busca, setBusca] = useState("");
