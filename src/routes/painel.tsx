@@ -14,25 +14,24 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ChevronDown, MessageSquare, LogOut, Menu } from "lucide-react";
 import {
-  ChevronDown,
-  MessageSquare,
-  LogOut,
-  Menu,
-  Search,
-  Sparkles,
-  Settings,
-  HelpCircle,
-} from "lucide-react";
-
-const BORDER = "#ebe8e0";
-const BORDER_SOFT = "#f1efe8";
-const MUTED = "#7a7872";
-const MUTED_SOFT = "#a8a59c";
-const INK = "#0a0a0a";
-const SURFACE = "#faf8f3";
-const SURFACE_HOVER = "#f5f2ea";
-const ACCENT = "#16a34a";
+  INK,
+  PAPER,
+  PAPER_DEEP,
+  BORDER,
+  BORDER_SOFT,
+  HAIRLINE,
+  MUTED,
+  MUTED_SOFT,
+  SUBTLE,
+  ACCENT,
+  MONO,
+  TIGHT,
+  SIDEBAR_W,
+  RADIUS,
+  tag,
+} from "../lib/painel-theme";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — route is registered once dev server regenerates routeTree.gen.ts
@@ -47,6 +46,28 @@ export const Route = createFileRoute("/painel")({
   },
   component: PainelLayout,
 });
+
+/**
+ * Cantos decorativos (4 cantos) — assinatura "Terminal Brutalist".
+ * Aplica 4 traços de 6×6px nos cantos do container pai.
+ */
+function CornerMarks({ color = HAIRLINE, size = 6 }: { color?: string; size?: number }) {
+  const s = `${size}px`;
+  const common = {
+    position: "absolute" as const,
+    width: s,
+    height: s,
+    pointerEvents: "none" as const,
+  };
+  return (
+    <>
+      <span style={{ ...common, top: 0, left: 0, borderTop: `1px solid ${color}`, borderLeft: `1px solid ${color}` }} />
+      <span style={{ ...common, top: 0, right: 0, borderTop: `1px solid ${color}`, borderRight: `1px solid ${color}` }} />
+      <span style={{ ...common, bottom: 0, left: 0, borderBottom: `1px solid ${color}`, borderLeft: `1px solid ${color}` }} />
+      <span style={{ ...common, bottom: 0, right: 0, borderBottom: `1px solid ${color}`, borderRight: `1px solid ${color}` }} />
+    </>
+  );
+}
 
 function SidebarContent({
   userEmail,
@@ -63,132 +84,131 @@ function SidebarContent({
 }) {
   const initial = (userEmail?.[0] ?? "•").toUpperCase();
   const orgaos = [
-    { nome: "CAU/PR", slug: "cau-pr", ativo: true, dot: ACCENT },
-    { nome: "Pref. de Curitiba", slug: null, ativo: false },
-    { nome: "CRM/PR", slug: null, ativo: false },
-    { nome: "Câmara de Curitiba", slug: null, ativo: false },
+    { nome: "CAU/PR", slug: "cau-pr", ativo: true, n: 1 },
+    { nome: "Pref. de Curitiba", slug: null, ativo: false, n: 2 },
+    { nome: "CRM/PR", slug: null, ativo: false, n: 3 },
+    { nome: "Câmara de Curitiba", slug: null, ativo: false, n: 4 },
   ];
 
+  // Build version string com timestamp atual estável (build-time-ish)
+  const version = "v0.4.0";
+
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* ── Brand ─────────────────────────────────────────── */}
-      <div className="px-5 pt-6 pb-5 flex items-center justify-between">
-        <Link
-          to="/"
-          onClick={onNavigate}
-          className="group flex items-center gap-2 hover:opacity-80 transition-opacity"
-        >
+    <div className="flex flex-col h-full" style={{ background: "#fff", color: INK }}>
+      {/* ─── Top status bar — estilo IDE ──────────────────── */}
+      <div
+        className="flex items-center justify-between px-3 h-7 flex-shrink-0"
+        style={{
+          borderBottom: `1px solid ${BORDER}`,
+          background: PAPER,
+          fontFamily: MONO,
+          fontSize: 9,
+          letterSpacing: "0.18em",
+          color: MUTED_SOFT,
+          textTransform: "uppercase",
+        }}
+      >
+        <span>~/painel</span>
+        <span className="flex items-center gap-1.5">
           <span
-            className="flex items-center justify-center w-7 h-7 rounded-[7px] text-white text-[10px] font-bold tracking-wider"
-            style={{
-              background: INK,
-              fontFamily: "'JetBrains Mono', monospace",
-            }}
-          >
-            DD
-          </span>
-          <span
-            className="text-[11px] uppercase tracking-[0.28em] font-semibold"
-            style={{ color: INK, fontFamily: "'JetBrains Mono', monospace" }}
-          >
-            DIG · DIG
-          </span>
-        </Link>
-        <span
-          className="text-[8.5px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded"
-          style={{
-            color: MUTED,
-            background: SURFACE,
-            fontFamily: "'JetBrains Mono', monospace",
-          }}
-        >
-          beta
+            className="h-1 w-1 rounded-full"
+            style={{ background: ACCENT, boxShadow: `0 0 6px ${ACCENT}` }}
+          />
+          online
         </span>
       </div>
 
-      {/* ── Quick search (visual) ─────────────────────────── */}
-      <div className="px-3 pb-3">
-        <div
-          className="flex items-center gap-2 px-2.5 h-8 rounded-md transition-colors hover:bg-[#f5f2ea] cursor-pointer"
-          style={{ background: SURFACE, border: `1px solid ${BORDER_SOFT}` }}
+      {/* ─── Brand ────────────────────────────────────────── */}
+      <div className="px-4 pt-5 pb-4 flex-shrink-0">
+        <Link
+          to="/"
+          onClick={onNavigate}
+          className="flex items-center gap-2.5 group"
         >
-          <Search size={12} style={{ color: MUTED_SOFT }} />
-          <span className="text-[12px] flex-1" style={{ color: MUTED_SOFT }}>
-            Buscar…
-          </span>
-          <kbd
-            className="text-[9px] px-1 py-px rounded border"
+          <span
+            className="flex items-center justify-center w-8 h-8 text-white text-[10.5px] font-bold tracking-[0.05em] flex-shrink-0 relative"
             style={{
-              color: MUTED,
-              background: "white",
-              borderColor: BORDER,
-              fontFamily: "'JetBrains Mono', monospace",
+              background: INK,
+              fontFamily: MONO,
+              borderRadius: RADIUS,
             }}
           >
-            ⌘K
-          </kbd>
+            DD
+            <span
+              className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full"
+              style={{ background: ACCENT, boxShadow: `0 0 8px ${ACCENT}` }}
+            />
+          </span>
+          <div className="flex flex-col gap-0.5">
+            <span
+              className="text-[12px] font-semibold leading-none tracking-[0.22em]"
+              style={{ color: INK, fontFamily: MONO }}
+            >
+              DIG·DIG
+            </span>
+            <span
+              className="text-[8.5px] uppercase leading-none tracking-[0.18em]"
+              style={{ color: MUTED_SOFT, fontFamily: MONO }}
+            >
+              {version} / beta
+            </span>
+          </div>
+        </Link>
+      </div>
+
+      {/* divisor com label */}
+      <div className="px-4 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <span
+            className="text-[8.5px] tracking-[0.22em] uppercase"
+            style={{ color: MUTED_SOFT, fontFamily: MONO }}
+          >
+            ▮ workspace
+          </span>
+          <span className="flex-1 h-px" style={{ background: HAIRLINE }} />
         </div>
       </div>
 
-      {/* ── Nav ───────────────────────────────────────────── */}
-      <nav className="flex-1 px-3 overflow-y-auto">
-        <div
-          className="text-[9.5px] uppercase tracking-[0.22em] px-3 pt-2 pb-1.5 font-medium"
-          style={{ color: MUTED_SOFT, fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          Workspace
-        </div>
+      {/* ─── Nav ──────────────────────────────────────────── */}
+      <nav className="flex-1 px-2 py-3 overflow-y-auto">
+        <NavItem
+          to={"/painel/chat"}
+          onNavigate={onNavigate}
+          n={tag(0)}
+          icon={<MessageSquare size={13} className="opacity-80" />}
+          label="Chat IA"
+          accent
+        />
 
-        <Link
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          to={"/painel/chat" as any}
-          onClick={onNavigate}
-          className="group flex items-center gap-2.5 px-3 h-9 rounded-md text-[13px] transition-all"
-          style={{ color: MUTED }}
-          activeProps={{
-            style: {
-              color: INK,
-              background: SURFACE,
-              fontWeight: 500,
-            },
-          }}
-        >
-          <MessageSquare size={14} className="opacity-80" />
-          <span className="flex-1">Chat com IA</span>
-          <Sparkles size={11} style={{ color: MUTED_SOFT }} />
-        </Link>
-
-        <div
-          className="text-[9.5px] uppercase tracking-[0.22em] px-3 pt-4 pb-1.5 font-medium"
-          style={{ color: MUTED_SOFT, fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          Escavações
+        <div className="px-2 mt-5 mb-2 flex items-center gap-2">
+          <span
+            className="text-[8.5px] tracking-[0.22em] uppercase"
+            style={{ color: MUTED_SOFT, fontFamily: MONO }}
+          >
+            ▮ escavações
+          </span>
+          <span className="flex-1 h-px" style={{ background: HAIRLINE }} />
+          <span
+            className="text-[8.5px] tracking-[0.18em] uppercase tabular-nums"
+            style={{ color: MUTED_SOFT, fontFamily: MONO }}
+          >
+            01/04
+          </span>
         </div>
 
         <Collapsible open={excavOpen} onOpenChange={setExcavOpen}>
           <CollapsibleTrigger
-            className="flex items-center justify-between w-full px-3 h-8 rounded-md text-[12px] transition-colors hover:bg-[#f5f2ea]"
-            style={{ color: MUTED }}
+            className="group flex items-center justify-between w-full px-3 h-7 text-[10.5px] uppercase tracking-[0.16em] transition-colors hover:bg-[#faf8f3]"
+            style={{ color: MUTED, fontFamily: MONO, borderRadius: RADIUS }}
           >
-            <span className="flex items-center gap-2">
-              <span
-                className="text-[10px] tabular-nums"
-                style={{
-                  color: MUTED_SOFT,
-                  fontFamily: "'JetBrains Mono', monospace",
-                }}
-              >
-                01 / 04
-              </span>
-              <span>Órgãos auditados</span>
-            </span>
+            <span>órgãos auditados</span>
             <ChevronDown
-              size={12}
+              size={11}
               className={`transition-transform ${excavOpen ? "rotate-180" : ""}`}
               style={{ color: MUTED_SOFT }}
             />
           </CollapsibleTrigger>
-          <CollapsibleContent className="mt-1 space-y-0.5">
+          <CollapsibleContent className="mt-1 space-y-px">
             {orgaos.map((o) =>
               o.ativo && o.slug ? (
                 <Link
@@ -198,153 +218,151 @@ function SidebarContent({
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   params={{ slug: o.slug } as any}
                   onClick={onNavigate}
-                  className="group flex items-center gap-2.5 pl-3 pr-2 h-8 rounded-md text-[12.5px] transition-all relative"
-                  style={{ color: MUTED }}
+                  className="group flex items-center gap-2.5 pl-3 pr-2 h-8 text-[12px] transition-all relative"
+                  style={{
+                    color: MUTED,
+                    fontFamily: TIGHT,
+                    borderRadius: RADIUS,
+                  }}
                   activeProps={{
                     style: {
                       color: INK,
-                      background: SURFACE,
+                      background: PAPER,
                       fontWeight: 500,
+                      fontFamily: TIGHT,
+                      borderRadius: RADIUS,
+                      boxShadow: `inset 2px 0 0 ${ACCENT}`,
                     },
                   }}
                 >
                   <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{
-                      background: o.dot,
-                      boxShadow: `0 0 0 3px ${o.dot}1a`,
-                    }}
-                  />
+                    className="text-[9px] tabular-nums"
+                    style={{ color: MUTED_SOFT, fontFamily: MONO, letterSpacing: "0.06em" }}
+                  >
+                    {tag(o.n)}
+                  </span>
                   <span className="flex-1 truncate">{o.nome}</span>
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: ACCENT, boxShadow: `0 0 6px ${ACCENT}` }}
+                  />
                 </Link>
               ) : (
                 <div
                   key={o.nome}
-                  className="flex items-center gap-2.5 pl-3 pr-2 h-8 rounded-md text-[12.5px]"
-                  style={{ color: "#bdbab2" }}
+                  className="flex items-center gap-2.5 pl-3 pr-2 h-8 text-[12px]"
+                  style={{ color: "#bdbab2", fontFamily: TIGHT }}
                 >
                   <span
-                    className="w-1.5 h-1.5 rounded-full border"
-                    style={{ borderColor: "#d8d4ca" }}
-                  />
+                    className="text-[9px] tabular-nums"
+                    style={{ color: "#cfcbc1", fontFamily: MONO, letterSpacing: "0.06em" }}
+                  >
+                    {tag(o.n)}
+                  </span>
                   <span className="flex-1 truncate">{o.nome}</span>
                   <span
-                    className="text-[8.5px] px-1.5 py-0.5 rounded uppercase tracking-[0.14em]"
-                    style={{
-                      background: SURFACE,
-                      color: MUTED_SOFT,
-                      fontFamily: "'JetBrains Mono', monospace",
-                    }}
+                    className="text-[8.5px] uppercase tracking-[0.14em]"
+                    style={{ color: MUTED_SOFT, fontFamily: MONO }}
                   >
-                    breve
+                    queue
                   </span>
                 </div>
               ),
             )}
           </CollapsibleContent>
         </Collapsible>
+      </nav>
 
-        {/* Stats compact card */}
+      {/* ─── Pipeline live card ───────────────────────────── */}
+      <div className="px-3 pb-3 flex-shrink-0">
         <div
-          className="mx-1 mt-5 mb-3 p-3 rounded-lg"
+          className="relative p-3"
           style={{
-            background: `linear-gradient(180deg, ${SURFACE} 0%, white 100%)`,
-            border: `1px solid ${BORDER_SOFT}`,
+            background: PAPER,
+            border: `1px solid ${BORDER}`,
+            borderRadius: RADIUS,
           }}
         >
+          <CornerMarks color={INK} size={5} />
           <div className="flex items-center justify-between mb-2">
             <span
-              className="text-[9.5px] uppercase tracking-[0.22em] font-medium"
-              style={{
-                color: MUTED,
-                fontFamily: "'JetBrains Mono', monospace",
-              }}
+              className="text-[8.5px] uppercase tracking-[0.22em] font-semibold"
+              style={{ color: MUTED, fontFamily: MONO }}
             >
-              Pipeline ao vivo
+              pipeline
             </span>
             <span className="flex items-center gap-1">
               <span
-                className="w-1.5 h-1.5 rounded-full animate-pulse"
-                style={{ background: ACCENT }}
+                className="h-1 w-1 rounded-full animate-pulse"
+                style={{ background: ACCENT, boxShadow: `0 0 6px ${ACCENT}` }}
               />
               <span
-                className="text-[9px] uppercase tracking-wider"
-                style={{
-                  color: ACCENT,
-                  fontFamily: "'JetBrains Mono', monospace",
-                }}
+                className="text-[8.5px] uppercase tracking-[0.18em] font-semibold"
+                style={{ color: ACCENT, fontFamily: MONO }}
               >
                 live
               </span>
             </span>
           </div>
-          <div className="flex items-baseline gap-1.5 mb-1">
+          <div className="flex items-baseline gap-1.5">
             <span
-              className="text-[20px] font-semibold tabular-nums tracking-tight"
-              style={{ color: INK }}
+              className="text-[22px] tabular-nums"
+              style={{
+                color: INK,
+                fontFamily: TIGHT,
+                fontWeight: 500,
+                letterSpacing: "-0.04em",
+                lineHeight: 1,
+              }}
             >
               262
             </span>
             <span
-              className="text-[10.5px]"
-              style={{
-                color: MUTED,
-                fontFamily: "'JetBrains Mono', monospace",
-              }}
+              className="text-[10px] tabular-nums"
+              style={{ color: MUTED, fontFamily: MONO }}
             >
               / 400
             </span>
+            <span
+              className="ml-auto text-[9.5px] tabular-nums"
+              style={{ color: ACCENT, fontFamily: MONO, fontWeight: 600 }}
+            >
+              65.5%
+            </span>
           </div>
           <div
-            className="h-1 rounded-full overflow-hidden"
-            style={{ background: BORDER_SOFT }}
+            className="mt-2 h-[3px] overflow-hidden relative"
+            style={{ background: BORDER, borderRadius: 1 }}
           >
             <div
-              className="h-full rounded-full transition-all"
-              style={{ width: "65.5%", background: INK }}
+              className="h-full"
+              style={{
+                width: "65.5%",
+                background: `linear-gradient(90deg, ${INK} 0%, ${ACCENT} 100%)`,
+              }}
             />
           </div>
           <p
-            className="text-[10.5px] mt-2 leading-snug"
-            style={{ color: MUTED }}
+            className="text-[9px] mt-2 leading-snug uppercase tracking-[0.14em]"
+            style={{ color: MUTED_SOFT, fontFamily: MONO }}
           >
-            Portarias CAU/PR · 65,5% concluído
+            cau/pr · portarias · haiku
           </p>
         </div>
-      </nav>
+      </div>
 
-      {/* ── Footer ───────────────────────────────────────── */}
+      {/* ─── User footer — terminal style ─────────────────── */}
       <div
-        className="px-3 pt-2 pb-3 space-y-0.5"
-        style={{ borderTop: `1px solid ${BORDER_SOFT}` }}
+        className="px-3 py-3 flex-shrink-0"
+        style={{ borderTop: `1px solid ${BORDER}` }}
       >
-        <a
-          href="mailto:contato@digdig.com.br"
-          className="flex items-center gap-2.5 px-3 h-8 rounded-md text-[12px] transition-colors hover:bg-[#f5f2ea]"
-          style={{ color: MUTED }}
-        >
-          <HelpCircle size={13} className="opacity-70" />
-          <span>Ajuda &amp; feedback</span>
-        </a>
-        <Link
-          to="/precos"
-          onClick={onNavigate}
-          className="flex items-center gap-2.5 px-3 h-8 rounded-md text-[12px] transition-colors hover:bg-[#f5f2ea]"
-          style={{ color: MUTED }}
-        >
-          <Settings size={13} className="opacity-70" />
-          <span>Plano &amp; conta</span>
-        </Link>
-
-        <div
-          className="mt-2 mx-1 p-2 rounded-lg flex items-center gap-2.5"
-          style={{ background: SURFACE, border: `1px solid ${BORDER_SOFT}` }}
-        >
+        <div className="flex items-center gap-2.5">
           <span
-            className="flex items-center justify-center w-7 h-7 rounded-full text-white text-[11px] font-semibold flex-shrink-0"
+            className="flex items-center justify-center w-7 h-7 text-white text-[11px] font-semibold flex-shrink-0"
             style={{
-              background: `linear-gradient(135deg, ${INK} 0%, #3a3a35 100%)`,
-              fontFamily: "'Inter Tight', sans-serif",
+              background: INK,
+              fontFamily: MONO,
+              borderRadius: RADIUS,
             }}
           >
             {initial}
@@ -352,31 +370,107 @@ function SidebarContent({
           <div className="flex-1 min-w-0">
             <p
               className="text-[11px] font-medium truncate leading-tight"
-              style={{ color: INK }}
+              style={{ color: INK, fontFamily: TIGHT }}
             >
               {userEmail || "—"}
             </p>
-            <p
-              className="text-[9.5px] uppercase tracking-[0.16em] mt-0.5"
-              style={{
-                color: MUTED,
-                fontFamily: "'JetBrains Mono', monospace",
-              }}
+            <Link
+              to="/precos"
+              onClick={onNavigate}
+              className="text-[8.5px] uppercase tracking-[0.18em] mt-0.5 inline-block hover:text-[#0a0a0a] transition-colors"
+              style={{ color: MUTED_SOFT, fontFamily: MONO }}
             >
-              Plano cidadão
-            </p>
+              plano · cidadão →
+            </Link>
           </div>
           <button
             onClick={onSignOut}
-            title="Sair"
-            className="flex items-center justify-center w-7 h-7 rounded-md transition-colors hover:bg-white"
-            style={{ color: MUTED }}
+            title="Encerrar sessão"
+            className="flex items-center justify-center w-7 h-7 transition-colors hover:bg-[#faf8f3]"
+            style={{ color: MUTED, borderRadius: RADIUS }}
           >
             <LogOut size={12} />
           </button>
         </div>
       </div>
+
+      {/* ─── Bottom status bar ────────────────────────────── */}
+      <div
+        className="flex items-center justify-between px-3 h-6 flex-shrink-0"
+        style={{
+          borderTop: `1px solid ${BORDER}`,
+          background: PAPER_DEEP,
+          fontFamily: MONO,
+          fontSize: 8.5,
+          letterSpacing: "0.18em",
+          color: MUTED_SOFT,
+          textTransform: "uppercase",
+        }}
+      >
+        <span>haiku 4.5 · sonnet 4.6</span>
+        <span>{new Date().getFullYear()}</span>
+      </div>
     </div>
+  );
+}
+
+function NavItem({
+  to,
+  onNavigate,
+  n,
+  icon,
+  label,
+  accent = false,
+}: {
+  to: string;
+  onNavigate?: () => void;
+  n: string;
+  icon: React.ReactNode;
+  label: string;
+  accent?: boolean;
+}) {
+  return (
+    <Link
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      to={to as any}
+      onClick={onNavigate}
+      className="group flex items-center gap-2.5 px-3 h-9 text-[13px] transition-all"
+      style={{ color: MUTED, fontFamily: TIGHT, borderRadius: RADIUS }}
+      activeProps={{
+        style: {
+          color: INK,
+          background: PAPER,
+          fontWeight: 500,
+          fontFamily: TIGHT,
+          borderRadius: RADIUS,
+          boxShadow: `inset 2px 0 0 ${ACCENT}`,
+        },
+      }}
+    >
+      <span
+        className="text-[9px] tabular-nums"
+        style={{ color: MUTED_SOFT, fontFamily: MONO, letterSpacing: "0.06em" }}
+      >
+        {n}
+      </span>
+      {icon}
+      <span className="flex-1">{label}</span>
+      {accent && (
+        <span
+          className="text-[8.5px] uppercase tracking-[0.18em] px-1.5 py-0.5"
+          style={{
+            color: ACCENT,
+            background: "#f0fdf4",
+            border: `1px solid ${ACCENT}33`,
+            fontFamily: MONO,
+            borderRadius: 1,
+            fontWeight: 600,
+          }}
+        >
+          AI
+        </span>
+      )}
+    </Link>
   );
 }
 
@@ -397,7 +491,6 @@ function PainelLayout() {
     });
   }, [navigate]);
 
-  // Auto-close mobile drawer on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
@@ -409,16 +502,20 @@ function PainelLayout() {
 
   return (
     <div
-      className="flex flex-col md:flex-row min-h-[100dvh] bg-white"
+      className="flex flex-col md:flex-row min-h-[100dvh]"
       style={{
         color: INK,
-        fontFamily: "'Inter Tight', 'Inter', system-ui, sans-serif",
+        fontFamily: TIGHT,
+        background: "#fff",
       }}
     >
       {/* ── Mobile top bar ───────────────────────────────────── */}
       <header
-        className="md:hidden flex items-center justify-between px-4 h-14 bg-white sticky top-0 z-40"
-        style={{ borderBottom: `1px solid ${BORDER}` }}
+        className="md:hidden flex items-center justify-between px-4 h-12 sticky top-0 z-40"
+        style={{
+          borderBottom: `1px solid ${BORDER}`,
+          background: "#fff",
+        }}
       >
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
@@ -427,10 +524,10 @@ function PainelLayout() {
               className="p-2 -ml-2 transition-colors hover:text-[#0a0a0a]"
               style={{ color: INK }}
             >
-              <Menu size={20} />
+              <Menu size={18} />
             </button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-[260px] max-w-[80vw]">
+          <SheetContent side="left" className="p-0 w-[280px] max-w-[85vw]">
             <SidebarContent
               userEmail={userEmail}
               excavOpen={excavOpen}
@@ -443,18 +540,43 @@ function PainelLayout() {
 
         <Link
           to="/"
-          className="text-[11px] uppercase tracking-[0.28em] font-semibold"
-          style={{ color: INK, fontFamily: "'JetBrains Mono', monospace" }}
+          className="flex items-center gap-2"
         >
-          DIG · DIG
+          <span
+            className="flex items-center justify-center w-6 h-6 text-white text-[9px] font-bold"
+            style={{ background: INK, fontFamily: MONO, borderRadius: RADIUS }}
+          >
+            DD
+          </span>
+          <span
+            className="text-[11px] uppercase tracking-[0.22em] font-semibold"
+            style={{ color: INK, fontFamily: MONO }}
+          >
+            DIG·DIG
+          </span>
         </Link>
-        <span className="w-8" />
+        <span className="flex items-center gap-1">
+          <span
+            className="h-1 w-1 rounded-full"
+            style={{ background: ACCENT, boxShadow: `0 0 6px ${ACCENT}` }}
+          />
+          <span
+            className="text-[8.5px] uppercase tracking-[0.18em]"
+            style={{ color: SUBTLE, fontFamily: MONO }}
+          >
+            live
+          </span>
+        </span>
       </header>
 
       {/* ── Desktop sidebar ──────────────────────────────────── */}
       <aside
-        className="hidden md:flex w-[260px] flex-shrink-0 flex-col bg-white"
-        style={{ borderRight: `1px solid ${BORDER}` }}
+        className="hidden md:flex flex-shrink-0 flex-col"
+        style={{
+          width: SIDEBAR_W,
+          background: "#fff",
+          borderRight: `1px solid ${BORDER}`,
+        }}
       >
         <SidebarContent
           userEmail={userEmail}
