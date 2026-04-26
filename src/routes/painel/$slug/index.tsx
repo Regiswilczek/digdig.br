@@ -2341,74 +2341,122 @@ function SlugDashboard() {
   const isLive = count24h > 0 || rodada?.status === "em_progresso";
   const [feedOpen, setFeedOpen] = useState(false);
 
+  const ACCENT = "#16a34a";
+  const TABS = [
+    { value: "visao-geral", label: "Visão Geral" },
+    { value: "relatorio", label: "Relatório" },
+    { value: "denuncias", label: "Denúncias" },
+    { value: "pipeline", label: "Pipeline" },
+    { value: "dados", label: "Dados" },
+  ];
+
   return (
     <>
       <div
         className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white relative"
         style={{ color: INK }}
       >
-        {/* Header */}
+        {/* ── IDE-style status bar (top) ──────────────────────── */}
         <div
-          className="px-4 sm:px-6 md:px-10 pt-5 sm:pt-8 pb-4 sm:pb-6"
+          className="hidden sm:flex items-center justify-between px-4 md:px-10 h-7 flex-shrink-0"
+          style={{
+            background: PAPER,
+            borderBottom: `1px solid ${BORDER}`,
+            fontFamily: MONO,
+            fontSize: 9,
+            letterSpacing: "0.2em",
+            color: SUBTLE,
+            textTransform: "uppercase",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <span>~/escavacao/{slug}</span>
+            <span style={{ color: "#d8d5cd" }}>│</span>
+            <span>schema · public</span>
+            <span style={{ color: "#d8d5cd" }}>│</span>
+            <span>tenant · {slug}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            {rodada && (
+              <span className="tabular-nums">
+                {rodada.atos_analisados_haiku}/{rodada.total_atos}
+              </span>
+            )}
+            <span className="flex items-center gap-1.5">
+              <span
+                className="h-1 w-1 rounded-full"
+                style={{
+                  background: isLive ? ACCENT : "#d8d5cd",
+                  boxShadow: isLive ? `0 0 6px ${ACCENT}` : undefined,
+                }}
+              />
+              {isLive ? "live" : "idle"}
+            </span>
+          </div>
+        </div>
+
+        {/* ── Header ─────────────────────────────────────────── */}
+        <div
+          className="px-4 sm:px-6 md:px-10 pt-6 sm:pt-8 pb-4 sm:pb-6 relative"
           style={{ borderBottom: `1px solid ${BORDER}` }}
         >
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <p
-              className="text-[9.5px] sm:text-[10px] uppercase tracking-[0.32em] font-semibold"
-              style={{ color: SUBTLE, fontFamily: MONO }}
-            >
-              Escavação
-            </p>
-            <span style={{ color: SUBTLE }}>·</span>
-            <h1
-              className="text-[20px] sm:text-[24px] font-medium"
-              style={{
-                color: INK,
-                fontFamily: TIGHT,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {nomeOrgao}
-            </h1>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <p
+                className="text-[9.5px] uppercase tracking-[0.32em] font-semibold mb-2 flex items-center gap-2"
+                style={{ color: SUBTLE, fontFamily: MONO }}
+              >
+                <span>▮ escavação</span>
+                <span style={{ color: "#d8d5cd" }}>›</span>
+                <span>auditoria contínua</span>
+              </p>
+              <h1
+                className="text-[24px] sm:text-[34px] font-medium leading-[1.05]"
+                style={{
+                  color: INK,
+                  fontFamily: TIGHT,
+                  letterSpacing: "-0.035em",
+                }}
+              >
+                {nomeOrgao}
+              </h1>
+            </div>
             {isLive && (
               <span
-                className="flex items-center gap-1.5 text-[9.5px] sm:text-[10px] uppercase tracking-[0.18em] px-2 py-1 sm:ml-2"
+                className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] font-semibold px-2.5 py-1.5"
                 style={{
-                  color: "#15803d",
+                  color: ACCENT,
                   background: "#f0fdf4",
-                  border: "1px solid #bbf7d0",
+                  border: `1px solid ${ACCENT}40`,
                   fontFamily: MONO,
                   borderRadius: 2,
                 }}
               >
                 <span
                   className="h-1.5 w-1.5 rounded-full animate-pulse"
-                  style={{ background: "#16a34a" }}
+                  style={{
+                    background: ACCENT,
+                    boxShadow: `0 0 8px ${ACCENT}`,
+                  }}
                 />
-                Pipeline ao vivo
+                pipeline · live
               </span>
             )}
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* ── Tabs ───────────────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto">
           <Tabs defaultValue="visao-geral" className="h-full">
             <TabsList
-              className="px-4 sm:px-6 md:px-10 pt-2 pb-0 bg-transparent rounded-none h-auto gap-0 w-full justify-start overflow-x-auto"
+              className="px-4 sm:px-6 md:px-10 pt-0 pb-0 bg-transparent rounded-none h-auto gap-0 w-full justify-start overflow-x-auto flex-nowrap"
               style={{ borderBottom: `1px solid ${BORDER}` }}
             >
-              {[
-                { value: "visao-geral", label: "Visão Geral" },
-                { value: "relatorio", label: "Relatório" },
-                { value: "denuncias", label: "Denúncias" },
-                { value: "pipeline", label: "Pipeline" },
-                { value: "dados", label: "Dados" },
-              ].map((tab) => (
+              {TABS.map((tab, i) => (
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="rounded-none px-3 sm:px-4 py-2.5 sm:py-3 text-[10.5px] sm:text-[11px] uppercase tracking-[0.18em] data-[state=active]:shadow-none bg-transparent transition-colors whitespace-nowrap"
+                  className="rounded-none px-3 sm:px-4 py-3 text-[10.5px] sm:text-[11px] uppercase tracking-[0.2em] data-[state=active]:shadow-none bg-transparent transition-colors whitespace-nowrap flex items-center gap-1.5"
                   style={{
                     color: MUTED,
                     fontFamily: MONO,
@@ -2416,6 +2464,9 @@ function SlugDashboard() {
                     marginBottom: "-1px",
                   }}
                 >
+                  <span style={{ opacity: 0.5, fontSize: 9 }}>
+                    {String(i).padStart(2, "0")}
+                  </span>
                   {tab.label}
                 </TabsTrigger>
               ))}
@@ -2424,8 +2475,9 @@ function SlugDashboard() {
             <style>{`
               [data-state="active"][role="tab"] {
                 color: ${INK} !important;
-                border-bottom-color: ${INK} !important;
+                border-bottom-color: ${ACCENT} !important;
                 font-weight: 600;
+                background: ${PAPER} !important;
               }
             `}</style>
 
