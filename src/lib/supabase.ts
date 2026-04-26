@@ -1,7 +1,12 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as
+// TODO: remover fallback hardcoded antes do merge — ver /apagar para limpar as rotas dev
+const _DEV_URL = "https://xvzpqmjkntlrfbdoswcy.supabase.co";
+const _DEV_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2enBxbWprbnRscmZiZG9zd2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MjAxNTU2MDAwMH0.K9mXpR2vNqLsYdTuWjHfPbOeAcGiMzVkUxEwItSh3n8";
+
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || _DEV_URL) as string | undefined;
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || _DEV_KEY) as
   | string
   | undefined;
 

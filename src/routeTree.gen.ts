@@ -25,6 +25,7 @@ import { Route as ExplorarRouteImport } from './routes/explorar'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as ApoiarRouteImport } from './routes/apoiar'
+import { Route as ApagarRouteImport } from './routes/apagar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PainelIndexRouteImport } from './routes/painel/index'
 import { Route as PainelChatRouteImport } from './routes/painel/chat'
@@ -118,6 +119,11 @@ const ApoiarRoute = ApoiarRouteImport.update({
   path: '/apoiar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApagarRoute = ApagarRouteImport.update({
+  id: '/apagar',
+  path: '/apagar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -151,6 +157,7 @@ const PainelSlugAtoIdRoute = PainelSlugAtoIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/apagar': typeof ApagarRoute
   '/apoiar': typeof ApoiarRoute
   '/blog': typeof BlogRoute
   '/entrar': typeof EntrarRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/apagar': typeof ApagarRoute
   '/apoiar': typeof ApoiarRoute
   '/blog': typeof BlogRoute
   '/entrar': typeof EntrarRoute
@@ -198,6 +206,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/apagar': typeof ApagarRoute
   '/apoiar': typeof ApoiarRoute
   '/blog': typeof BlogRoute
   '/entrar': typeof EntrarRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/apagar'
     | '/apoiar'
     | '/blog'
     | '/entrar'
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/apagar'
     | '/apoiar'
     | '/blog'
     | '/entrar'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/apagar'
     | '/apoiar'
     | '/blog'
     | '/entrar'
@@ -295,6 +307,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApagarRoute: typeof ApagarRoute
   ApoiarRoute: typeof ApoiarRoute
   BlogRoute: typeof BlogRoute
   EntrarRoute: typeof EntrarRoute
@@ -427,6 +440,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApoiarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apagar': {
+      id: '/apagar'
+      path: '/apagar'
+      fullPath: '/apagar'
+      preLoaderRoute: typeof ApagarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -503,6 +523,7 @@ const PainelRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApagarRoute: ApagarRoute,
   ApoiarRoute: ApoiarRoute,
   BlogRoute: BlogRoute,
   EntrarRoute: EntrarRoute,
