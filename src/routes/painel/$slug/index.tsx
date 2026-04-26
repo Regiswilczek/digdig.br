@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   fetchPainelAtos,
   fetchPainelRodada,
@@ -167,6 +167,7 @@ function RealtimeFeed({
   const [items, setItems] = useState<FeedItem[]>([]);
   const [busca, setBusca] = useState("");
   const loading = initialItems === null;
+  const channelId = useRef(`feed-${slug}-${Math.random().toString(36).slice(2, 8)}`);
 
   useEffect(() => {
     if (initialItems)
@@ -185,7 +186,7 @@ function RealtimeFeed({
 
   useEffect(() => {
     const channel = supabase
-      .channel(`feed-${slug}`)
+      .channel(channelId.current)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "analises" },
