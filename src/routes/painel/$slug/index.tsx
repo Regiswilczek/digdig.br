@@ -9,7 +9,7 @@ import {
   type PainelPendente,
   type PainelPendentesResponse,
 } from "../../../lib/api-auth";
-import { fetchStats, fetchAnalysesRecentes, fetchCrescimento, type PublicStats, type AnaliseRecente, type CrescimentoResponse } from "../../../lib/api";
+import { fetchStats, fetchAnalysesRecentes, fetchCrescimento, type PublicStats, type AnaliseRecente, type CrescimentoResponse, type CrescimentoPonto, type Marco } from "../../../lib/api";
 import { supabase } from "../../../lib/supabase";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -1096,25 +1096,53 @@ function TabPipeline({
 }
 
 // ── Tab: Relatório Final ────────────────────────────────────────────────
-const DIGDIG_START = "2026-04-22"; // data de criação do repositório
+const DIGDIG_START = "2026-04-22";
 
-function GrowthChart({ pontos }: { pontos: { dia: string; total: number }[] }) {
-  if (pontos.length < 2) return null;
+const MARCO_COLORS: Record<string, string> = {
+  portaria: "#1a1a1a",
+  deliberacao: "#2563eb",
+  ata_plenaria: "#7c3aed",
+  portaria_normativa: "#0f766e",
+  dispensa_eletronica: "#16a34a",
+  contratacao_direta: "#15803d",
+  contrato: "#047857",
+  convenio: "#b45309",
+  relatorio_tcu: "#b91c1c",
+  relatorio_parecer: "#6b7280",
+  auditoria_independente: "#166534",
+  licitacao: "#9333ea",
+  ata_registro_preco: "#0369a1",
+};
+
+function GrowthChart({
+  pontos,
+  marcos,
+}: {
+  pontos: CrescimentoPonto[];
+  marcos: Marco[];
+}) {
+  if (pontos.length < 1) return null;
+
   const W = 560;
-  const H = 100;
-  const PAD = { top: 10, right: 12, bottom: 24, left: 40 };
+  const H = 120;
+  const PAD = { top: 16, right: 16, bottom: 28, left: 46 };
   const innerW = W - PAD.left - PAD.right;
   const innerH = H - PAD.top - PAD.bottom;
 
-  const maxVal = Math.max(...pontos.map((p) => p.total));
+  const maxVal = Math.max(...pontos.map((p) => p.total), 1);
   const minDate = pontos[0].dia;
   const maxDate = pontos[pontos.length - 1].dia;
-  const dateRange = new Date(maxDate).getTime() - new Date(minDate).getTime();
+  const dateRange = Math.max(
+    new Date(maxDate).getTime() - new Date(minDate).getTime(),
+    86400000
+  );
 
   const toX = (dia: string) =>
-    PAD.left + ((new Date(dia).getTime() - new Date(minDate).getTime()) / dateRange) * innerW;
+    PAD.left +
+    ((new Date(dia).getTime() - new Date(minDate).getTime()) / dateRange) *
+      innerW;
   const toY = (val: number) =>
-    PAD.top + innerH - (val / maxVal) * innerH;
+    PAD.top + innerH - (Math.min(val, maxVal) / maxVal) * innerH;
 
   const pts = pontos.map((p) => `${toX(p.dia)},${toY(p.total)}`).join(" ");
   const area = [
@@ -1123,55 +1151,62 @@ function GrowthChart({ pontos }: { pontos: { dia: string; total: number }[] }) {
     `L${toX(maxDate)},${PAD.top + innerH}Z`,
   ].join(" ");
 
-  const digdigX = toX(DIGDIG_START);
-  const digdigInRange = digdigX > PAD.left && digdigX < PAD.left + innerW;
+  const y400 = toY(400);
+  const show400 = maxVal > 500;
 
-  const yMid = PAD.top + innerH / 2;
-  const labels = [
-    { label: "0", y: PAD.top + innerH },
-    { label: fmt(Math.round(maxVal / 2)), y: yMid },
-    { label: fmt(maxVal), y: PAD.top },
-  ];
+  const digdigX = toX(DIGDIG_START);
+  const digdigInRange =
+    digdigX >= PAD.left && digdigX <= PAD.left + innerW;
 
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      style={{ width: "100%", height: H, display: "block", overflow: "visible" }}
-    >
-      <defs>
-        <linearGradient id="grow-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={INK} stopOpacity={0.12} />
-          <stop offset="100%" stopColor={INK} stopOpacity={0.01} />
-        </linearGradient>
-      </defs>
-      {/* Area fill */}
-      <path d={area} fill="url(#grow-fill)" />
-      {/* Line */}
-      <polyline points={pts} fill="none" stroke={INK} strokeWidth={1.5} />
-      {/* Y-axis labels */}
-      {labels.map((l) => (
-        <text
-          key={l.label}
-          x={PAD.left - 6}
-          y={l.y + 4}
-          textAnchor="end"
-          fontSize={9}
-          fill={MUTED}
-          fontFamily="monospace"
-        >
-          {l.label}
+    <div>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        style={{ width: "100%", height: H, display: "block", overflow: "visible" }}
+      >
+        <defs>
+          <linearGradient id="grow-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={INK} stopOpacity={0.1} />
+            <stop offset="100%" stopColor={INK} stopOpacity={0.01} />
+          </linearGradient>
+        </defs>
+
+        {/* 400 reference line */}
+        {show400 && (
+          <line
+            x1={PAD.left}
+            y1={y400}
+            x2={PAD.left + innerW}
+            y2={y400}
+            stroke="#d97706"
+            strokeWidth={0.8}
+            strokeDasharray="4,3"
+            opacity={0.55}
+          />
+        )}
+
+        {/* Area fill */}
+        <path d={area} fill="url(#grow-fill)" />
+        {/* Line */}
+        <polyline points={pts} fill="none" stroke={INK} strokeWidth={1.5} />
+
+        {/* Y-axis */}
+        <text x={PAD.left - 6} y={PAD.top + innerH + 4} textAnchor="end" fontSize={9} fill={MUTED} fontFamily="monospace">0</text>
+        {show400 && (
+          <text x={PAD.left - 6} y={y400 + 4} textAnchor="end" fontSize={9} fill="#d97706" fontFamily="monospace">400</text>
+        )}
+        <text x={PAD.left - 6} y={PAD.top + 4} textAnchor="end" fontSize={9} fill={MUTED} fontFamily="monospace">{fmt(maxVal)}</text>
+
+        {/* X-axis dates */}
+        <text x={PAD.left} y={H - 2} textAnchor="start" fontSize={9} fill={MUTED} fontFamily="monospace">
+          {minDate.slice(0, 10)}
         </text>
-      ))}
-      {/* X-axis: first and last date */}
-      <text x={PAD.left} y={H} textAnchor="start" fontSize={9} fill={MUTED} fontFamily="monospace">
-        {minDate.slice(0, 7)}
-      </text>
-      <text x={PAD.left + innerW} y={H} textAnchor="end" fontSize={9} fill={MUTED} fontFamily="monospace">
-        {maxDate.slice(0, 7)}
-      </text>
-      {/* Dig Dig start marker */}
-      {digdigInRange && (
-        <g>
+        <text x={PAD.left + innerW} y={H - 2} textAnchor="end" fontSize={9} fill={MUTED} fontFamily="monospace">
+          {maxDate.slice(0, 10)}
+        </text>
+
+        {/* Dig Dig vertical marker */}
+        {digdigInRange && (
           <line
             x1={digdigX}
             y1={PAD.top}
@@ -1181,18 +1216,78 @@ function GrowthChart({ pontos }: { pontos: { dia: string; total: number }[] }) {
             strokeWidth={1}
             strokeDasharray="3,2"
           />
-          <text
-            x={digdigX + 4}
-            y={PAD.top + 10}
-            fontSize={8}
-            fill="#d97706"
-            fontFamily="monospace"
-          >
-            Dig Dig ↗
-          </text>
-        </g>
+        )}
+
+        {/* Marco numbered dots */}
+        {marcos.map((m, i) => {
+          const mx = toX(m.primeiro_dia);
+          const my = toY(m.total_acumulado);
+          const inRange = mx >= PAD.left && mx <= PAD.left + innerW;
+          if (!inRange) return null;
+          const color = MARCO_COLORS[m.tipo] ?? "#6b7280";
+          return (
+            <g key={m.tipo}>
+              <circle cx={mx} cy={my} r={6} fill={color} stroke="#fff" strokeWidth={1.5} />
+              <text
+                x={mx}
+                y={my + 3.5}
+                textAnchor="middle"
+                fontSize={7}
+                fill="#fff"
+                fontFamily="monospace"
+                fontWeight="bold"
+              >
+                {i + 1}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+
+      {/* Legend */}
+      {marcos.length > 0 && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))",
+            gap: "6px 20px",
+            marginTop: 14,
+          }}
+        >
+          {marcos.map((m, i) => {
+            const color = MARCO_COLORS[m.tipo] ?? "#6b7280";
+            return (
+              <div key={m.tipo} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <div
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    background: color,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <span style={{ color: "#fff", fontSize: 8, fontWeight: 700, fontFamily: "monospace" }}>
+                    {i + 1}
+                  </span>
+                </div>
+                <div style={{ lineHeight: 1.3 }}>
+                  <span style={{ fontSize: 11, color: INK, fontFamily: "monospace" }}>
+                    {m.label}
+                  </span>
+                  <span style={{ fontSize: 10, color: MUTED, fontFamily: "monospace", marginLeft: 5 }}>
+                    {fmt(m.total_tipo)} · {m.primeiro_dia.slice(5).replace("-", "/")}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
-    </svg>
+    </div>
   );
 }
 
@@ -1285,7 +1380,7 @@ function TabRelatorio({
             </p>
           </div>
         </div>
-        <GrowthChart pontos={crescimento?.pontos ?? []} />
+        <GrowthChart pontos={crescimento?.pontos ?? []} marcos={crescimento?.marcos ?? []} />
         <p className="text-[11px]" style={{ color: MUTED, fontFamily: MONO }}>
           Série temporal cumulativa · documentos inseridos por dia desde o início da coleta
         </p>

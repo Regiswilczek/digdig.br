@@ -145,10 +145,63 @@ async def get_crescimento(slug: str, db: AsyncSession = Depends(get_db)):
         acumulado += r.novos
         pontos.append({"dia": r.dia.isoformat(), "total": acumulado})
 
+    # Marcos: primeiro dia de inserção por tipo
+    TIPO_LABELS = {
+        "portaria": "Portarias",
+        "deliberacao": "Deliberações",
+        "ata_plenaria": "Atas Plenárias",
+        "portaria_normativa": "Port. Normativas",
+        "dispensa_eletronica": "Disp. Eletrônica",
+        "contratacao_direta": "Cont. Diretas",
+        "contrato": "Contratos",
+        "convenio": "Convênios",
+        "relatorio_tcu": "Rel. TCU",
+        "relatorio_parecer": "Rel. e Pareceres",
+        "auditoria_independente": "Auditorias",
+        "licitacao": "Licitações",
+        "ata_registro_preco": "Ata Reg. Preço",
+    }
+    tipos_r = await db.execute(
+        select(
+            Ato.tipo,
+            func.min(cast(Ato.criado_em, SADate)).label("primeiro_dia"),
+            func.count().label("total"),
+        )
+        .where(Ato.tenant_id == tenant.id, Ato.criado_em.isnot(None))
+        .group_by(Ato.tipo)
+        .order_by(func.min(cast(Ato.criado_em, SADate)))
+    )
+    tipos_rows = tipos_r.all()
+
+    cum_by_date = {p["dia"]: p["total"] for p in pontos}
+    all_dias = sorted(cum_by_date.keys())
+
+    def cum_at_or_before(dia_str: str) -> int:
+        result = 0
+        for d in all_dias:
+            if d <= dia_str:
+                result = cum_by_date[d]
+            else:
+                break
+        return result
+
+    marcos = [
+        {
+            "tipo": r.tipo,
+            "label": TIPO_LABELS.get(r.tipo, r.tipo),
+            "primeiro_dia": r.primeiro_dia.isoformat(),
+            "total_acumulado": cum_at_or_before(r.primeiro_dia.isoformat()),
+            "total_tipo": r.total,
+        }
+        for r in tipos_rows
+        if r.primeiro_dia is not None
+    ]
+
     return {
         "pontos": pontos,
         "inicio": pontos[0]["dia"] if pontos else None,
         "total_atual": acumulado,
+        "marcos": marcos,
     }
 
 

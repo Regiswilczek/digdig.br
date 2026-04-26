@@ -40,10 +40,18 @@ export async function fetchAnalysesRecentes(slug: string): Promise<AnaliseRecent
 }
 
 export interface CrescimentoPonto { dia: string; total: number }
+export interface Marco {
+  tipo: string;
+  label: string;
+  primeiro_dia: string;
+  total_acumulado: number;
+  total_tipo: number;
+}
 export interface CrescimentoResponse {
   pontos: CrescimentoPonto[];
   inicio: string | null;
   total_atual: number;
+  marcos: Marco[];
 }
 
 export async function fetchCrescimento(slug: string): Promise<CrescimentoResponse> {
