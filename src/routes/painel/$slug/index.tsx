@@ -987,7 +987,7 @@ function TabAtos({
   tipo,
 }: {
   slug: string;
-  tipo: "portaria" | "deliberacao" | "ata_plenaria" | "portaria_normativa";
+  tipo: string;
 }) {
   const [atos, setAtos] = useState<PainelAto[]>([]);
   const [total, setTotal] = useState(0);
@@ -2248,6 +2248,65 @@ function TabPendentes({ slug }: { slug: string }) {
   );
 }
 
+// ── Tab: Dados (submenu interno) ─────────────────────────────────────────
+const DADOS_TIPOS = [
+  { value: "ata_plenaria",         label: "Atas Plenárias" },
+  { value: "portaria",             label: "Portarias" },
+  { value: "deliberacao",          label: "Deliberações" },
+  { value: "portaria_normativa",   label: "Port. Normativas" },
+  { value: "dispensa_eletronica",  label: "Dispensas Eletr." },
+  { value: "relatorio_parecer",    label: "Rel./Parecer" },
+  { value: "relatorio_tcu",        label: "Rel. TCU" },
+  { value: "contratacao_direta",   label: "Cont. Direta" },
+  { value: "auditoria_independente", label: "Auditorias" },
+  { value: "contrato",             label: "Contratos" },
+  { value: "convenio",             label: "Convênios" },
+  { value: "pendentes",            label: "Pendentes" },
+] as const;
+
+function TabDados({ slug }: { slug: string }) {
+  const [tipo, setTipo] = useState<string>("ata_plenaria");
+
+  return (
+    <div>
+      {/* Submenu interno */}
+      <div
+        className="flex overflow-x-auto gap-0 -mx-4 sm:-mx-6 md:-mx-10 px-4 sm:px-6 md:px-10 mb-6"
+        style={{ borderBottom: `1px solid ${BORDER}` }}
+      >
+        {DADOS_TIPOS.map((t) => (
+          <button
+            key={t.value}
+            onClick={() => setTipo(t.value)}
+            className="flex-shrink-0 px-3 sm:px-4 py-2.5 text-[10px] sm:text-[10.5px] uppercase tracking-[0.16em] transition-colors whitespace-nowrap"
+            style={{
+              fontFamily: MONO,
+              color: tipo === t.value ? INK : MUTED,
+              fontWeight: tipo === t.value ? 600 : 400,
+              marginBottom: "-1px",
+              background: "transparent",
+              border: "none",
+              borderBottomWidth: 2,
+              borderBottomStyle: "solid",
+              borderBottomColor: tipo === t.value ? INK : "transparent",
+              cursor: "pointer",
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Conteúdo */}
+      {tipo === "pendentes" ? (
+        <TabPendentes slug={slug} />
+      ) : (
+        <TabAtos slug={slug} tipo={tipo} />
+      )}
+    </div>
+  );
+}
+
 // ── Main Dashboard ──────────────────────────────────────────────────────
 function SlugDashboard() {
   const { slug } = Route.useParams();
@@ -2344,11 +2403,7 @@ function SlugDashboard() {
                 { value: "relatorio", label: "Relatório" },
                 { value: "denuncias", label: "Denúncias" },
                 { value: "pipeline", label: "Pipeline" },
-                { value: "portarias", label: "Portarias" },
-                { value: "deliberacoes", label: "Deliberações" },
-                { value: "atas", label: "Atas Plenárias" },
-                { value: "portarias-normativas", label: "Port. Normativas" },
-                { value: "pendentes", label: "Pendentes" },
+                { value: "dados", label: "Dados" },
               ].map((tab) => (
                 <TabsTrigger
                   key={tab.value}
@@ -2378,26 +2433,14 @@ function SlugDashboard() {
               <TabsContent value="visao-geral">
                 <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} recentAnalyses={recentAnalyses} crescimento={crescimento} />
               </TabsContent>
-              <TabsContent value="portarias">
-                <TabAtos slug={slug} tipo="portaria" />
-              </TabsContent>
-              <TabsContent value="deliberacoes">
-                <TabAtos slug={slug} tipo="deliberacao" />
-              </TabsContent>
-              <TabsContent value="atas">
-                <TabAtos slug={slug} tipo="ata_plenaria" />
-              </TabsContent>
-              <TabsContent value="portarias-normativas">
-                <TabAtos slug={slug} tipo="portaria_normativa" />
+              <TabsContent value="dados">
+                <TabDados slug={slug} />
               </TabsContent>
               <TabsContent value="denuncias">
                 <TabDenuncias slug={slug} />
               </TabsContent>
               <TabsContent value="pipeline">
                 <TabPipeline slug={slug} rodada={rodada} initialItems={recentAnalyses} />
-              </TabsContent>
-              <TabsContent value="pendentes">
-                <TabPendentes slug={slug} />
               </TabsContent>
               <TabsContent value="relatorio">
                 <TabRelatorio stats={stats} rodada={rodada} crescimento={crescimento} recentAnalyses={recentAnalyses} />
