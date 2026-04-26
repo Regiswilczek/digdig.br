@@ -234,7 +234,7 @@ function RealtimeFeed({
   variant?: "aside" | "inline";
 }) {
   const [items, setItems] = useState<FeedItem[]>([]);
-  const [busca, setBusca] = useState("");
+  // search removed — feed is read-only
   const loading = initialItems === null;
   const channelId = useRef(`feed-${slug}-${Math.random().toString(36).slice(2, 8)}`);
 
