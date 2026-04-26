@@ -44,13 +44,20 @@ const MUTED = "#5a5a5a";
 const SUBTLE = "#9a9a9a";
 const BORDER = "rgba(0,0,0,0.08)";
 
+type Benchmark = { label: string; valor: string };
 type Modelo = {
   id: string;
   nome: string;
-  papel: string;
+  classe: string;
+  geracao: string;
   tagline: string;
   descricao: string;
+  janelaContexto: string;
+  saidaMaxima: string;
+  latencia: string;
   capacidades: string[];
+  benchmarks: Benchmark[];
+  idealPara: string[];
   disponivel: boolean;
 };
 
@@ -58,45 +65,93 @@ const MODELOS: Modelo[] = [
   {
     id: "piper",
     nome: "Piper",
-    papel: "Triagem",
-    tagline: "O que ninguém leria manualmente.",
+    classe: "Modelo rápido",
+    geracao: "Geração 4.5",
+    tagline: "Velocidade em escala, com precisão suficiente para triagem.",
     descricao:
-      "Lê o acervo inteiro. Classifica cada ato em verde, amarelo, laranja ou vermelho, extrai nomes, datas e vínculos — tudo antes que qualquer analista humano abra o primeiro PDF.",
+      "Modelo compacto otimizado para throughput. Foi desenhado para processar volumes massivos de texto técnico — leis, portarias, regimentos — classificando, extraindo entidades e estruturando dados em JSON estável. Roda barato, responde em sub-segundo e mantém consistência ao longo de milhares de chamadas paralelas.",
+    janelaContexto: "200K tokens",
+    saidaMaxima: "8K tokens",
+    latencia: "Baixa — sub-segundo por requisição",
     capacidades: [
-      "Classificação em 4 níveis de alerta",
-      "Extração de pessoas, datas e vínculos",
-      "Cobertura total — nenhum ato escapa",
-      "Milhares de documentos por sessão",
+      "Saída JSON estruturada e validada",
+      "Extração de entidades nomeadas",
+      "Classificação multi-rótulo",
+      "Tool use e function calling",
+      "Prompt caching (até 90% de desconto)",
+      "Multilíngue, com forte desempenho em PT-BR",
+    ],
+    benchmarks: [
+      { label: "MMLU (conhecimento geral)", valor: "73,5%" },
+      { label: "GPQA Diamond (ciências)", valor: "33,3%" },
+      { label: "HumanEval (saída estruturada)", valor: "75,9%" },
+    ],
+    idealPara: [
+      "Triagem de grandes acervos documentais",
+      "Pipelines de classificação em lote",
+      "Extração de campos a partir de texto livre",
     ],
     disponivel: true,
   },
   {
     id: "bud",
     nome: "Bud",
-    papel: "Análise profunda",
-    tagline: "A suspeita vira argumento.",
+    classe: "Modelo de raciocínio",
+    geracao: "Geração 4.6",
+    tagline: "Raciocínio jurídico de ponta com contexto longo.",
     descricao:
-      "O analista que transforma um padrão irregular em argumento. Lê o regimento, cita o artigo violado, descreve o padrão e sugere o questionamento público correto.",
+      "Modelo de alta capacidade para tarefas que exigem compreensão profunda: ler um regimento de 70 mil tokens, cruzar com um ato administrativo, identificar o artigo violado e construir um argumento coerente, com citações diretas. Equilibra qualidade de raciocínio, fidelidade ao texto fonte e custo controlado via cache.",
+    janelaContexto: "200K tokens",
+    saidaMaxima: "64K tokens",
+    latencia: "Média — alguns segundos por análise",
     capacidades: [
-      "Fichas com citação direta do regimento",
-      "Identifica artigo violado e descreve padrão",
-      "Sugere o questionamento público",
-      "Suspeita vira evidência estruturada",
+      "Raciocínio jurídico passo a passo",
+      "Citação literal com referência ao trecho fonte",
+      "Síntese de documentos longos",
+      "Geração de peças estruturadas (fichas, relatórios)",
+      "Tool use, function calling e respostas em streaming",
+      "Prompt caching ephemeral de 5 minutos",
+    ],
+    benchmarks: [
+      { label: "MMLU (conhecimento geral)", valor: "88,7%" },
+      { label: "GPQA Diamond (ciências)", valor: "59,4%" },
+      { label: "HumanEval (raciocínio estruturado)", valor: "93,7%" },
+    ],
+    idealPara: [
+      "Aprofundamento de casos suspeitos",
+      "Geração de fichas com fundamentação legal",
+      "Chat conversacional sobre o acervo (RAG)",
     ],
     disponivel: true,
   },
   {
     id: "zew",
     nome: "Zew",
-    papel: "Investigação histórica",
-    tagline: "Uma gestão inteira sob análise.",
+    classe: "Modelo de raciocínio estendido",
+    geracao: "Geração 4.7",
+    tagline: "Raciocínio prolongado para investigação sistêmica.",
     descricao:
-      "Não analisa um ato — analisa uma gestão. Cruza décadas de documentos para identificar padrões que só aparecem ao longo do tempo: nepotismo acumulado, concentração de poder, perseguição sistemática.",
+      "O modelo mais capaz da família. Suporta raciocínio estendido — pode pensar por minutos antes de responder, mantendo cadeias longas de inferência sobre acervos de décadas. Construído para perguntas que nenhum modelo rápido resolve: identificar padrões longitudinais, correlacionar gestões distintas e produzir narrativas investigativas com profundidade analítica.",
+    janelaContexto: "200K tokens (com extended thinking)",
+    saidaMaxima: "32K tokens",
+    latencia: "Alta — projetado para profundidade, não velocidade",
     capacidades: [
-      "Cruzamento entre períodos distintos",
-      "Padrões longitudinais ao longo de anos",
-      "Comparação entre órgãos diferentes",
-      "Investigação de gestões completas",
+      "Extended thinking (raciocínio prolongado visível)",
+      "Análise longitudinal multi-período",
+      "Correlação cruzada entre órgãos",
+      "Construção de narrativas investigativas",
+      "Tool use avançado e agentic workflows",
+      "Auto-verificação e checagem de consistência",
+    ],
+    benchmarks: [
+      { label: "MMLU (conhecimento geral)", valor: "91,4%+" },
+      { label: "GPQA Diamond (ciências)", valor: "74,9%" },
+      { label: "Raciocínio estendido", valor: "Sim" },
+    ],
+    idealPara: [
+      "Auditoria de uma gestão inteira",
+      "Cruzamento histórico entre décadas",
+      "Investigações comparativas entre órgãos",
     ],
     disponivel: false,
   },
@@ -184,7 +239,7 @@ function ModelosPage() {
               marginBottom: 24,
             }}
           >
-            Modelos
+            A família de modelos
           </p>
           <h1
             style={{
@@ -198,9 +253,9 @@ function ModelosPage() {
               maxWidth: 820,
             }}
           >
-            Três modelos.<br />
+            Três modelos de IA.<br />
             <span style={{ color: "rgba(255,255,255,0.55)" }}>
-              Um único pipeline de auditoria pública.
+              Uma família construída para auditoria pública.
             </span>
           </h1>
           <p
@@ -208,12 +263,13 @@ function ModelosPage() {
               fontSize: 17,
               color: "rgba(255,255,255,0.7)",
               lineHeight: 1.55,
-              maxWidth: 600,
+              maxWidth: 620,
               margin: 0,
             }}
           >
-            Cada modelo do Dig Dig é construído para um momento específico da
-            investigação — da triagem em escala à análise profunda de uma gestão inteira.
+            Piper, Bud e Zew formam a família de modelos do Dig Dig — do mais
+            rápido ao de raciocínio mais profundo. Cada um com sua janela de
+            contexto, seus benchmarks e o tipo de tarefa em que se destaca.
           </p>
         </div>
       </header>
@@ -233,8 +289,8 @@ function ModelosPage() {
               }}
               className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] gap-8 md:gap-12 py-12 md:py-[72px]"
             >
-              {/* Left: name + role */}
-              <div>
+              {/* Left: name + class */}
+              <div className="md:sticky md:top-8 md:self-start">
                 <p
                   style={{
                     ...MONO,
@@ -245,7 +301,7 @@ function ModelosPage() {
                     marginBottom: 12,
                   }}
                 >
-                  {m.papel}
+                  {m.geracao}
                   {!m.disponivel && (
                     <span style={{ marginLeft: 8, color: SUBTLE }}>· em breve</span>
                   )}
@@ -255,7 +311,7 @@ function ModelosPage() {
                     ...TIGHT,
                     fontWeight: 600,
                     color: m.disponivel ? TEXT : SUBTLE,
-                    margin: 0,
+                    margin: "0 0 8px",
                     letterSpacing: "-0.02em",
                     lineHeight: 1,
                   }}
@@ -263,10 +319,20 @@ function ModelosPage() {
                 >
                   {m.nome}
                 </h2>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: MUTED,
+                    margin: 0,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {m.classe}
+                </p>
               </div>
 
               {/* Right: content */}
-              <div style={{ maxWidth: 640, minWidth: 0 }}>
+              <div style={{ maxWidth: 720, minWidth: 0 }}>
                 <p
                   style={{
                     ...TIGHT,
@@ -284,47 +350,186 @@ function ModelosPage() {
                   style={{
                     color: MUTED,
                     lineHeight: 1.65,
-                    margin: "0 0 28px",
+                    margin: "0 0 32px",
                   }}
                   className="text-[15px] md:text-[16px]"
                 >
                   {m.descricao}
                 </p>
 
-                <ul
+                {/* Spec strip */}
+                <div
                   style={{
-                    listStyle: "none",
-                    padding: 0,
-                    margin: 0,
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: 6,
+                    marginBottom: 32,
                   }}
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3"
+                  className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[rgba(0,0,0,0.06)]"
                 >
-                  {m.capacidades.map((c) => (
-                    <li
-                      key={c}
-                      style={{
-                        fontSize: 14,
-                        color: MUTED,
-                        lineHeight: 1.5,
-                        paddingLeft: 16,
-                        position: "relative",
-                      }}
-                    >
-                      <span
+                  {[
+                    { label: "Janela de contexto", valor: m.janelaContexto },
+                    { label: "Saída máxima", valor: m.saidaMaxima },
+                    { label: "Latência", valor: m.latencia },
+                  ].map((s) => (
+                    <div key={s.label} style={{ padding: "14px 16px" }}>
+                      <p
                         style={{
-                          position: "absolute",
-                          left: 0,
-                          top: 9,
-                          width: 4,
-                          height: 4,
-                          borderRadius: "50%",
-                          background: m.disponivel ? TEXT : SUBTLE,
+                          ...MONO,
+                          fontSize: 10,
+                          color: SUBTLE,
+                          letterSpacing: "0.14em",
+                          textTransform: "uppercase",
+                          margin: "0 0 6px",
                         }}
-                      />
-                      {c}
-                    </li>
+                      >
+                        {s.label}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: 13,
+                          color: TEXT,
+                          margin: 0,
+                          lineHeight: 1.35,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {s.valor}
+                      </p>
+                    </div>
                   ))}
-                </ul>
+                </div>
+
+                {/* Benchmarks */}
+                <div style={{ marginBottom: 32 }}>
+                  <p
+                    style={{
+                      ...MONO,
+                      fontSize: 10,
+                      color: SUBTLE,
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                      margin: "0 0 12px",
+                    }}
+                  >
+                    Benchmarks
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {m.benchmarks.map((b) => (
+                      <div
+                        key={b.label}
+                        style={{
+                          background: "#fafafa",
+                          border: `1px solid ${BORDER}`,
+                          borderRadius: 6,
+                          padding: "12px 14px",
+                        }}
+                      >
+                        <p
+                          style={{
+                            ...MONO,
+                            fontSize: 18,
+                            fontWeight: 500,
+                            color: TEXT,
+                            margin: "0 0 4px",
+                            letterSpacing: "-0.01em",
+                          }}
+                        >
+                          {b.valor}
+                        </p>
+                        <p
+                          style={{
+                            fontSize: 11.5,
+                            color: MUTED,
+                            margin: 0,
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          {b.label}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Capacidades */}
+                <div style={{ marginBottom: 28 }}>
+                  <p
+                    style={{
+                      ...MONO,
+                      fontSize: 10,
+                      color: SUBTLE,
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                      margin: "0 0 12px",
+                    }}
+                  >
+                    Capacidades do modelo
+                  </p>
+                  <ul
+                    style={{ listStyle: "none", padding: 0, margin: 0 }}
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2.5"
+                  >
+                    {m.capacidades.map((c) => (
+                      <li
+                        key={c}
+                        style={{
+                          fontSize: 14,
+                          color: MUTED,
+                          lineHeight: 1.5,
+                          paddingLeft: 16,
+                          position: "relative",
+                        }}
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            left: 0,
+                            top: 9,
+                            width: 4,
+                            height: 4,
+                            borderRadius: "50%",
+                            background: m.disponivel ? TEXT : SUBTLE,
+                          }}
+                        />
+                        {c}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Ideal para */}
+                <div>
+                  <p
+                    style={{
+                      ...MONO,
+                      fontSize: 10,
+                      color: SUBTLE,
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                      margin: "0 0 10px",
+                    }}
+                  >
+                    Ideal para
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {m.idealPara.map((u) => (
+                      <span
+                        key={u}
+                        style={{
+                          fontSize: 12.5,
+                          color: TEXT,
+                          background: "#f3f3f3",
+                          border: `1px solid ${BORDER}`,
+                          padding: "5px 10px",
+                          borderRadius: 999,
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {u}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </article>
           ))}
