@@ -31,7 +31,27 @@ sys.path.insert(0, str(ROOT))
 from dotenv import load_dotenv
 load_dotenv(ROOT / ".env")
 
-from sqlalchemy import select, update, func, insert
+import os
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+
+# Cria engine próprio com porta 6543 (transaction mode pooler) ANTES de importar app.database,
+# depois injeta no módulo para que haiku_service use a conexão correta.
+_raw_url = os.environ.get("DATABASE_URL", "")
+_url_6543 = _raw_url.replace(":5432/", ":6543/")
+_engine_local = create_async_engine(
+    _url_6543,
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=False,
+    connect_args={"statement_cache_size": 0},
+)
+_factory_local = async_sessionmaker(_engine_local, class_=AsyncSession, expire_on_commit=False)
+
+import app.database as _db_module
+_db_module.engine = _engine_local
+_db_module.async_session_factory = _factory_local
+
+from sqlalchemy import select, update, func
 from app.database import async_session_factory
 from app.models.ato import Ato, RodadaAnalise, ConteudoAto
 from app.models.analise import Analise

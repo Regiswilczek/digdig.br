@@ -2,17 +2,12 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from typing import AsyncGenerator
 from app.config import settings
 
-# Porta 6543 = Supabase transaction mode pooler (sem limite de sessões simultâneas)
-# statement_cache_size=0 obrigatório para transaction mode (não suporta prepared statements)
-_db_url = settings.database_url.replace(":5432/", ":6543/")
-
 engine = create_async_engine(
-    _db_url,
+    settings.database_url,
     echo=settings.environment == "development",
-    pool_size=5,
-    max_overflow=10,
-    pool_pre_ping=False,
-    connect_args={"statement_cache_size": 0},
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True,
 )
 
 async_session_factory = async_sessionmaker(
