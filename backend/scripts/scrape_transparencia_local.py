@@ -129,7 +129,7 @@ def _numero_de_url(href: str) -> str:
     name = re.sub(r'\.(pdf|xls|xlsx|doc|docx|zip)$', '', filename, flags=re.IGNORECASE)
     name = re.sub(r'[%+\s]', '-', name)
     name = re.sub(r'-{2,}', '-', name).strip('-')
-    return name[:120] or filename[:120]
+    return name[:100] or filename[:100]
 
 
 def _extrair_pdf(pdf_bytes: bytes) -> tuple[str, int]:
