@@ -616,34 +616,36 @@ function StackedRiskBar({ dist, total }: { dist: PublicStats["distribuicao"]; to
 }
 
 // ── CoverageByType ───────────────────────────────────────────────────────────
-function CoverageByType({ stats, marcos }: { stats: PublicStats; marcos?: Marco[] }) {
-  const rows: Array<{ tipo: string; label: string; analisados: number; total: number; note?: string }> = [
-    {
-      tipo: "portaria",
-      label: "Portarias",
-      analisados: stats.por_tipo.portaria.analisados,
-      total: stats.por_tipo.portaria.total,
-    },
-    {
-      tipo: "deliberacao",
-      label: "Deliberações",
-      analisados: stats.por_tipo.deliberacao.analisados,
-      total: stats.por_tipo.deliberacao.total,
-      note: "HTML-only · aguardando scraper dedicado",
-    },
-  ];
-  const knownTipos = new Set(["portaria", "deliberacao"]);
-  (marcos ?? []).forEach((m) => {
-    if (!knownTipos.has(m.tipo)) {
-      rows.push({
-        tipo: m.tipo,
-        label: m.label,
-        analisados: 0,
-        total: m.total_tipo,
-        note: m.tipo === "ata_plenaria" ? "Análise via Sonnet" : "Em indexação",
-      });
-    }
-  });
+const TIPO_NOTES: Record<string, string> = {
+  deliberacao: "HTML-only · aguardando scraper dedicado",
+  ata_plenaria: "Análise via Sonnet",
+};
+
+const TIPO_DISPLAY: Record<string, string> = {
+  portaria: "Portarias",
+  deliberacao: "Deliberações",
+  ata_plenaria: "Atas Plenárias",
+  portaria_normativa: "Port. Normativas",
+  dispensa_eletronica: "Disp. Eletrônica",
+  contratacao_direta: "Cont. Diretas",
+  contrato: "Contratos",
+  convenio: "Convênios",
+  relatorio_tcu: "Rel. TCU",
+  relatorio_parecer: "Rel. e Pareceres",
+  auditoria_independente: "Auditorias",
+  licitacao: "Licitações",
+  ata_registro_preco: "Ata Reg. Preço",
+};
+
+function CoverageByType({ stats }: { stats: PublicStats }) {
+  const rows = Object.entries(stats.por_tipo).map(([tipo, { total, analisados }]) => ({
+    tipo,
+    label: TIPO_DISPLAY[tipo] ?? tipo,
+    total,
+    analisados,
+    note: TIPO_NOTES[tipo],
+  }));
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {rows.map((r) => {
@@ -847,7 +849,7 @@ function TabVisaoGeral({
         {stats && (
           <div className="bg-white p-5 space-y-4">
             <Eyebrow>Cobertura por tipo</Eyebrow>
-            <CoverageByType stats={stats} marcos={crescimento?.marcos} />
+            <CoverageByType stats={stats} />
           </div>
         )}
       </div>
@@ -1804,7 +1806,7 @@ function TabRelatorio({
         {/* Cobertura por tipo abaixo da barra */}
         {stats && (
           <div style={{ marginTop: 12 }}>
-            <CoverageByType stats={stats} marcos={crescimento?.marcos} />
+            <CoverageByType stats={stats} />
           </div>
         )}
       </div>

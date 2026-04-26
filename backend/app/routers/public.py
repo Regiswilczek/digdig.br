@@ -26,13 +26,16 @@ async def get_stats(slug: str, db: AsyncSession = Depends(get_db)):
     )
     por_tipo_total = {r.tipo: r.total for r in tipos_r}
 
-    # Processados por tipo
-    proc_r = await db.execute(
-        select(Ato.tipo, func.count().label("total"))
-        .where(Ato.tenant_id == tenant.id, Ato.processado == True)
+    # Atos com pelo menos uma análise, por tipo (source of truth para todos os tipos)
+    analise_subq = (
+        select(Ato.tipo, func.count(Analise.ato_id.distinct()).label("com_analise"))
+        .join(Analise, Analise.ato_id == Ato.id)
+        .where(Ato.tenant_id == tenant.id)
         .group_by(Ato.tipo)
+        .subquery()
     )
-    por_tipo_proc = {r.tipo: r.total for r in proc_r}
+    analise_count_r = await db.execute(select(analise_subq))
+    por_tipo_analise = {r.tipo: r.com_analise for r in analise_count_r.all()}
 
     # Distribuição por nível de alerta — apenas a analise mais recente por ato
     latest_subq = (
@@ -53,7 +56,7 @@ async def get_stats(slug: str, db: AsyncSession = Depends(get_db)):
     distribuicao = {r.nivel_alerta: r.total for r in dist_r}
 
     total_atos = sum(por_tipo_total.values())
-    total_analisados = sum(por_tipo_proc.values())
+    total_analisados = sum(por_tipo_analise.values())
     total_criticos = distribuicao.get("vermelho", 0) + distribuicao.get("laranja", 0)
 
     return {
@@ -68,14 +71,11 @@ async def get_stats(slug: str, db: AsyncSession = Depends(get_db)):
             "vermelho": distribuicao.get("vermelho", 0),
         },
         "por_tipo": {
-            "portaria": {
-                "total": por_tipo_total.get("portaria", 0),
-                "analisados": por_tipo_proc.get("portaria", 0),
-            },
-            "deliberacao": {
-                "total": por_tipo_total.get("deliberacao", 0),
-                "analisados": por_tipo_proc.get("deliberacao", 0),
-            },
+            tipo: {
+                "total": total,
+                "analisados": por_tipo_analise.get(tipo, 0),
+            }
+            for tipo, total in sorted(por_tipo_total.items(), key=lambda x: -x[1])
         },
     }
 

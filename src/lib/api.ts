@@ -69,10 +69,7 @@ export interface PublicStats {
   total_analisados: number;
   total_criticos: number;
   distribuicao: { verde: number; amarelo: number; laranja: number; vermelho: number };
-  por_tipo: {
-    portaria: { total: number; analisados: number };
-    deliberacao: { total: number; analisados: number };
-  };
+  por_tipo: Record<string, { total: number; analisados: number }>;
 }
 
 export interface AtoPublico {
