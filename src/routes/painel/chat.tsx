@@ -331,6 +331,38 @@ function ChatPage() {
     <div className="flex flex-1 min-h-0 w-full" style={{ color: INK }}>
       {/* ── Main column ──────────────────────────────────────── */}
       <div className="flex-1 flex flex-col bg-white min-w-0 relative">
+        {/* IDE-style status bar (top) */}
+        <div
+          className="hidden sm:flex items-center justify-between px-4 md:px-10 h-7 flex-shrink-0"
+          style={{
+            background: PAPER,
+            borderBottom: `1px solid ${BORDER}`,
+            fontFamily: MONO,
+            fontSize: 9,
+            letterSpacing: "0.2em",
+            color: SUBTLE,
+            textTransform: "uppercase",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <span>~/chat</span>
+            <span style={{ color: "#d8d5cd" }}>│</span>
+            <span>model · sonnet 4.6</span>
+            <span style={{ color: "#d8d5cd" }}>│</span>
+            <span>rag · {SLUG}</span>
+          </div>
+          <span className="flex items-center gap-1.5">
+            <span
+              className="h-1 w-1 rounded-full"
+              style={{
+                background: isLive ? "#16a34a" : "#d8d5cd",
+                boxShadow: isLive ? "0 0 6px #16a34a" : undefined,
+              }}
+            />
+            {isLive ? "live" : "ready"}
+          </span>
+        </div>
+
         {/* Mobile live status strip */}
         {isLive && (
           <div
@@ -364,36 +396,34 @@ function ChatPage() {
         )}
 
         {/* Scroll area */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-10 pt-4 pb-4">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-10 pt-6 pb-4">
           <div className="flex flex-col items-center w-full max-w-[760px] mx-auto min-h-full justify-center">
             {/* Spline hero */}
-            <div className="w-full flex justify-center mb-2">
+            <div className="w-full flex justify-center mb-4">
               <SplineEmbed
                 width="100%"
-                height={260}
-                radius={12}
-                className="max-w-[520px]"
+                height={240}
+                radius={2}
+                className="max-w-[480px]"
               />
             </div>
 
             {/* Eyebrow */}
             <span
-              className="text-[10px] uppercase tracking-[0.32em]"
-              style={{
-                color: SUBTLE,
-                fontFamily: MONO,
-              }}
+              className="text-[10px] uppercase tracking-[0.32em] flex items-center gap-2"
+              style={{ color: SUBTLE, fontFamily: MONO }}
             >
-              Dig Dig · Assistente
+              <span style={{ color: "#16a34a" }}>▮</span> dig·dig / assistente
             </span>
 
             <h1
-              className="mt-3 text-center font-medium tracking-tight"
+              className="mt-4 text-center"
               style={{
-                fontFamily: "'Inter Tight', 'Inter', system-ui, sans-serif",
-                fontSize: "clamp(26px, 5.4vw, 42px)",
-                lineHeight: 1.05,
-                letterSpacing: "-0.02em",
+                fontFamily: TIGHT,
+                fontSize: "clamp(28px, 5.4vw, 46px)",
+                lineHeight: 1.02,
+                letterSpacing: "-0.035em",
+                fontWeight: 500,
               }}
             >
               Bem-vindo, {userName}.
@@ -406,89 +436,139 @@ function ChatPage() {
               partir dos atos públicos analisados.
             </p>
 
-            {/* Quick actions — 2 cols mobile, denser */}
-            <div
-              className="mt-8 grid grid-cols-2 lg:grid-cols-3 gap-px w-full"
-              style={{ background: BORDER, border: `1px solid ${BORDER}` }}
-            >
-              {QUICK_ACTIONS.map((a) => (
-                <button
-                  key={a.title}
-                  onClick={() => handleCard(a.title)}
-                  className="group flex flex-col gap-2 p-3 sm:p-5 text-left bg-white hover:bg-[#faf8f3] transition-colors active:bg-[#f0ede5] min-h-[110px]"
+            {/* Quick actions — terminal command style */}
+            <div className="mt-10 w-full">
+              <div
+                className="flex items-center gap-2 mb-3 px-1"
+              >
+                <span
+                  className="text-[9.5px] uppercase tracking-[0.22em] font-semibold"
+                  style={{ color: SUBTLE, fontFamily: MONO }}
                 >
-                  <a.icon
-                    size={18}
-                    style={{ color: SUBTLE }}
-                    className="group-hover:text-[#0a0a0a] transition-colors"
-                  />
-                  <span className="text-[12.5px] sm:text-[13px] font-medium leading-tight" style={{ color: INK }}>
-                    {a.title}
-                  </span>
-                  <span className="text-[11px] sm:text-[12px] leading-snug" style={{ color: MUTED }}>
-                    {a.desc}
-                  </span>
-                </button>
-              ))}
+                  ▮ comandos rápidos
+                </span>
+                <span
+                  className="flex-1 h-px"
+                  style={{ background: "#e8e6e1" }}
+                />
+                <span
+                  className="text-[9px] uppercase tracking-[0.18em] tabular-nums"
+                  style={{ color: SUBTLE, fontFamily: MONO }}
+                >
+                  {QUICK_ACTIONS.length} ops
+                </span>
+              </div>
+
+              <div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px"
+                style={{ background: BORDER, border: `1px solid ${BORDER}` }}
+              >
+                {QUICK_ACTIONS.map((a, i) => (
+                  <button
+                    key={a.title}
+                    onClick={() => handleCard(a.title)}
+                    className="group flex flex-col gap-2 p-4 text-left bg-white hover:bg-[#faf8f3] transition-colors active:bg-[#f0ede5] min-h-[120px] relative"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-[9px] tabular-nums"
+                        style={{ color: "#a8a59c", fontFamily: MONO, letterSpacing: "0.06em" }}
+                      >
+                        [{String(i).padStart(2, "0")}]
+                      </span>
+                      <a.icon
+                        size={14}
+                        style={{ color: SUBTLE }}
+                        className="group-hover:text-[#16a34a] transition-colors"
+                      />
+                    </div>
+                    <span
+                      className="text-[13px] font-medium leading-tight mt-1"
+                      style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.01em" }}
+                    >
+                      {a.title}
+                    </span>
+                    <span
+                      className="text-[11.5px] leading-snug"
+                      style={{ color: MUTED }}
+                    >
+                      {a.desc}
+                    </span>
+                    <span
+                      className="absolute bottom-3 right-3 text-[9px] uppercase tracking-[0.18em] opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ color: "#16a34a", fontFamily: MONO, fontWeight: 600 }}
+                    >
+                      run →
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Input — sticky bottom on mobile, normal on desktop */}
+        {/* ── Input — terminal CLI prompt ────────────────────── */}
         <div
           className="flex-shrink-0 bg-white px-4 sm:px-6 md:px-10 py-3 sm:py-4"
           style={{ borderTop: `1px solid ${BORDER}` }}
         >
-          <div className="w-full max-w-[680px] mx-auto">
+          <div className="w-full max-w-[720px] mx-auto">
             <div
-              className="flex items-center gap-2 sm:gap-3 bg-white px-3 sm:px-4 py-2.5 sm:py-3 transition-colors focus-within:border-[#0a0a0a]"
-              style={{ border: `1px solid ${BORDER}`, borderRadius: 4 }}
+              className="flex items-center gap-2 sm:gap-3 bg-white px-3 sm:px-4 py-3 transition-colors focus-within:border-[#16a34a] focus-within:shadow-[0_0_0_3px_#16a34a1a]"
+              style={{ border: `1px solid ${BORDER}`, borderRadius: 2 }}
             >
-              <div className="hidden sm:flex gap-2.5">
-                <button
-                  className="transition-colors hover:text-[#0a0a0a]"
-                  style={{ color: SUBTLE }}
-                >
-                  <Paperclip size={15} />
-                </button>
-                <button
-                  className="transition-colors hover:text-[#0a0a0a]"
-                  style={{ color: SUBTLE }}
-                >
-                  <Mic size={15} />
-                </button>
-              </div>
+              <span
+                className="text-[13px] font-bold flex-shrink-0"
+                style={{ color: "#16a34a", fontFamily: MONO }}
+              >
+                ›
+              </span>
               <input
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Pergunte sobre os atos…"
+                placeholder="pergunte sobre os atos…"
                 className="flex-1 bg-transparent text-[14px] outline-none min-w-0"
-                style={{ color: INK }}
+                style={{ color: INK, fontFamily: MONO }}
               />
+              <div className="hidden sm:flex gap-1.5 mr-1">
+                <button
+                  className="transition-colors hover:text-[#0a0a0a] p-1"
+                  style={{ color: SUBTLE }}
+                  title="Anexar"
+                >
+                  <Paperclip size={13} />
+                </button>
+                <button
+                  className="transition-colors hover:text-[#0a0a0a] p-1"
+                  style={{ color: SUBTLE }}
+                  title="Voz"
+                >
+                  <Mic size={13} />
+                </button>
+              </div>
               <button
                 aria-label="Enviar"
-                className="px-2.5 sm:px-3 py-2 transition-colors flex items-center gap-1.5 text-[11px] sm:text-[12px] font-medium uppercase tracking-wider flex-shrink-0"
+                className="px-3 py-1.5 transition-all flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] flex-shrink-0"
                 style={{
                   background: input.trim() ? INK : PAPER,
                   color: input.trim() ? "#fff" : SUBTLE,
                   fontFamily: MONO,
                   borderRadius: 2,
+                  border: `1px solid ${input.trim() ? INK : BORDER}`,
                 }}
               >
-                <Send size={13} />
-                <span className="hidden sm:inline">Enviar</span>
+                <Send size={11} />
+                <span className="hidden sm:inline">enviar</span>
               </button>
             </div>
-            <p
-              className="mt-2 sm:mt-3 text-center text-[9.5px] sm:text-[10.5px] uppercase tracking-[0.2em]"
-              style={{
-                color: SUBTLE,
-                fontFamily: MONO,
-              }}
+            <div
+              className="mt-2 flex items-center justify-between text-[9px] uppercase tracking-[0.22em] px-1"
+              style={{ color: SUBTLE, fontFamily: MONO }}
             >
-              Sonnet 4.6 · contexto via RAG
-            </p>
+              <span>sonnet 4.6 · ctx via rag</span>
+              <span className="hidden sm:inline">↵ enviar · ⇧↵ nova linha</span>
+            </div>
           </div>
         </div>
 
