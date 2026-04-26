@@ -288,8 +288,8 @@ function ModelosPage() {
               }}
               className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] gap-8 md:gap-12 py-12 md:py-[72px]"
             >
-              {/* Left: name + role */}
-              <div>
+              {/* Left: name + class */}
+              <div className="md:sticky md:top-8 md:self-start">
                 <p
                   style={{
                     ...MONO,
@@ -300,7 +300,7 @@ function ModelosPage() {
                     marginBottom: 12,
                   }}
                 >
-                  {m.papel}
+                  {m.geracao}
                   {!m.disponivel && (
                     <span style={{ marginLeft: 8, color: SUBTLE }}>· em breve</span>
                   )}
@@ -310,7 +310,7 @@ function ModelosPage() {
                     ...TIGHT,
                     fontWeight: 600,
                     color: m.disponivel ? TEXT : SUBTLE,
-                    margin: 0,
+                    margin: "0 0 8px",
                     letterSpacing: "-0.02em",
                     lineHeight: 1,
                   }}
@@ -318,10 +318,20 @@ function ModelosPage() {
                 >
                   {m.nome}
                 </h2>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: MUTED,
+                    margin: 0,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {m.classe}
+                </p>
               </div>
 
               {/* Right: content */}
-              <div style={{ maxWidth: 640, minWidth: 0 }}>
+              <div style={{ maxWidth: 720, minWidth: 0 }}>
                 <p
                   style={{
                     ...TIGHT,
@@ -339,47 +349,186 @@ function ModelosPage() {
                   style={{
                     color: MUTED,
                     lineHeight: 1.65,
-                    margin: "0 0 28px",
+                    margin: "0 0 32px",
                   }}
                   className="text-[15px] md:text-[16px]"
                 >
                   {m.descricao}
                 </p>
 
-                <ul
+                {/* Spec strip */}
+                <div
                   style={{
-                    listStyle: "none",
-                    padding: 0,
-                    margin: 0,
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: 6,
+                    marginBottom: 32,
                   }}
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3"
+                  className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[rgba(0,0,0,0.06)]"
                 >
-                  {m.capacidades.map((c) => (
-                    <li
-                      key={c}
-                      style={{
-                        fontSize: 14,
-                        color: MUTED,
-                        lineHeight: 1.5,
-                        paddingLeft: 16,
-                        position: "relative",
-                      }}
-                    >
-                      <span
+                  {[
+                    { label: "Janela de contexto", valor: m.janelaContexto },
+                    { label: "Saída máxima", valor: m.saidaMaxima },
+                    { label: "Latência", valor: m.latencia },
+                  ].map((s) => (
+                    <div key={s.label} style={{ padding: "14px 16px" }}>
+                      <p
                         style={{
-                          position: "absolute",
-                          left: 0,
-                          top: 9,
-                          width: 4,
-                          height: 4,
-                          borderRadius: "50%",
-                          background: m.disponivel ? TEXT : SUBTLE,
+                          ...MONO,
+                          fontSize: 10,
+                          color: SUBTLE,
+                          letterSpacing: "0.14em",
+                          textTransform: "uppercase",
+                          margin: "0 0 6px",
                         }}
-                      />
-                      {c}
-                    </li>
+                      >
+                        {s.label}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: 13,
+                          color: TEXT,
+                          margin: 0,
+                          lineHeight: 1.35,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {s.valor}
+                      </p>
+                    </div>
                   ))}
-                </ul>
+                </div>
+
+                {/* Benchmarks */}
+                <div style={{ marginBottom: 32 }}>
+                  <p
+                    style={{
+                      ...MONO,
+                      fontSize: 10,
+                      color: SUBTLE,
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                      margin: "0 0 12px",
+                    }}
+                  >
+                    Benchmarks
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {m.benchmarks.map((b) => (
+                      <div
+                        key={b.label}
+                        style={{
+                          background: "#fafafa",
+                          border: `1px solid ${BORDER}`,
+                          borderRadius: 6,
+                          padding: "12px 14px",
+                        }}
+                      >
+                        <p
+                          style={{
+                            ...MONO,
+                            fontSize: 18,
+                            fontWeight: 500,
+                            color: TEXT,
+                            margin: "0 0 4px",
+                            letterSpacing: "-0.01em",
+                          }}
+                        >
+                          {b.valor}
+                        </p>
+                        <p
+                          style={{
+                            fontSize: 11.5,
+                            color: MUTED,
+                            margin: 0,
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          {b.label}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Capacidades */}
+                <div style={{ marginBottom: 28 }}>
+                  <p
+                    style={{
+                      ...MONO,
+                      fontSize: 10,
+                      color: SUBTLE,
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                      margin: "0 0 12px",
+                    }}
+                  >
+                    Capacidades do modelo
+                  </p>
+                  <ul
+                    style={{ listStyle: "none", padding: 0, margin: 0 }}
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2.5"
+                  >
+                    {m.capacidades.map((c) => (
+                      <li
+                        key={c}
+                        style={{
+                          fontSize: 14,
+                          color: MUTED,
+                          lineHeight: 1.5,
+                          paddingLeft: 16,
+                          position: "relative",
+                        }}
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            left: 0,
+                            top: 9,
+                            width: 4,
+                            height: 4,
+                            borderRadius: "50%",
+                            background: m.disponivel ? TEXT : SUBTLE,
+                          }}
+                        />
+                        {c}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Ideal para */}
+                <div>
+                  <p
+                    style={{
+                      ...MONO,
+                      fontSize: 10,
+                      color: SUBTLE,
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                      margin: "0 0 10px",
+                    }}
+                  >
+                    Ideal para
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {m.idealPara.map((u) => (
+                      <span
+                        key={u}
+                        style={{
+                          fontSize: 12.5,
+                          color: TEXT,
+                          background: "#f3f3f3",
+                          border: `1px solid ${BORDER}`,
+                          padding: "5px 10px",
+                          borderRadius: 999,
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {u}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </article>
           ))}
