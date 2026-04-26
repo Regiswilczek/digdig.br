@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "../../lib/supabase";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -252,10 +252,14 @@ function ActivityPanel({
           const dot = NIVEL_DOT[item.nivel_alerta ?? ""] ?? "#d4d2cd";
           const tipoStr = TIPO_LABEL[item.tipo ?? ""] ?? "Ato";
           return (
-            <div
+            <Link
               key={item.id}
-              className="flex items-start gap-3 px-4 py-3 hover:bg-[#faf8f3] transition-colors cursor-default"
-              style={{ borderBottom: `1px solid ${BORDER}` }}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              to={"/painel/$slug/ato/$id" as any}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              params={{ slug: SLUG, id: item.ato_id } as any}
+              style={{ textDecoration: "none", display: "block", borderBottom: `1px solid ${BORDER}` }}
+              className="flex items-start gap-3 px-4 py-3 hover:bg-[#faf8f3] transition-colors"
             >
               <div
                 className="mt-0.5 w-6 h-6 flex items-center justify-center flex-shrink-0"
@@ -277,7 +281,7 @@ function ActivityPanel({
               >
                 {item.criado_em ? timeAgo(item.criado_em) : "—"}
               </span>
-            </div>
+            </Link>
           );
         })}
       </div>
