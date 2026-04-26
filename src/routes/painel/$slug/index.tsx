@@ -524,14 +524,158 @@ function VolumeChart24h({
         ))}
       </svg>
 
+      {/* Mini distribuição das recentes */}
+      {items.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
+          {(["verde", "amarelo", "laranja", "vermelho"] as const).map((n) => {
+            const count = items.filter((a) => a.nivel_alerta === n).length;
+            if (count === 0) return null;
+            return (
+              <div key={n} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: NIVEL_DOT[n] }} />
+                <span style={{ fontSize: 10, color: MUTED, fontFamily: MONO }}>
+                  {count} {n}
+                </span>
+              </div>
+            );
+          })}
+          {(() => {
+            const scores = items.filter((a) => a.score_risco != null);
+            if (scores.length === 0) return null;
+            const avg = Math.round(scores.reduce((s, a) => s + (a.score_risco ?? 0), 0) / scores.length);
+            return (
+              <span style={{ fontSize: 10, color: SUBTLE, fontFamily: MONO }}>
+                · score médio {avg} ({scores.length} amostras)
+              </span>
+            );
+          })()}
+        </div>
+      )}
+
       {/* Sub-caption */}
       <p className="text-[10.5px]" style={{ color: SUBTLE, fontFamily: MONO }}>
         {totalIn24h === 0
-          ? "Nenhuma análise nas últimas 24h"
+          ? "Nenhuma análise nas últimas 24h · pipeline em pausa"
           : peakCount > 0
-          ? `Pico de ${peakCount} análise${peakCount !== 1 ? "s" : ""}/h às ${bucketHour(peakIdx)}h · barras coloridas pelo nível mais crítico da hora`
+          ? `Pico ${peakCount}/h às ${bucketHour(peakIdx)}h · barras coloridas pelo nível mais crítico daquela hora`
           : `${totalIn24h} análises registradas`}
       </p>
+    </div>
+  );
+}
+
+// ── StackedRiskBar ───────────────────────────────────────────────────────────
+function StackedRiskBar({ dist, total }: { dist: PublicStats["distribuicao"]; total: number }) {
+  const levels = [
+    { key: "verde", label: "Verde", count: dist.verde },
+    { key: "amarelo", label: "Amarelo", count: dist.amarelo },
+    { key: "laranja", label: "Laranja", count: dist.laranja },
+    { key: "vermelho", label: "Vermelho", count: dist.vermelho },
+  ] as const;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Barra proporcional */}
+      <div
+        style={{
+          display: "flex",
+          height: 10,
+          borderRadius: 2,
+          overflow: "hidden",
+          background: PAPER,
+          border: `1px solid ${BORDER}`,
+        }}
+      >
+        {levels.map((l) => (
+          <div
+            key={l.key}
+            style={{
+              width: `${total > 0 ? (l.count / total) * 100 : 0}%`,
+              background: NIVEL_DOT[l.key],
+              minWidth: l.count > 0 ? 3 : 0,
+            }}
+          />
+        ))}
+      </div>
+      {/* Legenda com números */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+        {levels.map((l) => {
+          const pct = total > 0 ? (l.count / total) * 100 : 0;
+          return (
+            <div key={l.key}>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: NIVEL_DOT[l.key], flexShrink: 0 }} />
+                <span style={{ fontSize: 9, color: MUTED, fontFamily: MONO, textTransform: "capitalize", letterSpacing: "0.04em" }}>
+                  {l.label}
+                </span>
+              </div>
+              <p style={{ fontSize: 22, fontWeight: 500, color: INK, fontFamily: TIGHT, letterSpacing: "-0.02em", lineHeight: 1 }}>
+                {l.count}
+              </p>
+              <p style={{ fontSize: 9.5, color: SUBTLE, fontFamily: MONO, marginTop: 2 }}>
+                {pct.toFixed(1)}%
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── CoverageByType ───────────────────────────────────────────────────────────
+function CoverageByType({ stats, marcos }: { stats: PublicStats; marcos?: Marco[] }) {
+  const rows: Array<{ tipo: string; label: string; analisados: number; total: number; note?: string }> = [
+    {
+      tipo: "portaria",
+      label: "Portarias",
+      analisados: stats.por_tipo.portaria.analisados,
+      total: stats.por_tipo.portaria.total,
+    },
+    {
+      tipo: "deliberacao",
+      label: "Deliberações",
+      analisados: stats.por_tipo.deliberacao.analisados,
+      total: stats.por_tipo.deliberacao.total,
+      note: "HTML-only · aguardando scraper dedicado",
+    },
+  ];
+  const knownTipos = new Set(["portaria", "deliberacao"]);
+  (marcos ?? []).forEach((m) => {
+    if (!knownTipos.has(m.tipo)) {
+      rows.push({
+        tipo: m.tipo,
+        label: m.label,
+        analisados: 0,
+        total: m.total_tipo,
+        note: m.tipo === "ata_plenaria" ? "Análise via Sonnet" : "Em indexação",
+      });
+    }
+  });
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {rows.map((r) => {
+        const pct = r.total > 0 ? (r.analisados / r.total) * 100 : 0;
+        const color = MARCO_COLORS[r.tipo] ?? INK;
+        return (
+          <div key={r.tipo}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 7, height: 7, background: color, borderRadius: 1, flexShrink: 0 }} />
+                <span style={{ fontSize: 11.5, color: INK, fontFamily: MONO }}>{r.label}</span>
+              </div>
+              <span style={{ fontSize: 10, color: MUTED, fontFamily: MONO }}>
+                {fmt(r.analisados)} / {fmt(r.total)} · {pct.toFixed(0)}%
+              </span>
+            </div>
+            <div style={{ height: 4, background: BORDER, borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 2 }} />
+            </div>
+            {r.note && (
+              <p style={{ fontSize: 9.5, color: SUBTLE, fontFamily: MONO, marginTop: 3 }}>{r.note}</p>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -542,53 +686,128 @@ function TabVisaoGeral({
   rodada,
   recentCount24h,
   recentAnalyses,
+  crescimento,
 }: {
   stats: PublicStats | null;
   rodada: PainelRodada | null;
   recentCount24h: number;
   recentAnalyses: AnaliseRecente[] | null;
+  crescimento: CrescimentoResponse | null;
 }) {
   const pct =
     rodada && rodada.total_atos > 0
       ? Math.round((rodada.atos_analisados_haiku / rodada.total_atos) * 100)
       : null;
 
-  const cards = [
-    { label: "Documentos", value: fmt(stats?.total_atos) },
-    { label: "Analisados", value: fmt(stats?.total_analisados) },
-    { label: "Críticos", value: fmt(stats?.total_criticos) },
-    { label: "Custo de acesso", value: "R$ 0" },
+  const dist = stats?.distribuicao;
+  const totalComNivel = dist
+    ? dist.verde + dist.amarelo + dist.laranja + dist.vermelho
+    : 0;
+  const pctAnalisados =
+    stats && stats.total_atos > 0
+      ? Math.round((stats.total_analisados / stats.total_atos) * 100)
+      : 0;
+  // Score ponderado: verde=10, amarelo=40, laranja=70, vermelho=95
+  const scoreEstimado =
+    totalComNivel > 0
+      ? Math.round(
+          ((dist?.verde ?? 0) * 10 +
+            (dist?.amarelo ?? 0) * 40 +
+            (dist?.laranja ?? 0) * 70 +
+            (dist?.vermelho ?? 0) * 95) /
+            totalComNivel
+        )
+      : null;
+
+  const totalIndexado = crescimento?.total_atual ?? stats?.total_atos ?? 0;
+  const inicio = crescimento?.inicio;
+  const diasColeta = inicio
+    ? Math.round((Date.now() - new Date(inicio).getTime()) / 86_400_000)
+    : null;
+  const docsPorDia =
+    diasColeta && diasColeta > 0 && totalIndexado > 0
+      ? (totalIndexado / diasColeta).toFixed(1)
+      : null;
+  const adicionadosDigDig = Math.max(0, totalIndexado - 400);
+  const custoPorDoc =
+    rodada && rodada.atos_analisados_haiku > 0
+      ? rodada.custo_total_usd / rodada.atos_analisados_haiku
+      : null;
+  const isLive = recentCount24h > 0 || rodada?.status === "em_progresso";
+
+  const kpis = [
+    {
+      label: "Documentos indexados",
+      value: fmt(totalIndexado),
+      sub: crescimento?.marcos ? `${crescimento.marcos.length} tipos de documento` : undefined,
+    },
+    {
+      label: "Cobertura de análise",
+      value: stats ? `${pctAnalisados}%` : "—",
+      sub: `${fmt(stats?.total_analisados)} de ${fmt(stats?.total_atos)} analisados`,
+    },
+    {
+      label: "Alertas críticos",
+      value: fmt(stats?.total_criticos),
+      sub:
+        totalComNivel > 0 && stats
+          ? `${((stats.total_criticos / totalComNivel) * 100).toFixed(1)}% dos analisados`
+          : "laranja + vermelho",
+    },
+    {
+      label: "Score médio estimado",
+      value: scoreEstimado != null ? String(scoreEstimado) : "—",
+      sub: "ponderado por nível · escala 0–100",
+    },
+    {
+      label: "Novos desde Dig Dig",
+      value: `+${fmt(adicionadosDigDig)}`,
+      sub: "adicionados após 22/04/2026",
+    },
+    {
+      label: docsPorDia ? "Ritmo de coleta" : "Dias de coleta",
+      value: docsPorDia ?? (diasColeta != null ? String(diasColeta) : "—"),
+      sub: docsPorDia ? "documentos por dia" : `início em ${crescimento?.inicio?.slice(0, 7) ?? "—"}`,
+    },
   ];
 
   return (
-    <div className="space-y-10">
-      {/* KPI grid */}
+    <div className="space-y-8">
+      {/* Hero KPI grid — 6 cards */}
       <div
-        className="grid grid-cols-2 lg:grid-cols-4 gap-px"
+        className="grid grid-cols-2 lg:grid-cols-3 gap-px"
         style={{ background: BORDER, border: `1px solid ${BORDER}` }}
       >
-        {cards.map(({ label, value }) => (
-          <div key={label} className="bg-white p-5">
+        {kpis.map((k) => (
+          <div key={k.label} className="bg-white p-5">
             <p
               className="text-[10px] uppercase tracking-[0.24em] mb-2"
               style={{ color: SUBTLE, fontFamily: MONO }}
             >
-              {label}
+              {k.label}
             </p>
             <p
-              className="text-[32px] font-medium"
+              className="text-[28px] font-medium leading-none"
               style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.02em" }}
             >
-              {value}
+              {k.value}
             </p>
+            {k.sub && (
+              <p
+                className="text-[10px] mt-1.5 uppercase tracking-wider"
+                style={{ color: MUTED, fontFamily: MONO }}
+              >
+                {k.sub}
+              </p>
+            )}
           </div>
         ))}
       </div>
 
-      {/* Pipeline progress bar (quando há rodada ativa) */}
+      {/* Pipeline ativo */}
       {rodada && pct !== null && (
         <div className="p-5 space-y-3" style={{ border: `1px solid ${BORDER}` }}>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
               {rodada.status === "em_progresso" && (
                 <span
@@ -597,58 +816,170 @@ function TabVisaoGeral({
                 />
               )}
               <p className="text-[13px]" style={{ color: INK }}>
-                {rodada.status === "em_progresso" ? "Análise ao vivo" : "Documentos em análise"}
+                {rodada.status === "em_progresso" ? "Pipeline ao vivo" : "Rodada de análise"}
               </p>
             </div>
-            <span className="text-[11px] uppercase tracking-wider" style={{ color: MUTED, fontFamily: MONO }}>
-              {rodada.atos_analisados_haiku} / {rodada.total_atos} · {pct}%
-            </span>
+            <div className="flex items-center gap-4 flex-wrap">
+              <span
+                className="text-[11px] uppercase tracking-wider"
+                style={{ color: MUTED, fontFamily: MONO }}
+              >
+                {rodada.atos_analisados_haiku}/{rodada.total_atos} · {pct}%
+              </span>
+              {custoPorDoc != null && (
+                <span className="text-[11px]" style={{ color: MUTED, fontFamily: MONO }}>
+                  ${rodada.custo_total_usd.toFixed(2)} total · ${custoPorDoc.toFixed(4)}/doc
+                </span>
+              )}
+            </div>
           </div>
           <Progress value={pct} className="h-1" style={{ background: PAPER }} />
+          <p className="text-[10.5px]" style={{ color: SUBTLE, fontFamily: MONO }}>
+            Haiku: {rodada.atos_analisados_haiku} · Sonnet: {rodada.atos_analisados_sonnet}
+          </p>
         </div>
       )}
 
-      {/* Volume chart 24h — sempre visível */}
-      <VolumeChart24h
-        items={recentAnalyses ?? []}
-        isLive={recentCount24h > 0 || rodada?.status === "em_progresso"}
-      />
-
-      {/* Distribuição */}
-      {stats && (
-        <div>
-          <Eyebrow>Distribuição por nível</Eyebrow>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-px" style={{ background: BORDER, border: `1px solid ${BORDER}` }}>
-            {(
-              [
-                ["verde", stats.distribuicao.verde],
-                ["amarelo", stats.distribuicao.amarelo],
-                ["laranja", stats.distribuicao.laranja],
-                ["vermelho", stats.distribuicao.vermelho],
-              ] as [string, number][]
-            ).map(([nivel, count]) => (
-              <div key={nivel} className="bg-white p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    style={{ background: NIVEL_DOT[nivel] }}
-                  />
-                  <span
-                    className="text-[10px] uppercase tracking-[0.2em] capitalize"
-                    style={{ color: MUTED, fontFamily: MONO }}
-                  >
-                    {nivel}
-                  </span>
-                </div>
-                <p
-                  className="text-[24px] font-medium"
-                  style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.02em" }}
-                >
-                  {count}
-                </p>
-              </div>
-            ))}
+      {/* 2-col BI: Distribuição de risco + Cobertura por tipo */}
+      <div
+        className="grid grid-cols-1 lg:grid-cols-2 gap-px"
+        style={{ background: BORDER, border: `1px solid ${BORDER}` }}
+      >
+        {stats && dist && (
+          <div className="bg-white p-5 space-y-4">
+            <Eyebrow>Distribuição de risco</Eyebrow>
+            <StackedRiskBar dist={dist} total={totalComNivel} />
           </div>
+        )}
+        {stats && (
+          <div className="bg-white p-5 space-y-4">
+            <Eyebrow>Cobertura por tipo</Eyebrow>
+            <CoverageByType stats={stats} marcos={crescimento?.marcos} />
+          </div>
+        )}
+      </div>
+
+      {/* Volume 24h */}
+      <VolumeChart24h items={recentAnalyses ?? []} isLive={isLive} />
+
+      {/* Crescimento cross-panel */}
+      {crescimento && (
+        <div className="p-5 space-y-4" style={{ border: `1px solid ${BORDER}` }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: 16,
+            }}
+          >
+            <div style={{ flex: 1 }}>
+              <Eyebrow>Crescimento do acervo</Eyebrow>
+              <p
+                style={{
+                  fontSize: 36,
+                  fontWeight: 500,
+                  letterSpacing: "-0.04em",
+                  lineHeight: 1,
+                  color: INK,
+                  fontFamily: TIGHT,
+                  marginTop: 6,
+                }}
+              >
+                {fmt(totalIndexado)}
+              </p>
+              <div style={{ display: "flex", gap: 24, marginTop: 12 }}>
+                {adicionadosDigDig > 0 && (
+                  <div>
+                    <p
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 500,
+                        color: "#16a34a",
+                        fontFamily: TIGHT,
+                        lineHeight: 1,
+                      }}
+                    >
+                      +{fmt(adicionadosDigDig)}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 9.5,
+                        color: MUTED,
+                        fontFamily: MONO,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        marginTop: 3,
+                      }}
+                    >
+                      desde Dig Dig
+                    </p>
+                  </div>
+                )}
+                {docsPorDia && (
+                  <div>
+                    <p
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 500,
+                        color: INK,
+                        fontFamily: TIGHT,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {docsPorDia}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 9.5,
+                        color: MUTED,
+                        fontFamily: MONO,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        marginTop: 3,
+                      }}
+                    >
+                      docs/dia
+                    </p>
+                  </div>
+                )}
+                {diasColeta != null && (
+                  <div>
+                    <p
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 500,
+                        color: INK,
+                        fontFamily: TIGHT,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {diasColeta}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 9.5,
+                        color: MUTED,
+                        fontFamily: MONO,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        marginTop: 3,
+                      }}
+                    >
+                      dias de coleta
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div style={{ flexShrink: 0, paddingTop: 20 }}>
+              <Sparkline pontos={crescimento.pontos} />
+            </div>
+          </div>
+          <p style={{ fontSize: 10.5, color: SUBTLE, fontFamily: MONO }}>
+            400 portarias pré-existentes · Dig Dig criado 22/04/2026 · +{fmt(adicionadosDigDig)}{" "}
+            novos documentos adicionados desde então
+          </p>
         </div>
       )}
     </div>
@@ -1391,20 +1722,16 @@ function TypeBars({ marcos, total }: { marcos: Marco[]; total: number }) {
 }
 
 function TabRelatorio({
-  slug,
   stats,
   rodada: _rodada,
+  crescimento,
+  recentAnalyses,
 }: {
-  slug: string;
   stats: PublicStats | null;
   rodada: PainelRodada | null;
+  crescimento: CrescimentoResponse | null;
+  recentAnalyses: AnaliseRecente[] | null;
 }) {
-  const [crescimento, setCrescimento] = useState<CrescimentoResponse | null>(null);
-
-  useEffect(() => {
-    fetchCrescimento(slug).then(setCrescimento).catch(console.error);
-  }, [slug]);
-
   const pct =
     stats && stats.total_atos > 0
       ? Math.round((stats.total_analisados / stats.total_atos) * 100)
@@ -1415,28 +1742,60 @@ function TabRelatorio({
   const nTipos = crescimento?.marcos?.length ?? 0;
   const inicio = crescimento?.inicio ?? null;
   const diasAtivos = inicio
-    ? Math.round(
-        (Date.now() - new Date(inicio).getTime()) / 86_400_000
-      )
+    ? Math.round((Date.now() - new Date(inicio).getTime()) / 86_400_000)
     : null;
   const inicioFmt = inicio
-    ? new Date(inicio).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })
+    ? new Date(inicio).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
     : "—";
+  const adicionadosDigDig = Math.max(0, total - 400);
+
+  // Score médio das análises recentes
+  const recentScores = (recentAnalyses ?? []).filter((a) => a.score_risco != null);
+  const scoreRecente =
+    recentScores.length > 0
+      ? Math.round(
+          recentScores.reduce((s, a) => s + (a.score_risco ?? 0), 0) /
+            recentScores.length
+        )
+      : null;
+
+  // Score ponderado total
+  const dist = stats?.distribuicao;
+  const totalComNivel = dist
+    ? dist.verde + dist.amarelo + dist.laranja + dist.vermelho
+    : 0;
+  const scoreEstimado =
+    totalComNivel > 0
+      ? Math.round(
+          ((dist?.verde ?? 0) * 10 +
+            (dist?.amarelo ?? 0) * 40 +
+            (dist?.laranja ?? 0) * 70 +
+            (dist?.vermelho ?? 0) * 95) /
+            totalComNivel
+        )
+      : null;
 
   return (
     <div className="max-w-2xl space-y-6">
-      {/* Status da cobertura */}
+      {/* Cobertura da análise */}
       <div className="p-6 space-y-4" style={{ border: `1px solid ${BORDER}` }}>
         <Eyebrow>Cobertura da análise</Eyebrow>
         <div className="flex items-end justify-between gap-4">
           <div>
             <p
-              className="text-[32px] font-medium leading-none"
-              style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.03em" }}
+              className="text-[40px] font-medium leading-none"
+              style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.04em" }}
             >
               {pct}%
             </p>
-            <p className="text-[11px] uppercase tracking-wider mt-1" style={{ color: MUTED, fontFamily: MONO }}>
+            <p
+              className="text-[11px] uppercase tracking-wider mt-1"
+              style={{ color: MUTED, fontFamily: MONO }}
+            >
               analisados · {fmt(stats?.total_analisados)} de {fmt(stats?.total_atos)}
             </p>
           </div>
@@ -1449,11 +1808,71 @@ function TabRelatorio({
         {!concluido && (
           <Progress value={pct} className="h-1" style={{ background: PAPER }} />
         )}
+        {/* Cobertura por tipo abaixo da barra */}
+        {stats && (
+          <div style={{ marginTop: 12 }}>
+            <CoverageByType stats={stats} marcos={crescimento?.marcos} />
+          </div>
+        )}
       </div>
 
-      {/* BI: Acervo indexado */}
+      {/* Mapa de risco */}
+      {stats && dist && (
+        <div className="p-6 space-y-4" style={{ border: `1px solid ${BORDER}` }}>
+          <div className="flex items-start justify-between gap-4">
+            <Eyebrow>Mapa de risco</Eyebrow>
+            <div className="flex gap-6 text-right">
+              {scoreEstimado != null && (
+                <div>
+                  <p
+                    style={{
+                      fontSize: 22,
+                      fontWeight: 500,
+                      color: INK,
+                      fontFamily: TIGHT,
+                      letterSpacing: "-0.02em",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {scoreEstimado}
+                  </p>
+                  <p style={{ fontSize: 9, color: MUTED, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>
+                    score total
+                  </p>
+                </div>
+              )}
+              {scoreRecente != null && (
+                <div>
+                  <p
+                    style={{
+                      fontSize: 22,
+                      fontWeight: 500,
+                      color: INK,
+                      fontFamily: TIGHT,
+                      letterSpacing: "-0.02em",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {scoreRecente}
+                  </p>
+                  <p style={{ fontSize: 9, color: MUTED, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>
+                    score recente
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          <StackedRiskBar dist={dist} total={totalComNivel} />
+          {totalComNivel > 0 && (
+            <p style={{ fontSize: 10.5, color: SUBTLE, fontFamily: MONO }}>
+              {((stats.total_criticos / totalComNivel) * 100).toFixed(1)}% dos documentos analisados têm algum nível crítico (laranja ou vermelho)
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Acervo indexado */}
       <div className="p-6 space-y-5" style={{ border: `1px solid ${BORDER}` }}>
-        {/* Header row: KPIs + Sparkline */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
           <div style={{ flex: 1 }}>
             <Eyebrow>Acervo indexado</Eyebrow>
@@ -1470,7 +1889,6 @@ function TabRelatorio({
             >
               {total > 0 ? fmt(total) : "—"}
             </p>
-            {/* Secondary KPIs */}
             <div style={{ display: "flex", gap: 20, marginTop: 10 }}>
               <div>
                 <p style={{ fontSize: 18, fontWeight: 500, color: INK, fontFamily: TIGHT, lineHeight: 1 }}>
@@ -1490,32 +1908,40 @@ function TabRelatorio({
                   </p>
                 </div>
               )}
+              {adicionadosDigDig > 0 && (
+                <div>
+                  <p style={{ fontSize: 18, fontWeight: 500, color: "#16a34a", fontFamily: TIGHT, lineHeight: 1 }}>
+                    +{fmt(adicionadosDigDig)}
+                  </p>
+                  <p style={{ fontSize: 10, color: MUTED, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                    pós Dig Dig
+                  </p>
+                </div>
+              )}
             </div>
           </div>
-          {/* Sparkline */}
           <div style={{ flexShrink: 0, paddingTop: 20 }}>
             <Sparkline pontos={crescimento?.pontos} />
           </div>
         </div>
 
-        {/* Sub-caption */}
         <p style={{ fontSize: 11, color: MUTED, fontFamily: MONO }}>
           Coleta iniciada em {inicioFmt} · Dig Dig criado 22/04/2026
         </p>
 
-        {/* Divider */}
         <div style={{ height: 1, background: BORDER }} />
 
-        {/* Composition by type */}
         <div>
-          <p style={{
-            fontSize: 9,
-            fontFamily: MONO,
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            color: MUTED,
-            marginBottom: 12,
-          }}>
+          <p
+            style={{
+              fontSize: 9,
+              fontFamily: MONO,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              color: MUTED,
+              marginBottom: 12,
+            }}
+          >
             Composição por tipo
           </p>
           <TypeBars marcos={crescimento?.marcos ?? []} total={total} />
@@ -1833,6 +2259,7 @@ function SlugDashboard() {
   const [stats, setStats] = useState<PublicStats | null>(null);
   const [rodada, setRodada] = useState<PainelRodada | null>(null);
   const [recentAnalyses, setRecentAnalyses] = useState<AnaliseRecente[] | null>(null);
+  const [crescimento, setCrescimento] = useState<CrescimentoResponse | null>(null);
 
   useEffect(() => {
     fetchStats(slug).then(setStats).catch(console.error);
@@ -1840,6 +2267,7 @@ function SlugDashboard() {
     fetchAnalysesRecentes(slug)
       .then(setRecentAnalyses)
       .catch(() => setRecentAnalyses([]));
+    fetchCrescimento(slug).then(setCrescimento).catch(console.error);
 
     const interval = setInterval(() => {
       fetchPainelRodada(slug).then(setRodada).catch(console.error);
@@ -1953,7 +2381,7 @@ function SlugDashboard() {
 
             <div className="px-4 sm:px-6 md:px-10 py-6 sm:py-8 pb-24 lg:pb-8">
               <TabsContent value="visao-geral">
-                <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} recentAnalyses={recentAnalyses} />
+                <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} recentAnalyses={recentAnalyses} crescimento={crescimento} />
               </TabsContent>
               <TabsContent value="portarias">
                 <TabAtos slug={slug} tipo="portaria" />
@@ -1977,7 +2405,7 @@ function SlugDashboard() {
                 <TabPendentes slug={slug} />
               </TabsContent>
               <TabsContent value="relatorio">
-                <TabRelatorio slug={slug} stats={stats} rodada={rodada} />
+                <TabRelatorio stats={stats} rodada={rodada} crescimento={crescimento} recentAnalyses={recentAnalyses} />
               </TabsContent>
             </div>
           </Tabs>
