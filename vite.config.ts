@@ -8,7 +8,7 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 // Em dev local: aponta para FastAPI rodando em localhost:8000
 // Em produção (Lovable): VITE_API_URL é definido e as chamadas vão direto para Railway
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "http://localhost:8001";
 
 export default defineConfig({
   vite: {

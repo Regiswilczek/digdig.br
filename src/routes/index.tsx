@@ -2,8 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import claudeLogo from "@/assets/claude-logo.png";
-import { fetchStats } from "@/lib/api";
-import type { PublicStats } from "@/lib/api";
+import { fetchStats, fetchAnalysesRecentes } from "@/lib/api";
+import type { PublicStats, AnaliseRecente } from "@/lib/api";
 import { ParticleField } from "@/components/ParticleField";
 
 export const Route = createFileRoute("/")({
@@ -45,6 +45,133 @@ function StyledDIG({ mobile = false }: { mobile?: boolean }) {
   return <span style={mobile ? SCANLINE_MOBILE : SCANLINE}>DIG</span>;
 }
 
+// ── Live card ─────────────────────────────────────────────────────────────────
+
+const TIPO_LIVE: Record<string, string> = {
+  portaria: "Portaria",
+  portaria_normativa: "Port. Normativa",
+  ata_plenaria: "Ata Plenária",
+  deliberacao: "Deliberação",
+};
+
+function agentName(tipo: string | null): string {
+  if (tipo === "ata_plenaria") return "Bud";
+  return "Piper";
+}
+
+function LiveCard({ analyses, fullWidth = false }: { analyses: AnaliseRecente[] | null; fullWidth?: boolean }) {
+  const [idx, setIdx] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  const items = analyses ?? [];
+
+  useEffect(() => {
+    if (items.length <= 1) return;
+    const timer = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setIdx((i) => i + 1);
+        setFade(true);
+      }, 280);
+    }, 3200);
+    return () => clearInterval(timer);
+  }, [items.length]);
+
+  if (!analyses || items.length === 0) return null;
+
+  const current = items[idx % items.length];
+  const tipo = TIPO_LIVE[current.tipo ?? ""] ?? "Ato";
+  const agent = agentName(current.tipo);
+  const model = current.tipo === "ata_plenaria" ? "Sonnet 4.6" : "Haiku 4.5";
+  const dotCount = Math.min(items.length, 6);
+  const dotIdx = idx % dotCount;
+
+  // ── Mobile (full-width) layout ──────────────────────────────────────────────
+  if (fullWidth) {
+    return (
+      <div className="border border-white/20 bg-black/55 backdrop-blur-sm px-4 py-3 w-full">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[#00cc46] animate-pulse" />
+            <span style={SYNE} className="text-[9px] uppercase tracking-[0.28em] text-white/70">
+              Live
+            </span>
+          </div>
+          <div className="text-right">
+            <p className="text-[9px] font-mono text-white/55 uppercase tracking-widest leading-none">
+              {agent}
+            </p>
+            <p className="text-[7.5px] font-mono text-white/25 uppercase tracking-wider mt-0.5">
+              {model}
+            </p>
+          </div>
+        </div>
+
+        <div style={{ opacity: fade ? 1 : 0, transition: "opacity 0.28s ease" }}>
+          <p className="text-[9px] font-mono text-white/35 uppercase tracking-[0.16em] mb-1">
+            {tipo}
+          </p>
+          <p className="text-[22px] font-bold text-white leading-none font-mono">
+            {current.numero ?? "—"}
+          </p>
+        </div>
+
+        <div className="flex gap-1 mt-3">
+          {Array.from({ length: dotCount }).map((_, i) => (
+            <div
+              key={i}
+              className="flex-1 h-[2px] rounded-full transition-colors duration-300"
+              style={{ background: i === dotIdx ? "#00cc46" : "rgba(255,255,255,0.12)" }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Desktop (compact) layout ────────────────────────────────────────────────
+  return (
+    <div className="border border-white/20 bg-black/55 backdrop-blur-sm px-3 py-2.5 w-[215px]">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#00cc46] animate-pulse" />
+          <span style={SYNE} className="text-[8px] uppercase tracking-[0.3em] text-white/70">
+            Live
+          </span>
+        </div>
+        <span className="text-[7.5px] font-mono text-white/35 uppercase tracking-widest">
+          {agent}
+        </span>
+      </div>
+
+      <div style={{ opacity: fade ? 1 : 0, transition: "opacity 0.28s ease" }}>
+        <p className="text-[8.5px] font-mono text-white/35 uppercase tracking-[0.18em] mb-0.5">
+          {tipo}
+        </p>
+        <p className="text-[13.5px] font-bold text-white leading-tight font-mono truncate">
+          {current.numero ?? "—"}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-1 mt-2.5">
+        {Array.from({ length: dotCount }).map((_, i) => (
+          <span
+            key={i}
+            style={{
+              display: "inline-block",
+              height: 2,
+              borderRadius: 9999,
+              transition: "all 0.3s ease",
+              width: i === dotIdx ? 14 : 4,
+              background: i === dotIdx ? "#00cc46" : "rgba(255,255,255,0.18)",
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Desktop badge ─────────────────────────────────────────────────────────────
 
 function PoweredByClaude({ compact = false, fullWidth = false }: { compact?: boolean; fullWidth?: boolean }) {
@@ -79,7 +206,7 @@ function Skeleton({ w, h = "1em", className = "" }: { w: string; h?: string; cla
   );
 }
 
-function DesktopBadge({ stats, loading }: { stats: PublicStats | null; loading: boolean }) {
+function DesktopBadge({ stats, loading, analyses }: { stats: PublicStats | null; loading: boolean; analyses: AnaliseRecente[] | null }) {
   return (
     <div className="flex flex-col gap-[3px] select-none flex-shrink-0 w-[215px]">
       <PoweredByClaude fullWidth />
@@ -108,6 +235,7 @@ function DesktopBadge({ stats, loading }: { stats: PublicStats | null; loading: 
           </span>
         </div>
       </div>
+      <LiveCard analyses={analyses} />
     </div>
   );
 }
@@ -250,7 +378,7 @@ function Nav() {
 
 // ── Desktop hero ──────────────────────────────────────────────────────────────
 
-function DesktopHero({ stats, loading }: { stats: PublicStats | null; loading: boolean }) {
+function DesktopHero({ stats, loading, analyses }: { stats: PublicStats | null; loading: boolean; analyses: AnaliseRecente[] | null }) {
   return (
     <main className="hidden md:flex relative z-20 flex-row items-end justify-between gap-8 px-14 pb-10">
       <div className="flex flex-col gap-[18px]">
@@ -298,7 +426,7 @@ function DesktopHero({ stats, loading }: { stats: PublicStats | null; loading: b
       </div>
 
       <div className="mb-1">
-        <DesktopBadge stats={stats} loading={loading} />
+        <DesktopBadge stats={stats} loading={loading} analyses={analyses} />
       </div>
     </main>
   );
@@ -306,7 +434,7 @@ function DesktopHero({ stats, loading }: { stats: PublicStats | null; loading: b
 
 // ── Mobile hero ───────────────────────────────────────────────────────────────
 
-function MobileHero({ stats, loading }: { stats: PublicStats | null; loading: boolean }) {
+function MobileHero({ stats, loading, analyses }: { stats: PublicStats | null; loading: boolean; analyses: AnaliseRecente[] | null }) {
   return (
     <div
       className="md:hidden relative z-20 flex flex-col px-5 pb-5 gap-5"
@@ -349,6 +477,8 @@ function MobileHero({ stats, loading }: { stats: PublicStats | null; loading: bo
 
       <MobileStats stats={stats} loading={loading} />
 
+      <LiveCard analyses={analyses} fullWidth />
+
       <PoweredByClaude compact fullWidth />
 
       <a
@@ -375,12 +505,16 @@ function MobileHero({ stats, loading }: { stats: PublicStats | null; loading: bo
 function HomePage() {
   const [stats, setStats] = useState<PublicStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recentAnalyses, setRecentAnalyses] = useState<AnaliseRecente[] | null>(null);
 
   useEffect(() => {
     fetchStats("cau-pr")
       .then(setStats)
       .catch(() => {})
       .finally(() => setLoading(false));
+    fetchAnalysesRecentes("cau-pr")
+      .then(setRecentAnalyses)
+      .catch(() => setRecentAnalyses([]));
   }, []);
 
   return (
@@ -416,8 +550,8 @@ function HomePage() {
         style={{ height: "30%", background: "linear-gradient(to bottom, rgba(7,8,15,0.85) 0%, rgba(7,8,15,0) 100%)" }}
       />
 
-      <DesktopHero stats={stats} loading={loading} />
-      <MobileHero stats={stats} loading={loading} />
+      <DesktopHero stats={stats} loading={loading} analyses={recentAnalyses} />
+      <MobileHero stats={stats} loading={loading} analyses={recentAnalyses} />
     </div>
   );
 }

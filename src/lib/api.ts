@@ -22,6 +22,23 @@ export async function fetchAtos(
   return r.json() as Promise<PublicAtosResponse>;
 }
 
+export interface AnaliseRecente {
+  id: string;
+  ato_id: string;
+  nivel_alerta: string | null;
+  score_risco: number | null;
+  criado_em: string;
+  numero: string | null;
+  tipo: string | null;
+}
+
+export async function fetchAnalysesRecentes(slug: string): Promise<AnaliseRecente[]> {
+  const r = await fetch(`${API_URL}/public/orgaos/${slug}/analises-recentes`);
+  if (!r.ok) throw new Error("Falha ao buscar análises recentes");
+  const data = await r.json();
+  return data.analises as AnaliseRecente[];
+}
+
 // ─── types ────────────────────────────────────────────────────────────────────
 
 export interface PublicStats {

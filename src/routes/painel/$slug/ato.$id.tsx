@@ -171,7 +171,28 @@ function AtoDetailPage() {
     | string
     | undefined;
 
-  const tipoLabel = ato.tipo === "deliberacao" ? "Deliberação" : "Portaria";
+  // Ata plenária — dados extraídos diretamente do resultado_sonnet
+  type SonnetIrregularidade = { categoria: string; tipo: string; descricao: string; artigo_violado?: string; gravidade: string };
+  type SonnetPessoa = { nome: string; cargo: string; tipo_aparicao: string };
+  type PautaItem = { item: number; titulo: string; resultado: string; votos_favor?: number; votos_contra?: number; abstencoes?: number; unanime?: boolean; observacao?: string };
+  const sonnetIrregularidades = (sonnet?.irregularidades ?? []) as SonnetIrregularidade[];
+  const sonnetPessoas = (sonnet?.pessoas_extraidas ?? []) as SonnetPessoa[];
+  const sonnetPresentes = (sonnet?.presentes ?? []) as string[];
+  const sonnetAusentes = (sonnet?.ausentes ?? []) as string[];
+  const sonnetPauta = (sonnet?.pauta ?? []) as PautaItem[];
+  const sonnetDeliberacoes = (sonnet?.deliberacoes_aprovadas ?? []) as string[];
+  const sonnetQuorumTotal = sonnet?.quorum_total as number | undefined;
+  const sonnetQuorumMinimo = sonnet?.quorum_legal_minimo as number | undefined;
+  const sonnetQuorumAtingido = sonnet?.quorum_atingido as boolean | undefined;
+
+  const tipoLabel =
+    ato.tipo === "deliberacao"
+      ? "Deliberação"
+      : ato.tipo === "ata_plenaria"
+        ? "Ata Plenária"
+        : ato.tipo === "portaria_normativa"
+          ? "Portaria Normativa"
+          : "Portaria";
   const dataFmt = ato.data_publicacao
     ? new Date(ato.data_publicacao).toLocaleDateString("pt-BR", {
         day: "2-digit",
@@ -267,118 +288,272 @@ function AtoDetailPage() {
           </Section>
         )}
 
-        {/* Indícios */}
-        {(indicios.length > 0 || haiku) && (
-          <Section eyebrow="02" title="Indícios detectados">
-            {indicios.length === 0 ? (
-              <p style={{ color: MUTED }}>
-                Nenhum indício de irregularidade identificado.
-              </p>
-            ) : (
-              <ul className="space-y-3">
-                {indicios.map((indicio, i) => {
-                  const g = GRAVIDADE_BG[indicio.gravidade] ?? {
-                    bg: PAPER,
-                    fg: MUTED,
-                    border: BORDER,
-                  };
-                  return (
-                    <li
-                      key={i}
-                      className="p-4 space-y-2"
-                      style={{ border: `1px solid ${BORDER}` }}
-                    >
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span
-                          className="text-[10px] px-2 py-0.5 font-semibold uppercase tracking-wider"
-                          style={{
-                            background: g.bg,
-                            color: g.fg,
-                            border: `1px solid ${g.border}`,
-                            fontFamily: MONO,
-                            borderRadius: 2,
-                          }}
-                        >
-                          {indicio.gravidade}
-                        </span>
-                        <span
-                          className="text-[10.5px] uppercase tracking-wider"
-                          style={{ color: SUBTLE, fontFamily: MONO }}
-                        >
-                          {indicio.categoria} · {indicio.tipo}
-                        </span>
-                      </div>
-                      <p className="text-[14px]" style={{ color: INK }}>
-                        {indicio.descricao}
+        {ato.tipo === "ata_plenaria" ? (
+          <>
+            {/* Quórum e presença */}
+            <Section eyebrow="02" title="Quórum e presença">
+              <div className="space-y-5">
+                <div className="flex gap-8 flex-wrap">
+                  {sonnetQuorumTotal != null && (
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.24em]" style={{ color: SUBTLE, fontFamily: MONO }}>Presentes</p>
+                      <p className="text-[26px] font-semibold mt-0.5" style={{ fontFamily: MONO, color: INK }}>{sonnetQuorumTotal}</p>
+                    </div>
+                  )}
+                  {sonnetQuorumMinimo != null && (
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.24em]" style={{ color: SUBTLE, fontFamily: MONO }}>Quórum mínimo</p>
+                      <p className="text-[26px] font-semibold mt-0.5" style={{ fontFamily: MONO, color: INK }}>{sonnetQuorumMinimo}</p>
+                    </div>
+                  )}
+                  {sonnetQuorumAtingido != null && (
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.24em]" style={{ color: SUBTLE, fontFamily: MONO }}>Status</p>
+                      <p className="text-[15px] font-semibold mt-1" style={{ color: sonnetQuorumAtingido ? "#15803d" : "#b91c1c", fontFamily: MONO }}>
+                        {sonnetQuorumAtingido ? "Atingido" : "Não atingido"}
                       </p>
-                      {indicio.artigo_violado && (
-                        <p
-                          className="text-[11px] uppercase tracking-wider"
-                          style={{ color: MUTED, fontFamily: MONO }}
-                        >
-                          Artigo violado: {indicio.artigo_violado}
-                        </p>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </Section>
-        )}
-
-        {/* Pessoas */}
-        {pessoasHaiku.length > 0 && (
-          <Section eyebrow="03" title="Pessoas mencionadas">
-            <ul className="space-y-3">
-              {pessoasHaiku.map((p, i) => (
-                <li key={i} className="flex items-start gap-4">
-                  <span
-                    className="text-[11px] mt-0.5 uppercase tracking-wider"
-                    style={{ color: SUBTLE, fontFamily: MONO }}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
+                    </div>
+                  )}
+                </div>
+                {sonnetPresentes.length > 0 && (
                   <div>
-                    <span
-                      className="text-[14px] font-medium"
-                      style={{ color: INK }}
-                    >
-                      {p.nome}
-                    </span>
-                    {p.cargo && (
-                      <span
-                        className="text-[13px] ml-2"
-                        style={{ color: MUTED }}
-                      >
-                        — {p.cargo}
+                    <p className="text-[11px] uppercase tracking-wider mb-2" style={{ color: SUBTLE, fontFamily: MONO }}>Lista de presentes</p>
+                    <ul className="space-y-0.5">
+                      {sonnetPresentes.map((p, i) => (
+                        <li key={i} className="text-[14px] py-1" style={{ borderBottom: `1px solid ${BORDER}`, color: INK }}>{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {sonnetAusentes.length > 0 && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider mb-2" style={{ color: SUBTLE, fontFamily: MONO }}>Ausentes</p>
+                    <ul className="space-y-0.5">
+                      {sonnetAusentes.map((p, i) => (
+                        <li key={i} className="text-[14px] py-1" style={{ borderBottom: `1px solid ${BORDER}`, color: MUTED }}>{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </Section>
+
+            {/* Pauta */}
+            {sonnetPauta.length > 0 && (
+              <Section eyebrow="03" title="Pauta da reunião">
+                <ul className="space-y-3">
+                  {sonnetPauta.map((item) => {
+                    const resColor =
+                      item.resultado === "aprovado" ? { bg: "#f0fdf4", fg: "#15803d", bd: "#bbf7d0" }
+                      : item.resultado === "rejeitado" ? { bg: "#fef2f2", fg: "#b91c1c", bd: "#fecaca" }
+                      : { bg: PAPER, fg: MUTED, bd: BORDER };
+                    return (
+                      <li key={item.item} className="p-4 space-y-2" style={{ border: `1px solid ${BORDER}` }}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] uppercase tracking-wider" style={{ color: SUBTLE, fontFamily: MONO }}>Item {item.item}</span>
+                          <span className="text-[10px] px-2 py-0.5 uppercase tracking-wider" style={{ background: resColor.bg, color: resColor.fg, border: `1px solid ${resColor.bd}`, fontFamily: MONO, borderRadius: 2 }}>
+                            {item.resultado}
+                          </span>
+                          {item.unanime && (
+                            <span className="text-[10px] uppercase tracking-wider" style={{ color: SUBTLE, fontFamily: MONO }}>· Unânime</span>
+                          )}
+                        </div>
+                        <p className="text-[14px] font-medium" style={{ color: INK }}>{item.titulo}</p>
+                        {(item.votos_favor != null || item.votos_contra != null) && (
+                          <p className="text-[12px]" style={{ color: MUTED, fontFamily: MONO }}>
+                            {item.votos_favor != null && `${item.votos_favor} a favor`}
+                            {item.votos_contra != null && ` · ${item.votos_contra} contra`}
+                            {item.abstencoes != null && item.abstencoes > 0 && ` · ${item.abstencoes} abstenções`}
+                          </p>
+                        )}
+                        {item.observacao && (
+                          <p className="text-[13px]" style={{ color: MUTED }}>{item.observacao}</p>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Section>
+            )}
+
+            {/* Deliberações aprovadas */}
+            {sonnetDeliberacoes.length > 0 && (
+              <Section eyebrow="04" title="Deliberações aprovadas">
+                <ul className="space-y-0.5">
+                  {sonnetDeliberacoes.map((d, i) => (
+                    <li key={i} className="text-[14px] py-1" style={{ borderBottom: `1px solid ${BORDER}`, color: INK, fontFamily: MONO }}>{d}</li>
+                  ))}
+                </ul>
+              </Section>
+            )}
+
+            {/* Indícios (Sonnet) */}
+            {sonnetIrregularidades.length > 0 && (
+              <Section eyebrow="05" title="Indícios detectados">
+                <ul className="space-y-3">
+                  {sonnetIrregularidades.map((indicio, i) => {
+                    const g = GRAVIDADE_BG[indicio.gravidade] ?? { bg: PAPER, fg: MUTED, border: BORDER };
+                    return (
+                      <li key={i} className="p-4 space-y-2" style={{ border: `1px solid ${BORDER}` }}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] px-2 py-0.5 font-semibold uppercase tracking-wider" style={{ background: g.bg, color: g.fg, border: `1px solid ${g.border}`, fontFamily: MONO, borderRadius: 2 }}>
+                            {indicio.gravidade}
+                          </span>
+                          <span className="text-[10.5px] uppercase tracking-wider" style={{ color: SUBTLE, fontFamily: MONO }}>
+                            {indicio.categoria} · {indicio.tipo}
+                          </span>
+                        </div>
+                        <p className="text-[14px]" style={{ color: INK }}>{indicio.descricao}</p>
+                        {indicio.artigo_violado && (
+                          <p className="text-[11px] uppercase tracking-wider" style={{ color: MUTED, fontFamily: MONO }}>
+                            Artigo violado: {indicio.artigo_violado}
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Section>
+            )}
+
+            {/* Pessoas (Sonnet) */}
+            {sonnetPessoas.length > 0 && (
+              <Section eyebrow="06" title="Pessoas mencionadas">
+                <ul className="space-y-3">
+                  {sonnetPessoas.map((p, i) => (
+                    <li key={i} className="flex items-start gap-4">
+                      <span className="text-[11px] mt-0.5 uppercase tracking-wider" style={{ color: SUBTLE, fontFamily: MONO }}>
+                        {String(i + 1).padStart(2, "0")}
                       </span>
-                    )}
-                    {p.tipo_aparicao && (
-                      <p
-                        className="text-[11px] uppercase tracking-wider mt-0.5"
+                      <div>
+                        <span className="text-[14px] font-medium" style={{ color: INK }}>{p.nome}</span>
+                        {p.cargo && <span className="text-[13px] ml-2" style={{ color: MUTED }}>— {p.cargo}</span>}
+                        {p.tipo_aparicao && (
+                          <p className="text-[11px] uppercase tracking-wider mt-0.5" style={{ color: SUBTLE, fontFamily: MONO }}>{p.tipo_aparicao}</p>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Section>
+            )}
+          </>
+        ) : (
+          <>
+            {/* Indícios (Haiku) */}
+            {(indicios.length > 0 || haiku) && (
+              <Section eyebrow="02" title="Indícios detectados">
+                {indicios.length === 0 ? (
+                  <p style={{ color: MUTED }}>
+                    Nenhum indício de irregularidade identificado.
+                  </p>
+                ) : (
+                  <ul className="space-y-3">
+                    {indicios.map((indicio, i) => {
+                      const g = GRAVIDADE_BG[indicio.gravidade] ?? {
+                        bg: PAPER,
+                        fg: MUTED,
+                        border: BORDER,
+                      };
+                      return (
+                        <li
+                          key={i}
+                          className="p-4 space-y-2"
+                          style={{ border: `1px solid ${BORDER}` }}
+                        >
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span
+                              className="text-[10px] px-2 py-0.5 font-semibold uppercase tracking-wider"
+                              style={{
+                                background: g.bg,
+                                color: g.fg,
+                                border: `1px solid ${g.border}`,
+                                fontFamily: MONO,
+                                borderRadius: 2,
+                              }}
+                            >
+                              {indicio.gravidade}
+                            </span>
+                            <span
+                              className="text-[10.5px] uppercase tracking-wider"
+                              style={{ color: SUBTLE, fontFamily: MONO }}
+                            >
+                              {indicio.categoria} · {indicio.tipo}
+                            </span>
+                          </div>
+                          <p className="text-[14px]" style={{ color: INK }}>
+                            {indicio.descricao}
+                          </p>
+                          {indicio.artigo_violado && (
+                            <p
+                              className="text-[11px] uppercase tracking-wider"
+                              style={{ color: MUTED, fontFamily: MONO }}
+                            >
+                              Artigo violado: {indicio.artigo_violado}
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </Section>
+            )}
+
+            {/* Pessoas (Haiku) */}
+            {pessoasHaiku.length > 0 && (
+              <Section eyebrow="03" title="Pessoas mencionadas">
+                <ul className="space-y-3">
+                  {pessoasHaiku.map((p, i) => (
+                    <li key={i} className="flex items-start gap-4">
+                      <span
+                        className="text-[11px] mt-0.5 uppercase tracking-wider"
                         style={{ color: SUBTLE, fontFamily: MONO }}
                       >
-                        {p.tipo_aparicao}
-                      </p>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </Section>
-        )}
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <div>
+                        <span
+                          className="text-[14px] font-medium"
+                          style={{ color: INK }}
+                        >
+                          {p.nome}
+                        </span>
+                        {p.cargo && (
+                          <span
+                            className="text-[13px] ml-2"
+                            style={{ color: MUTED }}
+                          >
+                            — {p.cargo}
+                          </span>
+                        )}
+                        {p.tipo_aparicao && (
+                          <p
+                            className="text-[11px] uppercase tracking-wider mt-0.5"
+                            style={{ color: SUBTLE, fontFamily: MONO }}
+                          >
+                            {p.tipo_aparicao}
+                          </p>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Section>
+            )}
 
-        {/* Análise aprofundada */}
-        <Section eyebrow="04" title="Análise aprofundada">
-          {narrativaCompleta ? (
-            <p className="whitespace-pre-wrap">{narrativaCompleta}</p>
-          ) : (
-            <p style={{ color: MUTED }}>
-              Análise detalhada ainda não disponível para este ato.
-            </p>
-          )}
-        </Section>
+            {/* Análise aprofundada */}
+            <Section eyebrow="04" title="Análise aprofundada">
+              {narrativaCompleta ? (
+                <p className="whitespace-pre-wrap">{narrativaCompleta}</p>
+              ) : (
+                <p style={{ color: MUTED }}>
+                  Análise detalhada ainda não disponível para este ato.
+                </p>
+              )}
+            </Section>
+          </>
+        )}
 
         {/* Recomendação */}
         {ato.recomendacao_campanha && (

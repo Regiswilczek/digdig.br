@@ -36,7 +36,7 @@ from app.models.analise import Analise
 from app.services.haiku_service import analisar_ato_haiku, montar_system_prompt
 
 # ── Config ────────────────────────────────────────────────────────────────────
-RODADA_ID = uuid.UUID("9063d83c-f510-40b4-93c3-b7469e665aae")
+RODADA_ID = uuid.UUID("5b365c0d-43be-4a7e-a22d-159f50fbe3c2")
 TENANT_ID = uuid.UUID("f32ed0e7-c95d-4dec-a332-fa2cf6f20eb4")
 CUSTO_LIMITE = Decimal("8.00")   # para antes de $8 nesta sessão
 

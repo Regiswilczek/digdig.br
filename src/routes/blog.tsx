@@ -34,6 +34,16 @@ export const Route = createFileRoute("/blog")({
 // Add new entries here (newest first) whenever a new white paper is published.
 const PAPERS = [
   {
+    numero: "05",
+    slug: "/whitepaper-05-quando-a-maquina-entra-na-sala",
+    titulo: "Quando a Máquina Entra na Sala",
+    subtitulo: "179 atas plenárias, OCR sem Tesseract e o que o quórum revela que a portaria esconde",
+    resumo:
+      "Como o corpus cresceu de 1.096 para mais de 1.340 documentos: portarias históricas escaneadas desbloqueadas com PyMuPDF + Claude vision, atas plenárias analisadas diretamente pelo Sonnet, 18 reuniões sem ata publicada descobertas — e o pipeline que passou a ser observável em tempo real.",
+    data: "Abril 2026",
+    tags: ["Atas Plenárias", "OCR", "Pipeline ao Vivo"],
+  },
+  {
     numero: "04",
     slug: "/whitepaper-04-o-que-a-maquina-encontrou",
     titulo: "O Que a Máquina Encontrou",

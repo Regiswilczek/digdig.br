@@ -10,16 +10,22 @@ import {
   Send,
   Paperclip,
   Mic,
-  MoreHorizontal,
   Zap,
   GitBranch,
 } from "lucide-react";
+import {
+  fetchAnalysesRecentes,
+  fetchStats,
+  type AnaliseRecente,
+  type PublicStats,
+} from "../../lib/api";
 
 const BORDER = "#e8e6e1";
 const INK = "#0a0a0a";
 const MUTED = "#6b6b66";
 const SUBTLE = "#9a978f";
 const PAPER = "#faf8f3";
+const MONO = "'JetBrains Mono', monospace";
 
 // @ts-ignore
 export const Route = createFileRoute("/painel/chat")({
@@ -59,44 +65,41 @@ const QUICK_ACTIONS = [
   },
 ];
 
-interface RecentItem {
-  icon: React.ElementType;
-  text: string;
-  sub: string;
-  time: string;
+const NIVEL_DOT: Record<string, string> = {
+  vermelho: "#dc2626",
+  laranja:  "#ea580c",
+  amarelo:  "#ca8a04",
+  verde:    "#16a34a",
+};
+
+function timeAgo(iso: string): string {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60) return `há ${diff}s`;
+  if (diff < 3600) return `há ${Math.floor(diff / 60)}min`;
+  if (diff < 86400) return `há ${Math.floor(diff / 3600)}h`;
+  return `há ${Math.floor(diff / 86400)}d`;
 }
 
-const RECENT_MOCK: RecentItem[] = [
-  {
-    icon: AlertTriangle,
-    text: "485 atos analisados",
-    sub: "Rodada CAU/PR",
-    time: "ao vivo",
-  },
-  {
-    icon: Zap,
-    text: "13 casos vermelhos",
-    sub: "Detectados na rodada atual",
-    time: "2 min atrás",
-  },
-  {
-    icon: Users,
-    text: "91 casos laranja",
-    sub: "Indício moderado-grave",
-    time: "5 min atrás",
-  },
-  {
-    icon: FileText,
-    text: "Portaria 041/2019",
-    sub: "Nível vermelho confirmado",
-    time: "1h atrás",
-  },
-];
+function nivelIcon(nivel: string | null) {
+  if (nivel === "vermelho" || nivel === "laranja") return AlertTriangle;
+  return FileText;
+}
+
+const TIPO_LABEL: Record<string, string> = {
+  portaria: "Portaria",
+  ata_plenaria: "Ata Plenária",
+  portaria_normativa: "Port. Normativa",
+  deliberacao: "Deliberação",
+};
+
+const SLUG = "cau-pr";
 
 function ChatPage() {
   const [userName, setUserName] = useState("Usuário");
   const [input, setInput] = useState("");
   const [actSearch, setActSearch] = useState("");
+  const [analyses, setAnalyses] = useState<AnaliseRecente[] | null>(null);
+  const [stats, setStats] = useState<PublicStats | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -106,6 +109,8 @@ function ChatPage() {
       const raw = meta ?? session.user.email?.split("@")[0] ?? "Usuário";
       setUserName(raw.charAt(0).toUpperCase() + raw.slice(1));
     });
+    fetchAnalysesRecentes(SLUG).then(setAnalyses).catch(() => setAnalyses([]));
+    fetchStats(SLUG).then(setStats).catch(console.error);
   }, []);
 
   function handleCard(title: string) {
@@ -113,12 +118,23 @@ function ChatPage() {
     inputRef.current?.focus();
   }
 
-  const filtered = RECENT_MOCK.filter(
-    (i) =>
-      actSearch === "" ||
-      i.text.toLowerCase().includes(actSearch.toLowerCase()) ||
-      i.sub.toLowerCase().includes(actSearch.toLowerCase()),
-  );
+  const count24h = analyses
+    ? analyses.filter(
+        (a) => a.criado_em && Date.now() - new Date(a.criado_em).getTime() < 86_400_000
+      ).length
+    : 0;
+
+  const isLive = count24h > 0;
+
+  const filteredAnalyses = analyses
+    ? analyses.filter(
+        (a) =>
+          actSearch === "" ||
+          (a.numero ?? "").toLowerCase().includes(actSearch.toLowerCase()) ||
+          (a.tipo ?? "").toLowerCase().includes(actSearch.toLowerCase()) ||
+          (a.nivel_alerta ?? "").toLowerCase().includes(actSearch.toLowerCase())
+      )
+    : [];
 
   return (
     <div className="flex flex-1 min-h-0" style={{ color: INK }}>
@@ -236,31 +252,37 @@ function ChatPage() {
 
       {/* ── Right panel ─────────────────────────────────────────── */}
       <aside
-        className="hidden lg:flex w-[280px] flex-shrink-0 bg-white flex-col"
+        className="hidden lg:flex w-[280px] flex-shrink-0 bg-white flex-col sticky top-0 h-screen overflow-hidden"
         style={{ borderLeft: `1px solid ${BORDER}` }}
       >
-        <div
-          className="px-5 pt-6 pb-3 flex items-center justify-between"
-          style={{ borderBottom: `1px solid ${BORDER}` }}
-        >
-          <span
-            className="text-[10px] uppercase tracking-[0.28em] font-semibold"
-            style={{
-              color: INK,
-              fontFamily: "'JetBrains Mono', monospace",
-            }}
-          >
-            Atividade Recente
-          </span>
-          <button
-            className="transition-colors hover:text-[#0a0a0a]"
-            style={{ color: SUBTLE }}
-          >
-            <MoreHorizontal size={15} />
-          </button>
-        </div>
-
-        <div className="px-4 pt-3 pb-3">
+        {/* Header */}
+        <div className="px-5 pt-5 pb-3" style={{ borderBottom: `1px solid ${BORDER}` }}>
+          <div className="flex items-center justify-between mb-3">
+            <span
+              className="text-[10px] uppercase tracking-[0.28em] font-semibold"
+              style={{ color: SUBTLE, fontFamily: MONO }}
+            >
+              Atividade Recente
+            </span>
+            {isLive && (
+              <span
+                className="flex items-center gap-1 text-[9px] uppercase tracking-wider px-1.5 py-0.5"
+                style={{
+                  color: "#15803d",
+                  background: "#f0fdf4",
+                  border: "1px solid #bbf7d0",
+                  borderRadius: 2,
+                  fontFamily: MONO,
+                }}
+              >
+                <span
+                  className="h-1 w-1 rounded-full animate-pulse"
+                  style={{ background: "#16a34a" }}
+                />
+                Ao vivo
+              </span>
+            )}
+          </div>
           <div
             className="flex items-center gap-2 px-3 py-2"
             style={{ border: `1px solid ${BORDER}`, borderRadius: 2 }}
@@ -276,55 +298,123 @@ function ChatPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-2 pb-4">
-          {filtered.length === 0 && (
-            <p
-              className="text-[11px] text-center pt-10"
-              style={{ color: SUBTLE }}
-            >
+        {/* Stats summary rows */}
+        {stats && !actSearch && (
+          <div style={{ borderBottom: `1px solid ${BORDER}` }}>
+            {count24h > 0 && (
+              <div
+                className="flex items-start gap-3 px-4 py-3"
+                style={{ borderBottom: `1px solid ${BORDER}` }}
+              >
+                <div
+                  className="mt-0.5 w-6 h-6 flex items-center justify-center flex-shrink-0"
+                  style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 2 }}
+                >
+                  <Zap size={11} style={{ color: "#15803d" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-medium leading-snug" style={{ color: INK }}>
+                    {count24h} atos analisados
+                  </p>
+                  <p className="text-[10.5px] mt-0.5" style={{ color: MUTED }}>
+                    Rodada {SLUG.toUpperCase().replace("-", "/")}
+                  </p>
+                </div>
+                <span
+                  className="text-[9px] flex-shrink-0 mt-0.5 uppercase tracking-wider px-1.5 py-0.5"
+                  style={{ color: "#15803d", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 2, fontFamily: MONO }}
+                >
+                  Ao vivo
+                </span>
+              </div>
+            )}
+            {stats.distribuicao.vermelho > 0 && (
+              <div
+                className="flex items-start gap-3 px-4 py-3"
+                style={{ borderBottom: `1px solid ${BORDER}` }}
+              >
+                <div
+                  className="mt-0.5 w-6 h-6 flex items-center justify-center flex-shrink-0"
+                  style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 2 }}
+                >
+                  <AlertTriangle size={11} style={{ color: "#b91c1c" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-medium leading-snug" style={{ color: INK }}>
+                    {stats.distribuicao.vermelho} casos vermelhos
+                  </p>
+                  <p className="text-[10.5px] mt-0.5" style={{ color: MUTED }}>
+                    Indício grave de ilegalidade
+                  </p>
+                </div>
+              </div>
+            )}
+            {stats.distribuicao.laranja > 0 && (
+              <div className="flex items-start gap-3 px-4 py-3">
+                <div
+                  className="mt-0.5 w-6 h-6 flex items-center justify-center flex-shrink-0"
+                  style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 2 }}
+                >
+                  <Users size={11} style={{ color: "#c2410c" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-medium leading-snug" style={{ color: INK }}>
+                    {stats.distribuicao.laranja} casos laranja
+                  </p>
+                  <p className="text-[10.5px] mt-0.5" style={{ color: MUTED }}>
+                    Indício moderado-grave
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Individual items */}
+        <div className="flex-1 overflow-y-auto">
+          {analyses === null && (
+            <p className="text-[11px] text-center pt-8" style={{ color: SUBTLE }}>
+              Carregando…
+            </p>
+          )}
+          {analyses !== null && filteredAnalyses.length === 0 && (
+            <p className="text-[11px] text-center pt-8" style={{ color: SUBTLE }}>
               Nenhuma atividade encontrada.
             </p>
           )}
-          {filtered.map((item, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-3 px-3 py-3 hover:bg-[#faf8f3] transition-colors cursor-default group"
-            >
+          {filteredAnalyses.map((item) => {
+            const Icon = nivelIcon(item.nivel_alerta);
+            const dot = NIVEL_DOT[item.nivel_alerta ?? ""] ?? "#d4d2cd";
+            const tipoStr = TIPO_LABEL[item.tipo ?? ""] ?? "Ato";
+            return (
               <div
-                className="mt-0.5 w-7 h-7 flex items-center justify-center flex-shrink-0"
-                style={{
-                  background: PAPER,
-                  border: `1px solid ${BORDER}`,
-                  borderRadius: 2,
-                }}
+                key={item.id}
+                className="flex items-start gap-3 px-4 py-3 hover:bg-[#faf8f3] transition-colors cursor-default"
+                style={{ borderBottom: `1px solid ${BORDER}` }}
               >
-                <item.icon size={13} style={{ color: MUTED }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p
-                  className="text-[12.5px] leading-snug truncate font-medium"
-                  style={{ color: INK }}
+                <div
+                  className="mt-0.5 w-6 h-6 flex items-center justify-center flex-shrink-0"
+                  style={{ background: PAPER, border: `1px solid ${BORDER}`, borderRadius: 2 }}
                 >
-                  {item.text}
-                </p>
-                <p
-                  className="text-[11px] leading-snug mt-0.5 truncate"
-                  style={{ color: MUTED }}
+                  <Icon size={11} style={{ color: dot }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-medium leading-snug truncate" style={{ color: INK, fontFamily: MONO }}>
+                    {tipoStr} {item.numero ?? "—"}
+                  </p>
+                  <p className="text-[10.5px] mt-0.5 capitalize" style={{ color: MUTED }}>
+                    {item.nivel_alerta ? `Nível ${item.nivel_alerta}` : tipoStr}
+                  </p>
+                </div>
+                <span
+                  className="text-[9.5px] flex-shrink-0 mt-0.5 uppercase tracking-wider whitespace-nowrap"
+                  style={{ color: SUBTLE, fontFamily: MONO }}
                 >
-                  {item.sub}
-                </p>
+                  {item.criado_em ? timeAgo(item.criado_em) : "—"}
+                </span>
               </div>
-              <span
-                className="text-[10px] flex-shrink-0 mt-0.5 uppercase tracking-wider"
-                style={{
-                  color: SUBTLE,
-                  fontFamily: "'JetBrains Mono', monospace",
-                }}
-              >
-                {item.time}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </aside>
     </div>

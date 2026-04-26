@@ -56,6 +56,7 @@ ASYNCPG_URL = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
 
 TENANT_ID   = "f32ed0e7-c95d-4dec-a332-fa2cf6f20eb4"
 WP_API_URL  = "https://www.caupr.gov.br/wp-json/wp/v2/pages/17916"
+PAGE_URL    = "https://www.caupr.gov.br/?page_id=17916"
 RATE_LIMIT  = 2.0
 MAX_PDF_BYTES = 50 * 1024 * 1024
 
@@ -200,40 +201,95 @@ async def fase_pdf(conn: asyncpg.Connection, http: httpx.AsyncClient) -> None:
 
 
 # ── Fase 2: Descoberta de url_pdf via WP REST API ─────────────────────────────
-async def _match_numero(conn: asyncpg.Connection, candidatos: list[str]) -> asyncpg.Record | None:
-    """Tenta casar número com e sem zero à esquerda no campo plenária (0191 vs 191)."""
-    for numero in candidatos:
-        row = await conn.fetchrow(
-            """
-            SELECT id FROM atos
-            WHERE tenant_id = $1
-              AND tipo = 'deliberacao'
-              AND numero = $2
-              AND url_pdf IS NULL
-            """,
-            TENANT_ID, numero,
-        )
-        if row:
-            return row
-        # Tenta com zero-padding no prefixo (ex: "191-20/2025" → "0191-20/2025")
-        if re.match(r"^\d{2,3}-\d{2}/\d{4}$", numero):
-            padded = numero.zfill(len(numero) + 1) if not numero.startswith("0") else numero
-            # ex: "191-20/2025" → add leading zero: "0191-20/2025"
-            parts = numero.split("-", 1)
-            padded = parts[0].zfill(4) + "-" + parts[1]
-            row = await conn.fetchrow(
-                """
-                SELECT id FROM atos
-                WHERE tenant_id = $1
-                  AND tipo = 'deliberacao'
-                  AND numero = $2
-                  AND url_pdf IS NULL
-                """,
-                TENANT_ID, padded,
+def _num_key(numero: str) -> tuple[int, ...] | None:
+    """Normaliza número de deliberação para tupla de ints (ignora zeros à esquerda).
+    Ex: '0176-15/2024' → (176, 15, 2024); '15/2026' → (15, 2026); '007' → (7,)
+    """
+    parts = [p for p in re.split(r'[-./]', numero.strip()) if p.isdigit()]
+    return tuple(int(p) for p in parts) if parts else None
+
+
+def _extrair_keys_da_url(url: str) -> list[tuple[int, ...]]:
+    """Extrai chaves numéricas de número de deliberação a partir do nome do arquivo PDF."""
+    keys: list[tuple[int, ...]] = []
+    filename = re.sub(r'\.PDF$', '', url.split("/")[-1].upper())
+
+    # DPOPR-176-15/2024 → (176, 15, 2024) e também (15, 2024)
+    # O fallback 2-componentes casa com números como "022/2021" quando o PDF
+    # usa o formato DPOPR completo (sessão-item.ano) mas o banco guarda só item/ano.
+    for m in re.finditer(r'DPOPR[-_](\d{2,4})[-_.](\d{1,2})[-_.](\d{4})', filename):
+        keys.append((int(m.group(1)), int(m.group(2)), int(m.group(3))))
+        keys.append((int(m.group(2)), int(m.group(3))))
+
+    # AD-REFERENDUM-15.2026 → (15, 2026)  [sequência antes do ano]
+    for m in re.finditer(r'REFERENDUM[-_.](\d{1,3})[-_.](\d{4})', filename):
+        keys.append((int(m.group(1)), int(m.group(2))))
+
+    # AdReferendum2026.14 ou AdReferendum_2026.14 → (14, 2026)  [ano antes da sequência]
+    for m in re.finditer(r'REFERENDUM[-_]?(\d{4})[-_.](\d{1,3})', filename):
+        keys.append((int(m.group(2)), int(m.group(1))))
+
+    return keys
+
+
+async def _get_combined_html(http: httpx.AsyncClient) -> str:
+    """Busca HTML da página completa + WP API e combina o conteúdo."""
+    parts = []
+
+    # 1. Página HTML direta — extrai só a área de conteúdo
+    try:
+        resp = await http.get(PAGE_URL, timeout=30)
+        if resp.status_code == 200:
+            soup = BeautifulSoup(resp.text, "lxml")
+            content = (
+                soup.select_one(".entry-content")
+                or soup.select_one(".post-content")
+                or soup.select_one("article")
+                or soup.select_one("#content")
+                or soup.select_one("main")
             )
-            if row:
-                return row
-    return None
+            if content:
+                parts.append(str(content))
+                print(f"  Página HTML: {len(str(content))} chars carregados")
+    except Exception as e:
+        print(f"  Aviso PAGE_URL: {e}")
+
+    # 2. WP REST API — conteúdo renderizado
+    try:
+        resp = await http.get(WP_API_URL, timeout=30)
+        if resp.status_code == 200:
+            html = resp.json().get("content", {}).get("rendered", "")
+            if html:
+                parts.append(html)
+                print(f"  WP API: {len(html)} chars carregados")
+    except Exception as e:
+        print(f"  Aviso WP_API: {e}")
+
+    return "\n".join(parts)
+
+
+async def _get_page_soup(http: httpx.AsyncClient) -> BeautifulSoup | None:
+    html = await _get_combined_html(http)
+    if not html:
+        return None
+    return BeautifulSoup(html, "lxml")
+
+
+def _extrair_numero_da_url(url: str) -> list[str]:
+    """Extrai candidatos de número de deliberação a partir do nome do arquivo PDF."""
+    candidatos = []
+    filename = url.split("/")[-1].upper()
+    # DPOPR-176-15.2024 → 176-15/2024
+    for m in re.finditer(r"DPOPR[-_](\d{2,4})[-_.](\d{2})[-_.](\d{4})", filename):
+        candidatos.append(f"{m.group(1)}-{m.group(2)}/{m.group(3)}")
+        candidatos.append(f"0{m.group(1)}-{m.group(2)}/{m.group(3)}")
+    # AdReferendum2026.11 → 11/2026
+    for m in re.finditer(r"ADREF(?:ERENDUM)?(\d{4})[-_.](\d{1,3})", filename):
+        candidatos.append(f"{m.group(2)}/{m.group(1)}")
+    # Fallback: padrões genéricos no nome do arquivo
+    for m in re.finditer(r"\b(\d{2,4})[-_](\d{2})[-_.](\d{4})\b", filename):
+        candidatos.append(f"{m.group(1)}-{m.group(2)}/{m.group(3)}")
+    return candidatos
 
 
 async def fase_descoberta(
@@ -243,57 +299,58 @@ async def fase_descoberta(
         print("\n─── FASE 2: DESCOBERTA — beautifulsoup4 não instalado. Pule. ───\n")
         return
 
-    print(f"\n─── FASE 2: DESCOBERTA via WP REST API {'(preview)' if preview else ''} ───")
-    print(f"  API: {WP_API_URL}\n")
+    print(f"\n─── FASE 2: DESCOBERTA via página HTML {'(preview)' if preview else ''} ───")
+    print(f"  URL: {PAGE_URL}\n")
 
-    resp = await http.get(WP_API_URL)
-    if resp.status_code != 200:
-        print(f"  Erro HTTP {resp.status_code} ao acessar WP API.")
+    # Carrega todos os pendentes em UMA query → lookup em memória (evita N round-trips)
+    pending_rows = await conn.fetch(
+        """SELECT id, numero FROM atos
+           WHERE tenant_id = $1 AND tipo = 'deliberacao' AND url_pdf IS NULL""",
+        TENANT_ID,
+    )
+    lookup: dict[tuple, tuple] = {}
+    for row in pending_rows:
+        key = _num_key(row["numero"])
+        if key and key not in lookup:
+            lookup[key] = (str(row["id"]), row["numero"])
+    print(f"  Deliberações sem URL no banco: {len(pending_rows)}  |  chaves no índice: {len(lookup)}")
+
+    soup = await _get_page_soup(http)
+    if not soup:
+        print("  Erro: não foi possível carregar a página.")
         return
 
-    content_html = resp.json().get("content", {}).get("rendered", "")
-    soup = BeautifulSoup(content_html, "lxml")
-    paragraphs = soup.find_all("p")
+    all_pdf_links = [a["href"] for a in soup.find_all("a", href=True)
+                     if ".pdf" in a["href"].lower()]
+    print(f"  Links PDF na página: {len(all_pdf_links)}\n")
 
-    descobertos = 0
-    sem_pdf = 0
+    matched: dict[str, tuple] = {}  # ato_id → (numero, pdf_url)
+    vistos_urls: set[str] = set()
 
-    for i, p in enumerate(paragraphs):
-        # Título: parágrafo com <strong> que contenha número de deliberação
-        if not p.find("strong"):
+    for pdf_url in all_pdf_links:
+        if pdf_url in vistos_urls:
             continue
-        texto = p.get_text(" ", strip=True)
-        candidatos = normalizar_numero(texto)
-        if not candidatos:
-            continue
+        vistos_urls.add(pdf_url)
 
-        # Procura o link PDF nos próximos 4 parágrafos (inclusive este)
-        pdf_url = None
-        for j in range(i, min(i + 4, len(paragraphs))):
-            for a in paragraphs[j].find_all("a", href=True):
-                href = a["href"]
-                if href.lower().endswith(".pdf"):
-                    pdf_url = href
-                    break
-            if pdf_url:
+        keys = _extrair_keys_da_url(pdf_url)
+        for key in keys:
+            if key in lookup:
+                ato_id, numero = lookup[key]
+                if ato_id not in matched:
+                    matched[ato_id] = (numero, pdf_url)
+                    print(f"  {'[preview] ' if preview else ''}nº {numero} → {pdf_url[:80]}")
                 break
 
-        if not pdf_url:
-            sem_pdf += 1
-            continue
+    print(f"\n  Encontrados: {len(matched)} de {len(pending_rows)} pendentes")
 
-        row_db = await _match_numero(conn, candidatos)
-        if row_db:
-            if not preview:
-                await conn.execute(
-                    "UPDATE atos SET url_pdf=$1 WHERE id=$2",
-                    pdf_url, row_db["id"],
-                )
-            num_display = candidatos[0]
-            print(f"  {'[preview] ' if preview else ''}nº {num_display} → {pdf_url[:70]}")
-            descobertos += 1
+    if not preview and matched:
+        for ato_id, (numero, pdf_url) in matched.items():
+            await conn.execute(
+                "UPDATE atos SET url_pdf=$1 WHERE id=$2", pdf_url, ato_id,
+            )
+        print(f"  Banco atualizado: {len(matched)} registros")
 
-    print(f"\n  Fase 2 — PDFs descobertos:{descobertos}  sem link PDF:{sem_pdf}\n")
+    print(f"\n  Fase 2 — PDFs descobertos: {len(matched)}\n")
 
 
 # ── Fase 3: HTML ──────────────────────────────────────────────────────────────

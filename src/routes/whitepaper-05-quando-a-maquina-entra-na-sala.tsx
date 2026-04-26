@@ -1,0 +1,262 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/whitepaper-05-quando-a-maquina-entra-na-sala")({
+  head: () => ({
+    meta: [
+      { title: "Quando a Máquina Entra na Sala — Dig Dig" },
+      {
+        name: "description",
+        content:
+          "White Paper Nº 05: 179 atas plenárias, OCR sem Tesseract e o que o quórum revela que a portaria esconde.",
+      },
+      { property: "og:title", content: "Quando a Máquina Entra na Sala" },
+      {
+        property: "og:description",
+        content:
+          "White Paper Nº 05 do Dig Dig: como expandimos o corpus para atas plenárias, portarias normativas e documentos históricos escaneados — e o que o pipeline em tempo real revela.",
+      },
+      { property: "og:type", content: "article" },
+    ],
+    links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@600;700&display=swap",
+      },
+    ],
+  }),
+  component: Whitepaper05Page,
+});
+
+const STYLES = `
+  .wp-root { --text:#111111; --muted:#666666; --subtle:#999999; --border:#e5e5e5; --bg:#ffffff; --bg-code:#f5f5f5; --max-w:680px;
+    font-family:'Inter',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text); line-height:1.75; padding:0 24px; font-size:17px;
+  }
+  .wp-root *, .wp-root *::before, .wp-root *::after { box-sizing:border-box; }
+  .wp-root .site-header { max-width:var(--max-w); margin:0 auto; padding:40px 0 48px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); }
+  .wp-root .wordmark { font-family:'Inter Tight',sans-serif; font-weight:700; font-size:1rem; letter-spacing:-0.02em; color:var(--text); text-decoration:none; }
+  .wp-root .label { font-size:0.75rem; color:var(--subtle); letter-spacing:0.08em; text-transform:uppercase; }
+  .wp-root article { max-width:var(--max-w); margin:0 auto; padding:56px 0 80px; }
+  .wp-root .post-header { margin-bottom:48px; }
+  .wp-root .post-label { display:inline-block; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--subtle); margin-bottom:20px; }
+  .wp-root h1 { font-family:'Inter Tight',sans-serif; font-weight:700; font-size:2.1rem; line-height:1.2; letter-spacing:-0.03em; margin-bottom:20px; }
+  .wp-root .byline { font-size:0.88rem; color:var(--muted); }
+  .wp-root .byline strong { font-weight:600; color:var(--text); }
+  .wp-root hr { border:none; border-top:1px solid var(--border); margin:44px 0; }
+  .wp-root h2 { font-family:'Inter Tight',sans-serif; font-weight:600; font-size:1.3rem; letter-spacing:-0.02em; margin:52px 0 16px; }
+  .wp-root h3 { font-weight:600; font-size:1rem; margin:36px 0 12px; }
+  .wp-root p { margin-bottom:22px; }
+  .wp-root ul, .wp-root ol { margin:0 0 22px 0; padding-left:1.4em; }
+  .wp-root li { margin-bottom:6px; }
+  .wp-root code { font-family:'SF Mono','Fira Code','Cascadia Code',monospace; font-size:0.82em; background:var(--bg-code); padding:2px 6px; border-radius:4px; color:#c0392b; }
+  .wp-root pre { background:var(--bg-code); border:1px solid var(--border); border-radius:6px; padding:20px 22px; margin:24px 0; overflow-x:auto; font-family:'SF Mono','Fira Code','Cascadia Code',monospace; font-size:0.82rem; line-height:1.65; color:var(--text); }
+  .wp-root pre code { background:none; padding:0; color:inherit; font-size:inherit; }
+  .wp-root table { width:100%; border-collapse:collapse; margin:24px 0; font-size:0.88rem; }
+  .wp-root th { text-align:left; font-weight:600; font-size:0.75rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); padding:10px 14px; border-bottom:2px solid var(--border); }
+  .wp-root td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+  .wp-root tr:last-child td { border-bottom:none; }
+  .wp-root .verde    { color:#2e7d32; font-weight:600; }
+  .wp-root .amarelo  { color:#b45309; font-weight:600; }
+  .wp-root .laranja  { color:#c05b00; font-weight:600; }
+  .wp-root .vermelho { color:#c0392b; font-weight:600; }
+  .wp-root .stat-row { display:flex; gap:32px; margin:28px 0; flex-wrap:wrap; }
+  .wp-root .stat { display:flex; flex-direction:column; gap:4px; }
+  .wp-root .stat .num { font-family:'Inter Tight',sans-serif; font-weight:700; font-size:1.6rem; letter-spacing:-0.03em; }
+  .wp-root .stat .desc { font-size:0.8rem; color:var(--muted); }
+  .wp-root .callout { border-left:3px solid var(--text); margin:32px 0; padding:4px 0 4px 20px; color:var(--muted); font-size:0.95rem; }
+  .wp-root .callout.alert { border-left-color:#c0392b; }
+  .wp-root strong { font-weight:600; }
+  .wp-root .prev-paper { display:inline-flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--muted); text-decoration:none; margin-bottom:40px; }
+  .wp-root .prev-paper:hover { color:var(--text); }
+  .wp-root .signature { margin-top:48px; padding-top:32px; border-top:1px solid var(--border); }
+  .wp-root .signature .name { font-family:'Inter Tight',sans-serif; font-weight:600; font-size:1rem; letter-spacing:-0.01em; }
+  .wp-root .signature .role { font-size:0.83rem; color:var(--muted); margin-top:4px; }
+  .wp-root .post-footer { margin-top:56px; padding-top:28px; border-top:1px solid var(--border); font-size:0.83rem; color:var(--subtle); font-style:italic; }
+  .wp-root .site-footer { max-width:var(--max-w); margin:0 auto; padding:32px 0 56px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:var(--subtle); }
+  @media (max-width:600px) { .wp-root { font-size:16px; } .wp-root h1 { font-size:1.75rem; } .wp-root .site-footer { flex-direction:column; gap:8px; } .wp-root .stat-row { gap:20px; } }
+`;
+
+function Whitepaper05Page() {
+  return (
+    <div className="wp-root">
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+
+      <header className="site-header">
+        <Link to="/" className="wordmark">Dig Dig</Link>
+        <span className="label">White Paper · Nº 05</span>
+      </header>
+
+      <article>
+        <Link to="/whitepaper-04-o-que-a-maquina-encontrou" className="prev-paper">
+          ← White Paper Nº 04: O Que a Máquina Encontrou
+        </Link>
+
+        <div className="post-header">
+          <span className="post-label">Expansão de Corpus · OCR · Pipeline em Tempo Real</span>
+          <h1>Quando a Máquina Entra na Sala</h1>
+          <p className="byline"><strong>Regis Wilczek</strong> &nbsp;—&nbsp; Abril de 2026</p>
+        </div>
+
+        <p>O White Paper Nº 04 documentou o que a máquina encontrou em 1.096 atos do CAU/PR — portarias e deliberações com texto nativo extraível. Quatro padrões dominantes. Vinte e um casos com ficha de denúncia. Um sistema que reconheceu o próprio erro.</p>
+        <p>Este paper documenta o que aconteceu depois: como o corpus cresceu em três frentes simultaneamente, como resolvemos o problema dos documentos históricos escaneados sem precisar de Tesseract, por que as atas plenárias mudam fundamentalmente o tipo de análise possível — e como o pipeline deixou de ser uma caixa preta para se tornar algo que você pode observar funcionando em tempo real.</p>
+
+        <hr />
+
+        <h2>O Universo Expandido</h2>
+
+        <p>Ao publicar o WP-04, o Dig Dig cobria portarias com texto nativo (2022–2026) e as primeiras deliberações plenárias. O corpus, agora, é substancialmente maior:</p>
+
+        <table>
+          <thead>
+            <tr><th>Tipo de Documento</th><th>Total Identificado</th><th>Situação</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Portarias</td>
+              <td>551</td>
+              <td>~400 com texto nativo; 151 escaneadas (2018–2021) com OCR ativo</td>
+            </tr>
+            <tr>
+              <td>Deliberações Plenárias</td>
+              <td>597+</td>
+              <td>HTML completo extraído; análise em andamento</td>
+            </tr>
+            <tr>
+              <td>Portarias Normativas</td>
+              <td>21</td>
+              <td>Extraídas; algumas com OCR (documentos escaneados)</td>
+            </tr>
+            <tr>
+              <td>Atas Plenárias</td>
+              <td>179 identificadas</td>
+              <td>161 com PDF publicado; em análise com Sonnet</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>Mais de 1.340 documentos no escopo total do CAU/PR. A pergunta deixou de ser "o que conseguimos extrair?" e passou a ser "o que o conjunto completo revela que partes isoladas não revelam?"</p>
+
+        <hr />
+
+        <h2>O Problema dos Escaneados — Resolvido Sem Tesseract</h2>
+
+        <p>151 portarias do CAU/PR do período 2018–2021 estavam inacessíveis para análise. São documentos reais, publicados no site oficial da autarquia — mas em formato de imagem. PDFs que são fotos de papel, sem camada de texto selecionável. O pdfplumber devolvia string vazia ou alguns artefatos de metadado.</p>
+        <p>A solução não envolveu Tesseract, Poppler, ou qualquer ferramenta de OCR instalada localmente. O pipeline é mais simples:</p>
+
+        <ol>
+          <li><strong>PyMuPDF (fitz)</strong> abre o PDF e renderiza cada página como PNG a 200 DPI — resolução suficiente para preservar assinaturas, carimbos e texto manuscrito marginal.</li>
+          <li><strong>Claude Haiku</strong>, via visão, recebe a imagem e extrai o texto exatamente como aparece na página — incluindo formatação, parágrafos e estrutura do documento.</li>
+          <li>O resultado é salvo no banco com <code>metodo_extracao='claude_vision'</code>.</li>
+        </ol>
+
+        <p>A detecção entre PDF digital e PDF escaneado é automática:</p>
+
+        <pre><code>{`def _extrair_pdf_inteligente(pdf_bytes, cliente):
+    texto, n_pages = _extrair_pdfplumber(pdf_bytes)
+    if len(texto) >= 100:              # PDF digital — texto nativo
+        return texto, n_pages, "pdfplumber"
+    return await _ocr_claude(...)      # PDF escaneado → visão`}</code></pre>
+
+        <p>O threshold de 100 caracteres é deliberado. PDFs de imagem pura retornam zero ou alguns bytes de metadado sem sentido. Qualquer documento com substância real passa dessa marca. O script decide o método sozinho — sem intervenção manual, sem flag adicional.</p>
+        <p>O custo por página via visão é baixo o suficiente para ser viável em escala: Haiku vision custa uma fração do Sonnet e é rápido. As 151 portarias escaneadas do CAU/PR — que estavam efetivamente inacessíveis para análise — agora têm texto extraído.</p>
+
+        <div className="callout">
+          O Tesseract requer instalação local, dependências de linguagem e ajuste fino por tipo de documento. O Claude Haiku com PyMuPDF requer uma chave de API. A diferença de complexidade operacional, em um scraper que já precisa da API Anthropic para análise, é zero.
+        </div>
+
+        <hr />
+
+        <h2>Por que Atas São Diferentes</h2>
+
+        <p>Uma portaria diz: <em>"Fica instaurado o Processo Administrativo Disciplinar para apurar os fatos constantes do Processo SEI nº 00169.000714/2024-81."</em></p>
+        <p>Uma ata diz: quem estava presente. Quem votou a favor. Quem se absteve. Quem saiu da sala antes da votação declarando impedimento. O que foi discutido antes de votar. Se o quórum atingia o mínimo regimental.</p>
+        <p>A portaria é o resultado. A ata é o processo que produziu o resultado.</p>
+        <p>Isso muda o tipo de análise possível de forma fundamental. Quando o Dig Dig Bud — o Sonnet 4.6 — lê uma ata plenária completa, ele pode extrair:</p>
+        <ul>
+          <li>Quórum declarado vs. quórum real (presentes na votação específica)</li>
+          <li>Distribuição de votos: favoráveis, contrários, abstenções — e quem foi cada um</li>
+          <li>Conselheiros que se retiraram antes de votações sensíveis ("declarou-se impedido")</li>
+          <li>Inconsistências entre o que foi deliberado na ata e as portarias que se seguiram</li>
+          <li>Deliberações aprovadas por unanimidade em reuniões onde o quórum mal atingia o mínimo regimental</li>
+          <li>Pauta anunciada vs. pauta efetivamente votada — itens adicionados sem comunicação prévia</li>
+        </ul>
+        <p>As atas são analisadas diretamente pelo Sonnet, sem intermediação do Haiku. O motivo é estrutural: o contexto cruzado da reunião inteira é o dado relevante. Uma abstração que passa pela triagem do Haiku primeiro perderia os padrões que só aparecem quando você lê a reunião como uma sequência coerente de eventos — o que foi dito antes do voto, quem estava presente no item anterior mas saiu antes do seguinte, como o resultado de uma votação conecta com uma portaria emitida dois dias depois.</p>
+        <p>O custo é maior por análise — Sonnet custa mais que Haiku. Mas a qualidade analítica das atas exige isso. Economizar no modelo aqui seria economizar na única fonte que registra como as decisões foram tomadas, não apenas que decisões foram tomadas.</p>
+
+        <hr />
+
+        <h2>As Lacunas que os Dados Revelam</h2>
+
+        <p>O processo de mapear as 179 atas plenárias do CAU/PR produziu, ele mesmo, um achado:</p>
+
+        <div className="stat-row">
+          <div className="stat"><span className="num">179</span><span className="desc">reuniões plenárias identificadas</span></div>
+          <div className="stat"><span className="num">161</span><span className="desc">com ata publicada (89,9%)</span></div>
+          <div className="stat"><span className="num">18</span><span className="desc">sem ata disponível publicamente</span></div>
+        </div>
+
+        <p>As 18 ausências não são distribuídas aleatoriamente. As reuniões 99 e 101 provavelmente não foram realizadas — período de restrições de 2020. As reuniões 112 a 125 formam uma sequência contínua de lacunas que cobre um período específico da história institucional do CAU/PR.</p>
+        <p>Não afirmamos o que aconteceu nessas reuniões. Afirmamos que elas não têm ata publicada no site oficial da autarquia. Um órgão que tem obrigação legal de publicar seus atos — e cujas reuniões plenárias são o principal mecanismo de deliberação institucional — apresenta 14 reuniões consecutivas sem registro público acessível.</p>
+        <p>Isso é, em si, um dado de transparência. O que foi deliberado nessas reuniões? Que portarias subsequentes se baseiam em deliberações dessas atas ausentes? O banco agora permite cruzar essas perguntas com os atos que vieram depois.</p>
+
+        <hr />
+
+        <h2>O Pipeline em Tempo Real</h2>
+
+        <p>Uma das limitações práticas do Dig Dig até o WP-04 era a invisibilidade do processo. O pipeline funcionava, mas você não sabia o que estava acontecendo agora — qual documento estava sendo processado, quantas análises foram feitas nas últimas horas, se havia algo novo.</p>
+        <p>Isso mudou. A infraestrutura ganhou camadas de visibilidade:</p>
+
+        <h3>Endpoint público de análises recentes</h3>
+        <p>O Supabase usa Row Level Security para proteger as tabelas — incluindo a tabela de análises. A tentativa de consultar análises via chave anônima retornava conjunto vazio, mesmo com dados no banco. A solução foi um endpoint público no backend FastAPI (<code>/public/orgaos/{'{slug}'}/analises-recentes</code>) que consulta as últimas 50 análises via sessão autenticada e as serve ao frontend sem expor credenciais ou contornar o RLS de forma insegura. O dado correto chega ao frontend pelo caminho correto.</p>
+
+        <h3>Atividade recente agrupada por tipo</h3>
+        <p>O painel agora exibe um feed ao vivo das análises mais recentes, agrupado por tipo de documento — portarias, atas, deliberações, portarias normativas. Com um badge "AO VIVO" que aparece quando há análises nas últimas 24 horas. A distinção entre análises com e sem rodada formal (scripts locais vs. rodadas do sistema) foi resolvida: o feed captura ambos via <code>criado_em</code>, independente de <code>rodada_id</code>.</p>
+
+        <h3>LIVE card na homepage</h3>
+        <p>A homepage do Dig Dig agora tem um card que cicla pelos documentos recentemente processados — mostrando o tipo, o número do ato e qual agente realizou a análise. Piper é o Haiku 4.5, responsável pela triagem inicial de portarias e deliberações. Bud é o Sonnet 4.6, responsável pelas atas e pelas análises aprofundadas dos casos críticos. O card responde à pergunta "o que está acontecendo agora?" com dados reais, não demonstração.</p>
+
+        <h3>Tab Pendentes</h3>
+        <p>O painel ganhou uma aba que mostra o que ainda não foi processado: portarias escaneadas sem OCR, deliberações sem texto extraído, documentos identificados mas ainda na fila. Com motivo, categoria e contagem. A transparência sobre o que o sistema ainda não viu é tão importante quanto a transparência sobre o que ele já viu.</p>
+
+        <hr />
+
+        <h2>O Fix que Quase Não Aparece em Nenhum Relatório</h2>
+
+        <p>Entre o WP-04 e este paper, o pipeline Sonnet quebrou silenciosamente de uma forma específica: quando o mesmo ato tinha análises de rodadas diferentes no banco — o que acontece naturalmente à medida que o sistema reanalisa casos — a query que buscava a análise para aprofundamento retornava <code>MultipleResultsFound</code> e falhava.</p>
+        <p>A correção exigiu duas mudanças simultâneas: filtrar por <code>rodada_id</code> na query do serviço Sonnet, e passar o <code>analise_id</code> diretamente para os workers paralelos em vez de deixar cada worker resolver o ID por conta própria. Uma terceira mudança reduziu o número de workers de 3 para 2 — o limite de conexões do Supabase em modo Session (15 conexões simultâneas) estava sendo esgotado pelos workers em paralelo, causando falhas silenciosas no pool.</p>
+        <p>Nenhuma dessas falhas aparecia como erro óbvio nos logs. Apareciam como análises que não avançavam. O diagnóstico exigiu instrumentação manual e leitura dos traces do asyncpg. É o tipo de bug que só aparece quando o sistema está processando volume real — e que confirmou que o sistema estava, de fato, processando volume real.</p>
+
+        <hr />
+
+        <h2>O que Vem Agora</h2>
+
+        <p>Com as atas plenárias no pipeline, o próximo passo é o que as atas tornam possível: cruzamento sistemático entre o que foi votado e o que foi publicado.</p>
+        <ul>
+          <li><strong>Cruzamento ata × portaria</strong>: verificar se as portarias emitidas nos dias seguintes a cada reunião correspondem ao que foi efetivamente deliberado. Portaria que não tem amparo em deliberação votada é ato unilateral.</li>
+          <li><strong>Grafo de presença e votação</strong>: quem vota com quem, quem sistematicamente se ausenta antes de votações específicas, quais conselheiros acumulam abstenções em temas sensíveis.</li>
+          <li><strong>Chat conversacional com RAG</strong>: as análises, fichas e textos completos no banco permitem perguntas em linguagem natural. "Quais reuniões aprovaram deliberações sobre processos disciplinares?", "Mostre todos os atos em que Versetti assinou por substituição", "Qual o histórico de aparições de X nas atas?"</li>
+          <li><strong>Segundo órgão</strong>: a infraestrutura está pronta. O CAU/PR é o laboratório. Qualquer órgão com site público e documentos em PDF pode ser incorporado com uma entrada no banco e um scraper específico.</li>
+        </ul>
+
+        <p>As atas plenárias não são só mais um tipo de documento. São o registro de como o poder foi exercido em sala fechada — o que foi discutido, quem estava presente, como cada um votou, o que foi decidido antes de qualquer portaria ser assinada. Entrar nessa sala, com precisão e sistematicamente, é o que o Dig Dig passou as últimas semanas aprendendo a fazer.</p>
+
+        <p>A escavação continua.</p>
+
+        <div className="signature">
+          <div className="name">Regis Wilczek</div>
+          <div className="role">Fundador, Dig Dig &nbsp;·&nbsp; Curitiba, Abril de 2026</div>
+        </div>
+
+        <p className="post-footer">
+          White Paper Nº 05 do projeto Dig Dig. Série de registro técnico sobre auditoria pública automatizada com IA. Os dados e afirmações neste relatório são derivados do banco de dados do sistema, alimentado por documentos públicos disponíveis no site oficial do CAU/PR.
+        </p>
+      </article>
+
+      <footer className="site-footer">
+        <span>© 2026 Dig Dig</span>
+        <span>White Paper · Nº 05 · Quando a Máquina Entra na Sala</span>
+      </footer>
+    </div>
+  );
+}

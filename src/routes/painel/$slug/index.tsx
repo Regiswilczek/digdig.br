@@ -8,7 +8,7 @@ import {
   type PainelRodada,
   type PainelPendente,
 } from "../../../lib/api-auth";
-import { fetchStats, type PublicStats } from "../../../lib/api";
+import { fetchStats, fetchAnalysesRecentes, type PublicStats, type AnaliseRecente } from "../../../lib/api";
 import { supabase } from "../../../lib/supabase";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -105,39 +105,70 @@ interface FeedItem {
   tipo?: string;
 }
 
-function RealtimeFeed({ slug }: { slug: string }) {
+const TIPO_ORDER = ["portaria", "ata_plenaria", "portaria_normativa", "deliberacao"];
+const TIPO_LABEL: Record<string, string> = {
+  portaria: "Portarias",
+  ata_plenaria: "Atas Plenárias",
+  portaria_normativa: "Port. Normativas",
+  deliberacao: "Deliberações",
+};
+
+function FeedRow({ item, slug }: { item: FeedItem; slug: string }) {
+  return (
+    <Link
+      to="/painel/$slug/ato/$id"
+      params={{ slug, id: item.ato_id }}
+      style={{ textDecoration: "none", display: "block" }}
+    >
+      <div
+        className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-[#faf8f3] transition-colors"
+        style={{ borderBottom: `1px solid ${BORDER}` }}
+      >
+        <span
+          className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+          style={{ background: NIVEL_DOT[item.nivel_alerta ?? ""] ?? "#d4d2cd" }}
+        />
+        <div className="flex-1 min-w-0">
+          <p
+            className="text-[12px] truncate font-medium leading-tight"
+            style={{ color: INK, fontFamily: MONO }}
+          >
+            {item.numero ?? item.ato_id.slice(0, 8) + "…"}
+          </p>
+          {item.nivel_alerta && (
+            <p className="text-[10.5px] capitalize leading-tight" style={{ color: MUTED }}>
+              {item.nivel_alerta}
+            </p>
+          )}
+        </div>
+        <span
+          className="text-[9.5px] whitespace-nowrap uppercase tracking-wider flex-shrink-0"
+          style={{ color: SUBTLE, fontFamily: MONO }}
+        >
+          {timeAgo(item.criado_em)}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function RealtimeFeed({
+  slug,
+  initialItems,
+  isLive,
+}: {
+  slug: string;
+  initialItems: AnaliseRecente[] | null;
+  isLive: boolean;
+}) {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [busca, setBusca] = useState("");
-  const [loading, setLoading] = useState(true);
+  const loading = initialItems === null;
 
-  // Load historical records on mount
   useEffect(() => {
-    supabase
-      .from("analises")
-      .select("id, ato_id, nivel_alerta, score_risco, criado_em, atos(numero, tipo)")
-      .order("criado_em", { ascending: false })
-      .limit(50)
-      .then(({ data }) => {
-        if (data) {
-          setItems(
-            data.map((r) => ({
-              id: r.id,
-              ato_id: r.ato_id,
-              nivel_alerta: r.nivel_alerta,
-              score_risco: r.score_risco,
-              criado_em: r.criado_em,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              numero: (r.atos as any)?.numero,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              tipo: (r.atos as any)?.tipo,
-            }))
-          );
-        }
-        setLoading(false);
-      });
-  }, []);
+    if (initialItems) setItems(initialItems);
+  }, [initialItems]);
 
-  // Real-time subscription — prepends new inserts as they arrive
   useEffect(() => {
     const channel = supabase
       .channel(`feed-${slug}`)
@@ -158,10 +189,7 @@ function RealtimeFeed({ slug }: { slug: string }) {
         },
       )
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [slug]);
 
   const filtered = busca
@@ -170,16 +198,52 @@ function RealtimeFeed({ slug }: { slug: string }) {
       )
     : items;
 
+  // Group by tipo in defined order; unknown types go last
+  const knownSet = new Set(TIPO_ORDER);
+  const groups = [
+    ...TIPO_ORDER.map((tipo) => ({
+      tipo,
+      label: TIPO_LABEL[tipo],
+      items: filtered.filter((i) => i.tipo === tipo),
+    })).filter((g) => g.items.length > 0),
+    ...(filtered.some((i) => !i.tipo || !knownSet.has(i.tipo))
+      ? [{ tipo: "outro", label: "Outros", items: filtered.filter((i) => !i.tipo || !knownSet.has(i.tipo)) }]
+      : []),
+  ];
+
   return (
     <aside
-      className="hidden lg:flex w-[300px] flex-shrink-0 flex-col bg-white"
+      className="hidden lg:flex w-[300px] flex-shrink-0 flex-col bg-white sticky top-0 h-screen overflow-hidden"
       style={{ borderLeft: `1px solid ${BORDER}` }}
     >
-      <div
-        className="px-5 pt-6 pb-4"
-        style={{ borderBottom: `1px solid ${BORDER}` }}
-      >
-        <Eyebrow>Atividade Recente</Eyebrow>
+      {/* Header */}
+      <div className="px-5 pt-5 pb-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
+        <div className="flex items-center justify-between mb-3">
+          <p
+            className="text-[10px] uppercase tracking-[0.28em] font-semibold"
+            style={{ color: SUBTLE, fontFamily: MONO }}
+          >
+            Atividade Recente
+          </p>
+          {isLive && (
+            <span
+              className="flex items-center gap-1 text-[9px] uppercase tracking-wider px-1.5 py-0.5"
+              style={{
+                color: "#15803d",
+                background: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: 2,
+                fontFamily: MONO,
+              }}
+            >
+              <span
+                className="h-1 w-1 rounded-full animate-pulse"
+                style={{ background: "#16a34a" }}
+              />
+              Ao vivo
+            </span>
+          )}
+        </div>
         <div
           className="flex items-center gap-2 px-3 py-2"
           style={{ border: `1px solid ${BORDER}`, borderRadius: 2 }}
@@ -188,58 +252,55 @@ function RealtimeFeed({ slug }: { slug: string }) {
           <Input
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar…"
+            placeholder="Buscar atividade…"
             className="border-0 bg-transparent h-6 p-0 text-[12px] focus-visible:ring-0"
             style={{ color: INK }}
           />
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-2 py-2">
+
+      {/* Feed */}
+      <div className="flex-1 overflow-y-auto">
         {loading && (
-          <p className="text-[12px] px-2 py-6 text-center" style={{ color: SUBTLE }}>
+          <p className="text-[12px] px-4 py-8 text-center" style={{ color: SUBTLE }}>
             Carregando…
           </p>
         )}
         {!loading && filtered.length === 0 && (
-          <p className="text-[12px] px-2 py-6 text-center" style={{ color: SUBTLE }}>
+          <p className="text-[12px] px-4 py-8 text-center" style={{ color: SUBTLE }}>
             {items.length === 0 ? "Nenhum registro encontrado." : "Sem resultados."}
           </p>
         )}
-        {filtered.map((item) => (
-          <Link
-            key={item.id}
-            to="/painel/$slug/ato/$id"
-            params={{ slug, id: item.ato_id }}
-            style={{ textDecoration: "none", display: "block" }}
-          >
-            <div className="flex items-start gap-2.5 px-3 py-2.5 hover:bg-[#faf8f3] transition-colors">
-              <span
-                className="mt-1.5 h-1.5 w-1.5 rounded-full flex-shrink-0"
+        {!loading &&
+          groups.map((group) => (
+            <div key={group.tipo}>
+              {/* Category header */}
+              <div
+                className="flex items-center justify-between px-4 py-2 sticky top-0 z-10"
                 style={{
-                  background: NIVEL_DOT[item.nivel_alerta ?? ""] ?? "#d4d2cd",
+                  background: PAPER,
+                  borderBottom: `1px solid ${BORDER}`,
+                  borderTop: `1px solid ${BORDER}`,
                 }}
-              />
-              <div className="flex-1 min-w-0">
-                <p
-                  className="text-[12px] truncate font-medium"
-                  style={{ color: INK, fontFamily: MONO }}
-                >
-                  {item.numero ?? item.ato_id.slice(0, 8) + "…"}
-                </p>
-                <p className="text-[11px] capitalize" style={{ color: MUTED }}>
-                  {item.tipo === "deliberacao" ? "Deliberação" : "Portaria"}
-                  {item.nivel_alerta ? ` · ${item.nivel_alerta}` : ""}
-                </p>
-              </div>
-              <span
-                className="text-[10px] whitespace-nowrap uppercase tracking-wider"
-                style={{ color: SUBTLE, fontFamily: MONO }}
               >
-                {timeAgo(item.criado_em)}
-              </span>
+                <span
+                  className="text-[9.5px] uppercase tracking-[0.22em] font-semibold"
+                  style={{ color: MUTED, fontFamily: MONO }}
+                >
+                  {group.label}
+                </span>
+                <span
+                  className="text-[9.5px] tabular-nums"
+                  style={{ color: SUBTLE, fontFamily: MONO }}
+                >
+                  {group.items.length}
+                </span>
+              </div>
+              {group.items.map((item) => (
+                <FeedRow key={item.id} item={item} slug={slug} />
+              ))}
             </div>
-          </Link>
-        ))}
+          ))}
       </div>
     </aside>
   );
@@ -249,9 +310,11 @@ function RealtimeFeed({ slug }: { slug: string }) {
 function TabVisaoGeral({
   stats,
   rodada,
+  recentCount24h,
 }: {
   stats: PublicStats | null;
   rodada: PainelRodada | null;
+  recentCount24h: number;
 }) {
   const pct =
     rodada && rodada.total_atos > 0
@@ -323,6 +386,24 @@ function TabVisaoGeral({
             style={{ background: PAPER }}
           />
         </div>
+      ) : recentCount24h > 0 ? (
+        <div className="p-5 space-y-2" style={{ border: `1px solid ${BORDER}` }}>
+          <div className="flex items-center gap-2">
+            <span
+              className="h-1.5 w-1.5 rounded-full animate-pulse"
+              style={{ background: "#16a34a" }}
+            />
+            <p className="text-[13px]" style={{ color: INK }}>
+              Análise em andamento
+            </p>
+          </div>
+          <p
+            className="text-[11px] uppercase tracking-wider"
+            style={{ color: MUTED, fontFamily: MONO }}
+          >
+            {recentCount24h} análise{recentCount24h !== 1 ? "s" : ""} nas últimas 24h
+          </p>
+        </div>
       ) : (
         <div
           className="p-5"
@@ -381,7 +462,7 @@ function TabAtos({
   tipo,
 }: {
   slug: string;
-  tipo: "portaria" | "deliberacao";
+  tipo: "portaria" | "deliberacao" | "ata_plenaria" | "portaria_normativa";
 }) {
   const [atos, setAtos] = useState<PainelAto[]>([]);
   const [total, setTotal] = useState(0);
@@ -546,10 +627,10 @@ function TabAtos({
                     params={{ slug, id: ato.id }}
                     className="hover:text-[#0a0a0a] transition-colors"
                   >
-                    {ato.ementa
-                      ? ato.ementa.slice(0, 80) +
-                        (ato.ementa.length > 80 ? "…" : "")
-                      : "—"}
+                    {(() => {
+                      const txt = ato.ementa || ato.resumo_executivo || ato.titulo;
+                      return txt ? txt.slice(0, 80) + (txt.length > 80 ? "…" : "") : "—";
+                    })()}
                   </Link>
                 </td>
                 <td className="px-4 py-3">
@@ -559,7 +640,7 @@ function TabAtos({
                   className="px-4 py-3"
                   style={{ color: MUTED, fontFamily: MONO, fontSize: 12 }}
                 >
-                  {ato.score_risco}
+                  {ato.nivel_alerta ? ato.score_risco : "—"}
                 </td>
                 <td
                   className="px-4 py-3 whitespace-nowrap"
@@ -756,9 +837,11 @@ function TabDenuncias({ slug }: { slug: string }) {
 function TabPipeline({
   slug,
   rodada,
+  initialItems,
 }: {
   slug: string;
   rodada: PainelRodada | null;
+  initialItems: AnaliseRecente[] | null;
 }) {
   const [items, setItems] = useState<
     {
@@ -768,6 +851,10 @@ function TabPipeline({
       criado_em: string;
     }[]
   >([]);
+
+  useEffect(() => {
+    if (initialItems) setItems(initialItems);
+  }, [initialItems]);
 
   useEffect(() => {
     const channel = supabase
@@ -796,6 +883,8 @@ function TabPipeline({
       ? Math.round((rodada.atos_analisados_haiku / rodada.total_atos) * 100)
       : null;
 
+  const isActive = !!rodada || items.length > 0;
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -803,8 +892,8 @@ function TabPipeline({
           <span
             className="h-1.5 w-1.5 rounded-full"
             style={{
-              background: rodada ? "#16a34a" : "#d4d2cd",
-              animation: rodada ? "pulse 2s infinite" : undefined,
+              background: isActive ? "#16a34a" : "#d4d2cd",
+              animation: isActive ? "pulse 2s infinite" : undefined,
             }}
           />
           <span className="text-[13px] font-medium" style={{ color: INK }}>
@@ -812,7 +901,9 @@ function TabPipeline({
               ? rodada.status === "em_progresso"
                 ? "Análise em andamento"
                 : "Rodada pendente"
-              : "Nenhuma rodada ativa"}
+              : items.length > 0
+                ? "Análise em andamento (avulsa)"
+                : "Nenhuma rodada ativa"}
           </span>
         </div>
         {rodada && (
@@ -839,9 +930,7 @@ function TabPipeline({
             className="px-4 py-10 text-center text-[13px]"
             style={{ color: MUTED }}
           >
-            {rodada
-              ? "Aguardando próximas análises…"
-              : "Nenhuma rodada ativa no momento."}
+            {initialItems === null ? "Carregando…" : "Nenhuma rodada ativa no momento."}
           </div>
         ) : (
           <table className="w-full text-[13px]">
@@ -1257,16 +1346,26 @@ function SlugDashboard() {
   const { slug } = Route.useParams();
   const [stats, setStats] = useState<PublicStats | null>(null);
   const [rodada, setRodada] = useState<PainelRodada | null>(null);
+  const [recentAnalyses, setRecentAnalyses] = useState<AnaliseRecente[] | null>(null);
 
   useEffect(() => {
     fetchStats(slug).then(setStats).catch(console.error);
     fetchPainelRodada(slug).then(setRodada).catch(console.error);
+    fetchAnalysesRecentes(slug)
+      .then(setRecentAnalyses)
+      .catch(() => setRecentAnalyses([]));
 
     const interval = setInterval(() => {
       fetchPainelRodada(slug).then(setRodada).catch(console.error);
     }, 30_000);
     return () => clearInterval(interval);
   }, [slug]);
+
+  const count24h = recentAnalyses
+    ? recentAnalyses.filter(
+        (a) => a.criado_em && Date.now() - new Date(a.criado_em).getTime() < 86_400_000
+      ).length
+    : 0;
 
   const nomeOrgao =
     slug === "cau-pr" ? "CAU/PR" : slug.toUpperCase().replace("-", "/");
@@ -1300,7 +1399,7 @@ function SlugDashboard() {
             >
               {nomeOrgao}
             </h1>
-            {rodada?.status === "em_progresso" && (
+            {(rodada?.status === "em_progresso" || count24h > 0) && (
               <span
                 className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] px-2 py-1 ml-2"
                 style={{
@@ -1332,6 +1431,8 @@ function SlugDashboard() {
                 { value: "visao-geral", label: "Visão Geral" },
                 { value: "portarias", label: "Portarias" },
                 { value: "deliberacoes", label: "Deliberações" },
+                { value: "atas", label: "Atas Plenárias" },
+                { value: "portarias-normativas", label: "Port. Normativas" },
                 { value: "denuncias", label: "Denúncias" },
                 { value: "pipeline", label: "Pipeline" },
                 { value: "pendentes", label: "Pendentes" },
@@ -1363,7 +1464,7 @@ function SlugDashboard() {
 
             <div className="px-6 md:px-10 py-8">
               <TabsContent value="visao-geral">
-                <TabVisaoGeral stats={stats} rodada={rodada} />
+                <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} />
               </TabsContent>
               <TabsContent value="portarias">
                 <TabAtos slug={slug} tipo="portaria" />
@@ -1371,11 +1472,17 @@ function SlugDashboard() {
               <TabsContent value="deliberacoes">
                 <TabAtos slug={slug} tipo="deliberacao" />
               </TabsContent>
+              <TabsContent value="atas">
+                <TabAtos slug={slug} tipo="ata_plenaria" />
+              </TabsContent>
+              <TabsContent value="portarias-normativas">
+                <TabAtos slug={slug} tipo="portaria_normativa" />
+              </TabsContent>
               <TabsContent value="denuncias">
                 <TabDenuncias slug={slug} />
               </TabsContent>
               <TabsContent value="pipeline">
-                <TabPipeline slug={slug} rodada={rodada} />
+                <TabPipeline slug={slug} rodada={rodada} initialItems={recentAnalyses} />
               </TabsContent>
               <TabsContent value="pendentes">
                 <TabPendentes slug={slug} />
@@ -1388,7 +1495,11 @@ function SlugDashboard() {
         </div>
       </div>
 
-      <RealtimeFeed slug={slug} />
+      <RealtimeFeed
+        slug={slug}
+        initialItems={recentAnalyses}
+        isLive={count24h > 0 || rodada?.status === "em_progresso"}
+      />
     </>
   );
 }

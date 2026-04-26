@@ -80,6 +80,46 @@ async def get_stats(slug: str, db: AsyncSession = Depends(get_db)):
     }
 
 
+@router.get("/orgaos/{slug}/analises-recentes")
+async def analises_recentes(slug: str, db: AsyncSession = Depends(get_db)):
+    tenant_r = await db.execute(select(Tenant).where(Tenant.slug == slug))
+    tenant = tenant_r.scalar_one_or_none()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Órgão não encontrado")
+
+    rows_r = await db.execute(
+        select(
+            Analise.id,
+            Analise.ato_id,
+            Analise.nivel_alerta,
+            Analise.score_risco,
+            Analise.criado_em,
+            Ato.numero,
+            Ato.tipo,
+        )
+        .join(Ato, Analise.ato_id == Ato.id)
+        .where(Analise.tenant_id == tenant.id)
+        .order_by(Analise.criado_em.desc())
+        .limit(50)
+    )
+    rows = rows_r.all()
+
+    return {
+        "analises": [
+            {
+                "id": str(r.id),
+                "ato_id": str(r.ato_id),
+                "nivel_alerta": r.nivel_alerta,
+                "score_risco": r.score_risco,
+                "criado_em": r.criado_em.isoformat() if r.criado_em else None,
+                "numero": r.numero,
+                "tipo": r.tipo,
+            }
+            for r in rows
+        ],
+    }
+
+
 @router.get("/orgaos/{slug}/atos")
 async def get_atos(
     slug: str,
@@ -94,13 +134,15 @@ async def get_atos(
     if not tenant:
         raise HTTPException(status_code=404, detail="Órgão não encontrado")
 
-    # Base query: join atos com analises (só atos processados)
-    filters = [
-        Ato.tenant_id == tenant.id,
-        Ato.processado == True,
-    ]
-    if tipo in ("portaria", "deliberacao"):
-        filters.append(Ato.tipo == tipo)
+    # Base query: join atos com analises (inner join já filtra só os com análise)
+    # Para atas plenárias, processado é gerenciado pelo Sonnet runner — não filtrar por processado
+    filters = [Ato.tenant_id == tenant.id]
+    if tipo == "ata_plenaria":
+        filters.append(Ato.tipo == "ata_plenaria")
+    else:
+        filters.append(Ato.processado == True)
+        if tipo in ("portaria", "deliberacao"):
+            filters.append(Ato.tipo == tipo)
 
     # Subquery para pegar a analise mais recente por ato
     subq = (
