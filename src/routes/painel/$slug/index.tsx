@@ -1119,202 +1119,97 @@ function fmtHora(dt: string): string {
   return h ? `${h}h` : "";
 }
 
-function GrowthChart({
-  pontos,
-  marcos,
-}: {
-  pontos: CrescimentoPonto[];
-  marcos: Marco[];
-}) {
-  if (pontos.length < 1) return null;
-
-  const W = 560;
-  const H = 148;
-  // PAD.top = 42 → header zone for dots sits above the chart line
-  const PAD = { top: 42, right: 16, bottom: 28, left: 46 };
-  const innerW = W - PAD.left - PAD.right;
-  const innerH = H - PAD.top - PAD.bottom;
-
-  const maxVal = Math.max(...pontos.map((p) => p.total), 1);
-  const minDate = pontos[0].dia;
-  const maxDate = pontos[pontos.length - 1].dia;
-  const dateRange = Math.max(
-    new Date(maxDate).getTime() - new Date(minDate).getTime(),
-    3600000
-  );
-
-  const toX = (dt: string) =>
-    PAD.left +
-    ((new Date(dt).getTime() - new Date(minDate).getTime()) / dateRange) *
-      innerW;
-  const toY = (val: number) =>
-    PAD.top + innerH - (Math.min(val, maxVal) / maxVal) * innerH;
-
-  const pts = pontos.map((p) => `${toX(p.dia)},${toY(p.total)}`).join(" ");
+// ── Sparkline (sem eixos, apenas a curva) ────────────────────────────────────
+function Sparkline({ pontos }: { pontos?: CrescimentoPonto[] }) {
+  if (!pontos || pontos.length < 2) return <div style={{ width: 200, height: 52 }} />;
+  const W = 200, H = 52;
+  const P = { t: 4, r: 2, b: 4, l: 2 };
+  const iW = W - P.l - P.r, iH = H - P.t - P.b;
+  const maxV = Math.max(...pontos.map((p) => p.total), 1);
+  const t0 = new Date(pontos[0].dia).getTime();
+  const t1 = new Date(pontos[pontos.length - 1].dia).getTime();
+  const dt = Math.max(t1 - t0, 3600000);
+  const tx = (d: string) => P.l + ((new Date(d).getTime() - t0) / dt) * iW;
+  const ty = (v: number) => P.t + iH - (Math.min(v, maxV) / maxV) * iH;
+  const pts = pontos.map((p) => `${tx(p.dia)},${ty(p.total)}`).join(" ");
   const area = [
-    `M${toX(pontos[0].dia)},${PAD.top + innerH}`,
-    ...pontos.map((p) => `L${toX(p.dia)},${toY(p.total)}`),
-    `L${toX(maxDate)},${PAD.top + innerH}Z`,
+    `M${tx(pontos[0].dia)},${P.t + iH}`,
+    ...pontos.map((p) => `L${tx(p.dia)},${ty(p.total)}`),
+    `L${tx(pontos[pontos.length - 1].dia)},${P.t + iH}Z`,
   ].join(" ");
-
-  const y400 = toY(400);
-  const show400 = maxVal > 500;
-  const digdigX = toX(DIGDIG_START);
-  const digdigInRange = digdigX >= PAD.left && digdigX <= PAD.left + innerW;
-
-  // ── Header-zone dot placement ──────────────────────────────────────────────
-  // Dots live in y=[6,26] above the chart (PAD.top=42). Force-spread in x so
-  // same-day items (which land at virtually the same pixel) don't overlap.
-  const DOT_R = 5.5;
-  const HEADER_ROWS = [9, 25]; // two row y-centers in header
-  const MIN_SEP = 12;          // minimum px between dot centers in same row
-
-  // Natural x from exact insertion datetime
-  const dotX = marcos.map((m) => toX(m.primeiro_dt));
-
-  // Force-spread: iteratively push apart dots that are too close
-  const spreadX = [...dotX];
-  const sortedIdx = [...marcos.keys()].sort((a, b) => spreadX[a] - spreadX[b]);
-  for (let pass = 0; pass < 8; pass++) {
-    for (let k = 0; k < sortedIdx.length - 1; k++) {
-      const a = sortedIdx[k], b = sortedIdx[k + 1];
-      const gap = spreadX[b] - spreadX[a];
-      if (gap < MIN_SEP) {
-        const half = (MIN_SEP - gap) / 2;
-        spreadX[a] -= half;
-        spreadX[b] += half;
-      }
-    }
-  }
-  // Clamp inside chart bounds
-  spreadX.forEach((_, i) => {
-    spreadX[i] = Math.max(PAD.left + DOT_R, Math.min(PAD.left + innerW - DOT_R, spreadX[i]));
-  });
-
-  // Greedy row assignment (sorted by x)
-  const dotRow = new Array(marcos.length).fill(0);
-  const rowEdgeX = [PAD.left - 99, PAD.left - 99]; // last x used per row
-  [...sortedIdx].forEach((i) => {
-    let placed = false;
-    for (let r = 0; r < HEADER_ROWS.length; r++) {
-      if (spreadX[i] - rowEdgeX[r] >= MIN_SEP) {
-        dotRow[i] = r;
-        rowEdgeX[r] = spreadX[i];
-        placed = true;
-        break;
-      }
-    }
-    if (!placed) dotRow[i] = 1;
-  });
-
+  const y400 = ty(400);
+  const digX = tx(DIGDIG_START);
+  const digOk = digX >= P.l && digX <= P.l + iW;
   return (
-    <div>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        style={{ width: "100%", height: H, display: "block", overflow: "visible" }}
-      >
-        <defs>
-          <linearGradient id="grow-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={INK} stopOpacity={0.1} />
-            <stop offset="100%" stopColor={INK} stopOpacity={0.01} />
-          </linearGradient>
-        </defs>
-
-        {/* 400 reference */}
-        {show400 && (
-          <line
-            x1={PAD.left} y1={y400}
-            x2={PAD.left + innerW} y2={y400}
-            stroke="#d97706" strokeWidth={0.8} strokeDasharray="4,3" opacity={0.5}
-          />
-        )}
-
-        {/* Area + line */}
-        <path d={area} fill="url(#grow-fill)" />
-        <polyline points={pts} fill="none" stroke={INK} strokeWidth={1.5} />
-
-        {/* Y-axis */}
-        <text x={PAD.left - 6} y={PAD.top + innerH + 4} textAnchor="end" fontSize={9} fill={MUTED} fontFamily="monospace">0</text>
-        {show400 && (
-          <text x={PAD.left - 6} y={y400 + 4} textAnchor="end" fontSize={9} fill="#d97706" fontFamily="monospace">400</text>
-        )}
-        <text x={PAD.left - 6} y={PAD.top + 4} textAnchor="end" fontSize={9} fill={MUTED} fontFamily="monospace">{fmt(maxVal)}</text>
-
-        {/* X-axis */}
-        <text x={PAD.left} y={H - 2} textAnchor="start" fontSize={9} fill={MUTED} fontFamily="monospace">
-          {minDate.slice(0, 10)}
-        </text>
-        <text x={PAD.left + innerW} y={H - 2} textAnchor="end" fontSize={9} fill={MUTED} fontFamily="monospace">
-          {maxDate.slice(0, 10)}
-        </text>
-
-        {/* Dig Dig marker */}
-        {digdigInRange && (
-          <line x1={digdigX} y1={PAD.top} x2={digdigX} y2={PAD.top + innerH}
-            stroke="#d97706" strokeWidth={1} strokeDasharray="3,2" />
-        )}
-
-        {/* Header-zone dots: one per tipo, spread above the chart line */}
-        {marcos.map((m, i) => {
-          const mx = spreadX[i];
-          const my = HEADER_ROWS[dotRow[i]];
-          const color = MARCO_COLORS[m.tipo] ?? "#6b7280";
-          // tick from dot bottom to chart top edge
-          const tickY1 = my + DOT_R + 1;
-          const tickY2 = PAD.top - 1;
-          return (
-            <g key={m.tipo}>
-              {tickY1 < tickY2 && (
-                <line x1={mx} y1={tickY1} x2={mx} y2={tickY2}
-                  stroke={color} strokeWidth={0.7} opacity={0.3} />
-              )}
-              <circle cx={mx} cy={my} r={DOT_R} fill={color} stroke="#fff" strokeWidth={1.5} />
-              <text x={mx} y={my + 3.5} textAnchor="middle" fontSize={7}
-                fill="#fff" fontFamily="monospace" fontWeight="bold">
-                {i + 1}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-
-      {/* Legend */}
-      {marcos.length > 0 && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(195px, 1fr))",
-            gap: "6px 20px",
-            marginTop: 14,
-          }}
-        >
-          {marcos.map((m, i) => {
-            const color = MARCO_COLORS[m.tipo] ?? "#6b7280";
-            const dia = m.primeiro_dia.slice(5).replace("-", "/");
-            const hora = fmtHora(m.primeiro_dt);
-            return (
-              <div key={m.tipo} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                <div style={{
-                  width: 18, height: 18, borderRadius: "50%", background: color,
-                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                }}>
-                  <span style={{ color: "#fff", fontSize: 8, fontWeight: 700, fontFamily: "monospace" }}>
-                    {i + 1}
-                  </span>
-                </div>
-                <div style={{ lineHeight: 1.3 }}>
-                  <span style={{ fontSize: 11, color: INK, fontFamily: "monospace" }}>
-                    {m.label}
-                  </span>
-                  <span style={{ fontSize: 10, color: MUTED, fontFamily: "monospace", marginLeft: 5 }}>
-                    {fmt(m.total_tipo)} · {dia} {hora}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: W, height: H, display: "block", flexShrink: 0 }}>
+      <defs>
+        <linearGradient id="sp-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={INK} stopOpacity={0.14} />
+          <stop offset="100%" stopColor={INK} stopOpacity={0.01} />
+        </linearGradient>
+      </defs>
+      {maxV > 500 && (
+        <line x1={P.l} y1={y400} x2={P.l + iW} y2={y400}
+          stroke="#d97706" strokeWidth={0.7} strokeDasharray="3,2" opacity={0.45} />
       )}
+      <path d={area} fill="url(#sp-fill)" />
+      <polyline points={pts} fill="none" stroke={INK} strokeWidth={1.5} />
+      {digOk && (
+        <line x1={digX} y1={P.t} x2={digX} y2={P.t + iH}
+          stroke="#d97706" strokeWidth={0.8} strokeDasharray="2,2" opacity={0.5} />
+      )}
+    </svg>
+  );
+}
+
+// ── TypeBars: tabela BI horizontal ───────────────────────────────────────────
+function TypeBars({ marcos, total }: { marcos: Marco[]; total: number }) {
+  if (marcos.length === 0) return null;
+  const sorted = [...marcos].sort((a, b) => b.total_tipo - a.total_tipo);
+  const maxCount = sorted[0].total_tipo;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+      {sorted.map((m) => {
+        const color = MARCO_COLORS[m.tipo] ?? "#6b7280";
+        const pct = total > 0 ? (m.total_tipo / total) * 100 : 0;
+        const barW = maxCount > 0 ? (m.total_tipo / maxCount) * 100 : 0;
+        const dia = m.primeiro_dia.slice(5).replace("-", "/");
+        const hora = fmtHora(m.primeiro_dt);
+        return (
+          <div
+            key={m.tipo}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "10px 148px 56px 1fr 44px 70px",
+              gap: "0 10px",
+              alignItems: "center",
+            }}
+          >
+            {/* Color swatch — small rect, não círculo */}
+            <div style={{ width: 8, height: 8, background: color, borderRadius: 2, margin: "0 auto" }} />
+            {/* Label */}
+            <span style={{ fontSize: 11.5, color: INK, fontFamily: MONO, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {m.label}
+            </span>
+            {/* Count */}
+            <span style={{ fontSize: 11.5, color: INK, fontFamily: MONO, textAlign: "right" }}>
+              {fmt(m.total_tipo)}
+            </span>
+            {/* Bar track */}
+            <div style={{ height: 4, background: BORDER, borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ width: `${barW}%`, height: "100%", background: color, borderRadius: 2 }} />
+            </div>
+            {/* Percentage */}
+            <span style={{ fontSize: 10, color: MUTED, fontFamily: MONO, textAlign: "right" }}>
+              {pct.toFixed(1)}%
+            </span>
+            {/* Entry date */}
+            <span style={{ fontSize: 10, color: MUTED, fontFamily: MONO }}>
+              {dia} {hora}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -1340,78 +1235,115 @@ function TabRelatorio({
       : 0;
   const concluido = pct >= 100;
 
+  const total = crescimento?.total_atual ?? 0;
+  const nTipos = crescimento?.marcos?.length ?? 0;
+  const inicio = crescimento?.inicio ?? null;
+  const diasAtivos = inicio
+    ? Math.round(
+        (Date.now() - new Date(inicio).getTime()) / 86_400_000
+      )
+    : null;
+  const inicioFmt = inicio
+    ? new Date(inicio).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })
+    : "—";
+
   return (
     <div className="max-w-2xl space-y-6">
-      <div
-        className="p-8 space-y-5"
-        style={{ border: `1px solid ${BORDER}` }}
-      >
-        <Eyebrow>Relatório oficial</Eyebrow>
-        <h2
-          className="text-[28px] font-medium"
-          style={{
-            color: INK,
-            fontFamily: TIGHT,
-            letterSpacing: "-0.02em",
-            lineHeight: 1.1,
-          }}
-        >
-          CAU/PR · 2012–2026
-        </h2>
-        <p className="text-[13.5px]" style={{ color: MUTED }}>
-          {concluido
-            ? "Publicado — disponível para todos os planos."
-            : "Disponível quando 100% dos documentos forem analisados."}
-        </p>
-        {!concluido && (
-          <>
-            <Progress
-              value={pct}
-              className="h-1"
-              style={{ background: PAPER }}
-            />
-            <p
-              className="text-[11px] uppercase tracking-wider"
-              style={{ color: MUTED, fontFamily: MONO }}
-            >
-              {fmt(stats?.total_analisados)} / {fmt(stats?.total_atos)} ·{" "}
-              {pct}%
-            </p>
-          </>
-        )}
-      </div>
-
-      {/* Growth chart */}
-      <div
-        className="p-6 space-y-4"
-        style={{ border: `1px solid ${BORDER}` }}
-      >
-        <Eyebrow>Documentos indexados</Eyebrow>
+      {/* Status da cobertura */}
+      <div className="p-6 space-y-4" style={{ border: `1px solid ${BORDER}` }}>
+        <Eyebrow>Cobertura da análise</Eyebrow>
         <div className="flex items-end justify-between gap-4">
           <div>
             <p
               className="text-[32px] font-medium leading-none"
               style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.03em" }}
             >
-              {crescimento ? fmt(crescimento.total_atual) : "—"}
+              {pct}%
             </p>
             <p className="text-[11px] uppercase tracking-wider mt-1" style={{ color: MUTED, fontFamily: MONO }}>
-              documentos · acumulado
+              analisados · {fmt(stats?.total_analisados)} de {fmt(stats?.total_atos)}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-[11px] uppercase tracking-wider" style={{ color: "#d97706", fontFamily: MONO }}>
-              22 abr 2026
+          <p className="text-[12px] text-right max-w-[180px]" style={{ color: MUTED }}>
+            {concluido
+              ? "Análise completa. Relatório disponível."
+              : "Análise em andamento. Relatório publicado quando atingir 100%."}
+          </p>
+        </div>
+        {!concluido && (
+          <Progress value={pct} className="h-1" style={{ background: PAPER }} />
+        )}
+      </div>
+
+      {/* BI: Acervo indexado */}
+      <div className="p-6 space-y-5" style={{ border: `1px solid ${BORDER}` }}>
+        {/* Header row: KPIs + Sparkline */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
+          <div style={{ flex: 1 }}>
+            <Eyebrow>Acervo indexado</Eyebrow>
+            <p
+              style={{
+                fontSize: 40,
+                fontWeight: 500,
+                letterSpacing: "-0.04em",
+                lineHeight: 1,
+                color: INK,
+                fontFamily: TIGHT,
+                marginTop: 6,
+              }}
+            >
+              {total > 0 ? fmt(total) : "—"}
             </p>
-            <p className="text-[11px]" style={{ color: MUTED, fontFamily: MONO }}>
-              Dig Dig criado · ~400 portarias
-            </p>
+            {/* Secondary KPIs */}
+            <div style={{ display: "flex", gap: 20, marginTop: 10 }}>
+              <div>
+                <p style={{ fontSize: 18, fontWeight: 500, color: INK, fontFamily: TIGHT, lineHeight: 1 }}>
+                  {nTipos}
+                </p>
+                <p style={{ fontSize: 10, color: MUTED, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  tipos
+                </p>
+              </div>
+              {diasAtivos !== null && (
+                <div>
+                  <p style={{ fontSize: 18, fontWeight: 500, color: INK, fontFamily: TIGHT, lineHeight: 1 }}>
+                    {diasAtivos}
+                  </p>
+                  <p style={{ fontSize: 10, color: MUTED, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                    dias
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          {/* Sparkline */}
+          <div style={{ flexShrink: 0, paddingTop: 20 }}>
+            <Sparkline pontos={crescimento?.pontos} />
           </div>
         </div>
-        <GrowthChart pontos={crescimento?.pontos ?? []} marcos={crescimento?.marcos ?? []} />
-        <p className="text-[11px]" style={{ color: MUTED, fontFamily: MONO }}>
-          Série temporal cumulativa · documentos inseridos por dia desde o início da coleta
+
+        {/* Sub-caption */}
+        <p style={{ fontSize: 11, color: MUTED, fontFamily: MONO }}>
+          Coleta iniciada em {inicioFmt} · Dig Dig criado 22/04/2026
         </p>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: BORDER }} />
+
+        {/* Composition by type */}
+        <div>
+          <p style={{
+            fontSize: 9,
+            fontFamily: MONO,
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            color: MUTED,
+            marginBottom: 12,
+          }}>
+            Composição por tipo
+          </p>
+          <TypeBars marcos={crescimento?.marcos ?? []} total={total} />
+        </div>
       </div>
     </div>
   );
