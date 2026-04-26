@@ -13,6 +13,7 @@ const BACKEND_URL = "http://localhost:8001";
 export default defineConfig({
   vite: {
     server: {
+      host: true,
       proxy: {
         "/painel": { target: BACKEND_URL, changeOrigin: true },
         "/public": { target: BACKEND_URL, changeOrigin: true },
