@@ -1,0 +1,22 @@
+# ── Stage 1: Build SPA ────────────────────────────────────────────────────────
+FROM node:20-slim AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --silent
+
+COPY . .
+
+# Build SPA (VPS config — not Cloudflare Workers)
+RUN npm run build:vps
+
+# ── Stage 2: Serve via nginx ──────────────────────────────────────────────────
+FROM nginx:alpine
+
+COPY --from=builder /app/dist-vps /usr/share/nginx/html
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

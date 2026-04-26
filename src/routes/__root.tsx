@@ -1,6 +1,4 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-
-import appCss from "../styles.css?url";
+import { Outlet, Link, createRootRoute, HeadContent } from "@tanstack/react-router";
 
 function NotFoundComponent() {
   return (
@@ -42,35 +40,16 @@ export const Route = createRootRoute({
       { name: "twitter:description", content: "Escavamos os atos públicos. Indícios aparecem. Você decide o que fazer." },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/754cbec8-ca0d-4ed4-b367-a3046640a40f/id-preview-1bdea40b--de6bb1c6-fce9-4fcc-8b70-897478281149.lovable.app-1776959650781.png" },
     ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
-      },
-    ],
   }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
 });
 
-function RootShell({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="pt-BR" style={{ background: "#07080f" }}>
-      <head>
-        <HeadContent />
-      </head>
-      <body style={{ background: "#07080f", margin: 0 }}>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
-
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <>
+      <HeadContent />
+      <Outlet />
+    </>
+  );
 }

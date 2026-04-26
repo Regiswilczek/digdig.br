@@ -1,0 +1,113 @@
+version: "3.9"
+
+services:
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend API (FastAPI + uvicorn) ────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    env_file: ./backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - backend_net
+    volumes:
+      - ./backend:/app          # hot-reload in dev; remove for prod
+    command: >
+      uvicorn app.main:app
+        --host 0.0.0.0
+        --port 8000
+        --workers 2
+
+  # ── Celery Worker — AI analysis ────────────────────────────────────────────
+  worker_ai:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    env_file: ./backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - backend_net
+    command: >
+      celery -A app.celery_app worker
+        --loglevel=info
+        --concurrency=2
+        --queues=ai,default
+
+  # ── Celery Beat — Scheduler (monitoramento contínuo de novos atos) ─────────
+  worker_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    env_file: ./backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - backend_net
+    command: >
+      celery -A app.celery_app beat
+        --loglevel=info
+        --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+  # ── Obscura — headless browser (scraping com stealth) ─────────────────────
+  # Roda o binário Linux extraído de tools/obscura/obscura.zip
+  # (o scrape_local.py ainda roda na máquina do Regis para sites que bloqueiam DC IPs)
+  # obscura:
+  #   image: debian:bookworm-slim
+  #   volumes:
+  #     - ./tools/obscura:/opt/obscura
+  #   command: ["/opt/obscura/obscura-linux", "serve", "--port", "3000"]
+  #   networks:
+  #     - backend_net
+
+  # ── Frontend (SPA servida por nginx) ──────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+    networks:
+      - backend_net
+    volumes:
+      # Montar certificados SSL gerados pelo certbot no host
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+
+volumes:
+  redis_data:
+
+networks:
+  backend_net:
+    driver: bridge
