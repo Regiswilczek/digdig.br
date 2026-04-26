@@ -166,7 +166,18 @@ function RealtimeFeed({
   const loading = initialItems === null;
 
   useEffect(() => {
-    if (initialItems) setItems(initialItems);
+    if (initialItems)
+      setItems(
+        initialItems.map((i) => ({
+          id: i.id,
+          ato_id: i.ato_id,
+          nivel_alerta: i.nivel_alerta,
+          score_risco: i.score_risco,
+          criado_em: i.criado_em,
+          numero: i.numero ?? undefined,
+          tipo: i.tipo ?? undefined,
+        })),
+      );
   }, [initialItems]);
 
   useEffect(() => {
@@ -853,7 +864,15 @@ function TabPipeline({
   >([]);
 
   useEffect(() => {
-    if (initialItems) setItems(initialItems);
+    if (initialItems)
+      setItems(
+        initialItems.map((i) => ({
+          id: i.id,
+          nivel_alerta: i.nivel_alerta,
+          score_risco: i.score_risco ?? 0,
+          criado_em: i.criado_em,
+        })),
+      );
   }, [initialItems]);
 
   useEffect(() => {
