@@ -605,7 +605,7 @@ function Whitepaper06Page() {
         <ol className="wp06-ol">
           {[
             ["Dispensa Eletrônica (238 docs):", "prioridade máxima. Contratações diretas são o terreno fértil da irregularidade administrativa — é onde fornecedores favorecidos aparecem, onde o teto de dispensa é tocado repetidamente, onde os mesmos nomes retornam. O Dig Dig vai ler cada uma."],
-            ["Contratos Vigentes:", "a planilha de julho/2025 com todos os contratos ativos do CAU/PR vai para o Sonnet. É um único arquivo, mas concentra informação densa sobre fornecedores, valores e vigências."],
+            ["Contratos Vigentes:", "a planilha de julho/2025 com todos os contratos ativos do CAU/PR vai para o Bud. É um único arquivo, mas concentra informação densa sobre fornecedores, valores e vigências."],
             ["Relatórios ao TCU:", "os relatórios anuais de gestão são documentos longos e ricos. Com 12 anos de histórico, o Dig Dig pode detectar padrões que evoluem ao longo do tempo — algo impossível de fazer manualmente."],
             ["Pedido de Acesso à Informação (LAI):", "para os dados que o portal não publica — diárias, passagens, folhas de pagamento — vou protocolar um pedido formal via e-SIC. O CAU/PR tem prazo legal de 20 dias para responder. A resposta, ou a negativa, também vira dado."],
           ].map(([label, desc]) => (
@@ -706,7 +706,7 @@ function Whitepaper06Page() {
           <ul className="wp06-ul" style={{ margin: 0 }}>
             {[
               "1.340+ documentos mapeados no CAU/PR (portarias, deliberações, atas plenárias)",
-              "262 portarias analisadas por Haiku (rodada em andamento)",
+              "262 portarias analisadas pelo Piper (rodada em andamento)",
               "179 atas plenárias identificadas, 161 com PDF disponível",
               "96 páginas do portal de transparência mapeadas via WP REST API",
               "238 dispensas eletrônicas acessíveis — prioridade da Fase 3",

@@ -95,9 +95,7 @@ function Whitepaper02Page() {
           <p className="byline"><strong>Regis Wilczek</strong> &nbsp;—&nbsp; Abril de 2026</p>
         </div>
 
-        <h2>Onde Paramos</h2>
-        <p>No White Paper anterior documentei o processo de construção da pipeline de auditoria: o scraper local para contornar o bloqueio de IP do servidor do CAU/PR, os 151 PDFs escaneados sem camada de texto, os sete problemas técnicos que precisaram ser resolvidos antes de uma rodada completa funcionar.</p>
-        <p>Quando terminei de escrever aquele texto, o pipeline estava rodando. O worker Celery no Railway analisava portaria por portaria, enviando cada texto ao Dig Dig Piper com o regimento interno de 68 mil tokens cacheado como contexto. O banco mostrava progresso constante.</p>
+        <p>O pipeline estava rodando. O Dig Dig Piper analisava portaria por portaria — cada texto cruzado com o regimento interno de 68 mil tokens cacheado, classificando em verde, amarelo, laranja ou vermelho. O banco mostrava progresso constante.</p>
 
         <div className="stat-row">
           <div className="stat"><span className="num">262</span><span className="desc">portarias analisadas</span></div>
@@ -105,7 +103,7 @@ function Whitepaper02Page() {
           <div className="stat"><span className="num">$3,09</span><span className="desc">custo registrado no banco</span></div>
         </div>
 
-        <p>Aí abri o Claude Console.</p>
+        <p>Aí abri o painel de uso da API.</p>
         <p><strong>$23,72.</strong></p>
         <p>A diferença de $20 não era ruído. Era um problema real — e precisava de diagnóstico antes de qualquer outra coisa.</p>
 
@@ -143,7 +141,7 @@ ORDER BY criado_em;`}</code></pre>
           </tbody>
         </table>
 
-        <p>Três workers no Railway processando os mesmos 400 atos ao mesmo tempo. O upsert na tabela de análises garante que cada ato tenha apenas um resultado salvo — o último a escrever vence. Mas a API da Anthropic foi chamada três vezes para cada ato. Só uma chamada gerou um registro. As outras duas foram cobradas sem deixar rastro no banco.</p>
+        <p>Três workers no Railway processando os mesmos 400 atos ao mesmo tempo. O upsert na tabela de análises garante que cada ato tenha apenas um resultado salvo — o último a escrever vence. Mas a API foi chamada três vezes para cada ato. Só uma chamada gerou um registro. As outras duas foram cobradas sem deixar rastro no banco.</p>
         <p>Além disso, as três rodadas com status <code>concluida</code> e contador zerado: criadas durante a fase de debug, chamaram a API, encontraram os bugs que estávamos corrigindo, falharam antes de salvar — mas já tinham consumido crédito.</p>
 
         <table>
@@ -230,12 +228,9 @@ WHERE status IN ('em_progresso', 'pendente');`}</code></pre>
 
         <hr />
 
-        <h2>O Que Aprendemos</h2>
-        <p>Sistemas convencionais toleraram ausência de idempotência por décadas porque chamadas duplicadas custam milissegundos e são invisíveis. Com LLMs, cada chamada de API tem custo real e imediato — e o custo escala com o tamanho do contexto. Um sistema com 68 mil tokens de contexto cacheado não é só mais poderoso que um sem cache: ele também é mais caro quando algo sai errado.</p>
-        <p>A proteção precisa existir em três lugares ao mesmo tempo. O endpoint evita a criação do problema. O serviço garante que retries sejam gratuitos. O banco garante que o serviço não seja o único guardião.</p>
-        <p>Há uma lição mais ampla sobre desenvolvimento com APIs de IA: o ambiente de produção e o ambiente de debug compartilham as mesmas chaves de API e os mesmos créditos. Durante o desenvolvimento normal de software, chamar a mesma função dez vezes enquanto você resolve um bug custa basicamente zero. Com LLMs, cada chamada tem preço. O reflexo de "executa de novo para ver o que acontece" precisa ser substituído por "verifica o estado antes de executar".</p>
-        <p>As quatro camadas implementadas codificam exatamente esse princípio: verificar antes de agir, tornar cada ação idempotente, e ter um limite automático que para o sistema quando algo sai do esperado.</p>
-        <p>A rodada atual ainda está em progresso. Os próximos papers vão documentar o que o Dig Dig Piper encontrou.</p>
+        <h2>O Que Muda com LLMs</h2>
+        <p>Sistemas de CRUD toleraram ausência de idempotência por décadas porque chamadas duplicadas custam milissegundos. Com 68 mil tokens de contexto em cache, cada chamada duplicada custa centavos reais. O reflexo de "executa de novo para ver o que acontece" precisa ser substituído por "verifica o estado antes de executar". O ambiente de debug e o de produção compartilham os mesmos créditos.</p>
+        <p>A proteção precisou existir em três lugares simultaneamente: o endpoint evita criar o problema, o serviço garante que retries sejam gratuitos, e o banco garante que o serviço não seja o único guardião. As quatro camadas são o codificação disso. A rodada continuou. Os próximos papers documentam o que o Dig Dig Piper encontrou.</p>
 
         <div className="signature">
           <div className="name">Regis Wilczek</div>
