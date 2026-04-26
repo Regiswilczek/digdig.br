@@ -48,7 +48,11 @@ MAX_PDF_BYTES = 100 * 1024 * 1024  # 100 MB (atas com anexos podem ser grandes)
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 if not DATABASE_URL:
     sys.exit("ERROR: DATABASE_URL não encontrado no backend/.env")
-ASYNCPG_URL = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+ASYNCPG_URL = (
+    DATABASE_URL
+    .replace("postgresql+asyncpg://", "postgresql://")
+    .replace(":5432/", ":6543/")
+)
 
 HEADERS = {
     "User-Agent": (
@@ -302,7 +306,7 @@ async def main(dry_run: bool, limit: int | None) -> None:
         return
 
     # ── Inserção + download ────────────────────────────────────────────────────
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     try:
         ok = sem_pdf_count = erro = ja_existe = 0
         total = len(reunioes)

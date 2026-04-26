@@ -47,7 +47,12 @@ PRECOS = {
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 if not DATABASE_URL:
     sys.exit("ERROR: DATABASE_URL não encontrado no backend/.env")
-ASYNCPG_URL = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+# Porta 6543 = transaction mode pooler (sem limite de sessões simultâneas)
+ASYNCPG_URL = (
+    DATABASE_URL
+    .replace("postgresql+asyncpg://", "postgresql://")
+    .replace(":5432/", ":6543/")
+)
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 if not ANTHROPIC_API_KEY:
@@ -144,7 +149,7 @@ async def main(dry_run: bool, limit: int | None) -> None:
     print("Analisador Sonnet — Atas das Reuniões Plenárias CAU/PR")
     print(f"{'='*60}\n")
 
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     try:
         # Atas com texto extraído, sem análise Sonnet, mais recentes primeiro
         rows = await conn.fetch(

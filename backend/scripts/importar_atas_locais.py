@@ -31,7 +31,11 @@ PASTA      = ROOT.parent / "DOCUMENTOS QUE CONSEGUI NA MAO" / "atas extraordiana
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 if not DATABASE_URL:
     sys.exit("ERROR: DATABASE_URL não encontrado no backend/.env")
-ASYNCPG_URL = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+ASYNCPG_URL = (
+    DATABASE_URL
+    .replace("postgresql+asyncpg://", "postgresql://")
+    .replace(":5432/", ":6543/")
+)
 
 
 def _numero_do_nome(nome: str) -> str | None:
@@ -68,7 +72,7 @@ async def main() -> None:
     print(f"\nPasta: {PASTA}")
     print(f"PDFs encontrados: {len(pdfs)}\n")
 
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     try:
         ok = sem_ato = sem_texto = ja_existe = 0
 
