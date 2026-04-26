@@ -45,15 +45,23 @@ CREATE TABLE analises_atas (
 );
 ```
 
-## 3. Pipeline de Extração Offline
+## 3. Pipeline de Extração Offline e Tratamento de Duplicatas
 
 Como o WAF do CAU-PR bloqueia downloads via script, os PDFs serão baixados manualmente e colocados em uma pasta local (ex: `data/atas_caupr/`).
 
+**Regra Crítica de Seleção de Arquivos:**
+O CAU-PR frequentemente publica dois ou mais arquivos para a mesma ata (ex: um PDF digital limpo e um PDF escaneado com assinaturas e anexos). O script deve seguir esta hierarquia de preferência para extração de texto:
+1. **Prioridade 1:** Arquivos com "sem-anexos" ou "digital" no nome (texto puro, perfeito para extração).
+2. **Prioridade 2:** Arquivos `.docx` ou `.doc` (texto puro nativo).
+3. **Prioridade 3:** PDFs normais.
+4. **Evitar:** Arquivos com "assinado", "assinatura" ou "scan" no nome (geram OCR de baixa qualidade e lixo no texto).
+
 O Claude Code deve criar um script `backend/scripts/importar_atas_locais.py` que:
-1. Lê todos os PDFs da pasta `data/atas_caupr/`.
-2. Usa `pdfplumber` para extrair o texto.
-3. Limpa cabeçalhos e rodapés repetitivos (para economizar tokens).
-4. Salva o texto limpo na tabela `atas_plenarias`.
+1. Agrupa os arquivos da pasta `data/atas_caupr/` pelo número da ata.
+2. Aplica a hierarquia de preferência acima para escolher apenas UM arquivo principal por ata.
+3. Usa `pdfplumber` (para PDF) ou `python-docx` (para DOCX) para extrair o texto.
+4. Limpa cabeçalhos e rodapés repetitivos (para economizar tokens).
+5. Salva o texto limpo na tabela `atas_plenarias`.
 
 ## 4. Prompt Investigativo para o Sonnet
 
@@ -74,6 +82,8 @@ Responda EXCLUSIVAMENTE em formato JSON com a seguinte estrutura:
 {
   "nivel_alerta": "verde|amarelo|laranja|vermelho",
   "resumo_executivo": "Resumo de 2 parágrafos focando apenas no que é suspeito ou polêmico.",
+  "requer_leitura_anexos": true,
+  "motivo_leitura_anexos": "Se true, explique qual anexo citado na ata contém informações cruciais que faltam aqui (ex: 'Ata cita aprovação de balanço financeiro que está no Anexo II'). Se false, deixe null.",
   "irregularidades_encontradas": [
     {
       "tipo": "string",
@@ -98,6 +108,8 @@ Responda EXCLUSIVAMENTE em formato JSON com a seguinte estrutura:
   ]
 }
 ```
+
+**Nota sobre Anexos:** Se o Sonnet retornar `"requer_leitura_anexos": true`, o sistema marcará esta ata no painel admin para que um humano (ou um agente futuro com OCR avançado) baixe o PDF "assinado com anexos" correspondente e faça a auditoria manual daquele anexo específico.
 
 ## 5. Instruções de Execução para o Claude Code
 
