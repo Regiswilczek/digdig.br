@@ -44,6 +44,7 @@ export interface Marco {
   tipo: string;
   label: string;
   primeiro_dia: string;
+  primeiro_dt: string;
   total_acumulado: number;
   total_tipo: number;
 }

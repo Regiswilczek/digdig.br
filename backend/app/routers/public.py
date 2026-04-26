@@ -164,19 +164,19 @@ async def get_crescimento(slug: str, db: AsyncSession = Depends(get_db)):
     tipos_r = await db.execute(
         select(
             Ato.tipo,
-            func.min(cast(Ato.criado_em, SADate)).label("primeiro_dia"),
+            func.min(Ato.criado_em).label("primeiro_dt"),
             func.count().label("total"),
         )
         .where(Ato.tenant_id == tenant.id, Ato.criado_em.isnot(None))
         .group_by(Ato.tipo)
-        .order_by(func.min(cast(Ato.criado_em, SADate)))
+        .order_by(func.min(Ato.criado_em))
     )
     tipos_rows = tipos_r.all()
 
     cum_by_date = {p["dia"]: p["total"] for p in pontos}
     all_dias = sorted(cum_by_date.keys())
 
-    def cum_at_or_before(dia_str: str) -> int:
+    def cum_at_or_before_dia(dia_str: str) -> int:
         result = 0
         for d in all_dias:
             if d <= dia_str:
@@ -185,16 +185,22 @@ async def get_crescimento(slug: str, db: AsyncSession = Depends(get_db)):
                 break
         return result
 
+    def dt_to_str(dt) -> str:
+        s = dt.isoformat()
+        # strip timezone suffix for consistent JS parsing
+        return s[:19] if len(s) > 19 else s
+
     marcos = [
         {
             "tipo": r.tipo,
             "label": TIPO_LABELS.get(r.tipo, r.tipo),
-            "primeiro_dia": r.primeiro_dia.isoformat(),
-            "total_acumulado": cum_at_or_before(r.primeiro_dia.isoformat()),
+            "primeiro_dia": dt_to_str(r.primeiro_dt)[:10],
+            "primeiro_dt": dt_to_str(r.primeiro_dt),
+            "total_acumulado": cum_at_or_before_dia(dt_to_str(r.primeiro_dt)[:10]),
             "total_tipo": r.total,
         }
         for r in tipos_rows
-        if r.primeiro_dia is not None
+        if r.primeiro_dt is not None
     ]
 
     return {

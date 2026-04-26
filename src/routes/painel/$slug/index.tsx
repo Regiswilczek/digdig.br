@@ -1114,6 +1114,11 @@ const MARCO_COLORS: Record<string, string> = {
   ata_registro_preco: "#0369a1",
 };
 
+function fmtHora(dt: string): string {
+  const h = dt.slice(11, 13);
+  return h ? `${h}h` : "";
+}
+
 function GrowthChart({
   pontos,
   marcos,
@@ -1124,8 +1129,8 @@ function GrowthChart({
   if (pontos.length < 1) return null;
 
   const W = 560;
-  const H = 120;
-  const PAD = { top: 16, right: 16, bottom: 28, left: 46 };
+  const H = 140;
+  const PAD = { top: 28, right: 16, bottom: 28, left: 46 };
   const innerW = W - PAD.left - PAD.right;
   const innerH = H - PAD.top - PAD.bottom;
 
@@ -1134,12 +1139,12 @@ function GrowthChart({
   const maxDate = pontos[pontos.length - 1].dia;
   const dateRange = Math.max(
     new Date(maxDate).getTime() - new Date(minDate).getTime(),
-    86400000
+    3600000
   );
 
-  const toX = (dia: string) =>
+  const toX = (dt: string) =>
     PAD.left +
-    ((new Date(dia).getTime() - new Date(minDate).getTime()) / dateRange) *
+    ((new Date(dt).getTime() - new Date(minDate).getTime()) / dateRange) *
       innerW;
   const toY = (val: number) =>
     PAD.top + innerH - (Math.min(val, maxVal) / maxVal) * innerH;
@@ -1153,10 +1158,27 @@ function GrowthChart({
 
   const y400 = toY(400);
   const show400 = maxVal > 500;
-
   const digdigX = toX(DIGDIG_START);
-  const digdigInRange =
-    digdigX >= PAD.left && digdigX <= PAD.left + innerW;
+  const digdigInRange = digdigX >= PAD.left && digdigX <= PAD.left + innerW;
+
+  // Compute dot positions using exact datetime (primeiro_dt) for x precision
+  // Group by day for y-stagger so same-day dots don't overlap
+  const byDay: Record<string, number[]> = {};
+  marcos.forEach((m, i) => {
+    const day = m.primeiro_dia;
+    if (!byDay[day]) byDay[day] = [];
+    byDay[day].push(i);
+  });
+  const yStagger: number[] = new Array(marcos.length).fill(0);
+  const STEP = 14;
+  Object.values(byDay).forEach((indices) => {
+    if (indices.length <= 1) return;
+    indices.forEach((gi, li) => {
+      const row = Math.floor(li / 2);
+      const dir = li % 2 === 0 ? -1 : 1;
+      yStagger[gi] = dir * row * STEP;
+    });
+  });
 
   return (
     <div>
@@ -1171,23 +1193,17 @@ function GrowthChart({
           </linearGradient>
         </defs>
 
-        {/* 400 reference line */}
+        {/* 400 reference */}
         {show400 && (
           <line
-            x1={PAD.left}
-            y1={y400}
-            x2={PAD.left + innerW}
-            y2={y400}
-            stroke="#d97706"
-            strokeWidth={0.8}
-            strokeDasharray="4,3"
-            opacity={0.55}
+            x1={PAD.left} y1={y400}
+            x2={PAD.left + innerW} y2={y400}
+            stroke="#d97706" strokeWidth={0.8} strokeDasharray="4,3" opacity={0.5}
           />
         )}
 
-        {/* Area fill */}
+        {/* Area + line */}
         <path d={area} fill="url(#grow-fill)" />
-        {/* Line */}
         <polyline points={pts} fill="none" stroke={INK} strokeWidth={1.5} />
 
         {/* Y-axis */}
@@ -1197,7 +1213,7 @@ function GrowthChart({
         )}
         <text x={PAD.left - 6} y={PAD.top + 4} textAnchor="end" fontSize={9} fill={MUTED} fontFamily="monospace">{fmt(maxVal)}</text>
 
-        {/* X-axis dates */}
+        {/* X-axis */}
         <text x={PAD.left} y={H - 2} textAnchor="start" fontSize={9} fill={MUTED} fontFamily="monospace">
           {minDate.slice(0, 10)}
         </text>
@@ -1205,38 +1221,30 @@ function GrowthChart({
           {maxDate.slice(0, 10)}
         </text>
 
-        {/* Dig Dig vertical marker */}
+        {/* Dig Dig marker */}
         {digdigInRange && (
-          <line
-            x1={digdigX}
-            y1={PAD.top}
-            x2={digdigX}
-            y2={PAD.top + innerH}
-            stroke="#d97706"
-            strokeWidth={1}
-            strokeDasharray="3,2"
-          />
+          <line x1={digdigX} y1={PAD.top} x2={digdigX} y2={PAD.top + innerH}
+            stroke="#d97706" strokeWidth={1} strokeDasharray="3,2" />
         )}
 
-        {/* Marco numbered dots */}
+        {/* Marco dots — x from primeiro_dt (exact time), y staggered within same day */}
         {marcos.map((m, i) => {
-          const mx = toX(m.primeiro_dia);
-          const my = toY(m.total_acumulado);
+          const mx = toX(m.primeiro_dt);
+          const myBase = toY(m.total_acumulado);
+          const my = Math.max(PAD.top + 6, Math.min(PAD.top + innerH - 6, myBase + yStagger[i]));
           const inRange = mx >= PAD.left && mx <= PAD.left + innerW;
           if (!inRange) return null;
           const color = MARCO_COLORS[m.tipo] ?? "#6b7280";
           return (
             <g key={m.tipo}>
-              <circle cx={mx} cy={my} r={6} fill={color} stroke="#fff" strokeWidth={1.5} />
-              <text
-                x={mx}
-                y={my + 3.5}
-                textAnchor="middle"
-                fontSize={7}
-                fill="#fff"
-                fontFamily="monospace"
-                fontWeight="bold"
-              >
+              {/* leader line from base to staggered dot */}
+              {yStagger[i] !== 0 && (
+                <line x1={mx} y1={myBase} x2={mx} y2={my}
+                  stroke={color} strokeWidth={0.8} opacity={0.4} />
+              )}
+              <circle cx={mx} cy={my} r={5.5} fill={color} stroke="#fff" strokeWidth={1.5} />
+              <text x={mx} y={my + 3.5} textAnchor="middle" fontSize={7}
+                fill="#fff" fontFamily="monospace" fontWeight="bold">
                 {i + 1}
               </text>
             </g>
@@ -1249,27 +1257,21 @@ function GrowthChart({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(195px, 1fr))",
             gap: "6px 20px",
             marginTop: 14,
           }}
         >
           {marcos.map((m, i) => {
             const color = MARCO_COLORS[m.tipo] ?? "#6b7280";
+            const dia = m.primeiro_dia.slice(5).replace("-", "/");
+            const hora = fmtHora(m.primeiro_dt);
             return (
               <div key={m.tipo} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                <div
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: "50%",
-                    background: color,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
+                <div style={{
+                  width: 18, height: 18, borderRadius: "50%", background: color,
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
                   <span style={{ color: "#fff", fontSize: 8, fontWeight: 700, fontFamily: "monospace" }}>
                     {i + 1}
                   </span>
@@ -1279,7 +1281,7 @@ function GrowthChart({
                     {m.label}
                   </span>
                   <span style={{ fontSize: 10, color: MUTED, fontFamily: "monospace", marginLeft: 5 }}>
-                    {fmt(m.total_tipo)} · {m.primeiro_dia.slice(5).replace("-", "/")}
+                    {fmt(m.total_tipo)} · {dia} {hora}
                   </span>
                 </div>
               </div>
