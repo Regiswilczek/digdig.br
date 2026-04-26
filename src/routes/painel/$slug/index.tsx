@@ -411,15 +411,142 @@ function RealtimeFeed({
   );
 }
 
+// ── Volume de análises por hora (últimas 24h) ───────────────────────────
+const NIVEL_SEVERITY: Record<string, number> = { verde: 1, amarelo: 2, laranja: 3, vermelho: 4 };
+
+function VolumeChart24h({
+  items,
+  isLive,
+}: {
+  items: AnaliseRecente[];
+  isLive: boolean;
+}) {
+  const now = Date.now();
+
+  // Bucket 0 = 24h atrás, bucket 23 = hora atual
+  const buckets: Array<{ total: number; worst: string | null }> = Array.from({ length: 24 }, () => ({
+    total: 0,
+    worst: null,
+  }));
+
+  for (const item of items) {
+    if (!item.criado_em) continue;
+    const hoursAgo = Math.floor((now - new Date(item.criado_em).getTime()) / 3_600_000);
+    if (hoursAgo < 0 || hoursAgo >= 24) continue;
+    const idx = 23 - hoursAgo;
+    buckets[idx].total++;
+    if (item.nivel_alerta) {
+      const sev = NIVEL_SEVERITY[item.nivel_alerta] ?? 0;
+      if (sev > (NIVEL_SEVERITY[buckets[idx].worst ?? ""] ?? 0))
+        buckets[idx].worst = item.nivel_alerta;
+    }
+  }
+
+  const maxCount = Math.max(...buckets.map((b) => b.total), 1);
+  const totalIn24h = buckets.reduce((s, b) => s + b.total, 0);
+  const peakIdx = buckets.reduce((best, b, i) => (b.total > buckets[best].total ? i : best), 0);
+  const peakCount = buckets[peakIdx].total;
+
+  // Hora real de cada bucket para labels
+  const labelIdxs = [0, 6, 12, 18, 23];
+  const bucketHour = (idx: number) => {
+    const hoursAgo = 23 - idx;
+    return new Date(now - hoursAgo * 3_600_000).getHours();
+  };
+
+  const W = 560, H = 80;
+  const PAD = { t: 4, r: 4, b: 20, l: 4 };
+  const innerH = H - PAD.t - PAD.b;
+  const barW = (W - PAD.l - PAD.r) / 24;
+  const GAP = 2;
+
+  return (
+    <div className="p-5 space-y-3" style={{ border: `1px solid ${BORDER}` }}>
+      {/* Header */}
+      <div className="flex items-end justify-between gap-4">
+        <div className="flex items-center gap-2">
+          {isLive && (
+            <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "#16a34a" }} />
+          )}
+          <Eyebrow>Extração · Últimas 24h</Eyebrow>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <p
+            className="text-[22px] font-medium leading-none"
+            style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.03em" }}
+          >
+            {totalIn24h}
+          </p>
+          <p className="text-[9px] uppercase tracking-wider mt-0.5" style={{ color: MUTED, fontFamily: MONO }}>
+            análises
+          </p>
+        </div>
+      </div>
+
+      {/* Bar chart */}
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: H, display: "block" }}>
+        {buckets.map((b, i) => {
+          const barH = b.total > 0
+            ? Math.max(3, (b.total / maxCount) * innerH)
+            : 0;
+          const x = PAD.l + i * barW + GAP / 2;
+          const y = PAD.t + innerH - barH;
+          const color = b.total === 0
+            ? BORDER
+            : (NIVEL_DOT[b.worst ?? ""] ?? INK);
+          return (
+            <g key={i}>
+              {/* Empty track */}
+              <rect
+                x={x} y={PAD.t} width={barW - GAP} height={innerH}
+                fill={PAPER} rx={1}
+              />
+              {/* Value bar */}
+              {b.total > 0 && (
+                <rect x={x} y={y} width={barW - GAP} height={barH} fill={color} rx={1} />
+              )}
+            </g>
+          );
+        })}
+        {/* Hour labels */}
+        {labelIdxs.map((idx) => (
+          <text
+            key={idx}
+            x={PAD.l + idx * barW + barW / 2}
+            y={H - 4}
+            textAnchor="middle"
+            fontSize={8}
+            fill={MUTED}
+            fontFamily="monospace"
+          >
+            {idx === 23 ? "agora" : `${bucketHour(idx)}h`}
+          </text>
+        ))}
+      </svg>
+
+      {/* Sub-caption */}
+      <p className="text-[10.5px]" style={{ color: SUBTLE, fontFamily: MONO }}>
+        {totalIn24h === 0
+          ? "Nenhuma análise nas últimas 24h"
+          : peakCount > 0
+          ? `Pico de ${peakCount} análise${peakCount !== 1 ? "s" : ""}/h às ${bucketHour(peakIdx)}h · barras coloridas pelo nível mais crítico da hora`
+          : `${totalIn24h} análises registradas`}
+      </p>
+    </div>
+  );
+}
+
 // ── Tab: Visão Geral ────────────────────────────────────────────────────
 function TabVisaoGeral({
   stats,
   rodada,
   recentCount24h,
+  recentAnalyses,
 }: {
   stats: PublicStats | null;
   rodada: PainelRodada | null;
   recentCount24h: number;
+  recentAnalyses: AnaliseRecente[] | null;
 }) {
   const pct =
     rodada && rodada.total_atos > 0
@@ -458,12 +585,9 @@ function TabVisaoGeral({
         ))}
       </div>
 
-      {/* Pipeline progress */}
-      {rodada && pct !== null ? (
-        <div
-          className="p-5 space-y-3"
-          style={{ border: `1px solid ${BORDER}` }}
-        >
+      {/* Pipeline progress bar (quando há rodada ativa) */}
+      {rodada && pct !== null && (
+        <div className="p-5 space-y-3" style={{ border: `1px solid ${BORDER}` }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {rodada.status === "em_progresso" && (
@@ -473,52 +597,22 @@ function TabVisaoGeral({
                 />
               )}
               <p className="text-[13px]" style={{ color: INK }}>
-                {rodada.status === "em_progresso"
-                  ? "Análise ao vivo"
-                  : "Documentos em análise"}
+                {rodada.status === "em_progresso" ? "Análise ao vivo" : "Documentos em análise"}
               </p>
             </div>
-            <span
-              className="text-[11px] uppercase tracking-wider"
-              style={{ color: MUTED, fontFamily: MONO }}
-            >
+            <span className="text-[11px] uppercase tracking-wider" style={{ color: MUTED, fontFamily: MONO }}>
               {rodada.atos_analisados_haiku} / {rodada.total_atos} · {pct}%
             </span>
           </div>
-          <Progress
-            value={pct}
-            className="h-1"
-            style={{ background: PAPER }}
-          />
-        </div>
-      ) : recentCount24h > 0 ? (
-        <div className="p-5 space-y-2" style={{ border: `1px solid ${BORDER}` }}>
-          <div className="flex items-center gap-2">
-            <span
-              className="h-1.5 w-1.5 rounded-full animate-pulse"
-              style={{ background: "#16a34a" }}
-            />
-            <p className="text-[13px]" style={{ color: INK }}>
-              Análise em andamento
-            </p>
-          </div>
-          <p
-            className="text-[11px] uppercase tracking-wider"
-            style={{ color: MUTED, fontFamily: MONO }}
-          >
-            {recentCount24h} análise{recentCount24h !== 1 ? "s" : ""} nas últimas 24h
-          </p>
-        </div>
-      ) : (
-        <div
-          className="p-5"
-          style={{ border: `1px solid ${BORDER}` }}
-        >
-          <p className="text-[13px]" style={{ color: MUTED }}>
-            Nenhuma rodada de análise ativa no momento.
-          </p>
+          <Progress value={pct} className="h-1" style={{ background: PAPER }} />
         </div>
       )}
+
+      {/* Volume chart 24h — sempre visível */}
+      <VolumeChart24h
+        items={recentAnalyses ?? []}
+        isLive={recentCount24h > 0 || rodada?.status === "em_progresso"}
+      />
 
       {/* Distribuição */}
       {stats && (
@@ -1859,7 +1953,7 @@ function SlugDashboard() {
 
             <div className="px-4 sm:px-6 md:px-10 py-6 sm:py-8 pb-24 lg:pb-8">
               <TabsContent value="visao-geral">
-                <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} />
+                <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} recentAnalyses={recentAnalyses} />
               </TabsContent>
               <TabsContent value="portarias">
                 <TabAtos slug={slug} tipo="portaria" />
