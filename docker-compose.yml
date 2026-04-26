@@ -52,7 +52,7 @@ services:
     networks:
       - backend_net
     command: >
-      celery -A app.celery_app worker
+      celery -A app.workers.celery_app worker
         --loglevel=info
         --concurrency=2
         --queues=ai,default
@@ -72,9 +72,8 @@ services:
     networks:
       - backend_net
     command: >
-      celery -A app.celery_app beat
+      celery -A app.workers.celery_app beat
         --loglevel=info
-        --scheduler django_celery_beat.schedulers:DatabaseScheduler
 
   # ── Obscura — headless browser (scraping com stealth) ─────────────────────
   # Roda o binário Linux extraído de tools/obscura/obscura.zip
