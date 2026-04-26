@@ -1129,8 +1129,9 @@ function GrowthChart({
   if (pontos.length < 1) return null;
 
   const W = 560;
-  const H = 140;
-  const PAD = { top: 28, right: 16, bottom: 28, left: 46 };
+  const H = 148;
+  // PAD.top = 42 → header zone for dots sits above the chart line
+  const PAD = { top: 42, right: 16, bottom: 28, left: 46 };
   const innerW = W - PAD.left - PAD.right;
   const innerH = H - PAD.top - PAD.bottom;
 
@@ -1161,23 +1162,49 @@ function GrowthChart({
   const digdigX = toX(DIGDIG_START);
   const digdigInRange = digdigX >= PAD.left && digdigX <= PAD.left + innerW;
 
-  // Compute dot positions using exact datetime (primeiro_dt) for x precision
-  // Group by day for y-stagger so same-day dots don't overlap
-  const byDay: Record<string, number[]> = {};
-  marcos.forEach((m, i) => {
-    const day = m.primeiro_dia;
-    if (!byDay[day]) byDay[day] = [];
-    byDay[day].push(i);
+  // ── Header-zone dot placement ──────────────────────────────────────────────
+  // Dots live in y=[6,26] above the chart (PAD.top=42). Force-spread in x so
+  // same-day items (which land at virtually the same pixel) don't overlap.
+  const DOT_R = 5.5;
+  const HEADER_ROWS = [9, 25]; // two row y-centers in header
+  const MIN_SEP = 12;          // minimum px between dot centers in same row
+
+  // Natural x from exact insertion datetime
+  const dotX = marcos.map((m) => toX(m.primeiro_dt));
+
+  // Force-spread: iteratively push apart dots that are too close
+  const spreadX = [...dotX];
+  const sortedIdx = [...marcos.keys()].sort((a, b) => spreadX[a] - spreadX[b]);
+  for (let pass = 0; pass < 8; pass++) {
+    for (let k = 0; k < sortedIdx.length - 1; k++) {
+      const a = sortedIdx[k], b = sortedIdx[k + 1];
+      const gap = spreadX[b] - spreadX[a];
+      if (gap < MIN_SEP) {
+        const half = (MIN_SEP - gap) / 2;
+        spreadX[a] -= half;
+        spreadX[b] += half;
+      }
+    }
+  }
+  // Clamp inside chart bounds
+  spreadX.forEach((_, i) => {
+    spreadX[i] = Math.max(PAD.left + DOT_R, Math.min(PAD.left + innerW - DOT_R, spreadX[i]));
   });
-  const yStagger: number[] = new Array(marcos.length).fill(0);
-  const STEP = 14;
-  Object.values(byDay).forEach((indices) => {
-    if (indices.length <= 1) return;
-    indices.forEach((gi, li) => {
-      const row = Math.floor(li / 2);
-      const dir = li % 2 === 0 ? -1 : 1;
-      yStagger[gi] = dir * row * STEP;
-    });
+
+  // Greedy row assignment (sorted by x)
+  const dotRow = new Array(marcos.length).fill(0);
+  const rowEdgeX = [PAD.left - 99, PAD.left - 99]; // last x used per row
+  [...sortedIdx].forEach((i) => {
+    let placed = false;
+    for (let r = 0; r < HEADER_ROWS.length; r++) {
+      if (spreadX[i] - rowEdgeX[r] >= MIN_SEP) {
+        dotRow[i] = r;
+        rowEdgeX[r] = spreadX[i];
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) dotRow[i] = 1;
   });
 
   return (
@@ -1227,22 +1254,21 @@ function GrowthChart({
             stroke="#d97706" strokeWidth={1} strokeDasharray="3,2" />
         )}
 
-        {/* Marco dots — x from primeiro_dt (exact time), y staggered within same day */}
+        {/* Header-zone dots: one per tipo, spread above the chart line */}
         {marcos.map((m, i) => {
-          const mx = toX(m.primeiro_dt);
-          const myBase = toY(m.total_acumulado);
-          const my = Math.max(PAD.top + 6, Math.min(PAD.top + innerH - 6, myBase + yStagger[i]));
-          const inRange = mx >= PAD.left && mx <= PAD.left + innerW;
-          if (!inRange) return null;
+          const mx = spreadX[i];
+          const my = HEADER_ROWS[dotRow[i]];
           const color = MARCO_COLORS[m.tipo] ?? "#6b7280";
+          // tick from dot bottom to chart top edge
+          const tickY1 = my + DOT_R + 1;
+          const tickY2 = PAD.top - 1;
           return (
             <g key={m.tipo}>
-              {/* leader line from base to staggered dot */}
-              {yStagger[i] !== 0 && (
-                <line x1={mx} y1={myBase} x2={mx} y2={my}
-                  stroke={color} strokeWidth={0.8} opacity={0.4} />
+              {tickY1 < tickY2 && (
+                <line x1={mx} y1={tickY1} x2={mx} y2={tickY2}
+                  stroke={color} strokeWidth={0.7} opacity={0.3} />
               )}
-              <circle cx={mx} cy={my} r={5.5} fill={color} stroke="#fff" strokeWidth={1.5} />
+              <circle cx={mx} cy={my} r={DOT_R} fill={color} stroke="#fff" strokeWidth={1.5} />
               <text x={mx} y={my + 3.5} textAnchor="middle" fontSize={7}
                 fill="#fff" fontFamily="monospace" fontWeight="bold">
                 {i + 1}
