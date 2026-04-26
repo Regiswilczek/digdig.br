@@ -141,66 +141,79 @@ function FeedRow({ item, slug }: { item: FeedItem; slug: string }) {
       style={{ textDecoration: "none", display: "block" }}
     >
       <div
-        className="px-4 py-3 hover:bg-[#faf8f3] transition-colors"
-        style={{
-          borderBottom: `1px solid ${BORDER}`,
-          borderLeft: `3px solid ${nivelColor}`,
-        }}
+        className="group px-4 py-2.5 transition-colors hover:bg-[#faf8f3]"
+        style={{ borderBottom: `1px solid #f1efe8` }}
       >
-        {/* Line 1: tipo badge · número · tempo */}
-        <div className="flex items-center gap-2">
+        {/* Line 1: dot + tipo · número · tempo */}
+        <div className="flex items-center gap-2.5">
+          <span
+            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+            style={{
+              background: nivelColor,
+              boxShadow: `0 0 0 3px ${nivelColor}1a`,
+            }}
+          />
           <span
             style={{
               fontSize: 8.5,
               fontFamily: MONO,
-              letterSpacing: "0.06em",
-              color: MUTED,
-              background: PAPER,
-              border: `1px solid ${BORDER}`,
-              padding: "1px 5px",
-              borderRadius: 2,
+              letterSpacing: "0.14em",
+              color: "#a8a59c",
+              padding: "1px 0",
               flexShrink: 0,
               lineHeight: 1.6,
+              textTransform: "uppercase",
             }}
           >
             {tipoShort}
           </span>
           <p
-            className="flex-1 text-[12.5px] font-semibold truncate"
-            style={{ color: INK, fontFamily: MONO, letterSpacing: "-0.01em" }}
+            className="flex-1 text-[12px] font-medium truncate"
+            style={{
+              color: INK,
+              fontFamily: MONO,
+              letterSpacing: "-0.01em",
+            }}
           >
             Nº {item.numero ?? item.ato_id.slice(0, 8) + "…"}
           </p>
           <span
-            className="text-[9.5px] whitespace-nowrap flex-shrink-0 uppercase tracking-wider"
-            style={{ color: SUBTLE, fontFamily: MONO }}
+            className="text-[9.5px] whitespace-nowrap flex-shrink-0 tabular-nums"
+            style={{ color: "#a8a59c", fontFamily: MONO }}
           >
             {timeAgo(item.criado_em)}
           </span>
         </div>
 
         {/* Line 2: nível chip + score */}
-        <div className="flex items-center gap-2 mt-1.5">
+        <div className="flex items-center gap-2 mt-1.5 pl-[18px]">
           {nivelStyle && (
             <span
               style={{
-                fontSize: 9.5,
+                fontSize: 9,
                 fontFamily: MONO,
-                textTransform: "capitalize",
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
                 color: nivelStyle.fg,
                 background: nivelStyle.bg,
-                border: `1px solid ${nivelStyle.border}`,
-                padding: "1px 6px",
-                borderRadius: 2,
-                lineHeight: 1.6,
+                padding: "1.5px 6px",
+                borderRadius: 3,
+                lineHeight: 1.4,
               }}
             >
               {nivel}
             </span>
           )}
           {item.score_risco != null && (
-            <span style={{ fontSize: 9.5, color: SUBTLE, fontFamily: MONO }}>
-              score {item.score_risco}
+            <span
+              style={{
+                fontSize: 9.5,
+                color: "#a8a59c",
+                fontFamily: MONO,
+                letterSpacing: "0.04em",
+              }}
+            >
+              score · {item.score_risco}
             </span>
           )}
         </div>
