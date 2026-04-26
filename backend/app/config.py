@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     claude_sonnet_model: str = "claude-sonnet-4-6"
     anthropic_api_key: str = ""
 
+    # OpenAI (chat)
+    openai_api_key: str = ""
+    openai_chat_model: str = "gpt-4o-mini"
+
     # Mercado Pago (billing)
     mercadopago_access_token: str = ""
     mercadopago_public_key: str = ""
