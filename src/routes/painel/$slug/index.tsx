@@ -2309,34 +2309,103 @@ const DADOS_TIPOS = [
 function TabDados({ slug }: { slug: string }) {
   const [tipo, setTipo] = useState<string>("ata_plenaria");
 
+  const tipoAtivo = DADOS_TIPOS.find((t) => t.value === tipo);
+  const idxAtivo = DADOS_TIPOS.findIndex((t) => t.value === tipo);
+
   return (
     <div>
-      {/* Submenu interno */}
+      {/* Cabeçalho do submenu — eyebrow + dataset ativo */}
       <div
-        className="flex overflow-x-auto gap-0 -mx-4 sm:-mx-6 md:-mx-10 px-4 sm:px-6 md:px-10 mb-6"
-        style={{ borderBottom: `1px solid ${BORDER}` }}
+        className="mb-3 flex items-end justify-between gap-3 flex-wrap"
+        style={{ borderBottom: `1px solid ${BORDER}`, paddingBottom: 10 }}
       >
-        {DADOS_TIPOS.map((t) => (
-          <button
-            key={t.value}
-            onClick={() => setTipo(t.value)}
-            className="flex-shrink-0 px-3 sm:px-4 py-2.5 text-[10px] sm:text-[10.5px] uppercase tracking-[0.16em] transition-colors whitespace-nowrap"
+        <div className="flex items-baseline gap-3 min-w-0">
+          <span
             style={{
               fontFamily: MONO,
-              color: tipo === t.value ? INK : MUTED,
-              fontWeight: tipo === t.value ? 600 : 400,
-              marginBottom: "-1px",
-              background: "transparent",
-              border: "none",
-              borderBottomWidth: 2,
-              borderBottomStyle: "solid",
-              borderBottomColor: tipo === t.value ? INK : "transparent",
-              cursor: "pointer",
+              fontSize: 9.5,
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color: SUBTLE,
             }}
           >
-            {t.label}
-          </button>
-        ))}
+            ▮ datasets
+          </span>
+          <span
+            style={{
+              fontFamily: MONO,
+              fontSize: 11,
+              color: INK,
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+            }}
+            className="truncate"
+          >
+            {String(idxAtivo + 1).padStart(2, "0")} · {tipoAtivo?.label}
+          </span>
+        </div>
+        <span
+          style={{
+            fontFamily: MONO,
+            fontSize: 9.5,
+            color: MUTED,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+          }}
+        >
+          {DADOS_TIPOS.length} disponíveis
+        </span>
+      </div>
+
+      {/* Grid de chips — sem scroll horizontal, totalmente visível */}
+      <div
+        className="grid gap-[1px] mb-6"
+        style={{
+          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+          background: BORDER,
+          border: `1px solid ${BORDER}`,
+        }}
+      >
+        {DADOS_TIPOS.map((t, i) => {
+          const ativo = tipo === t.value;
+          return (
+            <button
+              key={t.value}
+              onClick={() => setTipo(t.value)}
+              className="text-left transition-colors group relative"
+              style={{
+                fontFamily: MONO,
+                fontSize: 10.5,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                padding: "10px 12px",
+                background: ativo ? INK : "#fff",
+                color: ativo ? "#fff" : MUTED,
+                fontWeight: ativo ? 600 : 500,
+                cursor: "pointer",
+                border: "none",
+                borderLeft: ativo ? `2px solid ${ACCENT}` : "2px solid transparent",
+              }}
+              onMouseEnter={(e) => {
+                if (!ativo) e.currentTarget.style.background = PAPER;
+              }}
+              onMouseLeave={(e) => {
+                if (!ativo) e.currentTarget.style.background = "#fff";
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 9,
+                  color: ativo ? ACCENT : SUBTLE,
+                  marginRight: 6,
+                }}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Conteúdo */}
