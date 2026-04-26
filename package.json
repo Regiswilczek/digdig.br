@@ -4,7 +4,8 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite dev --config vite.config.vps.ts",
+    "dev:lovable": "vite dev",
     "build": "vite build",
     "build:vps": "vite build --config vite.config.vps.ts",
     "build:dev": "vite build --mode development",
