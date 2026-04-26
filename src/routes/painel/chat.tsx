@@ -29,6 +29,7 @@ const MUTED = "#6b6b66";
 const SUBTLE = "#9a978f";
 const PAPER = "#faf8f3";
 const MONO = "'JetBrains Mono', monospace";
+const TIGHT = "'Inter Tight', 'Inter', system-ui, sans-serif";
 
 // @ts-ignore
 export const Route = createFileRoute("/painel/chat")({
