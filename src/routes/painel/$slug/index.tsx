@@ -600,24 +600,117 @@ function VolumeChart24h({
 }
 
 // ── StackedRiskBar ───────────────────────────────────────────────────────────
+const NIVEL_COLOR_FULL: Record<string, { fg: string; bg: string }> = {
+  verde:    { fg: "#16a34a", bg: "#f0fdf4" },
+  amarelo:  { fg: "#ca8a04", bg: "#fefce8" },
+  laranja:  { fg: "#ea580c", bg: "#fff7ed" },
+  vermelho: { fg: "#dc2626", bg: "#fef2f2" },
+};
+
 function StackedRiskBar({ dist, total }: { dist: PublicStats["distribuicao"]; total: number }) {
   const levels = [
-    { key: "verde", label: "Verde", count: dist.verde },
-    { key: "amarelo", label: "Amarelo", count: dist.amarelo },
-    { key: "laranja", label: "Laranja", count: dist.laranja },
+    { key: "verde",    label: "Verde",    count: dist.verde    },
+    { key: "amarelo",  label: "Amarelo",  count: dist.amarelo  },
+    { key: "laranja",  label: "Laranja",  count: dist.laranja  },
     { key: "vermelho", label: "Vermelho", count: dist.vermelho },
   ] as const;
+
+  const criticos = dist.laranja + dist.vermelho;
+  const pctCritico = total > 0 ? ((criticos / total) * 100).toFixed(1) : "0";
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* Barra proporcional */}
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* 4 cartões grandes */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 1,
+          background: BORDER,
+          border: `1px solid ${BORDER}`,
+        }}
+      >
+        {levels.map((l) => {
+          const pct = total > 0 ? (l.count / total) * 100 : 0;
+          const { fg, bg } = NIVEL_COLOR_FULL[l.key];
+          return (
+            <div
+              key={l.key}
+              style={{
+                background: "#fff",
+                padding: "14px 12px 16px",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              {/* barra colorida no topo */}
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: fg }} />
+              {/* fill proporcional no fundo */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: `${Math.max(pct * 0.7, 2)}%`,
+                  background: bg,
+                  transition: "height 0.8s ease",
+                }}
+              />
+              {/* conteúdo */}
+              <p
+                style={{
+                  fontSize: 8.5,
+                  fontFamily: MONO,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.20em",
+                  color: fg,
+                  fontWeight: 700,
+                  marginBottom: 10,
+                  position: "relative",
+                }}
+              >
+                {l.label}
+              </p>
+              <p
+                style={{
+                  fontSize: 44,
+                  fontWeight: 500,
+                  color: INK,
+                  fontFamily: TIGHT,
+                  letterSpacing: "-0.04em",
+                  lineHeight: 1,
+                  position: "relative",
+                }}
+              >
+                {l.count.toLocaleString("pt-BR")}
+              </p>
+              <p
+                style={{
+                  fontSize: 11,
+                  fontFamily: MONO,
+                  color: MUTED,
+                  marginTop: 6,
+                  letterSpacing: "0.02em",
+                  position: "relative",
+                }}
+              >
+                {pct.toFixed(1)}%
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Barra proporcional full-width */}
       <div
         style={{
           display: "flex",
-          height: 10,
-          borderRadius: 2,
+          height: 6,
           overflow: "hidden",
           background: PAPER,
           border: `1px solid ${BORDER}`,
+          borderRadius: 1,
         }}
       >
         {levels.map((l) => (
@@ -625,34 +718,25 @@ function StackedRiskBar({ dist, total }: { dist: PublicStats["distribuicao"]; to
             key={l.key}
             style={{
               width: `${total > 0 ? (l.count / total) * 100 : 0}%`,
-              background: NIVEL_DOT[l.key],
+              background: NIVEL_COLOR_FULL[l.key].fg,
               minWidth: l.count > 0 ? 3 : 0,
+              transition: "width 0.8s ease",
             }}
           />
         ))}
       </div>
-      {/* Legenda com números */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
-        {levels.map((l) => {
-          const pct = total > 0 ? (l.count / total) * 100 : 0;
-          return (
-            <div key={l.key}>
-              <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: NIVEL_DOT[l.key], flexShrink: 0 }} />
-                <span style={{ fontSize: 9, color: MUTED, fontFamily: MONO, textTransform: "capitalize", letterSpacing: "0.04em" }}>
-                  {l.label}
-                </span>
-              </div>
-              <p style={{ fontSize: 22, fontWeight: 500, color: INK, fontFamily: TIGHT, letterSpacing: "-0.02em", lineHeight: 1 }}>
-                {l.count}
-              </p>
-              <p style={{ fontSize: 9.5, color: SUBTLE, fontFamily: MONO, marginTop: 2 }}>
-                {pct.toFixed(1)}%
-              </p>
-            </div>
-          );
-        })}
-      </div>
+
+      {/* Rodapé — criticalidade */}
+      {criticos > 0 && (
+        <p style={{ fontSize: 10, fontFamily: MONO, color: MUTED, letterSpacing: "0.04em", lineHeight: 1.5 }}>
+          <span style={{ color: "#dc2626", fontWeight: 700 }}>{pctCritico}%</span>
+          {" "}dos documentos analisados têm indícios críticos
+          {" "}
+          <span style={{ color: NIVEL_COLOR_FULL.laranja.fg }}>({dist.laranja.toLocaleString("pt-BR")} laranja</span>
+          {" + "}
+          <span style={{ color: NIVEL_COLOR_FULL.vermelho.fg }}>{dist.vermelho.toLocaleString("pt-BR")} vermelho)</span>
+        </p>
+      )}
     </div>
   );
 }
@@ -883,8 +967,8 @@ function TabVisaoGeral({
         style={{ background: BORDER, border: `1px solid ${BORDER}` }}
       >
         {stats && dist && (
-          <div className="bg-white p-5 space-y-4">
-            <Eyebrow>Distribuição de risco</Eyebrow>
+          <div className="bg-white p-5 pb-6 space-y-4">
+            <Eyebrow>Distribuição de risco · {totalComNivel.toLocaleString("pt-BR")} analisados</Eyebrow>
             <StackedRiskBar dist={dist} total={totalComNivel} />
           </div>
         )}
