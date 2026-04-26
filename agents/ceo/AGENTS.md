@@ -68,22 +68,27 @@ Regis não é arquiteto — não pode integrar chapas do CAU/PR. O tom é de tra
 
 | Componente | Status |
 |---|---|
-| Backend FastAPI + Celery + Redis | ✅ em produção no Railway |
+| VPS Hostinger + Docker Compose | ✅ em produção (187.127.30.188) |
+| Domínios HTTPS | ✅ digdig.com.br, pnl.digdig.com.br, office.digdig.com.br |
+| Backend FastAPI + Celery + Redis | ✅ em produção no VPS |
 | 29 tabelas PostgreSQL (Supabase) com RLS | ✅ completo |
 | Scraper de portarias do CAU/PR | ✅ 551 portarias coletadas |
-| Pipeline Haiku (triagem) | 🔄 262/400 portarias (66%) |
-| Frontend React + Vite (Lovable) | ✅ em produção, dashboard sem dados reais ainda |
-| White Papers Nº 01 e Nº 02 publicados | ✅ online |
-| Billing (Mercado Pago) | ✅ configurado |
+| Pipeline Haiku | ✅ 1.096 atos (portarias 100% + deliberações 72%) |
+| Pipeline Sonnet | 🔄 21 atos — 115 críticos aguardando |
+| Painel autenticado React + 6 abas | ✅ em produção |
+| White Papers Nº 01 a Nº 07 | ✅ online |
+| Paperclip (office.digdig.com.br) | ✅ CEO + CMO + CFO + CCO + CLO ativos |
+| Billing Mercado Pago | ⬜ webhook validado, ativação de plano pendente |
 
 ### Sprint atual — Regis está codando agora
 
 | # | Item | Detalhe |
 |---|---|---|
-| 1 | Terminar rodada Haiku | 138 portarias pendentes |
-| 2 | Pipeline Sonnet | Análise profunda dos casos Laranja/Vermelho |
-| 3 | Dashboard conectado | Frontend existe, falta ligar na API real |
+| 1 | **URGENTE: Fase Sonnet** | 14 vermelhos + 101 laranjas aguardam análise profunda |
+| 2 | Deliberações restantes | 212 deliberações ainda não processadas pelo Haiku |
+| 3 | Billing live | Webhook Mercado Pago validado — falta ativação de plano no banco |
 | 4 | Chat conversacional | RAG no banco, Sonnet responde em linguagem natural |
+| 5 | Alertas por email | Resend configurado, falta código de disparo no pipeline |
 
 ### Próximas sprints — Coleta e cobertura
 

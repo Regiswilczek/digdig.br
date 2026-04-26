@@ -31,6 +31,7 @@ services:
       BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set}"
     volumes:
       - paperclip-data:/paperclip
+      - /opt/digdig:/workspace/digdig:ro
     depends_on:
       db:
         condition: service_healthy

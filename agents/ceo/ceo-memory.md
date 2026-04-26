@@ -146,7 +146,7 @@ LTV: Investigador R$3.940 / Profissional R$19.701 / API & Dados R$99.850
 ## Referências Rápidas
 
 - **Repo:** github.com/Regiswilczek/dig-dig
-- **API Paperclip:** http://127.0.0.1:3100
+- **API Paperclip:** https://office.digdig.com.br
 - **Company ID:** 4cfaa377-0191-4f8d-bc45-82d584abed54
 - **CEO Agent ID:** 0a15c551-8b32-4b99-bd8b-2e959e16e3e9
 - **Supabase Projeto:** pnmtlpcdivzihspnnuid

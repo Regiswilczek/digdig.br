@@ -18,41 +18,52 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 
 ### O que já está construído e funcionando
 
-**Backend (Railway):**
-- FastAPI + Celery + Redis em produção
+**Infraestrutura VPS (Hostinger — 187.127.30.188, Ubuntu 24.04):**
+- Docker Compose roda tudo: api, worker_ai, worker_beat, redis, frontend
+- nginx (dentro do container frontend) como reverse proxy HTTPS para todos os domínios
+- SSL via Let's Encrypt (certbot, wildcard `*.digdig.com.br`)
+- Domínios ativos: `digdig.com.br`, `www.digdig.com.br`, `pnl.digdig.com.br`, `office.digdig.com.br`
+
+**Backend (FastAPI + Celery + Redis — VPS Docker):**
 - 29 tabelas no Supabase (PostgreSQL) com RLS e migrations aplicadas
 - Pipeline Haiku completo: scraper → análise → banco
 - Endpoint de rodada com guard contra duplicatas (4 camadas de proteção)
 - Endpoints: `POST /pnl/orgaos/{slug}/rodadas`, `POST /pnl/rodadas/{id}/cancelar`, `GET /pnl/orgaos/{slug}/rodadas`, `GET /pnl/rodadas/{id}`
+- Webhook Mercado Pago com validação de assinatura HMAC-SHA256 implementada
 
-**Frontend (Lovable):**
-- React + Vite + TanStack Router + shadcn/ui em produção via Lovable
-- White Papers publicados como rotas: `/whitepaper-01-extracao-caupr`, `/whitepaper-02-custo-e-controle`
-- Dashboard ainda sem dados reais conectados (próximo passo)
+**Frontend (React + Vite — VPS Docker):**
+- SPA servida pelo container frontend via nginx
+- Painel autenticado com 6 abas (Visão Geral, Portarias, Deliberações, Denúncias, Pipeline, Relatório)
+- Realtime via Supabase, ficha de ato com gating por plano
+- White Papers: `/whitepaper-01-extracao-caupr` a `/whitepaper-07-pre-auditoria-integrada`
+
+**Paperclip (office.digdig.com.br — VPS Docker separado):**
+- Plataforma de agentes de IA em `/opt/digdig/tools/paperclip/docker/`
+- CEO + CMO + CFO + CCO + CLO agentes ativos
+- Workspace do projeto montado em `/workspace/digdig:ro` (leitura somente)
 
 **Scraper:**
-- `backend/scripts/scrape_local.py` — roda localmente (IP brasileiro) porque o servidor do CAU/PR bloqueia o Railway (403 em IPs americanos)
-- 400 portarias com texto extraído, 151 escaneadas (sem camada de texto, 2018–2021)
+- `backend/scripts/scrape_local.py` — roda localmente (IP brasileiro) porque o servidor do CAU/PR bloqueia IPs de data centers (403)
+- 551 portarias coletadas; 151 escaneadas (2018–2021, sem camada de texto)
 
-**Pipeline IA — Estado atual:**
-- Rodada `9063d83c` em progresso
-- 262 de 400 portarias analisadas (66%)
-- Distribuição: 168 amarelo / 93 verde / 1 laranja
-- Custo rastreado no banco: $3,09 (média $0,0118/ato)
-- Regimento interno cacheado: 68.000 tokens, ephemeral cache, 5 min TTL
+**Pipeline IA — Estado atual (consultado 25/04/2026):**
+- Rodada `5b365c0d` status `haiku_completo` — Sonnet ainda não rodou
+- **1.096 atos analisados pelo Haiku** (portarias 100% + deliberações 72%)
+- Distribuição: 816 amarelo / 165 verde / 101 laranja / 14 vermelho
+- Custo acumulado no banco: **$20,01**
+- **Próximo passo urgente:** disparar Sonnet nos 115 críticos (14 vermelhos + 101 laranjas)
 
 **White Papers publicados:**
-- `docs/whitepaper-01-extracao-caupr.html` + rota React
-- `docs/whitepaper-02-custo-e-controle.html` + rota React
+- `docs/whitepaper-01-extracao-caupr.html` até `whitepaper-07-pre-auditoria-integrada.html`
 
 ### O que ainda falta
 
-1. **Terminar rodada atual** — 138 portarias pendentes (Haiku)
-2. **Fase Sonnet** — aprofundar os casos vermelho quando Haiku terminar
-3. **Deliberações via HTML** — 595 deliberações existem só como HTML, precisam de scraper diferente
-4. **OCR para portarias escaneadas** — 151 portarias de 2018–2021 precisam de Tesseract
-5. **Dashboard conectado** — frontend já existe, falta ligar na API com dados reais
-6. **Chat conversacional** — RAG no banco, Sonnet responde perguntas sobre os atos
+1. **Fase Sonnet** — 115 atos críticos (14 vermelhos + 101 laranjas) aguardam análise profunda
+2. **Deliberações restantes** — 212 deliberações ainda não processadas pelo Haiku
+3. **Chat conversacional** — RAG no banco, Sonnet responde perguntas sobre os atos
+4. **Billing live** — Mercado Pago webhook está configurado e validado; falta ativação de plano no banco
+5. **OCR para portarias escaneadas** — 151 portarias de 2018–2021 precisam de Tesseract
+6. **Alertas por email** — Resend configurado mas sem código de disparo
 
 ---
 
@@ -63,14 +74,15 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 | Modelos de IA | Haiku 4.5 (triagem) + Sonnet 4.6 (análise + chat) | Custo ~$5/rodada portarias, Sonnet resolve tudo |
 | Sonnet no vermelho + laranja | Ambos vão para Sonnet na mesma rodada | Cache write do regimento é pago uma vez ($0,255); laranjas seguintes custam ~$0,06 cada via cache read — amortizado vale a pena |
 | Backend | FastAPI + Celery + Redis | Async nativo, fila real para jobs longos |
-| Frontend | Lovable + React + Vite + shadcn/ui + TanStack Router | Deploy gerenciado pela Lovable, integrado ao GitHub |
+| Frontend | React + Vite + shadcn/ui + TanStack Router | SPA servida por nginx no VPS |
 | Banco | PostgreSQL via Supabase | Auth + Storage + RLS inclusos |
-| Deploy | Railway (backend) + Lovable (frontend) | Simples, previsível, sem DevOps pesado |
+| Deploy | VPS Hostinger (Docker Compose) | Controle total, IP brasileiro, custo fixo |
+| Agentes IA (empresa) | Paperclip em office.digdig.com.br | CEO e diretores rodam como agentes autônomos |
 | Multi-tenancy | Schema compartilhado com RLS por tenant_id | Mais simples que schemas separados |
 | PDF extraction | pdfplumber (texto nativo) | Testado: funciona nas portarias de 2022–2026 |
-| Scraper | Local (não Railway) | Railway tem IP americano bloqueado pelo CAU/PR |
+| Scraper | Local (não VPS) | IP de data center bloqueado pelo CAU/PR |
 | Chat | RAG com contexto do banco (não re-lê PDFs) | PDFs já analisados e salvos — chat é barato |
-| Billing | Mercado Pago | Mercado local, melhor para BR |
+| Billing | Mercado Pago | Mercado local, PIX nativo, parcelamento BR |
 
 ---
 
@@ -94,17 +106,21 @@ O `scrape_local.py` **precisa rodar na máquina do Regis**, não no Railway. O s
 ## Arquitetura em 30 Segundos
 
 ```
-Frontend (React/Vite / Lovable — produção)
-    ↓ API REST
-Backend (FastAPI / Railway — produção)
-    ↓ Jobs assíncronos
-Workers Celery + Redis
-    ├── Scraper: baixa PDFs → extrai texto → salva no banco
-    │   (roda localmente — Railway bloqueado pelo CAU/PR)
-    ├── Haiku: analisa todos os atos → classifica nível de alerta
-    │   (em progresso: 262/400 portarias)
-    ├── Sonnet: aprofunda os vermelho → fichas de denúncia
-    └── Sonnet: chat conversacional via RAG
+VPS Hostinger (187.127.30.188 — Docker Compose)
+    ├── nginx (HTTPS) → digdig.com.br / www / pnl.digdig.com.br
+    │       └── proxy → api:8000 para /painel/, /billing/, /public/, /admin/
+    ├── office.digdig.com.br → proxy → paperclip:3100
+    ├── api (FastAPI porta 8000)
+    ├── worker_ai (Celery — fila ai,default)
+    ├── worker_beat (Celery Beat — agendamentos)
+    └── redis (broker Celery)
+
+Paperclip (Docker separado — /opt/digdig/tools/paperclip/docker/)
+    ├── CEO + CMO + CFO + CCO + CLO agentes autônomos
+    └── /workspace/digdig montado em :ro (lê docs do projeto)
+
+Scraper: roda na máquina do Regis (IP brasileiro)
+    └── salva PDFs + texto no Supabase Storage + PostgreSQL
 
 Banco: PostgreSQL (Supabase) + Storage (PDFs)
 Cache: Anthropic prompt caching — regimento 68k tokens, ephemeral 5min TTL
@@ -114,16 +130,20 @@ Cache: Anthropic prompt caching — regimento 68k tokens, ephemeral 5min TTL
 
 ## Cobertura Real do CAU/PR
 
-| Tipo | Total | Com texto | Analisadas | Escaneadas |
-|------|-------|-----------|------------|------------|
-| Portarias | 551 | 400 | 262 (em andamento) | 151 (2018–2021) |
-| Deliberações | 597 | 0 | 0 | — (HTML-only, sem PDF) |
+| Tipo | Total | Processadas | Status |
+|------|-------|-------------|--------|
+| Portarias | 551 | 551 (100%) | ✅ Haiku completo |
+| Deliberações | 757 | 545 (72%) | 🔄 212 pendentes |
+| **Total Haiku** | **1.308** | **1.096** | — |
+| Total Sonnet | — | 21 | 🔄 115 críticos pendentes |
 
-**Distribuição dos resultados até agora (262 portarias):**
-- Verde: 93 (35%) — conforme, sem irregularidades
-- Amarelo: 168 (64%) — suspeito, requer atenção
-- Laranja: 1 (<1%) — indício moderado-grave
-- Vermelho: 0 — nenhum ainda (pipeline chegando nos anos anteriores)
+**Distribuição atual (1.096 atos — consultado 25/04/2026):**
+- Amarelo: 816 (74%) — suspeito, requer atenção
+- Verde: 165 (15%) — conforme, sem irregularidades
+- Laranja: 101 (9%) — indício moderado-grave
+- Vermelho: 14 (1%) — irregularidade crítica
+
+**Custo acumulado:** $20,01 (média $0,0118/ato no Haiku)
 
 ---
 
@@ -190,7 +210,8 @@ Custo de IA por novo órgão: ~$5–10 (portarias com texto nativo)
 6. **Validar plano antes de servir chat/exportação** — conteúdo (fichas, análises) é livre para todos; só chat e geração de documentos requerem verificação de plano
 7. **Nunca commitar secrets** — toda variável sensível vai em `.env`
 8. **Verificar rodada ativa antes de disparar nova** — usar `GET /pnl/orgaos/{slug}/rodadas`
-9. **Scraper roda local** — não tentar rodar `scrape_local.py` no Railway
+9. **Scraper roda local** — não tentar rodar `scrape_local.py` no VPS (IP de data center bloqueado)
+10. **CEO e diretores são agentes no Paperclip** — não executam código, só criam issues e aprovações
 
 ---
 

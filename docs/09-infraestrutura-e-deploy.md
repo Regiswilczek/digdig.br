@@ -7,7 +7,6 @@
 | Ambiente | Finalidade | URL |
 |---------|-----------|-----|
 | **Development** | Local dos desenvolvedores | localhost |
-| **Staging** | Testes antes de produção | staging.digdig.com.br |
 | **Production** | Usuários reais | digdig.com.br |
 
 ---
@@ -16,36 +15,41 @@
 
 | Serviço | Plano | Custo/mês | O que roda |
 |---------|-------|-----------|-----------|
-| **Lovable** | Starter → Pro | $0 → $25 | Frontend React + Vite |
-| **Railway** | Starter | ~$20-50 | Backend FastAPI + Celery Workers + Redis |
-| **Supabase** | Free → Pro | $0 → $25 | PostgreSQL + Auth + Storage |
-| **Stripe** | Pay-as-you-go | 2.9% + R$0.30/transação | Billing |
+| **VPS Hostinger** | KVM2 (4 vCPU, 8GB RAM) | ~R$100–150 | Tudo: nginx, frontend, api, workers, redis, paperclip |
+| **Supabase** | Free → Pro | $0 → $25 | PostgreSQL + Auth + Storage + Realtime |
+| **Mercado Pago** | Pay-as-you-go | ~3.99% + R$0.40/transação | Billing (PIX, cartão, boleto) |
 | **Resend** | Free → Pro | $0 → $20 | Email transacional |
+| **Anthropic** | Pay-as-you-go | ~$5–20/rodada | Claude Haiku + Sonnet |
 | **Sentry** | Free | $0 | Monitoramento de erros |
-| **Total inicial** | | **~R$ 200-300/mês** | |
+| **Total mensal estimado** | | **~R$200–300** | |
 
 ---
 
 ## 3. Arquitetura de Deploy
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  LOVABLE (Frontend)                                      │
-│  ├── digdig.com.br        → React + Vite (produção)     │
-│  └── staging.digdig.com.br → React + Vite (staging)    │
-└──────────────────────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────┐
-│  RAILWAY (Backend)                                       │
-│  ├── api-service    → FastAPI (porta 8000)              │
-│  ├── worker-service → Celery workers (3 processos)      │
-│  ├── beat-service   → Celery Beat (agendamentos)        │
-│  └── redis-service  → Redis 7                          │
-└──────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  VPS HOSTINGER (187.127.30.188 — Ubuntu 24.04)               │
+│                                                              │
+│  Docker Compose — /opt/digdig/docker-compose.yml             │
+│  ├── frontend  → nginx HTTPS, porta 80/443                  │
+│  │   ├── digdig.com.br / www → SPA React + proxy /api       │
+│  │   └── pnl.digdig.com.br  → SPA React + proxy /api        │
+│  ├── api        → FastAPI (porta 8000 interna)              │
+│  ├── worker_ai  → Celery (filas ai,default)                 │
+│  ├── worker_beat→ Celery Beat (agendamentos)                │
+│  └── redis      → Redis 7 (broker Celery)                   │
+│                                                              │
+│  Docker Compose separado — tools/paperclip/docker/          │
+│  ├── office.digdig.com.br → Paperclip (proxy do nginx)      │
+│  │   server → Node.js porta 3100                            │
+│  └── db     → PostgreSQL 17 (banco interno Paperclip)       │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────┐
 │  SUPABASE (Dados)                                        │
-│  ├── PostgreSQL 15 (banco principal)                    │
+│  ├── PostgreSQL 15 (banco principal Dig Dig)            │
 │  ├── Auth (JWT, usuários)                               │
 │  └── Storage (PDFs, relatórios)                        │
 └──────────────────────────────────────────────────────────┘
@@ -55,135 +59,134 @@
 
 ## 4. Variáveis de Ambiente por Serviço
 
-### Backend (Railway)
+### Backend (VPS — backend/.env)
 ```env
 # Banco
-DATABASE_URL=postgresql://user:pass@db.supabase.co:5432/postgres
+DATABASE_URL=postgresql+asyncpg://...@pooler.supabase.com:5432/postgres
 SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_SERVICE_KEY=eyJ...   # service_role — nunca exposta ao cliente
+SUPABASE_JWT_SECRET=...
+SUPABASE_SERVICE_ROLE_KEY=...
 
 # IA
 ANTHROPIC_API_KEY=sk-ant-...
+CLAUDE_HAIKU_MODEL=claude-haiku-4-5-20251001
+CLAUDE_SONNET_MODEL=claude-sonnet-4-6
 
-# Billing
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+# Billing (Mercado Pago)
+MERCADOPAGO_ACCESS_TOKEN=APP_USR-...
+MERCADOPAGO_PUBLIC_KEY=APP_USR-...
+MERCADOPAGO_WEBHOOK_SECRET=...  # usado para validação HMAC-SHA256
 
 # Email
 RESEND_API_KEY=re_...
-EMAIL_FROM=noreply@digdig.com.br
+RESEND_FROM=noreply@digdig.com.br
 
 # Redis
-REDIS_URL=redis://:senha@redis.railway.internal:6379
+REDIS_URL=redis://redis:6379/0
 
 # App
-SECRET_KEY=chave-aleatoria-longa-para-JWT-interno
 ENVIRONMENT=production
-ALLOWED_ORIGINS=https://digdig.com.br,https://www.digdig.com.br
-SENTRY_DSN=https://...@sentry.io/...
-
-# Limites
-MAX_PDF_SIZE_MB=10
-CLAUDE_BUDGET_ALERT_USD=20.0
+ALLOWED_ORIGINS=https://digdig.com.br,https://www.digdig.com.br,https://pnl.digdig.com.br
+FRONTEND_URL=https://digdig.com.br
+WEBHOOK_SECRET=...
 ```
 
-### Frontend (Lovable)
+### Frontend (VPS — .env na raiz, args do Dockerfile.frontend)
 ```env
-# Apenas variáveis PÚBLICAS — configuradas no painel do Lovable em Settings → Environment Variables
 VITE_SUPABASE_URL=https://xxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...  # anon key — permissões mínimas
-VITE_API_URL=https://api.digdig.com.br
-VITE_STRIPE_PK=pk_live_...
-VITE_SENTRY_DSN=https://...@sentry.io/...
-VITE_ENVIRONMENT=production
+VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_API_URL=https://digdig.com.br
+VITE_MP_PUBLIC_KEY=APP_USR-...
+```
+
+### Paperclip (tools/paperclip/.env)
+```env
+DATABASE_URL=postgres://paperclip:paperclip@db:5432/paperclip
+PORT=3100
+SERVE_UI=true
+BETTER_AUTH_SECRET=...
+ANTHROPIC_API_KEY=sk-ant-...
+PAPERCLIP_PUBLIC_URL=https://office.digdig.com.br
+PAPERCLIP_DEPLOYMENT_MODE=authenticated
+PAPERCLIP_DEPLOYMENT_EXPOSURE=private
 ```
 
 ---
 
-## 5. Configuração Railway
+## 5. Configuração VPS — Docker Compose
 
-### railway.toml
-```toml
-[build]
-builder = "DOCKERFILE"
-dockerfilePath = "backend/Dockerfile"
+### Serviços principais (docker-compose.yml na raiz)
 
-[[services]]
-name = "api"
-startCommand = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
-healthcheckPath = "/health"
-healthcheckTimeout = 10
-
-[[services]]
-name = "worker"
-startCommand = "celery -A app.workers.celery_app worker --loglevel=info --concurrency=4"
-
-[[services]]
-name = "beat"
-startCommand = "celery -A app.workers.celery_app beat --loglevel=info"
-```
-
-### Dockerfile (Backend)
-```dockerfile
-FROM python:3.12-slim
-
-WORKDIR /app
-
-# Instalar dependências do sistema (para pdfplumber e tesseract)
-RUN apt-get update && apt-get install -y \
-    tesseract-ocr \
-    tesseract-ocr-por \
-    poppler-utils \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-# Usuário não-root
-RUN useradd -m appuser && chown -R appuser /app
-USER appuser
-
-EXPOSE 8000
-```
-
----
-
-## 6. CI/CD — GitHub Actions
-
-### Deploy automático
 ```yaml
-# .github/workflows/deploy.yml
-name: Deploy
+services:
+  redis:       # Redis 7 Alpine — broker Celery
+  api:         # FastAPI, porta 8000 interna, 2 workers uvicorn
+  worker_ai:   # Celery worker, filas ai,default, concurrency=2
+  worker_beat: # Celery Beat — agendamentos
+  frontend:    # nginx + SPA React, porta 80/443, monta /etc/letsencrypt
+```
 
-on:
-  push:
-    branches: [main]
+### Serviços Paperclip (tools/paperclip/docker/docker-compose.yml)
 
-jobs:
-  test:
-    uses: ./.github/workflows/tests.yml
+```yaml
+services:
+  db:     # PostgreSQL 17 Alpine — banco interno do Paperclip
+  server: # Node.js, porta 3100, monta /opt/digdig em /workspace/digdig:ro
+```
 
-  deploy-backend:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: railwayapp/railway-action@v1
-        with:
-          railway_token: ${{ secrets.RAILWAY_TOKEN }}
-          service: api
+### Comandos de operação
 
-  # Frontend: deploy automático via Lovable ao fazer push para main — não requer step adicional no CI
+```bash
+# Na VPS como root — subir tudo
+cd /opt/digdig
+docker compose up -d
+
+# Subir Paperclip separado
+cd /opt/digdig/tools/paperclip/docker
+docker compose up -d
+
+# Recriar serviços após mudança de .env
+docker compose up -d --force-recreate api worker_ai
+
+# Ver logs
+docker compose logs -f api
+docker compose logs -f worker_ai
+
+# Renovar SSL (certbot já configurado como cron no host)
+certbot renew
+docker exec digdig-frontend-1 nginx -s reload
+```
+
+---
+
+## 6. CI/CD — Deploy na VPS
+
+O deploy é manual via SSH + git pull + docker compose. Não há CI/CD automático ainda.
+
+### Fluxo de deploy manual
+
+```bash
+# Na VPS como root
+cd /opt/digdig
+git pull origin main
+docker compose build api worker_ai worker_beat frontend
+docker compose up -d
+```
+
+### Atualizar nginx.conf sem rebuild
+
+O nginx.conf é copiado no build do container frontend (COPY). Para mudanças sem rebuild:
+
+```bash
+docker cp /opt/digdig/nginx/nginx.conf digdig-frontend-1:/etc/nginx/nginx.conf
+docker exec digdig-frontend-1 nginx -s reload
 ```
 
 ### Estratégia de branching
 ```
-main          → deploy automático em produção
-staging       → deploy automático em staging
-feature/*     → PR para staging, testes obrigatórios
-hotfix/*      → PR direto para main (emergências)
+main    → branch de produção — push dispara pull na VPS
+feature/* → PR para main
+hotfix/*  → PR direto para main (emergências)
 ```
 
 ---

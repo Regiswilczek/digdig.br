@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from pydantic import BaseModel
 import mercadopago
@@ -71,6 +74,31 @@ async def criar_pagamento(req: CriarPagamentoRequest):
     return out
 
 
+def _verify_mp_signature(request: Request, data_id: str) -> bool:
+    secret = settings.mercadopago_webhook_secret
+    if not secret:
+        return True  # sem secret configurado, aceita tudo (dev)
+
+    x_signature = request.headers.get("x-signature", "")
+    x_request_id = request.headers.get("x-request-id", "")
+
+    ts = ""
+    v1 = ""
+    for part in x_signature.split(","):
+        k, _, v = part.strip().partition("=")
+        if k == "ts":
+            ts = v
+        elif k == "v1":
+            v1 = v
+
+    if not ts or not v1:
+        return False
+
+    manifest = f"id:{data_id};request-id:{x_request_id};ts:{ts};"
+    expected = hmac.new(secret.encode(), manifest.encode(), hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, v1)
+
+
 @router.post("/webhook/mp")
 async def webhook_mp(request: Request, background_tasks: BackgroundTasks):
     try:
@@ -80,6 +108,10 @@ async def webhook_mp(request: Request, background_tasks: BackgroundTasks):
 
     notif_type = body.get("type")
     payment_id = body.get("data", {}).get("id")
+
+    if payment_id and not _verify_mp_signature(request, str(payment_id)):
+        log.warning("mp_webhook_invalid_signature", payment_id=payment_id)
+        raise HTTPException(status_code=401, detail="Invalid signature")
 
     if notif_type == "payment" and payment_id:
         background_tasks.add_task(_processar_pagamento, int(payment_id))

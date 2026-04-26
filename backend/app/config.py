@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     # Mercado Pago (billing)
     mercadopago_access_token: str = ""
     mercadopago_public_key: str = ""
+    mercadopago_webhook_secret: str = ""
 
     # Resend
     resend_api_key: str = ""
