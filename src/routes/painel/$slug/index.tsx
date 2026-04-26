@@ -3,8 +3,10 @@ import { useState, useEffect } from "react";
 import {
   fetchPainelAtos,
   fetchPainelRodada,
+  fetchPendentes,
   type PainelAto,
   type PainelRodada,
+  type PainelPendente,
 } from "../../../lib/api-auth";
 import { fetchStats, type PublicStats } from "../../../lib/api";
 import { supabase } from "../../../lib/supabase";
@@ -952,6 +954,304 @@ function TabRelatorio({
   );
 }
 
+// ── Tab: Pendentes de Extração ──────────────────────────────────────────
+const MOTIVO_LABEL: Record<string, { label: string; desc: string; color: string }> = {
+  escaneado_sem_ocr: {
+    label: "PDF escaneado",
+    desc: "Aguardando OCR (Tesseract)",
+    color: "#92400e",
+  },
+  deliberacao_html: {
+    label: "Conteúdo HTML",
+    desc: "Aguardando scraper dedicado",
+    color: "#1d4ed8",
+  },
+};
+
+function TabPendentes({ slug }: { slug: string }) {
+  const [data, setData] = useState<{
+    total: number;
+    pages: number;
+    total_portaria_escaneada: number;
+    total_deliberacao_html: number;
+    atos: PainelPendente[];
+  } | null>(null);
+  const [filtro, setFiltro] = useState("");
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchPendentes(slug, { tipo: filtro || undefined, page })
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [slug, filtro, page]);
+
+  // Refresh a cada 30s para refletir extrações que ocorram
+  useEffect(() => {
+    const id = setInterval(() => {
+      fetchPendentes(slug, { tipo: filtro || undefined, page })
+        .then(setData)
+        .catch(console.error);
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [slug, filtro, page]);
+
+  const kpis = [
+    {
+      label: "Portarias escaneadas",
+      value: data?.total_portaria_escaneada ?? "—",
+      desc: "PDF sem camada de texto — requer OCR",
+      tipo: "portaria",
+    },
+    {
+      label: "Deliberações HTML",
+      value: data?.total_deliberacao_html ?? "—",
+      desc: "Conteúdo full-text ainda não extraído",
+      tipo: "deliberacao",
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* Nota de transparência */}
+      <div
+        className="px-5 py-4 text-[12.5px] leading-relaxed"
+        style={{
+          border: `1px solid ${BORDER}`,
+          background: PAPER,
+          color: MUTED,
+        }}
+      >
+        Estes documentos existem no banco mas ainda não têm texto completo extraído —
+        por isso não foram analisados pela IA. À medida que a extração avançar (OCR
+        para portarias escaneadas, scraper para deliberações), eles saem desta lista
+        automaticamente.
+      </div>
+
+      {/* KPI cards */}
+      <div
+        className="grid grid-cols-2 gap-px"
+        style={{ background: BORDER, border: `1px solid ${BORDER}` }}
+      >
+        {kpis.map(({ label, value, desc, tipo: t }) => (
+          <button
+            key={t}
+            onClick={() => {
+              setFiltro(filtro === t ? "" : t);
+              setPage(1);
+            }}
+            className="bg-white p-5 text-left transition-colors hover:bg-[#faf8f3]"
+            style={{
+              outline: filtro === t ? `2px solid ${INK}` : "none",
+              outlineOffset: -2,
+            }}
+          >
+            <p
+              className="text-[10px] uppercase tracking-[0.24em] mb-2"
+              style={{ color: SUBTLE, fontFamily: MONO }}
+            >
+              {label}
+            </p>
+            <p
+              className="text-[32px] font-medium mb-1"
+              style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.02em" }}
+            >
+              {value}
+            </p>
+            <p className="text-[11.5px]" style={{ color: MUTED }}>
+              {desc}
+            </p>
+          </button>
+        ))}
+      </div>
+
+      {/* Tabela */}
+      <div>
+        {filtro && (
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-[12px]" style={{ color: MUTED }}>
+              Filtrando:{" "}
+              <strong style={{ color: INK }}>
+                {filtro === "portaria" ? "Portarias escaneadas" : "Deliberações HTML"}
+              </strong>
+            </span>
+            <button
+              onClick={() => {
+                setFiltro("");
+                setPage(1);
+              }}
+              className="text-[11px] uppercase tracking-wider px-2 py-0.5 transition-colors hover:bg-[#f5f3ee]"
+              style={{
+                border: `1px solid ${BORDER}`,
+                color: MUTED,
+                fontFamily: MONO,
+                borderRadius: 2,
+              }}
+            >
+              Limpar ×
+            </button>
+          </div>
+        )}
+
+        <div style={{ border: `1px solid ${BORDER}` }}>
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${BORDER}`, background: PAPER }}>
+                {["Número", "Tipo", "Motivo", "Ano", ""].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-left text-[10px] uppercase tracking-[0.2em] font-semibold"
+                    style={{ color: MUTED, fontFamily: MONO }}
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-4 py-10 text-center text-[13px]"
+                    style={{ color: MUTED }}
+                  >
+                    Carregando…
+                  </td>
+                </tr>
+              )}
+              {!loading && (!data || data.atos.length === 0) && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-4 py-10 text-center text-[13px]"
+                    style={{ color: MUTED }}
+                  >
+                    Nenhum documento pendente.
+                  </td>
+                </tr>
+              )}
+              {data?.atos.map((ato) => {
+                const m = MOTIVO_LABEL[ato.motivo];
+                const ano = ato.data_publicacao
+                  ? new Date(ato.data_publicacao).getFullYear()
+                  : "—";
+                return (
+                  <tr
+                    key={ato.id}
+                    className="hover:bg-[#faf8f3] transition-colors"
+                    style={{ borderBottom: `1px solid ${BORDER}` }}
+                  >
+                    <td
+                      className="px-4 py-3 font-medium whitespace-nowrap"
+                      style={{ color: INK, fontFamily: MONO, fontSize: 12.5 }}
+                    >
+                      {ato.numero}
+                    </td>
+                    <td
+                      className="px-4 py-3 text-[12px] capitalize"
+                      style={{ color: MUTED }}
+                    >
+                      {ato.tipo === "deliberacao" ? "Deliberação" : "Portaria"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className="inline-flex items-center gap-1.5 text-[11px] font-medium"
+                        style={{ color: m?.color ?? MUTED, fontFamily: MONO }}
+                      >
+                        {m?.label ?? ato.motivo}
+                        <span
+                          className="font-normal hidden sm:inline"
+                          style={{ color: SUBTLE }}
+                        >
+                          · {m?.desc}
+                        </span>
+                      </span>
+                    </td>
+                    <td
+                      className="px-4 py-3 text-[12px] whitespace-nowrap"
+                      style={{ color: MUTED, fontFamily: MONO }}
+                    >
+                      {ano}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        {ato.url_pdf && (
+                          <a
+                            href={ato.url_pdf}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="PDF original"
+                            className="hover:text-[#0a0a0a] transition-colors"
+                            style={{ color: SUBTLE }}
+                          >
+                            <ExternalLink size={13} />
+                          </a>
+                        )}
+                        {!ato.url_pdf && ato.url_original && (
+                          <a
+                            href={ato.url_original}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Página original"
+                            className="hover:text-[#0a0a0a] transition-colors"
+                            style={{ color: SUBTLE }}
+                          >
+                            <ExternalLink size={13} />
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {data && data.pages > 1 && (
+          <div className="flex items-center gap-3 justify-end mt-4">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="px-3 py-1.5 text-[11px] uppercase tracking-wider disabled:opacity-30 hover:bg-[#faf8f3] transition-colors"
+              style={{
+                border: `1px solid ${BORDER}`,
+                color: INK,
+                fontFamily: MONO,
+                borderRadius: 2,
+              }}
+            >
+              ← Anterior
+            </button>
+            <span
+              className="text-[11px] uppercase tracking-wider"
+              style={{ color: MUTED, fontFamily: MONO }}
+            >
+              {page} / {data.pages}
+            </span>
+            <button
+              disabled={page === data.pages}
+              onClick={() => setPage((p) => p + 1)}
+              className="px-3 py-1.5 text-[11px] uppercase tracking-wider disabled:opacity-30 hover:bg-[#faf8f3] transition-colors"
+              style={{
+                border: `1px solid ${BORDER}`,
+                color: INK,
+                fontFamily: MONO,
+                borderRadius: 2,
+              }}
+            >
+              Próxima →
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Dashboard ──────────────────────────────────────────────────────
 function SlugDashboard() {
   const { slug } = Route.useParams();
@@ -1034,6 +1334,7 @@ function SlugDashboard() {
                 { value: "deliberacoes", label: "Deliberações" },
                 { value: "denuncias", label: "Denúncias" },
                 { value: "pipeline", label: "Pipeline" },
+                { value: "pendentes", label: "Pendentes" },
                 { value: "relatorio", label: "Relatório" },
               ].map((tab) => (
                 <TabsTrigger
@@ -1075,6 +1376,9 @@ function SlugDashboard() {
               </TabsContent>
               <TabsContent value="pipeline">
                 <TabPipeline slug={slug} rodada={rodada} />
+              </TabsContent>
+              <TabsContent value="pendentes">
+                <TabPendentes slug={slug} />
               </TabsContent>
               <TabsContent value="relatorio">
                 <TabRelatorio stats={stats} rodada={rodada} />

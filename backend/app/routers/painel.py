@@ -171,6 +171,80 @@ async def get_stats(
     return await public_get_stats(slug=slug, db=db)
 
 
+@router.get("/orgaos/{slug}/pendentes")
+async def get_pendentes_extracao(
+    slug: str,
+    tipo: str | None = Query(None),
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """Documentos sem extração de texto completo — portarias escaneadas e deliberações HTML."""
+    tenant = await _get_tenant(slug, db)
+
+    cond_sem_texto = or_(
+        and_(Ato.tipo == "portaria", Ato.pdf_baixado == False),
+        Ato.tipo == "deliberacao",
+    )
+
+    # Totais por categoria (sempre sem filtro de tipo para os KPIs)
+    r_port = await db.execute(
+        select(func.count()).where(
+            Ato.tenant_id == tenant.id,
+            Ato.tipo == "portaria",
+            Ato.pdf_baixado == False,
+        )
+    )
+    r_delib = await db.execute(
+        select(func.count()).where(
+            Ato.tenant_id == tenant.id,
+            Ato.tipo == "deliberacao",
+        )
+    )
+    total_portaria_escaneada = r_port.scalar_one()
+    total_deliberacao_html = r_delib.scalar_one()
+
+    # Lista paginada (com filtro opcional por tipo)
+    base_q = (
+        select(Ato)
+        .where(Ato.tenant_id == tenant.id, cond_sem_texto)
+        .order_by(Ato.data_publicacao.asc().nulls_last())
+    )
+    if tipo:
+        base_q = base_q.where(Ato.tipo == tipo)
+
+    total_r = await db.execute(select(func.count()).select_from(base_q.subquery()))
+    total = total_r.scalar_one()
+
+    rows = await db.execute(base_q.offset((page - 1) * limit).limit(limit))
+    atos = rows.scalars().all()
+
+    return {
+        "total": total,
+        "page": page,
+        "pages": max(1, -(-total // limit)),
+        "total_portaria_escaneada": total_portaria_escaneada,
+        "total_deliberacao_html": total_deliberacao_html,
+        "atos": [
+            {
+                "id": str(ato.id),
+                "numero": ato.numero,
+                "tipo": ato.tipo,
+                "data_publicacao": (
+                    ato.data_publicacao.isoformat() if ato.data_publicacao else None
+                ),
+                "url_pdf": ato.url_pdf,
+                "url_original": ato.url_original,
+                "motivo": (
+                    "escaneado_sem_ocr" if ato.tipo == "portaria" else "deliberacao_html"
+                ),
+            }
+            for ato in atos
+        ],
+    }
+
+
 @router.get("/orgaos/{slug}/rodadas")
 async def get_rodada_ativa(
     slug: str,
