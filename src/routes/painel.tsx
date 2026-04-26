@@ -32,6 +32,7 @@ import {
   RADIUS,
   tag,
 } from "../lib/painel-theme";
+import { fetchStats, type PublicStats } from "../lib/api";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — route is registered once dev server regenerates routeTree.gen.ts
@@ -83,6 +84,11 @@ function SidebarContent({
   onNavigate?: () => void;
 }) {
   const initial = (userEmail?.[0] ?? "•").toUpperCase();
+  const [pipelineStats, setPipelineStats] = useState<PublicStats | null>(null);
+
+  useEffect(() => {
+    fetchStats("cau-pr").then(setPipelineStats).catch(() => null);
+  }, []);
   const orgaos = [
     { nome: "CAU/PR", slug: "cau-pr", ativo: true, n: 1 },
     { nome: "Pref. de Curitiba", slug: null, ativo: false, n: 2 },
@@ -304,50 +310,59 @@ function SidebarContent({
               </span>
             </span>
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span
-              className="text-[22px] tabular-nums"
-              style={{
-                color: INK,
-                fontFamily: TIGHT,
-                fontWeight: 500,
-                letterSpacing: "-0.04em",
-                lineHeight: 1,
-              }}
-            >
-              262
-            </span>
-            <span
-              className="text-[10px] tabular-nums"
-              style={{ color: MUTED, fontFamily: MONO }}
-            >
-              / 400
-            </span>
-            <span
-              className="ml-auto text-[9.5px] tabular-nums"
-              style={{ color: ACCENT, fontFamily: MONO, fontWeight: 600 }}
-            >
-              65.5%
-            </span>
-          </div>
-          <div
-            className="mt-2 h-[3px] overflow-hidden relative"
-            style={{ background: BORDER, borderRadius: 1 }}
-          >
-            <div
-              className="h-full"
-              style={{
-                width: "65.5%",
-                background: `linear-gradient(90deg, ${INK} 0%, ${ACCENT} 100%)`,
-              }}
-            />
-          </div>
-          <p
-            className="text-[9px] mt-2 leading-snug uppercase tracking-[0.14em]"
-            style={{ color: MUTED_SOFT, fontFamily: MONO }}
-          >
-            cau/pr · portarias · haiku
-          </p>
+          {(() => {
+            const analisados = pipelineStats?.total_analisados ?? null;
+            const total = pipelineStats?.total_atos ?? null;
+            const pct = analisados != null && total ? Math.round((analisados / total) * 1000) / 10 : null;
+            return (
+              <>
+                <div className="flex items-baseline gap-1.5">
+                  <span
+                    className="text-[22px] tabular-nums"
+                    style={{
+                      color: INK,
+                      fontFamily: TIGHT,
+                      fontWeight: 500,
+                      letterSpacing: "-0.04em",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {analisados ?? "—"}
+                  </span>
+                  <span
+                    className="text-[10px] tabular-nums"
+                    style={{ color: MUTED, fontFamily: MONO }}
+                  >
+                    / {total ?? "—"}
+                  </span>
+                  <span
+                    className="ml-auto text-[9.5px] tabular-nums"
+                    style={{ color: ACCENT, fontFamily: MONO, fontWeight: 600 }}
+                  >
+                    {pct != null ? `${pct}%` : "—"}
+                  </span>
+                </div>
+                <div
+                  className="mt-2 h-[3px] overflow-hidden relative"
+                  style={{ background: BORDER, borderRadius: 1 }}
+                >
+                  <div
+                    className="h-full transition-all duration-700"
+                    style={{
+                      width: pct != null ? `${pct}%` : "0%",
+                      background: `linear-gradient(90deg, ${INK} 0%, ${ACCENT} 100%)`,
+                    }}
+                  />
+                </div>
+                <p
+                  className="text-[9px] mt-2 leading-snug uppercase tracking-[0.14em]"
+                  style={{ color: MUTED_SOFT, fontFamily: MONO }}
+                >
+                  cau/pr · {total != null ? `${total} atos` : "carregando…"}
+                </p>
+              </>
+            );
+          })()}
         </div>
       </div>
 
