@@ -92,6 +92,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        # Lidos do .env na raiz do projeto (docker compose lê automaticamente)
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_API_URL: ${VITE_API_URL:-}
+        VITE_MP_PUBLIC_KEY: ${VITE_MP_PUBLIC_KEY}
     restart: always
     ports:
       - "80:80"

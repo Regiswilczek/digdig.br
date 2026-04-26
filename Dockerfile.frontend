@@ -8,7 +8,17 @@ RUN npm ci --silent
 
 COPY . .
 
-# Build SPA (VPS config — not Cloudflare Workers)
+# Variáveis VITE_ precisam existir em BUILD TIME (Vite as embute no bundle)
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_API_URL
+ARG VITE_MP_PUBLIC_KEY
+
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_MP_PUBLIC_KEY=$VITE_MP_PUBLIC_KEY
+
 RUN npm run build:vps
 
 # ── Stage 2: Serve via nginx ──────────────────────────────────────────────────
