@@ -49,7 +49,11 @@ import httpx
 import fitz  # PyMuPDF
 import anthropic
 
-ASYNCPG_URL = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+ASYNCPG_URL = (
+    DATABASE_URL
+    .replace("postgresql+asyncpg://", "postgresql://")
+    .replace(":5432/", ":6543/")
+)
 
 HEADERS = {
     "User-Agent": (
@@ -148,18 +152,40 @@ async def ocr_pdf_bytes(client: anthropic.Anthropic, pdf_bytes: bytes, numero: s
     return "\n\n--- Página ---\n\n".join(page_texts)
 
 
-async def main(limit: int | None, dry_run: bool) -> None:
-    conn = await asyncpg.connect(ASYNCPG_URL)
+TENANT_ID = "f32ed0e7-c95d-4dec-a332-fa2cf6f20eb4"
+
+TIPOS_ALVO = [
+    "portaria",
+    "ata_plenaria",
+    "convenio",
+    "deliberacao",
+    "dispensa_eletronica",
+    "relatorio_parecer",
+    "relatorio_tcu",
+    "contratacao_direta",
+    "auditoria_independente",
+    "contrato",
+    "portaria_normativa",
+]
+
+
+async def main(limit: int | None, dry_run: bool, tipo_filtro: str | None) -> None:
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+    tipos = [tipo_filtro] if tipo_filtro else TIPOS_ALVO
 
     try:
         rows = await conn.fetch("""
-            SELECT id, numero, tipo, url_pdf, ementa
-            FROM atos
-            WHERE erro_download = 'texto_vazio'
-              AND url_pdf IS NOT NULL
-            ORDER BY data_publicacao DESC NULLS LAST
-        """)
+            SELECT a.id, a.numero, a.tipo, a.url_pdf, a.ementa
+            FROM atos a
+            JOIN conteudo_ato c ON c.ato_id = a.id
+            WHERE a.tenant_id = $1
+              AND a.url_pdf IS NOT NULL
+              AND a.tipo = ANY($2::text[])
+              AND c.qualidade IN ('ruim', 'digitalizado')
+            ORDER BY a.tipo, a.data_publicacao DESC NULLS LAST
+        """, TENANT_ID, tipos)
 
         if limit:
             rows = rows[:limit]
@@ -270,5 +296,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, default=None, help="Processar no máximo N documentos")
     parser.add_argument("--dry-run", action="store_true", help="Mostra lista sem processar")
+    parser.add_argument("--tipo", type=str, default=None, help="Filtrar um tipo (ex: portaria, ata_plenaria)")
     args = parser.parse_args()
-    asyncio.run(main(args.limit, args.dry_run))
+    asyncio.run(main(args.limit, args.dry_run, args.tipo))
