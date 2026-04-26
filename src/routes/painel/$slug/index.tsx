@@ -301,21 +301,13 @@ function RealtimeFeed({
         style={{ borderBottom: `1px solid #f1efe8` }}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span
-              className="flex items-center justify-center w-7 h-7 rounded-[7px] text-white"
-              style={{ background: INK }}
-            >
-              <span
-                className="w-1.5 h-1.5 rounded-full animate-pulse"
-                style={{
-                  background: isLive ? "#22c55e" : "#a8a59c",
-                  boxShadow: isLive
-                    ? "0 0 0 3px rgba(34,197,94,0.25)"
-                    : "none",
-                }}
-              />
-            </span>
+          <div className="flex items-center gap-3">
+            <SplineEmbed
+              width={36}
+              height={36}
+              radius={8}
+              className="flex-shrink-0"
+            />
             <div>
               <p
                 className="text-[11px] uppercase tracking-[0.22em] font-semibold leading-none"
