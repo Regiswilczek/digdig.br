@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Whitepaper07PreAuditoriaIntegradaRouteImport } from './routes/whitepaper-07-pre-auditoria-integrada'
 import { Route as Whitepaper06DoGabineteAoTerminalRouteImport } from './routes/whitepaper-06-do-gabinete-ao-terminal'
 import { Route as Whitepaper05QuandoAMaquinaEntraNaSalaRouteImport } from './routes/whitepaper-05-quando-a-maquina-entra-na-sala'
 import { Route as Whitepaper04OQueAMaquinaEncontrouRouteImport } from './routes/whitepaper-04-o-que-a-maquina-encontrou'
@@ -33,6 +34,12 @@ import { Route as PainelSlugRouteImport } from './routes/painel/$slug'
 import { Route as PainelSlugIndexRouteImport } from './routes/painel/$slug/index'
 import { Route as PainelSlugAtoIdRouteImport } from './routes/painel/$slug/ato.$id'
 
+const Whitepaper07PreAuditoriaIntegradaRoute =
+  Whitepaper07PreAuditoriaIntegradaRouteImport.update({
+    id: '/whitepaper-07-pre-auditoria-integrada',
+    path: '/whitepaper-07-pre-auditoria-integrada',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const Whitepaper06DoGabineteAoTerminalRoute =
   Whitepaper06DoGabineteAoTerminalRouteImport.update({
     id: '/whitepaper-06-do-gabinete-ao-terminal',
@@ -174,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/whitepaper-04-o-que-a-maquina-encontrou': typeof Whitepaper04OQueAMaquinaEncontrouRoute
   '/whitepaper-05-quando-a-maquina-entra-na-sala': typeof Whitepaper05QuandoAMaquinaEntraNaSalaRoute
   '/whitepaper-06-do-gabinete-ao-terminal': typeof Whitepaper06DoGabineteAoTerminalRoute
+  '/whitepaper-07-pre-auditoria-integrada': typeof Whitepaper07PreAuditoriaIntegradaRoute
   '/painel/$slug': typeof PainelSlugRouteWithChildren
   '/painel/chat': typeof PainelChatRoute
   '/painel/': typeof PainelIndexRoute
@@ -198,6 +206,7 @@ export interface FileRoutesByTo {
   '/whitepaper-04-o-que-a-maquina-encontrou': typeof Whitepaper04OQueAMaquinaEncontrouRoute
   '/whitepaper-05-quando-a-maquina-entra-na-sala': typeof Whitepaper05QuandoAMaquinaEntraNaSalaRoute
   '/whitepaper-06-do-gabinete-ao-terminal': typeof Whitepaper06DoGabineteAoTerminalRoute
+  '/whitepaper-07-pre-auditoria-integrada': typeof Whitepaper07PreAuditoriaIntegradaRoute
   '/painel/chat': typeof PainelChatRoute
   '/painel': typeof PainelIndexRoute
   '/painel/$slug': typeof PainelSlugIndexRoute
@@ -223,6 +232,7 @@ export interface FileRoutesById {
   '/whitepaper-04-o-que-a-maquina-encontrou': typeof Whitepaper04OQueAMaquinaEncontrouRoute
   '/whitepaper-05-quando-a-maquina-entra-na-sala': typeof Whitepaper05QuandoAMaquinaEntraNaSalaRoute
   '/whitepaper-06-do-gabinete-ao-terminal': typeof Whitepaper06DoGabineteAoTerminalRoute
+  '/whitepaper-07-pre-auditoria-integrada': typeof Whitepaper07PreAuditoriaIntegradaRoute
   '/painel/$slug': typeof PainelSlugRouteWithChildren
   '/painel/chat': typeof PainelChatRoute
   '/painel/': typeof PainelIndexRoute
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/whitepaper-04-o-que-a-maquina-encontrou'
     | '/whitepaper-05-quando-a-maquina-entra-na-sala'
     | '/whitepaper-06-do-gabinete-ao-terminal'
+    | '/whitepaper-07-pre-auditoria-integrada'
     | '/painel/$slug'
     | '/painel/chat'
     | '/painel/'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/whitepaper-04-o-que-a-maquina-encontrou'
     | '/whitepaper-05-quando-a-maquina-entra-na-sala'
     | '/whitepaper-06-do-gabinete-ao-terminal'
+    | '/whitepaper-07-pre-auditoria-integrada'
     | '/painel/chat'
     | '/painel'
     | '/painel/$slug'
@@ -298,6 +310,7 @@ export interface FileRouteTypes {
     | '/whitepaper-04-o-que-a-maquina-encontrou'
     | '/whitepaper-05-quando-a-maquina-entra-na-sala'
     | '/whitepaper-06-do-gabinete-ao-terminal'
+    | '/whitepaper-07-pre-auditoria-integrada'
     | '/painel/$slug'
     | '/painel/chat'
     | '/painel/'
@@ -324,10 +337,18 @@ export interface RootRouteChildren {
   Whitepaper04OQueAMaquinaEncontrouRoute: typeof Whitepaper04OQueAMaquinaEncontrouRoute
   Whitepaper05QuandoAMaquinaEntraNaSalaRoute: typeof Whitepaper05QuandoAMaquinaEntraNaSalaRoute
   Whitepaper06DoGabineteAoTerminalRoute: typeof Whitepaper06DoGabineteAoTerminalRoute
+  Whitepaper07PreAuditoriaIntegradaRoute: typeof Whitepaper07PreAuditoriaIntegradaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/whitepaper-07-pre-auditoria-integrada': {
+      id: '/whitepaper-07-pre-auditoria-integrada'
+      path: '/whitepaper-07-pre-auditoria-integrada'
+      fullPath: '/whitepaper-07-pre-auditoria-integrada'
+      preLoaderRoute: typeof Whitepaper07PreAuditoriaIntegradaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/whitepaper-06-do-gabinete-ao-terminal': {
       id: '/whitepaper-06-do-gabinete-ao-terminal'
       path: '/whitepaper-06-do-gabinete-ao-terminal'
@@ -543,6 +564,8 @@ const rootRouteChildren: RootRouteChildren = {
   Whitepaper05QuandoAMaquinaEntraNaSalaRoute:
     Whitepaper05QuandoAMaquinaEntraNaSalaRoute,
   Whitepaper06DoGabineteAoTerminalRoute: Whitepaper06DoGabineteAoTerminalRoute,
+  Whitepaper07PreAuditoriaIntegradaRoute:
+    Whitepaper07PreAuditoriaIntegradaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

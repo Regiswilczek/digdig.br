@@ -7,6 +7,7 @@ from app.routers.admin import router as admin_router
 from app.routers.honeypot import router as honeypot_router
 from app.routers.public import router as public_router
 from app.routers.painel import router as painel_router
+from app.routers.billing import router as billing_router
 
 
 def create_app() -> FastAPI:
@@ -38,6 +39,7 @@ def create_app() -> FastAPI:
     app.include_router(honeypot_router)
     app.include_router(public_router)
     app.include_router(painel_router)
+    app.include_router(billing_router)
 
     return app
 

@@ -34,6 +34,16 @@ export const Route = createFileRoute("/blog")({
 // Add new entries here (newest first) whenever a new white paper is published.
 const PAPERS = [
   {
+    numero: "07",
+    slug: "/whitepaper-07-pre-auditoria-integrada",
+    titulo: "Pré-Auditoria Integrada do CAU/PR",
+    subtitulo: "1.789 atos, dois PADs secretos ativos e quatro padrões sistêmicos documentados",
+    resumo:
+      "A síntese antes do Zew: controle presidencial dos mecanismos disciplinares documentado em três gestões consecutivas, dois processos disciplinares com 20 e 12 meses em sigilo total, 14 atas plenárias consecutivas ausentes do site oficial, e a rede de três servidores não-eleitos que opera o aparato investigativo. O que o Piper e o Bud encontraram — estruturado para o Zew concluir.",
+    data: "Abril 2026",
+    tags: ["Síntese", "Padrões Sistêmicos", "Cronologia", "Lacunas"],
+  },
+  {
     numero: "06",
     slug: "/whitepaper-06-do-gabinete-ao-terminal",
     titulo: "Do Gabinete ao Terminal",
