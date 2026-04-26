@@ -47,6 +47,56 @@ function StyledDIG({ mobile = false }: { mobile?: boolean }) {
 
 // ── Live card ─────────────────────────────────────────────────────────────────
 
+const SLEEP_ZS_CSS = `
+@keyframes float-z {
+  0%   { transform: translateY(0) translateX(0) scale(0.85); opacity: 0; }
+  12%  { opacity: 0.32; }
+  80%  { opacity: 0.18; }
+  100% { transform: translateY(-36px) translateX(var(--zdx)) scale(1.15); opacity: 0; }
+}
+`;
+
+const Z_PARTICLES = [
+  { char: "z", size: 6,  x: 46, dx: -5,  delay: 0.0 },
+  { char: "Z", size: 10, x: 52, dx:  7,  delay: 0.9 },
+  { char: "z", size: 7,  x: 49, dx: -9,  delay: 1.7 },
+  { char: "Z", size: 12, x: 44, dx: 11,  delay: 2.5 },
+  { char: "z", size: 5,  x: 55, dx: -3,  delay: 3.3 },
+];
+
+function SleepZs({ height = 38 }: { height?: number }) {
+  return (
+    <>
+      <style>{SLEEP_ZS_CSS}</style>
+      <div style={{ position: "relative", height, width: "100%", overflow: "hidden" }}>
+        {Z_PARTICLES.map((p, i) => (
+          <span
+            key={i}
+            style={
+              {
+                position: "absolute",
+                left: `${p.x}%`,
+                bottom: 0,
+                fontSize: p.size,
+                color: "rgba(255,255,255,0.20)",
+                fontFamily: "monospace",
+                fontWeight: 700,
+                letterSpacing: 0,
+                lineHeight: 1,
+                userSelect: "none",
+                "--zdx": `${p.dx}px`,
+                animation: `float-z 3.6s ${p.delay}s infinite ease-out`,
+              } as React.CSSProperties
+            }
+          >
+            {p.char}
+          </span>
+        ))}
+      </div>
+    </>
+  );
+}
+
 const TIPO_LIVE: Record<string, string> = {
   portaria: "Portaria",
   portaria_normativa: "Port. Normativa",
@@ -77,7 +127,32 @@ function LiveCard({ analyses, fullWidth = false }: { analyses: AnaliseRecente[] 
     return () => clearInterval(timer);
   }, [items.length]);
 
-  if (!analyses || items.length === 0) return null;
+  if (!analyses || items.length === 0) {
+    if (fullWidth) {
+      return (
+        <div className="border border-white/8 bg-black/25 backdrop-blur-sm px-4 py-3 w-full">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="h-2 w-2 rounded-full bg-white/12" />
+            <span style={SYNE} className="text-[9px] uppercase tracking-[0.28em] text-white/20">
+              Idle
+            </span>
+          </div>
+          <SleepZs height={42} />
+        </div>
+      );
+    }
+    return (
+      <div className="border border-white/8 bg-black/25 backdrop-blur-sm px-3 py-2.5 w-[215px]">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-white/12" />
+          <span style={SYNE} className="text-[8px] uppercase tracking-[0.3em] text-white/20">
+            Idle
+          </span>
+        </div>
+        <SleepZs height={34} />
+      </div>
+    );
+  }
 
   const current = items[idx % items.length];
   const tipo = TIPO_LIVE[current.tipo ?? ""] ?? "Ato";
