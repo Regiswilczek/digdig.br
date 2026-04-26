@@ -15,6 +15,12 @@ import {
   GitBranch,
 } from "lucide-react";
 
+const BORDER = "#e8e6e1";
+const INK = "#0a0a0a";
+const MUTED = "#6b6b66";
+const SUBTLE = "#9a978f";
+const PAPER = "#faf8f3";
+
 // @ts-ignore
 export const Route = createFileRoute("/painel/chat")({
   component: ChatPage,
@@ -53,36 +59,6 @@ const QUICK_ACTIONS = [
   },
 ];
 
-function DigOrb() {
-  return (
-    <div className="relative w-[88px] h-[88px] flex items-center justify-center">
-      {/* Outer glow */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-600/40 via-blue-500/30 to-cyan-400/20 blur-2xl scale-150" />
-      {/* Middle ring */}
-      <div className="absolute inset-0 rounded-full border border-violet-500/20" />
-      {/* Sphere */}
-      <div
-        className="relative w-[72px] h-[72px] rounded-full flex items-center justify-center"
-        style={{
-          background:
-            "radial-gradient(circle at 35% 35%, #a78bfa, #6d28d9 45%, #1e1b4b 80%, #0a0a1a)",
-          boxShadow:
-            "0 0 40px rgba(109,40,217,0.6), 0 0 80px rgba(109,40,217,0.25), inset 0 0 20px rgba(167,139,250,0.2)",
-        }}
-      >
-        {/* Highlight shimmer */}
-        <div
-          className="absolute top-[14px] left-[16px] w-[18px] h-[10px] rounded-full opacity-60"
-          style={{
-            background:
-              "radial-gradient(ellipse, rgba(255,255,255,0.7) 0%, transparent 100%)",
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
 interface RecentItem {
   icon: React.ElementType;
   text: string;
@@ -94,7 +70,7 @@ const RECENT_MOCK: RecentItem[] = [
   {
     icon: AlertTriangle,
     text: "485 atos analisados",
-    sub: "Rodada CAU/PR — Dig Dig Piper",
+    sub: "Rodada CAU/PR",
     time: "ao vivo",
   },
   {
@@ -118,7 +94,7 @@ const RECENT_MOCK: RecentItem[] = [
 ];
 
 function ChatPage() {
-  const [userName, setUserName] = useState("Regis");
+  const [userName, setUserName] = useState("Usuário");
   const [input, setInput] = useState("");
   const [actSearch, setActSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -141,48 +117,63 @@ function ChatPage() {
     (i) =>
       actSearch === "" ||
       i.text.toLowerCase().includes(actSearch.toLowerCase()) ||
-      i.sub.toLowerCase().includes(actSearch.toLowerCase())
+      i.sub.toLowerCase().includes(actSearch.toLowerCase()),
   );
 
   return (
-    <div className="flex flex-1 min-h-0">
-      {/* ── Main content ────────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-between px-8 py-10 bg-[#07080f]">
-        {/* Center */}
-        <div className="flex-1 flex flex-col items-center justify-center w-full max-w-[640px]">
-          <DigOrb />
+    <div className="flex flex-1 min-h-0" style={{ color: INK }}>
+      {/* ── Main ─────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col items-center justify-between px-6 md:px-10 py-10 bg-white min-w-0">
+        <div className="flex-1 flex flex-col items-center justify-center w-full max-w-[680px]">
+          {/* Eyebrow */}
+          <span
+            className="text-[10px] uppercase tracking-[0.32em]"
+            style={{
+              color: SUBTLE,
+              fontFamily: "'JetBrains Mono', monospace",
+            }}
+          >
+            Dig Dig · Assistente
+          </span>
 
           <h1
-            className="mt-7 text-[32px] font-semibold text-white tracking-tight"
-            style={{ fontFamily: "'Syne', system-ui, sans-serif" }}
+            className="mt-5 text-center font-medium tracking-tight"
+            style={{
+              fontFamily: "'Inter Tight', 'Inter', system-ui, sans-serif",
+              fontSize: "clamp(32px, 4vw, 44px)",
+              lineHeight: 1.05,
+              letterSpacing: "-0.02em",
+            }}
           >
-            Bem-vindo, {userName}
+            Bem-vindo, {userName}.
           </h1>
-          <p className="mt-2 text-center text-[14px] text-white/45 leading-relaxed max-w-[420px]">
-            Estou aqui para escavar os atos públicos com você.
-            <br />
-            Faça perguntas, analise portarias ou gere fichas de denúncia.
+          <p
+            className="mt-3 text-center max-w-[460px]"
+            style={{ color: MUTED, fontSize: 14.5, lineHeight: 1.55 }}
+          >
+            Faça perguntas, analise portarias ou gere fichas de denúncia a
+            partir dos atos públicos analisados.
           </p>
 
-          {/* Cards 3×2 */}
-          <div className="mt-9 grid grid-cols-3 gap-3 w-full">
+          {/* Cards */}
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px w-full"
+            style={{ background: BORDER, border: `1px solid ${BORDER}` }}
+          >
             {QUICK_ACTIONS.map((a) => (
               <button
                 key={a.title}
                 onClick={() => handleCard(a.title)}
-                className="group flex flex-col gap-2.5 p-4 rounded-xl text-left
-                  bg-white/[0.03] border border-white/[0.07]
-                  hover:bg-white/[0.07] hover:border-violet-500/30
-                  transition-all duration-200"
+                className="group flex flex-col gap-3 p-5 text-left bg-white hover:bg-[#faf8f3] transition-colors"
               >
                 <a.icon
                   size={16}
-                  className="text-white/35 group-hover:text-violet-400 transition-colors"
+                  style={{ color: SUBTLE }}
+                  className="group-hover:text-[#0a0a0a] transition-colors"
                 />
-                <span className="text-[12.5px] font-medium text-white/80 leading-snug">
+                <span className="text-[13px] font-medium" style={{ color: INK }}>
                   {a.title}
                 </span>
-                <span className="text-[11.5px] text-white/35 leading-snug">
+                <span className="text-[12px] leading-snug" style={{ color: MUTED }}>
                   {a.desc}
                 </span>
               </button>
@@ -190,14 +181,23 @@ function ChatPage() {
           </div>
         </div>
 
-        {/* Chat input */}
-        <div className="w-full max-w-[640px] mt-6">
-          <div className="flex items-center gap-3 bg-white/[0.05] border border-white/[0.09] rounded-2xl px-4 py-3 focus-within:border-violet-500/40 transition-colors">
+        {/* Input */}
+        <div className="w-full max-w-[680px] mt-8">
+          <div
+            className="flex items-center gap-3 bg-white px-4 py-3 transition-colors focus-within:border-[#0a0a0a]"
+            style={{ border: `1px solid ${BORDER}`, borderRadius: 4 }}
+          >
             <div className="flex gap-2.5">
-              <button className="text-white/25 hover:text-white/55 transition-colors">
+              <button
+                className="transition-colors hover:text-[#0a0a0a]"
+                style={{ color: SUBTLE }}
+              >
                 <Paperclip size={15} />
               </button>
-              <button className="text-white/25 hover:text-white/55 transition-colors">
+              <button
+                className="transition-colors hover:text-[#0a0a0a]"
+                style={{ color: SUBTLE }}
+              >
                 <Mic size={15} />
               </button>
             </div>
@@ -206,67 +206,121 @@ function ChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Pergunte sobre os atos analisados…"
-              className="flex-1 bg-transparent text-[13.5px] text-white placeholder-white/25 outline-none"
+              className="flex-1 bg-transparent text-[14px] outline-none"
+              style={{ color: INK }}
             />
             <button
-              className={`rounded-xl p-2 transition-colors ${
-                input.trim()
-                  ? "bg-violet-600 hover:bg-violet-500 text-white"
-                  : "bg-white/[0.06] text-white/25"
-              }`}
+              className="px-3 py-2 transition-colors flex items-center gap-1.5 text-[12px] font-medium uppercase tracking-wider"
+              style={{
+                background: input.trim() ? INK : PAPER,
+                color: input.trim() ? "#fff" : SUBTLE,
+                fontFamily: "'JetBrains Mono', monospace",
+                borderRadius: 2,
+              }}
             >
-              <Send size={14} />
+              <Send size={13} />
+              Enviar
             </button>
           </div>
+          <p
+            className="mt-3 text-center text-[10.5px] uppercase tracking-[0.2em]"
+            style={{
+              color: SUBTLE,
+              fontFamily: "'JetBrains Mono', monospace",
+            }}
+          >
+            Sonnet 4.6 · contexto via RAG dos atos analisados
+          </p>
         </div>
       </div>
 
-      {/* ── Right panel — Atividade Recente ─────────────────────────────────── */}
-      <aside className="w-[272px] flex-shrink-0 border-l border-white/[0.06] bg-[#09090f] flex flex-col">
-        <div className="px-5 pt-5 pb-3 flex items-center justify-between">
-          <span className="text-[13px] font-medium text-white">
+      {/* ── Right panel ─────────────────────────────────────────── */}
+      <aside
+        className="hidden lg:flex w-[280px] flex-shrink-0 bg-white flex-col"
+        style={{ borderLeft: `1px solid ${BORDER}` }}
+      >
+        <div
+          className="px-5 pt-6 pb-3 flex items-center justify-between"
+          style={{ borderBottom: `1px solid ${BORDER}` }}
+        >
+          <span
+            className="text-[10px] uppercase tracking-[0.28em] font-semibold"
+            style={{
+              color: INK,
+              fontFamily: "'JetBrains Mono', monospace",
+            }}
+          >
             Atividade Recente
           </span>
-          <button className="text-white/30 hover:text-white/60 transition-colors">
+          <button
+            className="transition-colors hover:text-[#0a0a0a]"
+            style={{ color: SUBTLE }}
+          >
             <MoreHorizontal size={15} />
           </button>
         </div>
 
-        <div className="px-4 pb-3">
-          <div className="flex items-center gap-2 bg-white/[0.04] rounded-lg px-3 py-2 border border-white/[0.05]">
-            <Search size={11} className="text-white/30" />
+        <div className="px-4 pt-3 pb-3">
+          <div
+            className="flex items-center gap-2 px-3 py-2"
+            style={{ border: `1px solid ${BORDER}`, borderRadius: 2 }}
+          >
+            <Search size={11} style={{ color: SUBTLE }} />
             <input
               value={actSearch}
               onChange={(e) => setActSearch(e.target.value)}
               placeholder="Buscar atividade…"
-              className="bg-transparent text-[12px] text-white/60 placeholder-white/25 outline-none flex-1"
+              className="bg-transparent text-[12px] outline-none flex-1"
+              style={{ color: INK }}
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 space-y-1.5 pb-4">
+        <div className="flex-1 overflow-y-auto px-2 pb-4">
           {filtered.length === 0 && (
-            <p className="text-[11px] text-white/20 text-center pt-10">
+            <p
+              className="text-[11px] text-center pt-10"
+              style={{ color: SUBTLE }}
+            >
               Nenhuma atividade encontrada.
             </p>
           )}
           {filtered.map((item, i) => (
             <div
               key={i}
-              className="flex items-start gap-3 px-3 py-3 rounded-xl hover:bg-white/[0.04] transition-colors cursor-default group"
+              className="flex items-start gap-3 px-3 py-3 hover:bg-[#faf8f3] transition-colors cursor-default group"
             >
-              <div className="mt-0.5 w-7 h-7 rounded-full bg-white/[0.05] flex items-center justify-center flex-shrink-0 group-hover:bg-violet-500/10 transition-colors">
-                <item.icon size={13} className="text-white/35 group-hover:text-violet-400 transition-colors" />
+              <div
+                className="mt-0.5 w-7 h-7 flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: PAPER,
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: 2,
+                }}
+              >
+                <item.icon size={13} style={{ color: MUTED }} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[12px] text-white/75 leading-snug truncate">
+                <p
+                  className="text-[12.5px] leading-snug truncate font-medium"
+                  style={{ color: INK }}
+                >
                   {item.text}
                 </p>
-                <p className="text-[11px] text-white/35 leading-snug mt-0.5 truncate">
+                <p
+                  className="text-[11px] leading-snug mt-0.5 truncate"
+                  style={{ color: MUTED }}
+                >
                   {item.sub}
                 </p>
               </div>
-              <span className="text-[10px] text-white/25 flex-shrink-0 mt-0.5">
+              <span
+                className="text-[10px] flex-shrink-0 mt-0.5 uppercase tracking-wider"
+                style={{
+                  color: SUBTLE,
+                  fontFamily: "'JetBrains Mono', monospace",
+                }}
+              >
                 {item.time}
               </span>
             </div>
