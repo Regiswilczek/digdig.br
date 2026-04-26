@@ -276,11 +276,7 @@ function RealtimeFeed({
     return () => { supabase.removeChannel(channel); };
   }, [slug]);
 
-  const filtered = busca
-    ? items.filter((i) =>
-        (i.numero ?? i.ato_id).toLowerCase().includes(busca.toLowerCase())
-      )
-    : items;
+  const filtered = items;
 
   // Group by tipo in defined order; unknown types go last
   const knownSet = new Set(TIPO_ORDER);
