@@ -64,9 +64,10 @@ HEADERS = {
 }
 
 HAIKU_MODEL = "claude-haiku-4-5-20251001"
-MAX_PAGES_PER_DOC = 8   # limita para controlar custo
-DPI = 150               # resolução para render das páginas
-RATE_LIMIT = 2.0        # segundos entre documentos
+MAX_PAGES_PER_DOC = 8         # padrão para portarias/outros (1–4 pág normalmente)
+MAX_PAGES_ATA = 50            # atas podem ter 30–60 páginas — lê tudo
+DPI = 150                     # resolução para render das páginas
+RATE_LIMIT = 2.0              # segundos entre documentos
 
 
 OCR_SYSTEM = (
@@ -87,7 +88,7 @@ def png_to_base64(png_bytes: bytes) -> str:
     return base64.standard_b64encode(png_bytes).decode()
 
 
-async def ocr_pdf_bytes(client: anthropic.Anthropic, pdf_bytes: bytes, numero: str) -> str:
+async def ocr_pdf_bytes(client: anthropic.Anthropic, pdf_bytes: bytes, numero: str, max_pages: int = MAX_PAGES_PER_DOC) -> str:
     """Renderiza cada página do PDF e usa Claude Haiku vision para extrair texto."""
     import tempfile
 
@@ -106,7 +107,7 @@ async def ocr_pdf_bytes(client: anthropic.Anthropic, pdf_bytes: bytes, numero: s
         raise ValueError(f"Não foi possível abrir o PDF: {e}")
 
     total_pages = len(doc)  # salva antes de fechar
-    n_pages = min(total_pages, MAX_PAGES_PER_DOC)
+    n_pages = min(total_pages, max_pages)
     page_texts = []
 
     for i in range(n_pages):
@@ -146,8 +147,8 @@ async def ocr_pdf_bytes(client: anthropic.Anthropic, pdf_bytes: bytes, numero: s
     doc.close()
     os.unlink(tmp_path)
 
-    if total_pages > MAX_PAGES_PER_DOC:
-        page_texts.append(f"\n[Documento truncado: exibindo {MAX_PAGES_PER_DOC} de {total_pages} páginas]")
+    if total_pages > max_pages:
+        page_texts.append(f"\n[Documento truncado: exibindo {max_pages} de {total_pages} páginas]")
 
     return "\n\n--- Página ---\n\n".join(page_texts)
 
@@ -198,7 +199,8 @@ async def main(limit: int | None, dry_run: bool, tipo_filtro: str | None) -> Non
         print(f"\n{'='*65}")
         print(f"  OCR DE PDFs ESCANEADOS — {total} documentos")
         print(f"  Modelo: {HAIKU_MODEL} (visão)")
-        print(f"  Máx páginas/doc: {MAX_PAGES_PER_DOC}  |  DPI: {DPI}")
+        max_pag_display = MAX_PAGES_ATA if (tipo_filtro == "ata_plenaria") else MAX_PAGES_PER_DOC
+        print(f"  Máx páginas/doc: {max_pag_display}  |  DPI: {DPI}")
         custo_est = total * 0.006
         print(f"  Custo estimado: ~${custo_est:.2f}  (~$0.006/doc)")
         print(f"{'='*65}\n")
@@ -231,7 +233,8 @@ async def main(limit: int | None, dry_run: bool, tipo_filtro: str | None) -> Non
                     resp.raise_for_status()
                     pdf_bytes = resp.content
 
-                    text = await ocr_pdf_bytes(client, pdf_bytes, numero)
+                    max_pag = MAX_PAGES_ATA if tipo == "ata_plenaria" else MAX_PAGES_PER_DOC
+                    text = await ocr_pdf_bytes(client, pdf_bytes, numero, max_pages=max_pag)
 
                     # Limpa e valida
                     text = re.sub(r"\n{4,}", "\n\n\n", text).strip()

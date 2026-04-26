@@ -60,5 +60,12 @@ Thumbs.db
 # PDFs baixados (dados brutos)
 extracted/**/*.pdf
 
-# Arquivos compactados
+# Arquivos compactados (exceto ferramentas em tools/)
 *.zip
+!tools/**/*.zip
+
+# Ferramentas externas (tools/)
+tools/paperclip/node_modules/
+tools/paperclip/**/node_modules/
+tools/paperclip/**/dist/
+tools/paperclip/.paperclip/

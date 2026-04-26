@@ -62,6 +62,7 @@ CUSTO_LIMITE = Decimal("15.00")
 EMOJIS       = {"verde": "🟢", "amarelo": "🟡", "laranja": "🟠", "vermelho": "🔴"}
 
 TIPOS_ALVO = [
+    "portaria",
     "dispensa_eletronica",
     "relatorio_parecer",
     "relatorio_tcu",
@@ -72,6 +73,7 @@ TIPOS_ALVO = [
 ]
 
 TIPO_LABEL = {
+    "portaria":               "Portaria",
     "dispensa_eletronica":    "Dispensa Eletr.",
     "relatorio_parecer":      "Rel./Parecer",
     "relatorio_tcu":          "Rel. TCU",
@@ -184,7 +186,7 @@ async def main(dry_run: bool, workers: int, tipo_filtro: str | None) -> None:
                 Ato.tenant_id == TENANT_ID,
                 Ato.tipo.in_(tipos),
                 Ato.processado == False,
-                ConteudoAto.qualidade == "boa",
+                ConteudoAto.qualidade.in_(["boa", "parcial"]),
             )
             .order_by(Ato.data_publicacao.asc().nulls_last())
         )
@@ -292,7 +294,7 @@ async def main(dry_run: bool, workers: int, tipo_filtro: str | None) -> None:
                 Ato.tenant_id == TENANT_ID,
                 Ato.tipo.in_(tipos),
                 Ato.processado == False,
-                ConteudoAto.qualidade == "boa",
+                ConteudoAto.qualidade.in_(["boa", "parcial"]),
             )
         )
         restantes = restantes_r.scalar()

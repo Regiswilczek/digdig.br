@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pré-Auditoria Integrada do CAU/PR — Dig Dig</title>
+  <meta name="description" content="White Paper Nº 07: relatório de síntese analítica completo antes da análise por Claude Opus 4.7 — padrões sistêmicos, cronologia disciplinar, rede de atores e lacunas estruturais.">
+  <meta property="og:title" content="Pré-Auditoria Integrada do CAU/PR — Dig Dig">
+  <meta property="og:description" content="White Paper Nº 07: síntese analítica de 1.789 atos administrativos, quatro padrões sistêmicos, dois processos disciplinares secretos em curso, e o que o Opus 4.7 pode revelar a seguir.">
+  <meta property="og:type" content="article">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --text:      #111111;
+      --muted:     #666666;
+      --subtle:    #999999;
+      --border:    #e5e5e5;
+      --bg:        #ffffff;
+      --bg-code:   #f5f5f5;
+      --bg-warn:   #fffbf0;
+      --border-warn: #f0d060;
+      --max-w:     680px;
+    }
+
+    html { font-size: 17px; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      padding: 0 24px;
+    }
+
+    .site-header {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 40px 0 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .site-header .wordmark {
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .site-header .label {
+      font-size: 0.75rem;
+      color: var(--subtle);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    article {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 56px 0 80px;
+    }
+
+    .post-header { margin-bottom: 48px; }
+
+    .post-label {
+      display: inline-block;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 700;
+      font-size: 2.1rem;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .byline {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .byline strong { font-weight: 600; color: var(--text); }
+
+    h2 {
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 700;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+      margin: 44px 0 16px;
+    }
+
+    h3 {
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 600;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+      margin: 28px 0 10px;
+    }
+
+    p { margin-bottom: 1.1em; }
+
+    ul, ol {
+      margin: 0 0 1.1em 1.5em;
+    }
+
+    li { margin-bottom: 0.4em; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 44px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0 32px;
+      font-size: 0.88rem;
+    }
+
+    th {
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .verde  { color: #2d7d46; font-weight: 600; }
+    .amarelo { color: #9a7000; font-weight: 600; }
+    .laranja { color: #c05000; font-weight: 600; }
+    .vermelho { color: #c0000a; font-weight: 600; }
+
+    .callout {
+      background: var(--bg-warn);
+      border-left: 3px solid var(--border-warn);
+      padding: 16px 20px;
+      margin: 24px 0;
+      font-size: 0.93rem;
+      line-height: 1.6;
+    }
+
+    .callout.critical {
+      background: #fff5f5;
+      border-left-color: #e00010;
+    }
+
+    .callout.info {
+      background: #f5f9ff;
+      border-left-color: #3366cc;
+    }
+
+    .stat-row {
+      display: flex;
+      gap: 32px;
+      margin: 28px 0;
+      flex-wrap: wrap;
+    }
+
+    .stat { display: flex; flex-direction: column; }
+
+    .stat .num {
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 700;
+      font-size: 2rem;
+      letter-spacing: -0.03em;
+    }
+
+    .stat .desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    .case-block {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin: 20px 0;
+    }
+
+    .case-block.vermelho { border-left: 4px solid #c0000a; }
+    .case-block.laranja  { border-left: 4px solid #c05000; }
+
+    .case-block .case-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .case-block .case-id {
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .case-block .case-score {
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .case-block .case-pattern {
+      font-size: 0.83rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 10px;
+    }
+
+    .case-block p {
+      font-size: 0.92rem;
+      margin-bottom: 0;
+    }
+
+    .timeline {
+      border-left: 2px solid var(--border);
+      margin: 20px 0 24px 8px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .timeline li {
+      position: relative;
+      padding: 6px 0 6px 24px;
+      font-size: 0.88rem;
+      margin-bottom: 0;
+    }
+
+    .timeline li::before {
+      content: '';
+      position: absolute;
+      left: -5px;
+      top: 13px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .timeline li.alerta::before { background: #c0000a; }
+    .timeline li.aviso::before  { background: #c05000; }
+
+    .timeline .data {
+      font-size: 0.76rem;
+      color: var(--subtle);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      margin-right: 8px;
+    }
+
+    .prev-paper {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 40px;
+    }
+
+    .prev-paper:hover { color: var(--text); }
+
+    .signature {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    .signature .name {
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .signature .role {
+      font-size: 0.83rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .post-footer {
+      margin-top: 56px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+      font-size: 0.83rem;
+      color: var(--subtle);
+      font-style: italic;
+    }
+
+    .site-footer {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 32px 0 56px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--subtle);
+    }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.82em;
+      background: var(--bg-code);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    strong { font-weight: 600; }
+
+    .nota-metodologica {
+      background: #f9f9f9;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin-bottom: 40px;
+      font-size: 0.88rem;
+    }
+
+    .nota-metodologica h4 {
+      font-family: 'Inter Tight', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 600px) {
+      html { font-size: 16px; }
+      h1 { font-size: 1.75rem; }
+      .site-footer { flex-direction: column; gap: 8px; }
+      .stat-row { gap: 20px; }
+      .case-block .case-header { flex-direction: column; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a href="/" class="wordmark">Dig Dig</a>
+    <span class="label">White Paper · Nº 07</span>
+  </header>
+
+  <article>
+    <a href="/whitepaper-06-do-gabinete-ao-terminal" class="prev-paper">
+      ← White Paper Nº 06: Do Gabinete ao Terminal
+    </a>
+
+    <div class="post-header">
+      <span class="post-label">Síntese · Padrões · Cronologia · Lacunas</span>
+      <h1>Pré-Auditoria Integrada do CAU/PR</h1>
+      <p class="byline">
+        <strong>Regis Wilczek + Dig Dig Bud (Claude Sonnet 4.6)</strong>
+        &nbsp;—&nbsp; Abril de 2026
+      </p>
+    </div>
+
+    <div class="nota-metodologica">
+      <h4>Nota Metodológica</h4>
+      <p>Este documento é uma síntese analítica preparatória. Ele consolida o que os sistemas anteriores — Haiku (triagem), Sonnet (análise de atas e casos críticos) e análise de padrões globais — encontraram até agora em 1.789 atos administrativos do CAU/PR. O propósito é duplo: servir como memória estruturada do estado da investigação, e delinear com precisão o que ainda está fora do alcance da análise atual.</p>
+      <p>O próximo passo da investigação é a análise por Claude Opus 4.7 — o modelo mais capaz da família — que chamamos de "Zew". O Zew não vai reler os documentos que o Haiku e o Bud já leram. Vai receber esta síntese, os dados estruturados do banco, e ser incumbido de uma tarefa diferente: traçar linhas cronológicas, construir grafos de poder, cruzar atas com portarias, e identificar os padrões que só emergem quando o conjunto inteiro é tratado como um sistema coerente, não como uma coleção de atos individuais.</p>
+      <p style="margin-bottom: 0;"><strong>O que este paper não faz:</strong> não afirma crimes, não nomeia culpados, não conclui sobre dolo. Usa linguagem de indício, padrão e suspeita. A conclusão jurídica pertence a advogados. O julgamento moral pertence ao leitor.</p>
+    </div>
+
+    <hr>
+
+    <h2>1. O Corpus — O Que Foi Analisado</h2>
+
+    <div class="stat-row">
+      <div class="stat"><span class="num">1.789</span><span class="desc">atos analisados</span></div>
+      <div class="stat"><span class="num">678</span><span class="desc">portarias catalogadas</span></div>
+      <div class="stat"><span class="num">597+</span><span class="desc">deliberações extraídas</span></div>
+      <div class="stat"><span class="num">161</span><span class="desc">atas com PDF publicado</span></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Tipo de Documento</th><th>Total</th><th>No Banco</th><th>Analisados</th><th>Situação</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Portarias</td>
+          <td>678 emitidas</td>
+          <td>551</td>
+          <td>551</td>
+          <td>400 texto nativo (2022–2026); 151 via OCR (2018–2021)</td>
+        </tr>
+        <tr>
+          <td>Deliberações Plenárias</td>
+          <td>597+</td>
+          <td>597+</td>
+          <td>Em andamento</td>
+          <td>HTML extraído; análise Haiku em progresso</td>
+        </tr>
+        <tr>
+          <td>Portarias Normativas</td>
+          <td>21</td>
+          <td>21</td>
+          <td>21</td>
+          <td>Extraídas, algumas via OCR</td>
+        </tr>
+        <tr>
+          <td>Atas Plenárias</td>
+          <td>179 reuniões</td>
+          <td>161</td>
+          <td>Em andamento</td>
+          <td>Análise Sonnet; 18 atas ausentes do site oficial</td>
+        </tr>
+        <tr>
+          <td>Contratos / Convênios</td>
+          <td>25+</td>
+          <td>Parcial</td>
+          <td>Parcial</td>
+          <td>80%+ com links PDF quebrados (404)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>O período coberto pelas portarias vai dos primeiros anos de operação do CAU/PR (portarias numeradas a partir de 1) até abril de 2026 (Portaria nº 678). As portarias anteriores a 2018 não estão no banco — a numeração implica existirem portarias 1 a ~127 não scraped do período fundacional.</p>
+
+    <div class="callout info">
+      <strong>127 portarias ausentes do corpus.</strong> Portarias 1–127 correspondem aproximadamente ao período 2012–2018. Estão no site do CAU/PR mas não foram incorporadas ao banco porque o scraper priorizou o período recente. O Zew não terá acesso a esse período fundacional — o que significa que padrões anteriores a 2018 estão fora do escopo desta investigação.
+    </div>
+
+    <hr>
+
+    <h2>2. Distribuição de Alertas — Visão Geral</h2>
+
+    <table>
+      <thead>
+        <tr><th>Nível</th><th>Atos</th><th>%</th><th>Significado Operacional</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="verde">Verde</td>
+          <td>165</td>
+          <td>15,1%</td>
+          <td>Conforme — procedimento regular, sem flags</td>
+        </tr>
+        <tr>
+          <td class="amarelo">Amarelo</td>
+          <td>816</td>
+          <td>74,5%</td>
+          <td>Suspeito — padrão que merece atenção, não urgente</td>
+        </tr>
+        <tr>
+          <td class="laranja">Laranja</td>
+          <td>101</td>
+          <td>9,2%</td>
+          <td>Indício moderado-grave — análise aprofundada recomendada</td>
+        </tr>
+        <tr>
+          <td class="vermelho">Vermelho</td>
+          <td>14</td>
+          <td>1,3%</td>
+          <td>Irregularidade grave — fichas de denúncia geradas</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Os números brutos merecem uma qualificação importante. O amarelo dominante (74,5%) não é ruído do sistema — é a natureza da administração pública opaca. Qualquer portaria de nomeação que não explicita os critérios de mérito é tecnicamente suspeita por omissão. Qualquer prorrogação de prazo sem motivação expressa viola o princípio da motivação dos atos administrativos. O amarelo diz "algo aqui merece um segundo olhar". É o laranja e o vermelho que dizem "encontramos algo".</p>
+
+    <p>Do conjunto analisado, <strong>115 atos (10,5%) apresentaram indício suficiente para análise aprofundada</strong>. Os padrões globais identificados:</p>
+
+    <ul>
+      <li><strong>136 atos Ad Referendum</strong> (7,6% do corpus) — decisões unilaterais do presidente antes de ratificação plenária</li>
+      <li><strong>32 prorrogações de comissões processantes</strong> — extensões de procedimentos disciplinares por portaria presidencial</li>
+      <li><strong>154 nomeações</strong> para cargos em comissão — 2,1 nomeações para cada exoneração</li>
+      <li><strong>72 exonerações</strong> — taxa que sugere rotatividade em cargos de confiança</li>
+    </ul>
+
+    <div class="callout">
+      A proporção de 136 atos Ad Referendum merece destaque. O instituto do Ad Referendum existe para situações de urgência onde a convocação do plenário não é viável. Seu uso em 7,6% de todos os atos indica uma prática sistemática de decisão unilateral com ratificação posterior — ou seja, o plenário referenda o que o presidente já fez, não decide o que o presidente fará.
+    </div>
+
+    <hr>
+
+    <h2>3. Os Quatro Padrões Sistêmicos — Análise Aprofundada</h2>
+
+    <h3>Padrão 1: Controle presidencial dos mecanismos disciplinares</h3>
+
+    <p>O padrão mais frequente e mais grave: o uso dos processos administrativos disciplinares como instrumento de poder político interno. Em múltiplos atos, os presidentes do CAU/PR:</p>
+    <ul>
+      <li>Instauraram sindicâncias e processos disciplinares por ato unilateral, sem deliberação plenária prévia</li>
+      <li>Prorrogaram os prazos sucessivamente por portaria presidencial, sem submeter ao plenário</li>
+      <li>Compuseram as comissões exclusivamente com servidores administrativos subordinados à presidência</li>
+      <li>Mantiveram objeto e investigado em sigilo durante meses ou anos de tramitação</li>
+    </ul>
+
+    <p>O Regimento Interno do CAU/PR — 6ª versão, DPOPR 0191-02/2025 — é explícito: comissões processantes devem incluir conselheiros titulares. A abertura de processos de maior gravidade exige deliberação plenária. A ausência sistemática dessas exigências, documentada em série ao longo de diferentes gestões, converte irregularidades individuais em padrão institucional.</p>
+
+    <p><strong>O que torna este padrão especialmente significativo:</strong> ele transcende gestões. Maugham Zaze instaurou processos sob o mesmo modelo. Walter Gustavo Linzmeyer herdou e continuou esses processos, adicionando novos pelo mesmo método. O padrão não é de um presidente — é da presidência como instituição.</p>
+
+    <h3>Padrão 2: Composição direcionada de comissões investigativas</h3>
+
+    <p>Relacionado, mas distinto: não é apenas que as comissões são compostas só de servidores — é que os mesmos servidores aparecem repetidamente em comissões de natureza sensível, acumulando funções de investigação sem mandato eletivo e com dependência hierárquica direta da presidência.</p>
+
+    <p>Os três nomes que mais aparecem nesse papel:</p>
+    <ul>
+      <li><strong>André Felipe Casagrande</strong> — 33 atos — membro recorrente de comissões formais</li>
+      <li><strong>Cleverson João Veiga</strong> — 31 atos — investigador recorrente em sindicâncias</li>
+      <li><strong>Leandro Reguelin</strong> — 31 atos — operacional em processos disciplinares</li>
+    </ul>
+
+    <p>Nenhum dos três é conselheiro eleito. Todos têm relação de dependência hierárquica com a presidência. A repetição não sugere competência técnica acidental — sugere seleção deliberada de servidores cuja lealdade institucional é previsível.</p>
+
+    <h3>Padrão 3: Presidência paralela — assinaturas sem amparo formal</h3>
+
+    <p>Em pelo menos quatro portarias analisadas, o Vice-Presidente <strong>Jeancarlo Versetti</strong> assinou atos de natureza presidencial — abertura e prorrogação de processos disciplinares — sem que os atos registrassem o instrumento formal de substituição: afastamento documentado, licença ou delegação explícita do presidente titular.</p>
+
+    <p>O problema não é a assinatura em si — vicepresidentes substituem presidentes. O problema é a ausência do fundamento legal no corpo do ato. Um ato presidencial assinado pelo vice sem declarar o motivo da substituição é um ato com lacuna formal de autoridade. Em processos disciplinares — onde a cadeia de autoridade é elemento central de validade —, essa lacuna não é administrativa: é processual.</p>
+
+    <h3>Padrão 4: Opacidade como estrutura, não como acidente</h3>
+
+    <p>Quase todos os processos disciplinares identificados nos casos graves compartilham uma característica: o objeto da investigação e a identidade do investigado não constam do ato publicado. Processos tramitam por meses — em alguns casos por mais de um ano — com referências apenas a números de SEI e portarias anteriores, sem que o texto permita identificar quem está sendo investigado por quê.</p>
+
+    <p>A Lei de Acesso à Informação e o princípio da publicidade dos atos administrativos não proíbem que o objeto de um processo disciplinar seja identificado no ato de instauração. Proíbem, sim, a divulgação de dados pessoais sensíveis — mas o objeto ("apurar irregularidades na gestão de recursos do projeto X") e o cargo do investigado são informações de interesse público que devem constar do ato.</p>
+
+    <p>A opacidade sistemática documentada não é compliance com a LGPD. É o uso da LGPD como escudo retórico para ocultar informações que a lei de transparência exige.</p>
+
+    <hr>
+
+    <h2>4. Cronologia dos Processos Disciplinares — A Série Secreta</h2>
+
+    <p>O dado mais relevante que emergi da análise temporal das portarias é a existência de pelo menos dois processos disciplinares paralelos, ativos há meses, cujos objetos e investigados permanecem sem identificação pública. A serialidade das portarias permite reconstruir a história de cada processo — mesmo sem acesso ao seu conteúdo.</p>
+
+    <h3>Processo A: PAD Portaria 522 — 20 meses em sigilo</h3>
+
+    <p>O processo mais antigo e mais documentado. Instaurado originalmente no governo Maugham Zaze, continuado e prorrogado por Walter Gustavo Linzmeyer ao assumir a presidência. O SEI nº 00169.000714/2024-81 nunca foi identificado publicamente — nem o objeto, nem o investigado.</p>
+
+    <ul class="timeline">
+      <li><span class="data">15/08/2024</span> <strong>Portaria 522</strong> — Instauração pelo Presidente Maugham Zaze. Comissão composta por servidores administrativos subordinados. Investigado e objeto: não identificados.</li>
+      <li class="aviso"><span class="data">10/10/2024</span> <strong>Portaria 533</strong> — 56 dias depois, primeira prorrogação. Mesmo ato designa "defensor" do investigado: o próprio presidente nomeia o defensor de quem ele mesmo investiga.</li>
+      <li><span class="data">18/11/2025</span> <strong>Portaria 655</strong> — 13 meses depois da instauração, primeira recondução formal. Comissão reconstituída. Objeto: ainda sigiloso.</li>
+      <li class="aviso"><span class="data">09/12/2025</span> <strong>Portaria 659</strong> — Nova prorrogação, 16 meses corridos desde a instauração.</li>
+      <li class="aviso"><span class="data">12/01/2026</span> <strong>Portaria 664</strong> — Mais uma prorrogação. 17 meses.</li>
+      <li class="alerta"><span class="data">02/02/2026</span> <strong>Portaria 667</strong> — Recondução sob o governo Linzmeyer. Incoerências cronológicas internas documentadas pelo sistema: a data de assinatura conflita com datas internas do documento. 18 meses.</li>
+      <li class="alerta"><span class="data">10/02/2026</span> <strong>Portaria 672</strong> — Prorrogação. 18,5 meses.</li>
+      <li class="alerta"><span class="data">16/03/2026</span> <strong>Portaria 675</strong> — Prorrogação. 19 meses.</li>
+      <li class="alerta"><span class="data">02/04/2026</span> <strong>Portaria 678</strong> — Prorrogação. <strong>20 meses.</strong> O processo ainda está ativo.</li>
+    </ul>
+
+    <p>Nove portarias ao longo de 20 meses. Dois presidentes diferentes. A mesma comissão, os mesmos servidores, o mesmo sigilo. O Regimento Interno não define prazo máximo explícito para processos disciplinares — o que na prática significa que um processo pode ser mantido ativo indefinidamente por portaria presidencial sucessiva.</p>
+
+    <h3>Processo B: PAD 2025.01 — Portaria 580</h3>
+
+    <p>Um segundo processo disciplinar, instaurado já sob a gestão Linzmeyer, com a mesma estrutura de opacidade:</p>
+
+    <ul class="timeline">
+      <li><span class="data">07/04/2025</span> <strong>Portaria 580</strong> — Instauração pelo Presidente Linzmeyer. Objeto e investigado: não identificados publicamente.</li>
+      <li class="aviso"><span class="data">02/02/2026</span> <strong>Portaria 667</strong> — O mesmo ato que reconduzia o Processo A também reconduzia o Processo B. A portaria altera e prorroga os dois processos simultaneamente.</li>
+      <li class="alerta"><span class="data">03/03/2026</span> <strong>Portaria 673</strong> — Alteração da composição da comissão e nova prorrogação. 11 meses do Processo B.</li>
+      <li class="alerta"><span class="data">02/04/2026</span> <strong>Portaria 678</strong> — Nova prorrogação de ambos os processos no mesmo ato. 12 meses do Processo B.</li>
+    </ul>
+
+    <h3>Processo C e D: Sindicâncias paralelas de outubro de 2024</h3>
+
+    <p>No mesmo período em que o Processo A estava em sua fase inicial, dois novos processos foram abertos:</p>
+
+    <ul class="timeline">
+      <li><span class="data">11/09/2024</span> <strong>Portaria 525</strong> — Sindicância investigativa instaurada.</li>
+      <li><span class="data">10/10/2024</span> <strong>Portaria 532</strong> — Prorrogação da sindicância.</li>
+      <li><span class="data">10/10/2024</span> <strong>Portaria 531</strong> — Nova comissão processante instaurada.</li>
+      <li><span class="data">08/11/2024</span> <strong>Portaria 539</strong> — Prorrogação da comissão da Portaria 531, com substituição de membro.</li>
+    </ul>
+
+    <div class="callout critical">
+      <strong>O segundo semestre de 2024 concentrou a abertura de 4 processos disciplinares/investigativos simultâneos.</strong> Em agosto e setembro de 2024, o CAU/PR instaurou uma sindicância e uma comissão processante em sequência. Em outubro, prorrogou ambas e abriu um terceiro processo. Nenhum dos objetos foi identificado publicamente. Três dos quatro processos tinham o mesmo servidor (Leandro Reguelin) em posição operacional.
+    </div>
+
+    <hr>
+
+    <h2>5. Rede de Atores — Quem Aparece e Onde</h2>
+
+    <p>O banco registrou todas as pessoas mencionadas nos atos. A tabela abaixo organiza os atores por frequência de aparição e pela natureza de suas funções institucionais:</p>
+
+    <table>
+      <thead>
+        <tr><th>Nome</th><th>Aparições</th><th>Função Formal</th><th>Padrão de Aparição</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Milton Carlos Zanelatto Gonçalves</strong></td>
+          <td>148</td>
+          <td>Ex-presidente (gestão anterior)</td>
+          <td>Signatário, nomeante — período de gestão amplo</td>
+        </tr>
+        <tr>
+          <td><strong>Walter Gustavo Linzmeyer</strong></td>
+          <td>136</td>
+          <td>Presidente (gestão atual)</td>
+          <td>Signatário dominante 2024–2026; concentração em atos disciplinares</td>
+        </tr>
+        <tr>
+          <td><strong>Maugham Zaze</strong></td>
+          <td>~97</td>
+          <td>Ex-presidente (gestão intermediária)</td>
+          <td>Instaurador de comissão permanente; criador do PAD de 20 meses</td>
+        </tr>
+        <tr>
+          <td><strong>Lourdes Vasselek</strong></td>
+          <td>41</td>
+          <td>Servidora</td>
+          <td>Fiscal de contratos — frequência indica função estrutural, não excepcional</td>
+        </tr>
+        <tr>
+          <td><strong>Margareth Ziolla Menezes</strong></td>
+          <td>39</td>
+          <td>Servidora</td>
+          <td>Recorrente em atos administrativos variados</td>
+        </tr>
+        <tr>
+          <td><strong>Alessandro Boncompagni Junior</strong></td>
+          <td>36</td>
+          <td>Servidor</td>
+          <td>Gestor de contratos — aparições em atos de contratação</td>
+        </tr>
+        <tr>
+          <td><strong>André Felipe Casagrande</strong></td>
+          <td>33</td>
+          <td>Servidor não-eleito</td>
+          <td class="laranja">Membro recorrente de comissões — incluindo investigativas</td>
+        </tr>
+        <tr>
+          <td><strong>Cleverson João Veiga</strong></td>
+          <td>31</td>
+          <td>Servidor não-eleito</td>
+          <td class="laranja">Investigador recorrente em sindicâncias — concentração anômala</td>
+        </tr>
+        <tr>
+          <td><strong>Leandro Reguelin</strong></td>
+          <td>31</td>
+          <td>Servidor não-eleito</td>
+          <td class="vermelho">Operacional em processos disciplinares; designado como "defensor" pelo presidente</td>
+        </tr>
+        <tr>
+          <td><strong>Marcos Vinicius Rissatto Ramos</strong></td>
+          <td>35</td>
+          <td>Servidor</td>
+          <td>Recorrente em atos formais</td>
+        </tr>
+        <tr>
+          <td><strong>Jeancarlo Versetti</strong></td>
+          <td>~25</td>
+          <td>Vice-Presidente</td>
+          <td class="laranja">Assina atos presidenciais sem fundamento formal de substituição documentado</td>
+        </tr>
+        <tr>
+          <td><strong>Alisson Castro Geremias</strong></td>
+          <td>25</td>
+          <td>Gerente de comunicação</td>
+          <td>Designado para funções fiscalizadoras além de sua área</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Três observações analíticas sobre essa rede:</p>
+
+    <p><strong>1. A concentração nos presidentes é esperada — e por isso não é o dado mais relevante.</strong> Linzmeyer (136) e Zanelatto (148) aparecem muito porque assinam todos os atos da autarquia durante seus mandatos. O que importa é o que eles assinam — e quando.</p>
+
+    <p><strong>2. A concentração em Reguelin, Veiga e Casagrande é estruturalmente anômala.</strong> Servidores não-eleitos com 31–33 aparições — frequência comparável à de conselheiros titulares — em funções de controle processual. Não existe base regimental para essa concentração. Ela não reflete competência técnica redistribuída; reflete delegação sistemática de poder investigativo para fora do plenário eleito.</p>
+
+    <p><strong>3. Leandro Reguelin cumula funções contraditórias.</strong> No mesmo processo disciplinar, Reguelin aparece como membro da comissão processante (posição investigatória) e como "defensor" do investigado (posição de defesa), nomeado para essa última função pelo mesmo presidente que o nomeou para a primeira. A designação do defensor pelo presidente que instaurou o processo e compôs a comissão eliminina qualquer aparência de equilíbrio adversarial.</p>
+
+    <hr>
+
+    <h2>6. Os Cinco Casos Mais Graves — Análise Consolidada</h2>
+
+    <div class="case-block vermelho">
+      <div class="case-header">
+        <span class="case-id">Portaria 667/2026</span>
+        <span class="case-score vermelho">Vermelho · Score 95</span>
+      </div>
+      <p class="case-pattern">Padrão: Processo disciplinar de 18 meses em sigilo total — dois presidentes, mesma comissão, mesmo mutismo</p>
+      <p>O caso mais grave do corpus. Em agosto de 2024, o Presidente Maugham Zaze instaurou um PAD por ato unilateral. O investigado e o objeto permanecem não identificados publicamente em fevereiro de 2026 — 18 meses depois. A comissão foi composta exclusivamente por servidores subordinados à presidência, em violação direta ao regimento. A Portaria 667 é a terceira recondução — cada uma por portaria presidencial, sem deliberação plenária. O sistema identificou incoerências cronológicas internas: a data de assinatura conflita com datas internas do documento, o que levanta questões sobre o momento real em que o ato foi produzido vs. o momento em que foi formalmente datado.</p>
+    </div>
+
+    <div class="case-block vermelho">
+      <div class="case-header">
+        <span class="case-id">Portaria 514/2024</span>
+        <span class="case-score vermelho">Vermelho · Score 93</span>
+      </div>
+      <p class="case-pattern">Padrão: Captura institucional do aparato investigativo — criação de estrutura sem previsão regimental</p>
+      <p>O Presidente Maugham Zaze criou por ato unilateral uma "Comissão Permanente de Sindicância e Inquérito" — uma estrutura sem precedente no regimento interno, composta exclusivamente por cinco empregados de confiança, hierarquicamente subordinados a ele. A comissão assumiu poderes investigativos sem deliberação plenária sobre sua criação, composição ou escopo. O que torna este caso arquetípico: não é a abertura de um processo específico que é questionável, mas a criação de uma infraestrutura permanente de investigação fora do controle do plenário eleito.</p>
+    </div>
+
+    <div class="case-block vermelho">
+      <div class="case-header">
+        <span class="case-id">Portaria 533/2024</span>
+        <span class="case-score vermelho">Vermelho · Score 88</span>
+      </div>
+      <p class="case-pattern">Padrão: O presidente que instaura, compõe e nomeia o defensor — triplo controle processual</p>
+      <p>Na comissão instaurada pela Portaria 522, o presidente prorrogou o prazo em 30 dias e, no mesmo ato, designou um subordinado direto como "defensor" do servidor investigado. A cadeia é completa: o mesmo ator que instaurou o processo, que compôs a comissão, que escolheu os investigadores, também nomeia o defensor. Isso não viola a letra do regimento — viola sua lógica: a função do defensor é precisamente proteger o investigado da arbitrariedade do instaurador. Quando o defensor é designado pelo instaurador, a proteção é ficção.</p>
+    </div>
+
+    <div class="case-block vermelho">
+      <div class="case-header">
+        <span class="case-id">Portaria 586/2025</span>
+        <span class="case-score vermelho">Vermelho · Score 87</span>
+      </div>
+      <p class="case-pattern">Padrão: Descontinuação e reconstituição direcionada — substituição cirúrgica de membro</p>
+      <p>Uma comissão processante constituída em setembro de 2024 foi descontinuada em data não declarada. Em abril de 2025, o Vice-Presidente Versetti a reinstaura — mantendo dois dos três membros originais e substituindo um. A troca pontual é o padrão suspeito: suficiente para alterar a dinâmica da comissão sem levantar suspeita sobre a totalidade do processo. O sistema classificou como "composição direcionada para resultado processual predeterminado". A ausência de fundamentação para a substituição e para a descontinuação anterior amplifica a suspeita.</p>
+    </div>
+
+    <div class="case-block vermelho">
+      <div class="case-header">
+        <span class="case-id">Portaria 673/2026</span>
+        <span class="case-score vermelho">Vermelho · Score 87</span>
+      </div>
+      <p class="case-pattern">Padrão: 11 meses, substituição unilateral de membro, processo oculto — o modelo se repete</p>
+      <p>O Presidente Linzmeyer instaurou comissão processante em abril de 2025 para investigar o Processo SEI nº 00169.000714/2024-81 — cujo objeto e investigado seguem não identificados. Em março de 2026, sem concluir o processo, alterou a composição da comissão por portaria unilateral e prorrogou o prazo. A distinção analítica importante: este é o Processo B, instaurado pelo presidente atual, não herdado do anterior. A repetição do mesmo modelo de opacidade e controle unilateral sob uma liderança diferente é o que converte o padrão de individual para institucional.</p>
+    </div>
+
+    <hr>
+
+    <h2>7. Padrão Emergente: O Mês de Outubro de 2024</h2>
+
+    <p>A análise cronológica revelou uma concentração específica de atividade disciplinar e de pessoal no mês de outubro de 2024 que merece atenção como unidade coerente, não como eventos isolados:</p>
+
+    <ul class="timeline">
+      <li><span class="data">18/10/2024</span> <strong>Portaria 534</strong> — Exoneração de cargo em comissão</li>
+      <li class="aviso"><span class="data">21/10/2024</span> <strong>Portaria 535</strong> — Nomeação para cargo em comissão: Gerente Jurídico</li>
+      <li class="aviso"><span class="data">10/10/2024</span> <strong>Portaria 532</strong> — Prorrogação da Sindicância (Portaria 525)</li>
+      <li class="aviso"><span class="data">10/10/2024</span> <strong>Portaria 531</strong> — Nova comissão processante instaurada</li>
+      <li class="aviso"><span class="data">10/10/2024</span> <strong>Portaria 533</strong> — Prorrogação do PAD principal (Portaria 522)</li>
+      <li><span class="data">31/10/2024</span> <strong>Portaria 537</strong> — Nova exoneração de cargo em comissão</li>
+      <li><span class="data">04/11/2024</span> <strong>Portaria 538</strong> — Nomeação de Gerente Geral (Ormy Hutner)</li>
+      <li><span class="data">08/11/2024</span> <strong>Portaria 539</strong> — Prorrogação + substituição de membro na comissão da Portaria 531</li>
+    </ul>
+
+    <p>Em três semanas: três processos disciplinares ativos simultaneamente, dois cargos exonerados, dois cargos nomeados (incluindo Gerente Geral). A leitura isolada de cada portaria não permite ver o quadro. A leitura temporal revela uma reorganização institucional intensa em paralelo a uma ofensiva disciplinar. O que estava acontecendo no CAU/PR em outubro de 2024? Essa pergunta não tem resposta nos documentos disponíveis — mas tem resposta nas atas das reuniões plenárias desse período, que o Sonnet está analisando.</p>
+
+    <hr>
+
+    <h2>8. As Lacunas Estruturais — O Que Não Está no Corpus</h2>
+
+    <h3>As 18 Atas Ausentes</h3>
+
+    <p>O mapeamento das 179 reuniões plenárias do CAU/PR identificou 18 reuniões sem ata publicada no site oficial da autarquia:</p>
+
+    <table>
+      <thead>
+        <tr><th>Reuniões</th><th>Quantidade</th><th>Hipótese</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>99 e 101</td>
+          <td>2</td>
+          <td>Provavelmente não realizadas — período de restrições COVID (2020)</td>
+        </tr>
+        <tr>
+          <td>106 e 110</td>
+          <td>2</td>
+          <td>Não realizadas ou não documentadas — período 2020-2021</td>
+        </tr>
+        <tr>
+          <td class="vermelho">112 a 125</td>
+          <td class="vermelho">14</td>
+          <td class="vermelho">Sequência contínua — período específico da história institucional do CAU/PR</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout critical">
+      <strong>14 reuniões plenárias consecutivas sem ata publicada.</strong> Não afirmamos o que aconteceu nessas reuniões — afirmamos que elas não têm ata acessível publicamente no site oficial da autarquia. Um órgão com obrigação legal de publicar seus atos apresenta uma lacuna de 14 reuniões consecutivas em um período específico. O que foi deliberado nessas reuniões? Que portarias subsequentes se baseiam em deliberações dessas atas ausentes? A investigação do Zew deve cruzar as portarias emitidas no período coberto pelas atas 112–125 com os atos que vieram depois.
+    </div>
+
+    <h3>Os Contratos e Convênios — Links Quebrados</h3>
+
+    <p>80%+ dos documentos de contratos e convênios identificados no site do CAU/PR retornam HTTP 404. Os links existem na página, mas os PDFs foram removidos do servidor. Não é possível determinar se a remoção foi intencional, por reorganização de servidor, ou por expiração de prazo de armazenamento. O impacto é objetivo: uma categoria inteira de atos — aquela que registra os compromissos financeiros da autarquia com fornecedores — está efetivamente inacessível ao escrutínio público.</p>
+
+    <h3>As Portarias Pré-2018</h3>
+
+    <p>Portarias 1 a ~127 não foram incorporadas ao banco. Isso significa que o período fundacional do CAU/PR — os primeiros anos de operação, quando as práticas institucionais foram estabelecidas, quando os primeiros cargos em comissão foram criados, quando os primeiros contratos foram firmados — está fora do escopo desta investigação. A análise do Zew não tem visibilidade sobre esse período.</p>
+
+    <hr>
+
+    <h2>9. Verificações Jurídicas — Artigos do Regimento Potencialmente Violados</h2>
+
+    <p>Com base nos padrões identificados, os seguintes dispositivos do Regimento Interno do CAU/PR (6ª versão, DPOPR 0191-02/2025) e da legislação federal aplicável merecem atenção jurídica especializada:</p>
+
+    <ul>
+      <li><strong>Composição de comissões processantes:</strong> Artigos que exigem conselheiros titulares na composição — sistematicamente ignorados nos casos graves.</li>
+      <li><strong>Deliberação plenária prévia:</strong> Disposições sobre quais atos exigem aprovação do plenário antes de serem praticados pelo presidente — violadas na criação da Comissão Permanente (Portaria 514) e nas instaurações de PAD.</li>
+      <li><strong>Princípio da motivação (Art. 50, Lei 9.784/1999):</strong> Todo ato administrativo que afete direitos de terceiros deve ser motivado. Portarias de prorrogação sem fundamentação expressa violam este princípio.</li>
+      <li><strong>Princípio da publicidade (CF/88, Art. 37):</strong> A omissão sistemática do objeto e do investigado nos atos disciplinares pode conflitar com o princípio da publicidade, salvo quando houver fundamentação específica para sigilo.</li>
+      <li><strong>Lei de Acesso à Informação (Lei 12.527/2011):</strong> O sigilo nos processos disciplinares deve ser expressamente fundamentado. A ausência de fundamentação de sigilo — que difere da ausência de informação — é per se questionável.</li>
+    </ul>
+
+    <div class="callout">
+      Esta análise não substitui avaliação jurídica. Os pontos acima são hipóteses analíticas baseadas na leitura dos atos públicos, não pareceres legais. A verificação de violação efetiva de cada dispositivo exige o texto completo dos processos e análise por advogado habilitado.
+    </div>
+
+    <hr>
+
+    <h2>10. O Que o Opus 4.7 Pode Revelar</h2>
+
+    <p>O Zew — Claude Opus 4.7 — é o modelo mais capaz da família Claude. Não será incumbido de reler portarias individuais que o Haiku e o Sonnet já processaram. Será incumbido de fazer o que esses modelos não fizeram: tratar o corpus inteiro como sistema coerente e encontrar os padrões que só emergem quando as peças são vistas juntas.</p>
+
+    <h3>Linha cronológica de poder</h3>
+    <p>A sucessão de presidentes (Zanelatto → Maugham → Linzmeyer) com as portarias numeradas e datadas permite construir uma linha do tempo granular de quem decidia o quê, quando, e sob quais circunstâncias. Quando cada presidente assumiu? Quais foram os primeiros atos de cada gestão? Houve ruptura ou continuidade nos padrões disciplinares entre gestões? O Zew pode responder essas perguntas com precisão documental.</p>
+
+    <h3>Cruzamento ata × portaria</h3>
+    <p>A análise mais importante que o corpus completo permite: verificar sistematicamente se as portarias emitidas nos dias seguintes a cada reunião plenária correspondem ao que foi efetivamente deliberado nas atas. Portaria que não tem amparo em deliberação plenária votada é ato unilateral — não importa o que o texto do ato diz. O Zew pode cruzar todos os atos do período 2022–2026 com as atas disponíveis e identificar os casos onde portaria e deliberação conflitam.</p>
+
+    <h3>Grafo de presença e votação</h3>
+    <p>Quem vota com quem nas reuniões plenárias? Quem sistematicamente se ausenta antes de votações específicas? Quais conselheiros acumulam abstenções em temas sensíveis? As atas registram presença nominal, votos individuais, abstenções e retiradas de sala. O Zew pode construir o grafo de alianças e padrões de voto do plenário ao longo de anos de reuniões.</p>
+
+    <h3>Padrões nos nomes</h3>
+    <p>Os 12 servidores com mais de 25 aparições formam uma rede de relacionamento institucional. O Zew pode determinar quem aparece no mesmo ato com quem, em que tipos de ato, e se existem clusters de coautoria que revelam grupos de afinidade ou linha de comando paralela.</p>
+
+    <h3>O que as atas 112–125 revelam — ou ocultam</h3>
+    <p>Se as 14 atas ausentes correspondem a um período específico identificável na numeração, o Zew pode tentar reconstruir o que provavelmente foi deliberado nessas reuniões — usando as portarias emitidas no mesmo período como evidência reversa. Não é possível saber o que foi votado se a ata não existe. Mas é possível identificar quais portarias foram emitidas sem ata correspondente — e quais dessas portarias teriam exigido deliberação plenária para ter validade.</p>
+
+    <h3>A pergunta central</h3>
+    <p>Há uma pergunta que o Haiku e o Sonnet não têm capacidade de responder — porque requer síntese de todo o corpus simultâneo: <em>os processos disciplinares secretos de 2024–2026 têm correlação temporal com outras decisões institucionais — nomeações, exonerações, contratos, votações plenárias?</em></p>
+    <p>Se o Processo A foi instaurado em agosto de 2024, e em outubro de 2024 houve uma série de exonerações e nomeações incomum, e se as atas do plenário desse período mostram alguma mudança de alinhamento de voto — isso não é coincidência, é padrão. Detectar esse padrão exige ler o corpus como história, não como lista de documentos. Isso é o que o Zew vai fazer.</p>
+
+    <hr>
+
+    <h2>11. Estado da Investigação — Conclusão</h2>
+
+    <p>Em abril de 2026, o Dig Dig completou a análise inicial de 1.789 atos administrativos do CAU/PR. O que o sistema encontrou pode ser resumido em quatro frases:</p>
+
+    <p><strong>O padrão central é o controle presidencial dos mecanismos disciplinares.</strong> Não como desvio esporádico, mas como prática sistemática documentada em pelo menos três gestões consecutivas e ao longo de pelo menos 24 meses de registros contínuos.</p>
+
+    <p><strong>Dois processos disciplinares secretos estão ativos enquanto este paper é escrito.</strong> 20 meses e 12 meses, respectivamente, sem identificação pública do objeto ou do investigado, prorrogados mensalmente por portaria presidencial unilateral.</p>
+
+    <p><strong>A rede de servidores não-eleitos que opera o aparato investigativo é pequena, recorrente e hierarquicamente dependente da presidência.</strong> Três nomes com 31–33 aparições cada — frequência anômala para servidores não-titulares em posições de controle processual.</p>
+
+    <p><strong>As 14 atas plenárias consecutivas ausentes e os contratos com links quebrados representam lacunas estruturais que a transparência passiva do órgão não explica.</strong> São opacidades que o sistema documenta, não causas que o sistema afirma.</p>
+
+    <p>A análise atual tem seus limites. O Haiku foi treinado para triagem, não para síntese. O Sonnet analisou casos e atas individualmente, não o corpus como sistema. O que temos é a evidência — catalogada, estruturada, com score de risco e fichas de denúncia. O que nos falta é a narrativa que conecta a evidência em uma história coerente.</p>
+
+    <p>Isso é o que o Zew vai escrever.</p>
+
+    <div class="signature">
+      <div class="name">Regis Wilczek + Dig Dig Bud</div>
+      <div class="role">Fundador, Dig Dig · Claude Sonnet 4.6 &nbsp;·&nbsp; Curitiba, Abril de 2026</div>
+    </div>
+
+    <p class="post-footer">
+      White Paper Nº 07 do projeto Dig Dig. Série de registro técnico sobre auditoria pública automatizada com IA. Este documento foi produzido colaborativamente entre o fundador do Dig Dig e o Dig Dig Bud (Claude Sonnet 4.6), com base nos dados estruturados no banco de dados do sistema, alimentado exclusivamente por documentos públicos disponíveis no site oficial do CAU/PR. Nenhuma fonte não pública foi utilizada. As análises e classificações são instrumentos de investigação — não conclusões jurídicas.
+    </p>
+  </article>
+
+  <footer class="site-footer">
+    <span>© 2026 Dig Dig</span>
+    <span>White Paper · Nº 07 · Pré-Auditoria Integrada do CAU/PR</span>
+  </footer>
+
+</body>
+</html>

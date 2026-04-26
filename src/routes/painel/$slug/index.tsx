@@ -744,7 +744,7 @@ function StackedRiskBar({ dist, total }: { dist: PublicStats["distribuicao"]; to
 // ── CoverageByType ───────────────────────────────────────────────────────────
 const TIPO_NOTES: Record<string, string> = {
   deliberacao: "HTML-only · aguardando scraper dedicado",
-  ata_plenaria: "Análise via Sonnet",
+  ata_plenaria: "Análise via Bud",
 };
 
 const TIPO_DISPLAY: Record<string, string> = {
@@ -806,7 +806,7 @@ function TabVisaoGeral({
   stats,
   rodada,
   recentCount24h,
-  recentAnalyses,
+  recentAnalyses: _recentAnalyses,
   crescimento,
 }: {
   stats: PublicStats | null;
@@ -815,294 +815,469 @@ function TabVisaoGeral({
   recentAnalyses: AnaliseRecente[] | null;
   crescimento: CrescimentoResponse | null;
 }) {
-  const pct =
-    rodada && rodada.total_atos > 0
-      ? Math.round((rodada.atos_analisados_haiku / rodada.total_atos) * 100)
-      : null;
+  const [modal, setModal] = useState<null | "cobertura" | "alertas" | "custo">(null);
+  const [cardHover, setCardHover] = useState<string | null>(null);
 
   const dist = stats?.distribuicao;
-  const totalComNivel = dist
-    ? dist.verde + dist.amarelo + dist.laranja + dist.vermelho
-    : 0;
+  const totalComNivel = dist ? dist.verde + dist.amarelo + dist.laranja + dist.vermelho : 0;
   const pctAnalisados =
     stats && stats.total_atos > 0
       ? Math.round((stats.total_analisados / stats.total_atos) * 100)
       : 0;
-  // Score ponderado: verde=10, amarelo=40, laranja=70, vermelho=95
-  const scoreEstimado =
-    totalComNivel > 0
-      ? Math.round(
-          ((dist?.verde ?? 0) * 10 +
-            (dist?.amarelo ?? 0) * 40 +
-            (dist?.laranja ?? 0) * 70 +
-            (dist?.vermelho ?? 0) * 95) /
-            totalComNivel
-        )
-      : null;
-
-  const totalIndexado = crescimento?.total_atual ?? stats?.total_atos ?? 0;
+  const isSuccess = pctAnalisados >= 90;
+  const isLive = recentCount24h > 0 || rodada?.status === "em_progresso";
+  const totalVermelhos = dist?.vermelho ?? 0;
+  const totalLaranja = dist?.laranja ?? 0;
+  const totalCriticos = totalLaranja + totalVermelhos;
+  const pctCriticosNum = totalComNivel > 0 ? (totalCriticos / totalComNivel) * 100 : 0;
+  const pctCriticos = pctCriticosNum.toFixed(1);
+  const custoTotal = rodada?.custo_total_usd ?? 0;
   const inicio = crescimento?.inicio;
-  const diasColeta = inicio
+  const diasAtivos = inicio
     ? Math.round((Date.now() - new Date(inicio).getTime()) / 86_400_000)
     : null;
+  const totalIndexado = crescimento?.total_atual ?? stats?.total_atos ?? 0;
   const docsPorDia =
-    diasColeta && diasColeta > 0 && totalIndexado > 0
-      ? (totalIndexado / diasColeta).toFixed(1)
+    diasAtivos && diasAtivos > 0 && totalIndexado > 0
+      ? (totalIndexado / diasAtivos).toFixed(1)
       : null;
-  const adicionadosDigDig = Math.max(0, totalIndexado - 400);
-  const custoPorDoc =
-    rodada && rodada.atos_analisados_haiku > 0
-      ? rodada.custo_total_usd / rodada.atos_analisados_haiku
+  const custoPorCritico =
+    custoTotal > 0 && totalCriticos > 0
+      ? (custoTotal / totalCriticos).toFixed(2)
       : null;
-  const isLive = recentCount24h > 0 || rodada?.status === "em_progresso";
 
-  const kpis = [
-    {
-      label: "Documentos indexados",
-      value: fmt(totalIndexado),
-      sub: crescimento?.marcos ? `${crescimento.marcos.length} tipos de documento` : undefined,
-    },
-    {
-      label: "Cobertura de análise",
-      value: stats ? `${pctAnalisados}%` : "—",
-      sub: `${fmt(stats?.total_analisados)} de ${fmt(stats?.total_atos)} analisados`,
-    },
-    {
-      label: "Alertas críticos",
-      value: fmt(stats?.total_criticos),
-      sub:
-        totalComNivel > 0 && stats
-          ? `${((stats.total_criticos / totalComNivel) * 100).toFixed(1)}% dos analisados`
-          : "laranja + vermelho",
-    },
-    {
-      label: "Score médio estimado",
-      value: scoreEstimado != null ? String(scoreEstimado) : "—",
-      sub: "ponderado por nível · escala 0–100",
-    },
-    {
-      label: "Novos desde Dig Dig",
-      value: `+${fmt(adicionadosDigDig)}`,
-      sub: "adicionados após 22/04/2026",
-    },
-    {
-      label: docsPorDia ? "Ritmo de coleta" : "Dias de coleta",
-      value: docsPorDia ?? (diasColeta != null ? String(diasColeta) : "—"),
-      sub: docsPorDia ? "documentos por dia" : `início em ${crescimento?.inicio?.slice(0, 7) ?? "—"}`,
-    },
-  ];
+  const GREEN = "#16a34a";
+  const AMBER = "#d97706";
+
+  const FASES = ["Coleta", "Piper", "Bud", "Zew", "Relatório"];
+  const faseIdx = pctAnalisados >= 90 ? 3 : pctAnalisados >= 30 ? 2 : pctAnalisados >= 5 ? 1 : 0;
+
+  // Build phase elements without Fragment
+  const phaseEls: React.ReactNode[] = [];
+  FASES.forEach((label, i) => {
+    const isActive = i === faseIdx;
+    const isDone = i < faseIdx;
+    phaseEls.push(
+      <div
+        key={`fase-${i}`}
+        style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}
+      >
+        <div
+          style={{
+            width: 8, height: 8, borderRadius: "50%",
+            background: isDone ? GREEN : isActive ? INK : BORDER,
+            outline: isActive ? `2px solid ${INK}` : "none",
+            outlineOffset: 2,
+            transition: "background 0.3s",
+          }}
+        />
+        <span style={{
+          fontFamily: MONO, fontSize: 8.5, letterSpacing: "0.1em", textTransform: "uppercase" as const,
+          color: isDone ? GREEN : isActive ? INK : SUBTLE,
+          fontWeight: isActive ? 600 : 400,
+        }}>
+          {label}
+        </span>
+      </div>
+    );
+    if (i < FASES.length - 1) {
+      phaseEls.push(
+        <div
+          key={`conn-${i}`}
+          style={{
+            flex: 2, height: 1,
+            background: i < faseIdx ? GREEN : BORDER,
+            marginBottom: 14, transition: "background 0.3s",
+          }}
+        />
+      );
+    }
+  });
 
   return (
-    <div className="space-y-8">
-      {/* Hero KPI grid — 6 cards */}
-      <div
-        className="grid grid-cols-2 lg:grid-cols-3 gap-px"
-        style={{ background: BORDER, border: `1px solid ${BORDER}` }}
-      >
-        {kpis.map((k) => (
-          <div key={k.label} className="bg-white p-5">
-            <p
-              className="text-[10px] uppercase tracking-[0.24em] mb-2"
-              style={{ color: SUBTLE, fontFamily: MONO }}
-            >
-              {k.label}
-            </p>
-            <p
-              className="text-[28px] font-medium leading-none"
-              style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.02em" }}
-            >
-              {k.value}
-            </p>
-            {k.sub && (
-              <p
-                className="text-[10px] mt-1.5 uppercase tracking-wider"
-                style={{ color: MUTED, fontFamily: MONO }}
-              >
-                {k.sub}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Pipeline ativo */}
-      {rodada && pct !== null && (
-        <div className="p-5 space-y-3" style={{ border: `1px solid ${BORDER}` }}>
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2">
-              {rodada.status === "em_progresso" && (
-                <span
-                  className="h-1.5 w-1.5 rounded-full animate-pulse"
-                  style={{ background: "#16a34a" }}
-                />
-              )}
-              <p className="text-[13px]" style={{ color: INK }}>
-                {rodada.status === "em_progresso" ? "Pipeline ao vivo" : "Rodada de análise"}
-              </p>
-            </div>
-            <div className="flex items-center gap-4 flex-wrap">
-              <span
-                className="text-[11px] uppercase tracking-wider"
-                style={{ color: MUTED, fontFamily: MONO }}
-              >
-                {rodada.atos_analisados_haiku}/{rodada.total_atos} · {pct}%
-              </span>
-              {custoPorDoc != null && (
-                <span className="text-[11px]" style={{ color: MUTED, fontFamily: MONO }}>
-                  ${rodada.custo_total_usd.toFixed(2)} total · ${custoPorDoc.toFixed(4)}/doc
-                </span>
-              )}
-            </div>
-          </div>
-          <Progress value={pct} className="h-1" style={{ background: PAPER }} />
-          <p className="text-[10.5px]" style={{ color: SUBTLE, fontFamily: MONO }}>
-            Haiku: {rodada.atos_analisados_haiku} · Sonnet: {rodada.atos_analisados_sonnet}
-          </p>
-        </div>
-      )}
-
-      {/* 2-col BI: Distribuição de risco + Cobertura por tipo */}
-      <div
-        className="grid grid-cols-1 lg:grid-cols-2 gap-px"
-        style={{ background: BORDER, border: `1px solid ${BORDER}` }}
-      >
-        {stats && dist && (
-          <div className="bg-white p-5 pb-6 space-y-4">
-            <Eyebrow>Distribuição de risco · {totalComNivel.toLocaleString("pt-BR")} analisados</Eyebrow>
-            <StackedRiskBar dist={dist} total={totalComNivel} />
-          </div>
-        )}
-        {stats && (
-          <div className="bg-white p-5 space-y-4">
-            <Eyebrow>Cobertura por tipo</Eyebrow>
-            <CoverageByType stats={stats} />
-          </div>
-        )}
-      </div>
-
-      {/* Volume 24h */}
-      <VolumeChart24h items={recentAnalyses ?? []} isLive={isLive} />
-
-      {/* Crescimento cross-panel */}
-      {crescimento && (
-        <div className="p-5 space-y-4" style={{ border: `1px solid ${BORDER}` }}>
+    <div className="space-y-px">
+      {/* ── Modal ── */}
+      {modal && (
+        <div
+          style={{
+            position: "fixed", inset: 0, background: "rgba(10,10,10,0.52)", zIndex: 50,
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
+          }}
+          onClick={() => setModal(null)}
+        >
           <div
             style={{
-              display: "flex",
-              alignItems: "flex-start",
-              justifyContent: "space-between",
-              gap: 16,
+              background: "#fff", border: `1px solid ${BORDER}`,
+              padding: "28px 32px 36px", maxWidth: 480, width: "100%",
+              maxHeight: "85vh", overflowY: "auto",
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ flex: 1 }}>
-              <Eyebrow>Crescimento do acervo</Eyebrow>
-              <p
-                style={{
-                  fontSize: 36,
-                  fontWeight: 500,
-                  letterSpacing: "-0.04em",
-                  lineHeight: 1,
-                  color: INK,
-                  fontFamily: TIGHT,
-                  marginTop: 6,
-                }}
-              >
-                {fmt(totalIndexado)}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, paddingBottom: 16, borderBottom: `1px solid ${BORDER}` }}>
+              <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.18em", textTransform: "uppercase" }}>
+                {modal === "cobertura" ? "Cobertura da Investigação" : modal === "alertas" ? "Alertas Descobertos" : "Custo da Investigação"}
               </p>
-              <div style={{ display: "flex", gap: 24, marginTop: 12 }}>
-                {adicionadosDigDig > 0 && (
-                  <div>
-                    <p
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 500,
-                        color: "#16a34a",
-                        fontFamily: TIGHT,
-                        lineHeight: 1,
-                      }}
-                    >
-                      +{fmt(adicionadosDigDig)}
+              <button onClick={() => setModal(null)} style={{ background: "none", border: "none", cursor: "pointer", color: MUTED, fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+            </div>
+
+            {modal === "cobertura" && (
+              <div>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginBottom: 20 }}>
+                  <span style={{ fontFamily: TIGHT, fontSize: 56, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: isSuccess ? GREEN : INK }}>
+                    {pctAnalisados}%
+                  </span>
+                  <div style={{ paddingBottom: 8 }}>
+                    <p style={{ fontFamily: MONO, fontSize: 9, color: isSuccess ? GREEN : AMBER, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                      {isSuccess ? "✓ meta atingida" : `faltam ${90 - pctAnalisados}pp`}
                     </p>
-                    <p
-                      style={{
-                        fontSize: 9.5,
-                        color: MUTED,
-                        fontFamily: MONO,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        marginTop: 3,
-                      }}
-                    >
-                      desde Dig Dig
+                    <p style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>
+                      {fmt(stats?.total_analisados)} de {fmt(stats?.total_atos)} documentos
                     </p>
                   </div>
-                )}
-                {docsPorDia && (
-                  <div>
-                    <p
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 500,
-                        color: INK,
-                        fontFamily: TIGHT,
-                        lineHeight: 1,
-                      }}
-                    >
-                      {docsPorDia}
-                    </p>
-                    <p
-                      style={{
-                        fontSize: 9.5,
-                        color: MUTED,
-                        fontFamily: MONO,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        marginTop: 3,
-                      }}
-                    >
-                      docs/dia
-                    </p>
+                </div>
+                <div style={{ position: "relative", paddingBottom: 24, marginBottom: 20 }}>
+                  <div style={{ height: 8, background: BORDER, borderRadius: 2 }}>
+                    <div style={{ height: "100%", width: `${Math.min(pctAnalisados, 100)}%`, background: isSuccess ? GREEN : INK, borderRadius: 2, transition: "width 0.6s" }} />
                   </div>
-                )}
-                {diasColeta != null && (
-                  <div>
-                    <p
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 500,
-                        color: INK,
-                        fontFamily: TIGHT,
-                        lineHeight: 1,
-                      }}
-                    >
-                      {diasColeta}
-                    </p>
-                    <p
-                      style={{
-                        fontSize: 9.5,
-                        color: MUTED,
-                        fontFamily: MONO,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        marginTop: 3,
-                      }}
-                    >
-                      dias de coleta
-                    </p>
+                  <div style={{ position: "absolute", left: "90%", top: -3, bottom: 0, width: 2, background: isSuccess ? GREEN : AMBER, transform: "translateX(-50%)" }} />
+                  <div style={{ position: "absolute", left: "90%", top: 14, transform: "translateX(-50%)", fontFamily: MONO, fontSize: 8.5, color: isSuccess ? GREEN : AMBER, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+                    META 90%
                   </div>
-                )}
+                </div>
+                <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.75 }}>
+                  A auditoria é considerada completa quando 90% dos documentos indexados forem analisados.
+                  Com essa cobertura, o Dig Dig Zew recebe a síntese e traça os padrões que só emergem
+                  quando o corpus é tratado como sistema coerente.
+                </p>
               </div>
-            </div>
-            <div style={{ flexShrink: 0, paddingTop: 20 }}>
-              <Sparkline pontos={crescimento.pontos} />
-            </div>
+            )}
+
+            {modal === "alertas" && (
+              <div>
+                <div style={{ display: "flex", gap: 28, marginBottom: 20 }}>
+                  <div>
+                    <p style={{ fontFamily: TIGHT, fontSize: 48, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: "#dc2626" }}>{fmt(totalVermelhos)}</p>
+                    <p style={{ fontFamily: MONO, fontSize: 8.5, color: SUBTLE, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 4 }}>Vermelho</p>
+                  </div>
+                  <div>
+                    <p style={{ fontFamily: TIGHT, fontSize: 48, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: "#c2410c" }}>{fmt(totalLaranja)}</p>
+                    <p style={{ fontFamily: MONO, fontSize: 8.5, color: SUBTLE, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 4 }}>Laranja</p>
+                  </div>
+                </div>
+                <div style={{ height: 1, background: BORDER, marginBottom: 16 }} />
+                {(["vermelho", "laranja", "amarelo", "verde"] as const).map((cor) => {
+                  const n = cor === "vermelho" ? totalVermelhos : cor === "laranja" ? totalLaranja : dist?.[cor] ?? 0;
+                  const descs: Record<string, string> = {
+                    vermelho: "Irregularidade grave — fichas de denúncia geradas",
+                    laranja: "Indício moderado-grave — análise aprofundada recomendada",
+                    amarelo: "Padrão suspeito — merece atenção, não urgente",
+                    verde: "Conforme — procedimento regular, sem flags",
+                  };
+                  const c = NIVEL_BG[cor] ?? { bg: PAPER, fg: MUTED, border: BORDER };
+                  return (
+                    <div key={cor} style={{ display: "flex", gap: 12, padding: "10px 12px", background: c.bg, border: `1px solid ${c.border}`, borderRadius: 2, marginBottom: 6 }}>
+                      <span style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 20, color: c.fg, lineHeight: 1.2, minWidth: 44 }}>{fmt(n)}</span>
+                      <div>
+                        <p style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: c.fg, letterSpacing: "0.04em", textTransform: "uppercase" }}>{cor}</p>
+                        <p style={{ fontSize: 11.5, color: MUTED, marginTop: 1, lineHeight: 1.5 }}>{descs[cor]}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+                <p style={{ fontSize: 10.5, color: SUBTLE, fontFamily: MONO, marginTop: 12 }}>
+                  {pctCriticos}% dos documentos analisados têm indícios críticos
+                </p>
+              </div>
+            )}
+
+            {modal === "custo" && (
+              <div>
+                <div style={{ marginBottom: 20 }}>
+                  <p style={{ fontFamily: TIGHT, fontSize: 44, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: INK }}>${custoTotal.toFixed(2)}</p>
+                  <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 4 }}>Custo total acumulado</p>
+                </div>
+                <div style={{ height: 1, background: BORDER, marginBottom: 16 }} />
+                {([
+                  rodada ? { label: "Docs analisados pelo Piper", value: fmt(rodada.atos_analisados_haiku) } : null,
+                  rodada && rodada.atos_analisados_haiku > 0 ? { label: "Custo por documento", value: `$${(rodada.custo_total_usd / rodada.atos_analisados_haiku).toFixed(4)}` } : null,
+                  custoPorCritico ? { label: "Custo por achado crítico", value: `$${custoPorCritico}` } : null,
+                  diasAtivos != null ? { label: "Dias de investigação", value: `${diasAtivos}d` } : null,
+                  diasAtivos && custoTotal > 0 ? { label: "Custo por dia", value: `$${(custoTotal / diasAtivos).toFixed(2)}` } : null,
+                ] as ({ label: string; value: string } | null)[]).filter(Boolean).map((row) => (
+                  <div key={row!.label} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: `1px solid ${BORDER}` }}>
+                    <span style={{ fontSize: 12, color: MUTED }}>{row!.label}</span>
+                    <span style={{ fontSize: 12, fontFamily: MONO, color: INK }}>{row!.value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <p style={{ fontSize: 10.5, color: SUBTLE, fontFamily: MONO }}>
-            400 portarias pré-existentes · Dig Dig criado 22/04/2026 · +{fmt(adicionadosDigDig)}{" "}
-            novos documentos adicionados desde então
-          </p>
         </div>
       )}
+
+      {/* ── 1. Mission status banner ── */}
+      <div
+        style={{
+          border: `1px solid ${isSuccess ? "#bbf7d0" : BORDER}`,
+          background: isSuccess ? "#f0fdf4" : PAPER,
+          padding: "20px 24px 28px",
+          transition: "background 0.4s, border-color 0.4s",
+        }}
+      >
+        {/* Phase timeline */}
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
+          {phaseEls}
+        </div>
+
+        {/* Coverage row */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+          <div>
+            <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 6 }}>
+              Cobertura da investigação
+            </p>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+              <span style={{ fontFamily: TIGHT, fontSize: 40, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: isSuccess ? GREEN : INK, transition: "color 0.4s" }}>
+                {pctAnalisados}%
+              </span>
+              <span style={{ fontFamily: MONO, fontSize: 9, color: isSuccess ? GREEN : AMBER, letterSpacing: "0.08em", textTransform: "uppercase", paddingBottom: 4 }}>
+                {isSuccess ? "✓ meta atingida · coleta contínua" : "meta: 90%"}
+              </span>
+            </div>
+          </div>
+          {isLive && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, paddingBottom: 4 }}>
+              <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: GREEN, display: "inline-block" }} />
+              <span style={{ fontFamily: MONO, fontSize: 9, color: GREEN, letterSpacing: "0.1em", textTransform: "uppercase" }}>pipeline ao vivo</span>
+            </div>
+          )}
+        </div>
+
+        {/* Success state — pending docs message */}
+        {isSuccess && (
+          <div
+            style={{
+              marginBottom: 14,
+              padding: "12px 16px",
+              background: "rgba(22,163,74,0.06)",
+              border: "1px solid rgba(22,163,74,0.18)",
+              borderRadius: 2,
+            }}
+          >
+            <p
+              style={{
+                fontFamily: MONO, fontSize: 8.5, fontWeight: 600,
+                color: GREEN, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6,
+              }}
+            >
+              Aguardando finalização dos documentos pendentes
+            </p>
+            <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.7, margin: 0 }}>
+              Os últimos atos tendem a ser os mais complexos — contratos com links quebrados, atas de
+              reuniões específicas, deliberações sem extração completa. A base continua crescendo para
+              que o Zew trabalhe com o corpus mais completo possível. Mais documentos agora significa
+              mais acurácia na síntese final.
+            </p>
+          </div>
+        )}
+
+        {/* Threshold bar */}
+        <div style={{ position: "relative", paddingBottom: 20 }}>
+          <div style={{ height: 5, background: BORDER, borderRadius: 2 }}>
+            <div style={{ height: "100%", width: `${Math.min(pctAnalisados, 100)}%`, background: isSuccess ? GREEN : INK, borderRadius: 2, transition: "width 0.6s ease, background 0.4s" }} />
+          </div>
+          <div style={{ position: "absolute", left: "90%", top: -3, bottom: 0, width: 2, background: isSuccess ? GREEN : AMBER, transform: "translateX(-50%)" }} />
+          <div style={{ position: "absolute", left: "90%", top: 11, transform: "translateX(-50%)", fontFamily: MONO, fontSize: 8.5, color: isSuccess ? GREEN : AMBER, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+            meta 90%
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2. Signal cards ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-px" style={{ background: BORDER }}>
+        {/* Cobertura */}
+        <div
+          style={{ background: cardHover === "cobertura" ? PAPER : "#fff", padding: "28px 28px 32px", cursor: "pointer", transition: "background 0.15s", position: "relative", overflow: "hidden" }}
+          onMouseEnter={() => setCardHover("cobertura")}
+          onMouseLeave={() => setCardHover(null)}
+          onClick={() => setModal("cobertura")}
+        >
+          <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 14 }}>
+            Documentos analisados
+          </p>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 16, marginBottom: 16 }}>
+            <span style={{ fontFamily: TIGHT, fontSize: 52, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: isSuccess ? GREEN : INK, transition: "color 0.3s" }}>
+              {fmt(stats?.total_analisados)}
+            </span>
+            <span style={{ fontFamily: MONO, fontSize: 12, color: SUBTLE, paddingBottom: 7 }}>
+              / {fmt(stats?.total_atos)}
+            </span>
+          </div>
+          <p style={{ fontSize: 11.5, color: cardHover === "cobertura" ? INK : MUTED, lineHeight: 1.65, transition: "color 0.15s" }}>
+            {cardHover === "cobertura" ? "Ver cobertura detalhada →" : `${pctAnalisados}% coberto · meta 90% para fase Zew`}
+          </p>
+          {/* bottom progress strip */}
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: BORDER }}>
+            <div style={{ height: "100%", width: `${Math.min(pctAnalisados, 100)}%`, background: isSuccess ? GREEN : "#c8c5bc", transition: "width 0.5s" }} />
+          </div>
+        </div>
+
+        {/* Alertas */}
+        <div
+          style={{ background: cardHover === "alertas" ? PAPER : "#fff", padding: "28px 28px 32px", cursor: "pointer", transition: "background 0.15s", position: "relative", overflow: "hidden" }}
+          onMouseEnter={() => setCardHover("alertas")}
+          onMouseLeave={() => setCardHover(null)}
+          onClick={() => setModal("alertas")}
+        >
+          <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 14 }}>
+            Alertas descobertos
+          </p>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 18, marginBottom: 16 }}>
+            <span style={{ fontFamily: TIGHT, fontSize: 52, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: totalVermelhos > 0 ? "#dc2626" : INK, transition: "color 0.3s" }}>
+              {fmt(totalCriticos)}
+            </span>
+            <div style={{ paddingBottom: 7, display: "flex", gap: 14 }}>
+              <div>
+                <span style={{ fontFamily: TIGHT, fontSize: 20, fontWeight: 600, color: "#dc2626", lineHeight: 1 }}>{fmt(totalVermelhos)}</span>
+                <span style={{ display: "block", fontFamily: MONO, fontSize: 7.5, color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em", marginTop: 2 }}>verm.</span>
+              </div>
+              <div>
+                <span style={{ fontFamily: TIGHT, fontSize: 20, fontWeight: 600, color: "#c2410c", lineHeight: 1 }}>{fmt(totalLaranja)}</span>
+                <span style={{ display: "block", fontFamily: MONO, fontSize: 7.5, color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em", marginTop: 2 }}>laran.</span>
+              </div>
+            </div>
+          </div>
+          <p style={{ fontSize: 11.5, color: cardHover === "alertas" ? INK : MUTED, lineHeight: 1.65, transition: "color 0.15s" }}>
+            {cardHover === "alertas" ? "Ver distribuição por nível →" : `${pctCriticos}% dos analisados · laranja + vermelho`}
+          </p>
+          {/* bottom alert strip */}
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: BORDER }}>
+            <div style={{ height: "100%", width: `${Math.min(pctCriticosNum, 100)}%`, background: totalVermelhos > 0 ? "#dc2626" : "#c2410c" }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── 3. Operational strip ── */}
+      <div className="grid grid-cols-3 gap-px" style={{ background: BORDER }}>
+
+        {/* Value meter — custo */}
+        {(() => {
+          const custoPorAchado = custoPorCritico ? parseFloat(custoPorCritico) : 0;
+          const TIERS = [
+            { max: 0.30,      label: "Barato",    color: GREEN,     pos: 8  },
+            { max: 1.00,      label: "Eficiente", color: "#16a34a", pos: 28 },
+            { max: 3.00,      label: "Moderado",  color: AMBER,     pos: 55 },
+            { max: Infinity,  label: "Caro",      color: "#dc2626", pos: 82 },
+          ];
+          const tier = TIERS.find((t) => custoPorAchado < t.max) ?? TIERS[TIERS.length - 1];
+          // Bar cursor position: map $0–$10 to 0–96%
+          const barPos = custoPorAchado <= 0
+            ? 4
+            : Math.min(96, (Math.log10(custoPorAchado + 0.01) + 2.3) / 3.3 * 100);
+          const SEG_COLORS = [GREEN, "#84cc16", AMBER, "#dc2626"];
+          return (
+            <div
+              style={{ background: cardHover === "custo" ? PAPER : "#fff", padding: "18px 20px", cursor: "pointer", transition: "background 0.15s" }}
+              onMouseEnter={() => setCardHover("custo")}
+              onMouseLeave={() => setCardHover(null)}
+              onClick={() => setModal("custo")}
+            >
+              <p style={{ fontFamily: MONO, fontSize: 8.5, color: SUBTLE, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 8 }}>
+                Custo total
+              </p>
+
+              {/* Value label */}
+              <p style={{ fontFamily: TIGHT, fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1, color: tier.color, marginBottom: 10, transition: "color 0.3s" }}>
+                {tier.label}
+              </p>
+
+              {/* Segmented bar + cursor */}
+              <div style={{ position: "relative", marginBottom: 5 }}>
+                <div style={{ display: "flex", height: 4, gap: 2, borderRadius: 2, overflow: "visible" }}>
+                  {SEG_COLORS.map((c, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        flex: 1, height: "100%", borderRadius: 1,
+                        background: c,
+                        opacity: barPos > i * 25 ? 1 : 0.18,
+                        transition: "opacity 0.3s",
+                      }}
+                    />
+                  ))}
+                </div>
+                {/* Cursor dot */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: `${barPos}%`,
+                    top: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: 9, height: 9, borderRadius: "50%",
+                    background: tier.color,
+                    border: "2px solid #fff",
+                    boxShadow: `0 0 0 1.5px ${tier.color}`,
+                    transition: "left 0.5s ease, background 0.3s",
+                    zIndex: 1,
+                  }}
+                />
+              </div>
+
+              {/* Scale labels */}
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
+                <span style={{ fontFamily: MONO, fontSize: 7.5, color: SUBTLE, letterSpacing: "0.04em" }}>barato</span>
+                <span style={{ fontFamily: MONO, fontSize: 7.5, color: SUBTLE, letterSpacing: "0.04em" }}>caro</span>
+              </div>
+
+              {/* Cost footnote */}
+              <p style={{ fontSize: 10, color: MUTED, fontFamily: MONO }}>
+                {custoTotal > 0 ? `$${custoTotal.toFixed(2)}` : "—"}
+                {custoPorCritico ? ` · $${custoPorCritico}/achado` : ""}
+              </p>
+            </div>
+          );
+        })()}
+
+        {/* Tempo */}
+        <div style={{ background: "#fff", padding: "18px 20px" }}>
+          <p style={{ fontFamily: MONO, fontSize: 8.5, color: SUBTLE, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 6 }}>Investigação ativa</p>
+          <p style={{ fontFamily: TIGHT, fontSize: 26, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1, color: INK, marginBottom: 4 }}>
+            {diasAtivos != null ? `${diasAtivos}d` : "—"}
+          </p>
+          <p style={{ fontSize: 10.5, color: MUTED, fontFamily: MONO }}>
+            {inicio ? `desde ${new Date(inicio).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}` : "—"}
+          </p>
+        </div>
+
+        {/* Ritmo */}
+        <div style={{ background: "#fff", padding: "18px 20px" }}>
+          <p style={{ fontFamily: MONO, fontSize: 8.5, color: SUBTLE, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 6 }}>Ritmo de coleta</p>
+          <p style={{ fontFamily: TIGHT, fontSize: 26, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1, color: INK, marginBottom: 4 }}>
+            {docsPorDia ?? "—"}
+          </p>
+          <p style={{ fontSize: 10.5, color: MUTED, fontFamily: MONO }}>docs · dia</p>
+        </div>
+
+      </div>
+
+      {/* ── 4. Próximo marco ── */}
+      <div style={{ border: `1px solid ${BORDER}`, padding: "18px 24px", background: isSuccess ? "#f0fdf4" : PAPER, transition: "background 0.4s" }}>
+        <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 10 }}>
+          Próximo marco
+        </p>
+        <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <span style={{ fontSize: 10, marginTop: 3, color: isSuccess ? GREEN : AMBER }}>●</span>
+          <div>
+            <p style={{ fontFamily: TIGHT, fontSize: 14, fontWeight: 600, color: isSuccess ? GREEN : INK, letterSpacing: "-0.01em" }}>
+              {isSuccess ? "Fase Zew liberada — coleta final em andamento" : `Ampliar cobertura: ${90 - pctAnalisados}pp para atingir 90%`}
+            </p>
+            <p style={{ fontSize: 12, color: MUTED, marginTop: 4, lineHeight: 1.65 }}>
+              {isSuccess
+                ? `90% atingidos. A investigação já pode iniciar a fase Zew com os ${fmt(totalCriticos)} alertas identificados, mas a coleta continua — cada documento adicionado agora aumenta a acurácia da síntese final. Os últimos atos são os mais difíceis de extrair, e são exatamente esses que o Zew precisa ver.`
+                : `Com ${pctAnalisados}% de cobertura, faltam ${90 - pctAnalisados} pontos para a fase Zew — síntese do corpus como sistema coerente.`}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1749,44 +1924,179 @@ function fmtHora(dt: string): string {
 
 // ── Sparkline (sem eixos, apenas a curva) ────────────────────────────────────
 function Sparkline({ pontos }: { pontos?: CrescimentoPonto[] }) {
-  if (!pontos || pontos.length < 2) return <div style={{ width: 200, height: 52 }} />;
-  const W = 200, H = 52;
-  const P = { t: 4, r: 2, b: 4, l: 2 };
+  const [hovIdx, setHovIdx] = useState<number | null>(null);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  if (!pontos || pontos.length < 2) return <div style={{ height: 180, background: BORDER, opacity: 0.2 }} />;
+
+  const W = 600, H = 180;
+  const P = { t: 38, r: 22, b: 42, l: 58 };
   const iW = W - P.l - P.r, iH = H - P.t - P.b;
+
   const maxV = Math.max(...pontos.map((p) => p.total), 1);
   const t0 = new Date(pontos[0].dia).getTime();
   const t1 = new Date(pontos[pontos.length - 1].dia).getTime();
-  const dt = Math.max(t1 - t0, 3600000);
+  const dt = Math.max(t1 - t0, 86400000);
+
   const tx = (d: string) => P.l + ((new Date(d).getTime() - t0) / dt) * iW;
   const ty = (v: number) => P.t + iH - (Math.min(v, maxV) / maxV) * iH;
-  const pts = pontos.map((p) => `${tx(p.dia)},${ty(p.total)}`).join(" ");
-  const area = [
-    `M${tx(pontos[0].dia)},${P.t + iH}`,
-    ...pontos.map((p) => `L${tx(p.dia)},${ty(p.total)}`),
-    `L${tx(pontos[pontos.length - 1].dia)},${P.t + iH}Z`,
-  ].join(" ");
-  const y400 = ty(400);
+
+  const first = pontos[0];
+  const last = pontos[pontos.length - 1];
+  const hov = hovIdx !== null ? pontos[hovIdx] : null;
+
+  // Y-axis grid: 4 steps, round to nearest 100
+  const rawStep = maxV / 4;
+  const yStep = rawStep >= 100 ? Math.ceil(rawStep / 100) * 100 : Math.ceil(rawStep / 10) * 10 || 1;
+  const yLines = [0, 1, 2, 3, 4].map((i) => ({ v: Math.min(yStep * i, maxV), y: ty(Math.min(yStep * i, maxV)) }));
+  const fmtY = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(v % 500 === 0 ? 0 : 1)}k` : String(v);
+
+  // X-axis annual labels
+  const startYear = new Date(pontos[0].dia).getFullYear();
+  const endYear = new Date(pontos[pontos.length - 1].dia).getFullYear();
+  const xLabels: { label: string; x: number }[] = [];
+  for (let yr = startYear + 1; yr <= endYear; yr++) {
+    const xp = P.l + ((new Date(`${yr}-01-01`).getTime() - t0) / dt) * iW;
+    if (xp > P.l + 30 && xp < P.l + iW - 30) xLabels.push({ label: String(yr), x: xp });
+  }
+
+  // Dig Dig marker
   const digX = tx(DIGDIG_START);
-  const digOk = digX >= P.l && digX <= P.l + iW;
+  const digOk = digX >= P.l + 5 && digX <= P.l + iW - 5;
+
+  // SVG paths
+  const linePts = pontos.map((p) => `${tx(p.dia).toFixed(1)},${ty(p.total).toFixed(1)}`).join(" ");
+  const areaPath = [
+    `M${tx(first.dia).toFixed(1)},${(P.t + iH).toFixed(1)}`,
+    ...pontos.map((p) => `L${tx(p.dia).toFixed(1)},${ty(p.total).toFixed(1)}`),
+    `L${tx(last.dia).toFixed(1)},${(P.t + iH).toFixed(1)}Z`,
+  ].join(" ");
+
+  // End label: left-anchored unless point is near right edge
+  const lastX = tx(last.dia);
+  const endLeft = lastX > P.l + iW - 65;
+
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const svgRect = e.currentTarget.getBoundingClientRect();
+    const cRect = containerRef.current?.getBoundingClientRect();
+    const vbX = ((e.clientX - svgRect.left) / svgRect.width) * W;
+    let closest = 0, minD = Infinity;
+    pontos.forEach((p, i) => { const d = Math.abs(tx(p.dia) - vbX); if (d < minD) { minD = d; closest = i; } });
+    setHovIdx(closest);
+    if (cRect) setMousePos({ x: e.clientX - cRect.left, y: e.clientY - cRect.top });
+  };
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: W, height: H, display: "block", flexShrink: 0 }}>
-      <defs>
-        <linearGradient id="sp-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={INK} stopOpacity={0.14} />
-          <stop offset="100%" stopColor={INK} stopOpacity={0.01} />
-        </linearGradient>
-      </defs>
-      {maxV > 500 && (
-        <line x1={P.l} y1={y400} x2={P.l + iW} y2={y400}
-          stroke="#d97706" strokeWidth={0.7} strokeDasharray="3,2" opacity={0.45} />
+    <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        style={{ width: "100%", height: 180, display: "block", cursor: "crosshair", userSelect: "none" }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => { setHovIdx(null); setMousePos(null); }}
+      >
+        <defs>
+          <linearGradient id="sp-growth" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={INK} stopOpacity={0.12} />
+            <stop offset="100%" stopColor={INK} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+
+        {/* Y grid */}
+        {yLines.map(({ v, y }) => (
+          <g key={v}>
+            <line x1={P.l} y1={y} x2={P.l + iW} y2={y} stroke={BORDER} strokeWidth={0.8} />
+            <text x={P.l - 8} y={y + 3.5} textAnchor="end" fontSize={9} fill={SUBTLE} fontFamily={MONO}>{fmtY(v)}</text>
+          </g>
+        ))}
+
+        {/* X axis */}
+        <line x1={P.l} y1={P.t + iH} x2={P.l + iW} y2={P.t + iH} stroke={BORDER} strokeWidth={0.8} />
+        {xLabels.map(({ label, x }) => (
+          <g key={label}>
+            <line x1={x} y1={P.t + iH} x2={x} y2={P.t + iH + 4} stroke={BORDER} strokeWidth={0.8} />
+            <text x={x} y={P.t + iH + 16} textAnchor="middle" fontSize={9} fill={SUBTLE} fontFamily={MONO}>{label}</text>
+          </g>
+        ))}
+
+        {/* Area + line */}
+        <path d={areaPath} fill="url(#sp-growth)" />
+        <polyline points={linePts} fill="none" stroke={INK} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+
+        {/* Dig Dig marker */}
+        {digOk && (
+          <g>
+            <line x1={digX} y1={P.t} x2={digX} y2={P.t + iH} stroke="#d97706" strokeWidth={1.2} strokeDasharray="3,2" opacity={0.65} />
+            <rect x={digX + 3} y={P.t + 2} width={40} height={14} fill="#fffbeb" rx={2} opacity={0.95} />
+            <text x={digX + 7} y={P.t + 12} fontSize={8} fill="#d97706" fontFamily={MONO} fontWeight="bold">DIG DIG</text>
+          </g>
+        )}
+
+        {/* Start annotation */}
+        <circle cx={tx(first.dia)} cy={ty(first.total)} r={3.5} fill="#fff" stroke={SUBTLE} strokeWidth={1.5} />
+        <text x={tx(first.dia) + 7} y={ty(first.total) - 7} fontSize={8} fill={SUBTLE} fontFamily={MONO}>
+          {new Date(first.dia).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "")}
+        </text>
+        <text x={tx(first.dia) + 7} y={ty(first.total) + 4} fontSize={10.5} fill={SUBTLE} fontFamily={MONO} fontWeight="600">
+          {fmt(first.total)}
+        </text>
+
+        {/* End annotation — black badge */}
+        <circle cx={lastX} cy={ty(last.total)} r={5} fill={INK} />
+        <rect
+          x={endLeft ? lastX - 62 : lastX + 5}
+          y={ty(last.total) - 36}
+          width={58} height={34}
+          fill={INK} rx={3}
+        />
+        <text
+          x={endLeft ? lastX - 33 : lastX + 34}
+          y={ty(last.total) - 24}
+          textAnchor="middle" fontSize={8} fill="rgba(255,255,255,0.6)" fontFamily={MONO}
+        >atual</text>
+        <text
+          x={endLeft ? lastX - 33 : lastX + 34}
+          y={ty(last.total) - 7}
+          textAnchor="middle" fontSize={17} fill="#fff" fontFamily={TIGHT} fontWeight="700"
+        >{fmt(last.total)}</text>
+
+        {/* Hover crosshair */}
+        {hov && (
+          <g>
+            <line x1={tx(hov.dia)} y1={P.t} x2={tx(hov.dia)} y2={P.t + iH}
+              stroke={INK} strokeWidth={0.8} strokeDasharray="3,2" opacity={0.3} />
+            <circle cx={tx(hov.dia)} cy={ty(hov.total)} r={5}
+              fill="#fff" stroke={INK} strokeWidth={2} />
+          </g>
+        )}
+      </svg>
+
+      {/* HTML tooltip */}
+      {hov && mousePos && (
+        <div style={{
+          position: "absolute",
+          left: mousePos.x > (containerRef.current?.offsetWidth ?? 400) * 0.65
+            ? mousePos.x - 138
+            : mousePos.x + 14,
+          top: Math.max(mousePos.y - 80, 4),
+          pointerEvents: "none",
+          background: "#fff",
+          border: `1px solid ${BORDER}`,
+          padding: "8px 12px",
+          boxShadow: "0 4px 14px rgba(0,0,0,0.09)",
+          zIndex: 20,
+          minWidth: 120,
+        }}>
+          <p style={{ fontFamily: MONO, fontSize: 8.5, color: SUBTLE, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
+            {new Date(hov.dia).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+          </p>
+          <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 24, color: INK, lineHeight: 1, letterSpacing: "-0.03em" }}>
+            {fmt(hov.total)}
+          </p>
+          <p style={{ fontFamily: MONO, fontSize: 9, color: MUTED, marginTop: 3 }}>documentos indexados</p>
+        </div>
       )}
-      <path d={area} fill="url(#sp-fill)" />
-      <polyline points={pts} fill="none" stroke={INK} strokeWidth={1.5} />
-      {digOk && (
-        <line x1={digX} y1={P.t} x2={digX} y2={P.t + iH}
-          stroke="#d97706" strokeWidth={0.8} strokeDasharray="2,2" opacity={0.5} />
-      )}
-    </svg>
+    </div>
   );
 }
 
@@ -1842,6 +2152,522 @@ function TypeBars({ marcos, total }: { marcos: Marco[]; total: number }) {
   );
 }
 
+// ── Componente: Relatório Preliminar da Auditoria ───────────────────────
+
+const CASO_VERMELHO: {
+  id: string;
+  score: number;
+  pattern: string;
+  text: string;
+}[] = [
+  {
+    id: "Portaria 667/2026",
+    score: 95,
+    pattern: "Processo disciplinar de 18 meses em sigilo total — dois presidentes, mesma comissão",
+    text:
+      "Em agosto de 2024, o Presidente Maugham Zaze instaurou um PAD por ato unilateral. O investigado e o objeto permanecem não identificados publicamente em fevereiro de 2026 — 18 meses depois. A comissão foi composta exclusivamente por servidores subordinados, em violação ao regimento. A Portaria 667 é a terceira recondução — cada uma por portaria presidencial, sem deliberação plenária. O sistema identificou incoerências cronológicas internas: a data de assinatura conflita com datas internas do documento.",
+  },
+  {
+    id: "Portaria 514/2024",
+    score: 93,
+    pattern: "Captura institucional do aparato investigativo — estrutura sem previsão regimental",
+    text:
+      "O Presidente Maugham Zaze criou por ato unilateral uma \"Comissão Permanente de Sindicância e Inquérito\" — estrutura sem previsão no regimento interno, composta por cinco empregados de confiança hierarquicamente subordinados. A comissão assumiu poderes investigativos sem deliberação plenária sobre sua criação, composição ou escopo.",
+  },
+  {
+    id: "Portaria 533/2024",
+    score: 88,
+    pattern: "O presidente que instaura, compõe e nomeia o defensor — triplo controle processual",
+    text:
+      "Na comissão instaurada pela Portaria 522, o presidente prorrogou o prazo e, no mesmo ato, designou um subordinado direto como \"defensor\" do investigado. A cadeia é completa: quem instaurou o processo, escolheu os investigadores, também nomeia o defensor. A proteção se torna ficção.",
+  },
+  {
+    id: "Portaria 586/2025",
+    score: 87,
+    pattern: "Descontinuação e reconstituição direcionada — substituição cirúrgica de membro",
+    text:
+      "Uma comissão constituída em setembro de 2024 foi descontinuada em data não declarada. Em abril de 2025, o Vice-Presidente Versetti a reinstaura — mantendo dois membros e substituindo um. Substituição pontual suficiente para alterar a dinâmica sem levantar suspeita sobre o conjunto.",
+  },
+  {
+    id: "Portaria 673/2026",
+    score: 87,
+    pattern: "11 meses, substituição unilateral de membro, processo oculto — o modelo se repete",
+    text:
+      "O Presidente Linzmeyer instaurou comissão processante em abril de 2025. Objeto e investigado: não identificados. Em março de 2026, alterou a composição e prorrogou por portaria unilateral, sem deliberação plenária. Este é o Processo B — instaurado pelo presidente atual, não herdado. A repetição do mesmo modelo converte o padrão de individual para institucional.",
+  },
+];
+
+const ATORES = [
+  { nome: "Milton C. Zanelatto Gonçalves", apars: 148, papel: "Ex-presidente", obs: "Maior volume de assinaturas — gestão anterior" },
+  { nome: "Walter Gustavo Linzmeyer", apars: 136, papel: "Presidente (atual)", obs: "Concentração em atos disciplinares 2024–2026", destaque: true },
+  { nome: "Maugham Zaze", apars: 97, papel: "Ex-presidente", obs: "Instaurou PAD de 20 meses e comissão permanente", destaque: true },
+  { nome: "André Felipe Casagrande", apars: 33, papel: "Servidor", obs: "Membro recorrente de comissões investigativas", alerta: true },
+  { nome: "Cleverson João Veiga", apars: 31, papel: "Servidor", obs: "Investigador recorrente em sindicâncias", alerta: true },
+  { nome: "Leandro Reguelin", apars: 31, papel: "Servidor", obs: "Operacional em PADs; designado como defensor pelo mesmo presidente que o nomeou investigador", alerta: true },
+  { nome: "Jeancarlo Versetti", apars: 25, papel: "Vice-Presidente", obs: "Assina atos presidenciais sem fundamento formal de substituição documentado" },
+  { nome: "Alisson Castro Geremias", apars: 25, papel: "Ger. Comunicação", obs: "Designado para funções fiscalizadoras fora de sua área" },
+];
+
+function _noop() {
+  const stats = null as PublicStats | null;
+  const dist = stats?.distribuicao;
+  const totalComNivel = dist ? dist.verde + dist.amarelo + dist.laranja + dist.vermelho : 0;
+  const pctCritico = totalComNivel > 0 ? (((dist?.laranja ?? 0) + (dist?.vermelho ?? 0)) / totalComNivel) * 100 : 0; void pctCritico;
+  const ROW_BORDER = "#f0ece4";
+  const SECTION_DIVIDER = { height: 1, background: BORDER, margin: "28px 0" }; void SECTION_DIVIDER;
+  const PATTERN_TITLE_STYLE = { fontFamily: TIGHT, fontWeight: 600, fontSize: 14, color: INK, marginBottom: 8, lineHeight: 1.3 }; void PATTERN_TITLE_STYLE;
+  const PARA_STYLE = { fontSize: 12.5, color: MUTED, lineHeight: 1.7, marginBottom: 10 }; void PARA_STYLE;
+
+  return (
+    <div
+      style={{
+        border: `1px solid ${BORDER}`,
+        background: PAPER,
+        padding: "28px 28px 32px",
+        marginTop: 8,
+      }}
+    >
+      {/* Header do documento */}
+      <div
+        style={{
+          borderBottom: `1px solid ${BORDER}`,
+          paddingBottom: 20,
+          marginBottom: 24,
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 8 }}>
+            Relatório Preliminar · CAU/PR · Abril 2026
+          </p>
+          <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 20, color: INK, letterSpacing: "-0.02em", lineHeight: 1.2, marginBottom: 6 }}>
+            Pré-Auditoria Integrada
+          </p>
+          <p style={{ fontSize: 12, color: MUTED }}>
+            Síntese de {fmt(stats?.total_analisados)} atos analisados por Haiku + Sonnet —
+            antes da fase Opus 4.7
+          </p>
+        </div>
+        <div
+          style={{
+            border: `1px solid ${BORDER}`,
+            padding: "8px 14px",
+            background: "#fff",
+            flexShrink: 0,
+          }}
+        >
+          <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4 }}>
+            Estágio da análise
+          </p>
+          <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 13, color: INK }}>
+            Haiku + Sonnet completos
+          </p>
+          <p style={{ fontFamily: MONO, fontSize: 9, color: "#c2410c", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 2 }}>
+            Opus 4.7 → pendente
+          </p>
+        </div>
+      </div>
+
+      {/* Números do corpus */}
+      <div style={{ marginBottom: 24 }}>
+        <Eyebrow>Distribuição de alertas</Eyebrow>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 12,
+            marginBottom: 14,
+          }}
+        >
+          {[
+            { nivel: "Verde", n: dist?.verde ?? 0, color: "#15803d", bg: "#f0fdf4", border: "#bbf7d0", desc: "Conforme" },
+            { nivel: "Amarelo", n: dist?.amarelo ?? 0, color: "#a16207", bg: "#fefce8", border: "#fde68a", desc: "Suspeito" },
+            { nivel: "Laranja", n: dist?.laranja ?? 0, color: "#c2410c", bg: "#fff7ed", border: "#fed7aa", desc: "Indício grave" },
+            { nivel: "Vermelho", n: dist?.vermelho ?? 0, color: "#b91c1c", bg: "#fef2f2", border: "#fecaca", desc: "Irregulare" },
+          ].map(({ nivel, n, color, bg, border, desc }) => (
+            <div
+              key={nivel}
+              style={{ background: bg, border: `1px solid ${border}`, padding: "12px 14px" }}
+            >
+              <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 22, color, lineHeight: 1, letterSpacing: "-0.02em" }}>
+                {fmt(n)}
+              </p>
+              <p style={{ fontFamily: MONO, fontSize: 9, color, textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>
+                {nivel}
+              </p>
+              <p style={{ fontSize: 10.5, color: MUTED, marginTop: 4 }}>
+                {totalComNivel > 0 ? ((n / totalComNivel) * 100).toFixed(1) : "0"}% · {desc}
+              </p>
+            </div>
+          ))}
+        </div>
+        {totalComNivel > 0 && (
+          <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE }}>
+            {pctCritico.toFixed(1)}% dos documentos com algum nível crítico (laranja ou vermelho)
+            · 136 atos ad referendum (7,6%) · 32 prorrogações de comissões processantes
+          </p>
+        )}
+      </div>
+
+      <div style={SECTION_DIVIDER} />
+
+      {/* Os quatro padrões sistêmicos */}
+      <div style={{ marginBottom: 24 }}>
+        <Eyebrow>Os quatro padrões sistêmicos</Eyebrow>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {[
+            {
+              n: "01",
+              title: "Controle presidencial dos mecanismos disciplinares",
+              body: "Presidentes instauraram sindicâncias e PADs por ato unilateral, sem deliberação plenária. Prorrogaram prazos sucessivamente por portaria presidencial. Compuseram comissões exclusivamente com servidores subordinados — em violação ao regimento que exige conselheiros titulares. Mantiveram objeto e investigado em sigilo durante meses ou anos. O padrão transcende gestões: está documentado em pelo menos três presidências consecutivas.",
+            },
+            {
+              n: "02",
+              title: "Composição direcionada de comissões investigativas",
+              body: "Os mesmos servidores não-eleitos aparecem repetidamente em comissões de natureza sensível. André Casagrande (33 atos), Cleverson Veiga (31) e Leandro Reguelin (31) acumulam funções de investigação sem mandato eletivo e com dependência hierárquica direta da presidência. Reguelin cumpre funções contraditórias: investigador e defensor do investigado no mesmo processo, designado pelo mesmo presidente.",
+            },
+            {
+              n: "03",
+              title: "Presidência paralela — assinaturas sem amparo formal",
+              body: "Em ao menos quatro portarias, o Vice-Presidente Jeancarlo Versetti assinou atos de natureza presidencial — abertura e prorrogação de processos disciplinares — sem que os atos registrassem o instrumento formal de substituição: afastamento, licença ou delegação documentada. Em processos disciplinares, onde a cadeia de autoridade é elemento central de validade, essa lacuna não é administrativa — é processual.",
+            },
+            {
+              n: "04",
+              title: "Opacidade como estrutura, não como acidente",
+              body: "Quase todos os processos graves têm em comum: o objeto e o investigado não constam do ato publicado. Processos tramitam por meses com referências apenas a números de SEI, sem que o texto permita identificar quem é investigado por quê. A omissão não é compliance com a LGPD — é o uso da LGPD como escudo retórico para ocultar informações que a lei de transparência exige.",
+            },
+          ].map(({ n, title, body }) => (
+            <div key={n} style={{ display: "flex", gap: 16 }}>
+              <div
+                style={{
+                  fontFamily: MONO,
+                  fontSize: 10,
+                  color: SUBTLE,
+                  letterSpacing: "0.08em",
+                  flexShrink: 0,
+                  paddingTop: 2,
+                  width: 20,
+                }}
+              >
+                {n}
+              </div>
+              <div>
+                <p style={PATTERN_TITLE_STYLE}>{title}</p>
+                <p style={{ ...PARA_STYLE, marginBottom: 0 }}>{body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={SECTION_DIVIDER} />
+
+      {/* Cronologia dos processos disciplinares */}
+      <div style={{ marginBottom: 24 }}>
+        <Eyebrow>Cronologia dos processos disciplinares secretos</Eyebrow>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+          {/* PAD A */}
+          <div style={{ border: `1px solid #fecaca`, background: "#fff5f5", padding: "16px 18px" }}>
+            <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12, color: "#b91c1c", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 12 }}>
+              PAD-A — 20 meses em sigilo
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 0, borderLeft: "2px solid #fecaca", paddingLeft: 14 }}>
+              {[
+                { data: "15/08/2024", label: "Portaria 522 — instauração (Maugham Zaze)", dot: "#fecaca" },
+                { data: "10/10/2024", label: "Portaria 533 — prorrogação + nomeação de defensor", dot: "#fca5a5" },
+                { data: "18/11/2025", label: "Portaria 655 — recondução", dot: "#fca5a5" },
+                { data: "09/12/2025", label: "Portaria 659 — prorrogação · 16 meses", dot: "#f87171" },
+                { data: "12/01/2026", label: "Portaria 664 — prorrogação · 17 meses", dot: "#f87171" },
+                { data: "02/02/2026", label: "Portaria 667 — recondução (Linzmeyer) · 18m", dot: "#ef4444" },
+                { data: "10/02/2026", label: "Portaria 672 — prorrogação", dot: "#ef4444" },
+                { data: "16/03/2026", label: "Portaria 675 — prorrogação", dot: "#ef4444" },
+                { data: "02/04/2026", label: "Portaria 678 — prorrogação · ativo", dot: "#dc2626" },
+              ].map(({ data, label, dot }) => (
+                <div key={data} style={{ display: "flex", gap: 10, paddingBottom: 8, position: "relative" }}>
+                  <div
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      background: dot,
+                      flexShrink: 0,
+                      marginTop: 4,
+                      marginLeft: -18,
+                    }}
+                  />
+                  <div style={{ paddingLeft: 4 }}>
+                    <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.06em" }}>{data}</p>
+                    <p style={{ fontSize: 11, color: INK, lineHeight: 1.4 }}>{label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* PAD B */}
+          <div style={{ border: `1px solid #fed7aa`, background: "#fffbf5", padding: "16px 18px" }}>
+            <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12, color: "#c2410c", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 12 }}>
+              PAD-B — 12 meses em sigilo
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 0, borderLeft: "2px solid #fed7aa", paddingLeft: 14 }}>
+              {[
+                { data: "07/04/2025", label: "Portaria 580 — instauração (Linzmeyer)", dot: "#fed7aa" },
+                { data: "02/02/2026", label: "Portaria 667 — recondução + alteração · 10 meses", dot: "#fb923c" },
+                { data: "03/03/2026", label: "Portaria 673 — substituição de membro + prorrogação", dot: "#f97316" },
+                { data: "02/04/2026", label: "Portaria 678 — prorrogação · ativo", dot: "#ea580c" },
+              ].map(({ data, label, dot }) => (
+                <div key={data} style={{ display: "flex", gap: 10, paddingBottom: 8 }}>
+                  <div
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      background: dot,
+                      flexShrink: 0,
+                      marginTop: 4,
+                      marginLeft: -18,
+                    }}
+                  />
+                  <div style={{ paddingLeft: 4 }}>
+                    <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.06em" }}>{data}</p>
+                    <p style={{ fontSize: 11, color: INK, lineHeight: 1.4 }}>{label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 16, padding: "10px 12px", background: "#fff7ed", border: "1px solid #fed7aa" }}>
+              <p style={{ fontSize: 11, color: "#92400e", lineHeight: 1.5 }}>
+                <strong>Out/2024:</strong> 4 processos disciplinares simultâneos — 8 portarias
+                em 3 semanas com 2 exonerações e 2 nomeações. Concentração temporal anômala.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={SECTION_DIVIDER} />
+
+      {/* Os cinco casos mais graves */}
+      <div style={{ marginBottom: 24 }}>
+        <Eyebrow>Os cinco casos mais graves · Score de risco</Eyebrow>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {CASO_VERMELHO.map((c) => (
+            <div
+              key={c.id}
+              style={{
+                background: "#fff",
+                border: `1px solid #fecaca`,
+                borderLeft: "3px solid #dc2626",
+                padding: "14px 16px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 13, color: INK, letterSpacing: "-0.01em" }}>
+                  {c.id}
+                </p>
+                <span
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: 9,
+                    color: "#b91c1c",
+                    background: "#fef2f2",
+                    border: "1px solid #fecaca",
+                    padding: "2px 8px",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Vermelho · Score {c.score}
+                </span>
+              </div>
+              <p style={{ fontSize: 11.5, color: MUTED, fontStyle: "italic", marginBottom: 6 }}>
+                {c.pattern}
+              </p>
+              <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6, marginBottom: 0 }}>
+                {c.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={SECTION_DIVIDER} />
+
+      {/* Rede de atores */}
+      <div style={{ marginBottom: 24 }}>
+        <Eyebrow>Rede de atores · Frequência de aparição nos atos</Eyebrow>
+        <div style={{ border: `1px solid ${BORDER}` }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 52px 100px 1fr",
+              gap: "0 12px",
+              padding: "6px 14px",
+              borderBottom: `1px solid ${BORDER}`,
+            }}
+          >
+            {["Nome", "Atos", "Função", "Padrão de aparição"].map((h) => (
+              <p key={h} style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                {h}
+              </p>
+            ))}
+          </div>
+          {ATORES.map((a, i) => (
+            <div
+              key={a.nome}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 52px 100px 1fr",
+                gap: "0 12px",
+                padding: "8px 14px",
+                borderBottom: i < ATORES.length - 1 ? `1px solid ${ROW_BORDER}` : "none",
+                background: a.alerta ? "#fffbf5" : "transparent",
+              }}
+            >
+              <p style={{ fontSize: 12, color: a.destaque ? INK : MUTED, fontWeight: a.destaque ? 600 : 400 }}>
+                {a.nome}
+              </p>
+              <p style={{ fontFamily: MONO, fontSize: 11, color: a.alerta ? "#c2410c" : INK, fontWeight: 600 }}>
+                {a.apars}
+              </p>
+              <p style={{ fontSize: 11, color: MUTED }}>{a.papel}</p>
+              <p style={{ fontSize: 11, color: a.alerta ? "#92400e" : MUTED, lineHeight: 1.4 }}>{a.obs}</p>
+            </div>
+          ))}
+        </div>
+        <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, marginTop: 8 }}>
+          Casagrande, Veiga e Reguelin — servidores não-eleitos com concentração anômala em funções de controle processual
+        </p>
+      </div>
+
+      <div style={SECTION_DIVIDER} />
+
+      {/* Lacunas estruturais */}
+      <div style={{ marginBottom: 24 }}>
+        <Eyebrow>Lacunas estruturais</Eyebrow>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {[
+            {
+              label: "14 atas plenárias consecutivas ausentes",
+              desc: "Reuniões 112–125 não têm ata publicada no site oficial. Período específico da história institucional do CAU/PR. O que foi deliberado nessas reuniões? Quais portarias subsequentes dependem dessas deliberações?",
+              color: "#b91c1c",
+            },
+            {
+              label: "80%+ dos contratos e convênios com PDF inacessível",
+              desc: "Links existem na página mas os PDFs retornam 404. Uma categoria inteira de atos financeiros — compromissos com fornecedores — efetivamente inacessível ao escrutínio público.",
+              color: "#c2410c",
+            },
+            {
+              label: "127 portarias pré-2018 fora do corpus",
+              desc: "Portarias 1–127 correspondem ao período fundacional (2012–2018). Não foram incorporadas ao banco. Práticas estabelecidas nesse período estão fora do escopo desta investigação.",
+              color: "#a16207",
+            },
+            {
+              label: "Diárias, passagens e folhas de pagamento indisponíveis no portal",
+              desc: "Portal da Transparência exibe apenas meses futuros no buscador. Dados históricos de despesas de viagem e remuneração são inacessíveis ao cidadão.",
+              color: "#a16207",
+            },
+          ].map(({ label, desc, color }) => (
+            <div
+              key={label}
+              style={{
+                display: "flex",
+                gap: 12,
+                padding: "12px 14px",
+                background: "#fff",
+                border: `1px solid ${BORDER}`,
+              }}
+            >
+              <div
+                style={{
+                  width: 3,
+                  background: color,
+                  flexShrink: 0,
+                  borderRadius: 2,
+                  minHeight: 40,
+                }}
+              />
+              <div>
+                <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12.5, color: INK, marginBottom: 4 }}>
+                  {label}
+                </p>
+                <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6, marginBottom: 0 }}>{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={SECTION_DIVIDER} />
+
+      {/* O que vem depois */}
+      <div>
+        <Eyebrow>O que o Opus 4.7 vai fazer a seguir</Eyebrow>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {[
+            {
+              title: "Cruzamento ata × portaria",
+              desc: "Verificar sistematicamente se portarias emitidas após cada reunião têm amparo na deliberação plenária correspondente. Portaria sem deliberação = ato unilateral.",
+            },
+            {
+              title: "Grafo de votação e presença",
+              desc: "Quem vota com quem? Quem se ausenta antes de votações sensíveis? Quem acumula abstenções em temas específicos? As atas registram tudo.",
+            },
+            {
+              title: "Linha do tempo de poder",
+              desc: "Sucessão de presidentes com todas as portarias numeradas e datadas: quando cada gestão começou, quais foram seus primeiros e últimos atos, onde houve ruptura ou continuidade.",
+            },
+            {
+              title: "Correlação temporal",
+              desc: "Os PADs secretos de 2024–2026 têm correlação com exonerações, nomeações e votações plenárias do mesmo período? Detectar esse padrão exige ler o corpus como história.",
+            },
+          ].map(({ title, desc }) => (
+            <div
+              key={title}
+              style={{
+                border: `1px solid ${BORDER}`,
+                background: "#fff",
+                padding: "14px 16px",
+              }}
+            >
+              <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12.5, color: INK, marginBottom: 6 }}>
+                {title}
+              </p>
+              <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6, marginBottom: 0 }}>
+                {desc}
+              </p>
+            </div>
+          ))}
+        </div>
+        <div
+          style={{
+            marginTop: 16,
+            padding: "12px 16px",
+            background: "#f8f7f2",
+            border: `1px solid ${BORDER}`,
+            display: "flex",
+            gap: 12,
+            alignItems: "flex-start",
+          }}
+        >
+          <div style={{ flexShrink: 0, width: 3, background: SUBTLE, borderRadius: 2, minHeight: 36 }} />
+          <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.65, marginBottom: 0 }}>
+            <strong style={{ color: INK }}>Nota metodológica:</strong> Este relatório usa linguagem de indício, padrão e suspeita.
+            Não afirma crimes, não nomeia culpados, não conclui sobre dolo. A conclusão jurídica
+            pertence a advogados. O julgamento moral pertence ao leitor. O Dig Dig fornece as
+            evidências documentadas — o julgamento é humano.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+
 function TabRelatorio({
   stats,
   rodada: _rodada,
@@ -1859,8 +2685,20 @@ function TabRelatorio({
       : 0;
   const concluido = pct >= 100;
 
-  const total = crescimento?.total_atual ?? 0;
-  const nTipos = crescimento?.marcos?.length ?? 0;
+  const crescimentoMarcos = crescimento?.marcos?.length ? crescimento.marcos : null;
+  const marcosFallback: Marco[] = !crescimentoMarcos && stats
+    ? Object.entries(stats.por_tipo).map(([tipo, { total: t }]) => ({
+        tipo,
+        label: TIPO_DISPLAY[tipo] ?? tipo,
+        primeiro_dia: "2022-01-01",
+        primeiro_dt: "2022-01-01T00:00:00Z",
+        total_acumulado: t,
+        total_tipo: t,
+      }))
+    : [];
+  const marcosDisplay = crescimentoMarcos ?? marcosFallback;
+  const total = crescimento?.total_atual || stats?.total_atos || 0;
+  const nTipos = crescimento?.marcos?.length ?? marcosDisplay.length;
   const inicio = crescimento?.inicio ?? null;
   const diasAtivos = inicio
     ? Math.round((Date.now() - new Date(inicio).getTime()) / 86_400_000)
@@ -1900,173 +2738,403 @@ function TabRelatorio({
         )
       : null;
 
+  const PARA: React.CSSProperties = { fontSize: 12.5, color: MUTED, lineHeight: 1.75, marginBottom: 12 };
+  const DIV = { height: 1, background: BORDER, margin: "28px 0" };
+  const ROW_BORDER = "#f0ece4";
+
   return (
-    <div className="max-w-2xl space-y-6">
-      {/* Cobertura da análise */}
-      <div className="p-6 space-y-4" style={{ border: `1px solid ${BORDER}` }}>
-        <Eyebrow>Cobertura da análise</Eyebrow>
-        <div className="flex items-end justify-between gap-4">
+    <div style={{ maxWidth: 720 }}>
+      <div style={{ border: `1px solid ${BORDER}`, background: PAPER, padding: "32px 32px 40px" }}>
+
+        {/* ─── HEADER ─── */}
+        <div style={{ borderBottom: `1px solid ${BORDER}`, paddingBottom: 20, marginBottom: 28, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div>
-            <p
-              className="text-[40px] font-medium leading-none"
-              style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.04em" }}
-            >
-              {pct}%
+            <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 8 }}>
+              Relatório Preliminar · CAU/PR · Abril 2026
             </p>
-            <p
-              className="text-[11px] uppercase tracking-wider mt-1"
-              style={{ color: MUTED, fontFamily: MONO }}
-            >
-              analisados · {fmt(stats?.total_analisados)} de {fmt(stats?.total_atos)}
+            <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 22, color: INK, letterSpacing: "-0.025em", lineHeight: 1.2, marginBottom: 6 }}>
+              Pré-Auditoria Integrada
+            </p>
+            <p style={{ fontSize: 12.5, color: MUTED }}>
+              Síntese de {fmt(stats?.total_analisados)} atos analisados por Piper + Bud — antes da fase Zew
             </p>
           </div>
-          <p className="text-[12px] text-right max-w-[180px]" style={{ color: MUTED }}>
-            {concluido
-              ? "Análise completa. Relatório disponível."
-              : "Análise em andamento. Relatório publicado quando atingir 100%."}
+          <div style={{ border: `1px solid ${BORDER}`, padding: "8px 14px", background: "#fff", flexShrink: 0 }}>
+            <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4 }}>Estágio</p>
+            <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12, color: INK }}>Piper + Bud completos</p>
+            <p style={{ fontFamily: MONO, fontSize: 9, color: "#c2410c", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 2 }}>Zew → pendente</p>
+          </div>
+        </div>
+
+        {/* ─── 1: COBERTURA ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>1 — Cobertura da análise</Eyebrow>
+          <p style={PARA}>
+            Em abril de 2026, o Dig Dig indexou e analisou <strong>{fmt(stats?.total_analisados)}</strong> de{" "}
+            <strong>{fmt(stats?.total_atos)}</strong> atos administrativos do CAU/PR —{" "}
+            <strong>{pct}%</strong> do acervo total identificado.{" "}
+            {!concluido
+              ? "A análise está em andamento; este relatório reflete o estado atual da investigação e será atualizado à medida que a cobertura avança."
+              : "A análise está completa. Este relatório reflete o corpus integral."}
+          </p>
+          {!concluido && <Progress value={pct} className="h-1" style={{ background: PAPER, marginBottom: 14 }} />}
+          {stats && (
+            <div style={{ marginTop: 12 }}>
+              <p style={{ fontSize: 11, color: MUTED, marginBottom: 10 }}>Cobertura por tipo de documento:</p>
+              <CoverageByType stats={stats} />
+            </div>
+          )}
+          <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, marginTop: 14 }}>
+            {fmt(stats?.total_analisados)} analisados · {fmt(stats?.total_atos)} total · {pct}% cobertura
           </p>
         </div>
-        {!concluido && (
-          <Progress value={pct} className="h-1" style={{ background: PAPER }} />
-        )}
-        {/* Cobertura por tipo abaixo da barra */}
-        {stats && (
-          <div style={{ marginTop: 12 }}>
-            <CoverageByType stats={stats} />
-          </div>
-        )}
-      </div>
 
-      {/* Mapa de risco */}
-      {stats && dist && (
-        <div className="p-6 space-y-4" style={{ border: `1px solid ${BORDER}` }}>
-          <div className="flex items-start justify-between gap-4">
-            <Eyebrow>Mapa de risco</Eyebrow>
-            <div className="flex gap-6 text-right">
-              {scoreEstimado != null && (
-                <div>
-                  <p
-                    style={{
-                      fontSize: 22,
-                      fontWeight: 500,
-                      color: INK,
-                      fontFamily: TIGHT,
-                      letterSpacing: "-0.02em",
-                      lineHeight: 1,
-                    }}
-                  >
-                    {scoreEstimado}
-                  </p>
-                  <p style={{ fontSize: 9, color: MUTED, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>
-                    score total
-                  </p>
-                </div>
-              )}
-              {scoreRecente != null && (
-                <div>
-                  <p
-                    style={{
-                      fontSize: 22,
-                      fontWeight: 500,
-                      color: INK,
-                      fontFamily: TIGHT,
-                      letterSpacing: "-0.02em",
-                      lineHeight: 1,
-                    }}
-                  >
-                    {scoreRecente}
-                  </p>
-                  <p style={{ fontSize: 9, color: MUTED, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>
-                    score recente
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-          <StackedRiskBar dist={dist} total={totalComNivel} />
-          {totalComNivel > 0 && (
-            <p style={{ fontSize: 10.5, color: SUBTLE, fontFamily: MONO }}>
-              {((stats.total_criticos / totalComNivel) * 100).toFixed(1)}% dos documentos analisados têm algum nível crítico (laranja ou vermelho)
+        <div style={DIV} />
+
+        {/* ─── 2: MAPA DE RISCO ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>2 — Distribuição de alertas e mapa de risco</Eyebrow>
+          <p style={PARA}>
+            Cada ato analisado recebe uma classificação em quatro níveis — de <em>verde</em> (conforme) a{" "}
+            <em>vermelho</em> (irregular). A barra abaixo mostra a proporção atual do corpus. O score
+            ponderado total de <strong>{scoreEstimado ?? "—"}/100</strong> indica o nível médio de
+            preocupação sobre o acervo. O score das análises mais recentes é{" "}
+            <strong>{scoreRecente ?? "—"}/100</strong> — revelando a intensidade dos atos publicados
+            nos últimos meses.
+          </p>
+          {dist && (
+            <>
+              <div style={{ margin: "16px 0 12px" }}>
+                <StackedRiskBar dist={dist} total={totalComNivel} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
+                {[
+                  { nivel: "Verde", n: dist.verde, color: "#15803d", bg: "#f0fdf4", bdr: "#bbf7d0", desc: "Conforme" },
+                  { nivel: "Amarelo", n: dist.amarelo, color: "#a16207", bg: "#fefce8", bdr: "#fde68a", desc: "Suspeito" },
+                  { nivel: "Laranja", n: dist.laranja, color: "#c2410c", bg: "#fff7ed", bdr: "#fed7aa", desc: "Indício grave" },
+                  { nivel: "Vermelho", n: dist.vermelho, color: "#b91c1c", bg: "#fef2f2", bdr: "#fecaca", desc: "Irregular" },
+                ].map(({ nivel, n, color, bg, bdr, desc }) => (
+                  <div key={nivel} style={{ background: bg, border: `1px solid ${bdr}`, padding: "10px 12px" }}>
+                    <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 20, color, lineHeight: 1, letterSpacing: "-0.02em" }}>{fmt(n)}</p>
+                    <p style={{ fontFamily: MONO, fontSize: 9, color, textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>{nivel}</p>
+                    <p style={{ fontSize: 10, color: MUTED, marginTop: 4 }}>
+                      {totalComNivel > 0 ? ((n / totalComNivel) * 100).toFixed(1) : "0"}% · {desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {totalComNivel > 0 && dist && (
+            <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE }}>
+              {(((dist.laranja + dist.vermelho) / totalComNivel) * 100).toFixed(1)}% com algum nível
+              crítico · 136 atos ad referendum (7,6%) · 32 prorrogações de comissões processantes
             </p>
           )}
         </div>
-      )}
 
-      {/* Acervo indexado */}
-      <div className="p-6 space-y-5" style={{ border: `1px solid ${BORDER}` }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
-          <div style={{ flex: 1 }}>
-            <Eyebrow>Acervo indexado</Eyebrow>
-            <p
-              style={{
-                fontSize: 40,
-                fontWeight: 500,
-                letterSpacing: "-0.04em",
-                lineHeight: 1,
-                color: INK,
-                fontFamily: TIGHT,
-                marginTop: 6,
-              }}
-            >
-              {total > 0 ? fmt(total) : "—"}
-            </p>
-            <div style={{ display: "flex", gap: 20, marginTop: 10 }}>
-              <div>
-                <p style={{ fontSize: 18, fontWeight: 500, color: INK, fontFamily: TIGHT, lineHeight: 1 }}>
-                  {nTipos}
-                </p>
-                <p style={{ fontSize: 10, color: MUTED, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  tipos
-                </p>
-              </div>
-              {diasAtivos !== null && (
-                <div>
-                  <p style={{ fontSize: 18, fontWeight: 500, color: INK, fontFamily: TIGHT, lineHeight: 1 }}>
-                    {diasAtivos}
-                  </p>
-                  <p style={{ fontSize: 10, color: MUTED, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                    dias
-                  </p>
-                </div>
-              )}
-              {adicionadosDigDig > 0 && (
-                <div>
-                  <p style={{ fontSize: 18, fontWeight: 500, color: "#16a34a", fontFamily: TIGHT, lineHeight: 1 }}>
-                    +{fmt(adicionadosDigDig)}
-                  </p>
-                  <p style={{ fontSize: 10, color: MUTED, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                    pós Dig Dig
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-          <div style={{ flexShrink: 0, paddingTop: 20 }}>
+        <div style={DIV} />
+
+        {/* ─── 3: ACERVO ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>3 — Acervo indexado e crescimento</Eyebrow>
+          <p style={PARA}>
+            O corpus completo reúne <strong>{total > 0 ? fmt(total) : "—"}</strong> documentos de{" "}
+            <strong>{nTipos}</strong> categorias distintas, coletados desde <strong>{inicioFmt}</strong>.
+            {adicionadosDigDig > 0 && (
+              <>{" "}Após o início da operação Dig Dig em 22/04/2026,{" "}
+              {fmt(adicionadosDigDig)} novos documentos foram incorporados ao acervo — emitidos
+              pelo CAU/PR durante o período de análise.</>
+            )}
+          </p>
+          <div style={{ marginTop: 12 }}>
+            <p style={{ fontSize: 11, color: MUTED, marginBottom: 10 }}>Crescimento do acervo ao longo do tempo:</p>
             <Sparkline pontos={crescimento?.pontos} />
           </div>
-        </div>
-
-        <p style={{ fontSize: 11, color: MUTED, fontFamily: MONO }}>
-          Coleta iniciada em {inicioFmt} · Dig Dig criado 22/04/2026
-        </p>
-
-        <div style={{ height: 1, background: BORDER }} />
-
-        <div>
-          <p
-            style={{
-              fontSize: 9,
-              fontFamily: MONO,
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              color: MUTED,
-              marginBottom: 12,
-            }}
-          >
-            Composição por tipo
+          {marcosDisplay.length > 0 && (
+            <div style={{ marginTop: 20 }}>
+              <p style={{ fontSize: 11, color: MUTED, marginBottom: 10 }}>Composição por tipo de documento:</p>
+              <TypeBars marcos={marcosDisplay} total={total} />
+            </div>
+          )}
+          <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, marginTop: 12 }}>
+            Coleta iniciada em {inicioFmt} · Dig Dig criado 22/04/2026
+            {diasAtivos !== null ? ` · ${diasAtivos} dias em operação` : ""}
           </p>
-          <TypeBars marcos={crescimento?.marcos ?? []} total={total} />
         </div>
+
+        <div style={DIV} />
+
+        {/* ─── 4: PADRÕES SISTÊMICOS ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>4 — Os quatro padrões sistêmicos</Eyebrow>
+          <p style={PARA}>
+            A análise cruzada do corpus revela quatro padrões que transcendem gestões individuais e se
+            repetem de forma estrutural. Nenhum deles é um desvio isolado — cada um aparece em múltiplos
+            atos, múltiplas gestões, múltiplos anos.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {[
+              { n: "01", title: "Controle presidencial dos mecanismos disciplinares", body: "Presidentes instauraram sindicâncias e PADs por ato unilateral, sem deliberação plenária. Prorrogaram prazos sucessivamente por portaria presidencial. Compuseram comissões exclusivamente com servidores subordinados — em violação ao regimento que exige conselheiros titulares. Mantiveram objeto e investigado em sigilo durante meses ou anos. O padrão transcende gestões: está documentado em pelo menos três presidências consecutivas." },
+              { n: "02", title: "Composição direcionada de comissões investigativas", body: "Os mesmos servidores não-eleitos aparecem repetidamente em comissões de natureza sensível. André Casagrande (33 atos), Cleverson Veiga (31) e Leandro Reguelin (31) acumulam funções de investigação sem mandato eletivo e com dependência hierárquica direta da presidência. Reguelin cumpre funções contraditórias: investigador e defensor do investigado no mesmo processo, designado pelo mesmo presidente." },
+              { n: "03", title: "Presidência paralela — assinaturas sem amparo formal", body: "Em ao menos quatro portarias, o Vice-Presidente Jeancarlo Versetti assinou atos de natureza presidencial — abertura e prorrogação de processos disciplinares — sem que os atos registrassem o instrumento formal de substituição: afastamento, licença ou delegação documentada. Em processos disciplinares, onde a cadeia de autoridade é elemento central de validade, essa lacuna não é administrativa — é processual." },
+              { n: "04", title: "Opacidade como estrutura, não como acidente", body: "Quase todos os processos graves têm em comum: o objeto e o investigado não constam do ato publicado. Processos tramitam por meses com referências apenas a números de SEI, sem que o texto permita identificar quem é investigado por quê. A omissão não é compliance com a LGPD — é o uso da LGPD como escudo retórico para ocultar informações que a lei de transparência exige." },
+            ].map(({ n, title, body }) => (
+              <div key={n} style={{ display: "flex", gap: 16 }}>
+                <div style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, letterSpacing: "0.08em", flexShrink: 0, paddingTop: 2, width: 20 }}>{n}</div>
+                <div>
+                  <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 14, color: INK, marginBottom: 8, lineHeight: 1.3 }}>{title}</p>
+                  <p style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.7 }}>{body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={DIV} />
+
+        {/* ─── 5: CRONOLOGIA DOS PADs ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>5 — Cronologia dos processos disciplinares secretos</Eyebrow>
+          <p style={PARA}>
+            Dois processos administrativos disciplinares correm em paralelo dentro do CAU/PR — ambos em
+            sigilo total sobre o investigado e o objeto. O PAD-A tramita há 20 meses; o PAD-B, 12 meses.
+            Cada portaria abaixo é um ato administrativo público. Clique para consultar o documento original.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div style={{ border: "1px solid #fecaca", background: "#fff5f5", padding: "16px 18px" }}>
+              <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12, color: "#b91c1c", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 12 }}>
+                PAD-A — 20 meses em sigilo
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 0, borderLeft: "2px solid #fecaca", paddingLeft: 14 }}>
+                {[
+                  { data: "15/08/2024", label: "instauração (Maugham Zaze)", portaria: "522/2024", dot: "#fecaca" },
+                  { data: "10/10/2024", label: "prorrogação + defensor nomeado", portaria: "533/2024", dot: "#fca5a5" },
+                  { data: "18/11/2025", label: "recondução", portaria: "655/2025", dot: "#fca5a5" },
+                  { data: "09/12/2025", label: "prorrogação · 16 meses", portaria: "659/2025", dot: "#f87171" },
+                  { data: "12/01/2026", label: "prorrogação · 17 meses", portaria: "664/2026", dot: "#f87171" },
+                  { data: "02/02/2026", label: "recondução (Linzmeyer) · 18m", portaria: "667/2026", dot: "#ef4444" },
+                  { data: "10/02/2026", label: "prorrogação", portaria: "672/2026", dot: "#ef4444" },
+                  { data: "16/03/2026", label: "prorrogação", portaria: "675/2026", dot: "#ef4444" },
+                  { data: "02/04/2026", label: "prorrogação · ativo", portaria: "678/2026", dot: "#dc2626" },
+                ].map(({ data, label, portaria, dot }) => (
+                  <div key={data} style={{ display: "flex", gap: 10, paddingBottom: 8, position: "relative" }}>
+                    <div style={{ width: 7, height: 7, borderRadius: "50%", background: dot, flexShrink: 0, marginTop: 4, marginLeft: -18 }} />
+                    <div style={{ paddingLeft: 4 }}>
+                      <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.06em" }}>{data}</p>
+                      <p style={{ fontSize: 11, color: INK, lineHeight: 1.4 }}>
+                        <a href="https://www.caupr.gov.br/portarias" target="_blank" rel="noreferrer"
+                           style={{ color: "#b91c1c", fontWeight: 600, textDecoration: "underline" }}>
+                          Port. {portaria}
+                        </a>
+                        {" — "}{label}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ border: "1px solid #fed7aa", background: "#fffbf5", padding: "16px 18px" }}>
+              <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12, color: "#c2410c", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 12 }}>
+                PAD-B — 12 meses em sigilo
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 0, borderLeft: "2px solid #fed7aa", paddingLeft: 14 }}>
+                {[
+                  { data: "07/04/2025", label: "instauração (Linzmeyer)", portaria: "580/2025", dot: "#fed7aa" },
+                  { data: "02/02/2026", label: "recondução + alteração · 10 meses", portaria: "667/2026", dot: "#fb923c" },
+                  { data: "03/03/2026", label: "substituição de membro + prorrogação", portaria: "673/2026", dot: "#f97316" },
+                  { data: "02/04/2026", label: "prorrogação · ativo", portaria: "678/2026", dot: "#ea580c" },
+                ].map(({ data, label, portaria, dot }) => (
+                  <div key={data} style={{ display: "flex", gap: 10, paddingBottom: 8 }}>
+                    <div style={{ width: 7, height: 7, borderRadius: "50%", background: dot, flexShrink: 0, marginTop: 4, marginLeft: -18 }} />
+                    <div style={{ paddingLeft: 4 }}>
+                      <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.06em" }}>{data}</p>
+                      <p style={{ fontSize: 11, color: INK, lineHeight: 1.4 }}>
+                        <a href="https://www.caupr.gov.br/portarias" target="_blank" rel="noreferrer"
+                           style={{ color: "#c2410c", fontWeight: 600, textDecoration: "underline" }}>
+                          Port. {portaria}
+                        </a>
+                        {" — "}{label}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 16, padding: "10px 12px", background: "#fff7ed", border: "1px solid #fed7aa" }}>
+                <p style={{ fontSize: 11, color: "#92400e", lineHeight: 1.5 }}>
+                  <strong>Out/2024:</strong> 4 processos simultâneos — 8 portarias em 3 semanas,
+                  2 exonerações e 2 nomeações. Concentração temporal anômala.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={DIV} />
+
+        {/* ─── 6: CINCO CASOS MAIS GRAVES ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>6 — Os cinco casos mais graves · Score de risco</Eyebrow>
+          <p style={PARA}>
+            Os atos abaixo obtiveram os scores mais elevados na análise combinada Haiku + Sonnet.
+            Cada caso está linkado ao documento público original no site do CAU/PR. O score reflete
+            densidade de indícios, violações ao regimento e padrões de opacidade — não é uma conclusão
+            jurídica.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {CASO_VERMELHO.map((c) => (
+              <div key={c.id} style={{ background: "#fff", border: "1px solid #fecaca", borderLeft: "3px solid #dc2626", padding: "14px 16px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                  <a href="https://www.caupr.gov.br/portarias" target="_blank" rel="noreferrer"
+                     style={{ display: "inline-flex", alignItems: "center", gap: 4, color: INK, textDecoration: "underline" }}>
+                    <span style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 13, letterSpacing: "-0.01em" }}>{c.id}</span>
+                    <ExternalLink size={10} style={{ color: MUTED, flexShrink: 0 }} />
+                  </a>
+                  <span style={{ fontFamily: MONO, fontSize: 9, color: "#b91c1c", background: "#fef2f2", border: "1px solid #fecaca", padding: "2px 8px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    Vermelho · Score {c.score}
+                  </span>
+                </div>
+                <p style={{ fontSize: 11.5, color: MUTED, fontStyle: "italic", marginBottom: 6 }}>{c.pattern}</p>
+                <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6 }}>{c.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={DIV} />
+
+        {/* ─── 7: REDE DE ATORES ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>7 — Rede de atores · Frequência de aparição nos atos</Eyebrow>
+          <p style={PARA}>
+            A análise de frequência mapeia quem assina, compõe e recebe designações nos atos analisados.
+            Concentração de aparições em funções sensíveis — investigação, disciplina, supervisão — é um
+            indicador de captura institucional quando não corresponde a mandato eletivo.
+          </p>
+          <div style={{ border: `1px solid ${BORDER}` }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 52px 100px 1fr", gap: "0 12px", padding: "6px 14px", borderBottom: `1px solid ${BORDER}` }}>
+              {["Nome", "Atos", "Função", "Padrão de aparição"].map((h) => (
+                <p key={h} style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.1em" }}>{h}</p>
+              ))}
+            </div>
+            {ATORES.map((a, i) => (
+              <div key={a.nome} style={{ display: "grid", gridTemplateColumns: "1fr 52px 100px 1fr", gap: "0 12px", padding: "8px 14px", borderBottom: i < ATORES.length - 1 ? `1px solid ${ROW_BORDER}` : "none", background: a.alerta ? "#fffbf5" : "transparent" }}>
+                <p style={{ fontSize: 12, color: a.destaque ? INK : MUTED, fontWeight: a.destaque ? 600 : 400 }}>{a.nome}</p>
+                <p style={{ fontFamily: MONO, fontSize: 11, color: a.alerta ? "#c2410c" : INK, fontWeight: 600 }}>{a.apars}</p>
+                <p style={{ fontSize: 11, color: MUTED }}>{a.papel}</p>
+                <p style={{ fontSize: 11, color: a.alerta ? "#92400e" : MUTED, lineHeight: 1.4 }}>{a.obs}</p>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, marginTop: 8 }}>
+            Casagrande, Veiga e Reguelin — servidores não-eleitos com concentração anômala em funções de controle processual
+          </p>
+        </div>
+
+        <div style={DIV} />
+
+        {/* ─── 8: LACUNAS ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>8 — Lacunas estruturais do corpus</Eyebrow>
+          <p style={PARA}>
+            O que sabemos é tão importante quanto o que não sabemos. Estas lacunas delimitam o escopo
+            desta investigação e definem as próximas frentes de expansão do acervo.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              { label: "14 atas plenárias consecutivas ausentes", desc: "Reuniões 112–125 não têm ata publicada no site oficial. Período específico da história institucional do CAU/PR. O que foi deliberado nessas reuniões? Quais portarias subsequentes dependem dessas deliberações?", color: "#b91c1c" },
+              { label: "80%+ dos contratos e convênios com PDF inacessível", desc: "Links existem na página mas os PDFs retornam 404. Uma categoria inteira de atos financeiros — compromissos com fornecedores — efetivamente inacessível ao escrutínio público.", color: "#c2410c" },
+              { label: "127 portarias pré-2018 fora do corpus", desc: "Portarias 1–127 correspondem ao período fundacional (2012–2018). Não foram incorporadas ao banco. Práticas estabelecidas nesse período estão fora do escopo desta investigação.", color: "#a16207" },
+              { label: "Diárias, passagens e folhas de pagamento indisponíveis no portal", desc: "Portal da Transparência exibe apenas meses futuros no buscador. Dados históricos de despesas de viagem e remuneração são inacessíveis ao cidadão.", color: "#a16207" },
+            ].map(({ label, desc, color }) => (
+              <div key={label} style={{ display: "flex", gap: 12, padding: "12px 14px", background: "#fff", border: `1px solid ${BORDER}` }}>
+                <div style={{ width: 3, background: color, flexShrink: 0, borderRadius: 2, minHeight: 40 }} />
+                <div>
+                  <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12.5, color: INK, marginBottom: 4 }}>{label}</p>
+                  <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6 }}>{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={DIV} />
+
+        {/* ─── NARRATIVA FINAL ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>A história da auditoria — do início ao presente</Eyebrow>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <p style={PARA}>
+              Em 2022, o CAU/PR publicou sua primeira portaria acessível por extração automática de texto.
+              O Dig Dig chegou quatro anos depois — mas percorreu toda a história disponível: 551 portarias
+              entre 2022 e 2026, 597 deliberações em HTML, 161 atas plenárias, além de contratos, convênios,
+              relatórios de auditoria e pareceres. O scraper precisou rodar em IP brasileiro — o servidor do
+              CAU/PR bloqueia data centers americanos com 403. O primeiro obstáculo não foi a falta de
+              transparência, mas a infraestrutura da opacidade: 151 portarias sem camada de texto, links 404
+              para contratos, e um portal da transparência que exibe só dados futuros.
+            </p>
+            <p style={PARA}>
+              Com {pct}% das portarias analisadas, o que emergiu não foi uma série de desvios isolados.
+              Foi um sistema. Os mesmos três servidores não-eleitos aparecem repetidamente nas mesmas funções
+              de controle. Os dois processos disciplinares secretos foram instaurados por presidentes
+              diferentes, em anos diferentes, com o mesmo método: portaria unilateral, comissão subordinada,
+              sigilo do investigado, prorrogação por portaria presidencial. O PAD-A chegou a 20 meses.
+              O PAD-B tem 12 meses. Ambos continuam ativos.
+            </p>
+            <p style={PARA}>
+              Em outubro de 2024, o acervo registrou uma anomalia temporal: quatro processos disciplinares
+              simultâneos, oito portarias em três semanas, duas exonerações e duas nomeações. Nenhum ato
+              publicado nesse período identifica o investigado ou o objeto do processo. O score médio de
+              risco das análises recentes é de <strong>{scoreRecente ?? "—"}/100</strong>. Os 14 atos
+              classificados como vermelho têm score médio de 89. Essa dispersão não é ruído — é a assinatura
+              de uma instituição onde a maioria dos atos é burocracia ordinária e os atos graves se
+              concentram em um subconjunto identificável, repetido e documentado.
+            </p>
+            <p style={{ ...PARA, marginBottom: 0 }}>
+              O que o Dig Dig documenta não é uma hipótese. São padrões empíricos extraídos de documentos
+              públicos, cruzados automaticamente. A investigação não terminou: as atas plenárias ainda não
+              foram cruzadas com as portarias. Há 14 reuniões sem ata publicada. E há um universo de
+              contratos cujos PDFs ainda retornam 404. A investigação chegou ao ponto onde pode mostrar
+              o que encontrou — e nomear o que ainda falta encontrar.
+            </p>
+          </div>
+        </div>
+
+        <div style={DIV} />
+
+        {/* ─── ONDE VAMOS CHEGAR ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>Onde vamos chegar — a fase Opus 4.7</Eyebrow>
+          <p style={PARA}>
+            Quando a cobertura atingir 95–100% e as atas plenárias estiverem cruzadas com o banco de
+            portarias, o Dig Dig rodará o Opus 4.7 sobre o corpus completo. O que essa fase entrega:
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+            {[
+              { title: "Cruzamento ata × portaria", desc: "Verificar sistematicamente se portarias emitidas após cada reunião têm amparo na deliberação plenária correspondente. Portaria sem deliberação = ato unilateral." },
+              { title: "Grafo de votação e presença", desc: "Quem vota com quem? Quem se ausenta antes de votações sensíveis? Quem acumula abstenções em temas específicos? As atas registram tudo." },
+              { title: "Linha do tempo de poder", desc: "Sucessão de presidentes com todas as portarias numeradas e datadas: quando cada gestão começou, quais foram seus primeiros e últimos atos, onde houve ruptura ou continuidade." },
+              { title: "Correlação temporal", desc: "Os PADs secretos de 2024–2026 têm correlação com exonerações, nomeações e votações plenárias do mesmo período? Detectar esse padrão exige ler o corpus como história." },
+            ].map(({ title, desc }) => (
+              <div key={title} style={{ border: `1px solid ${BORDER}`, background: "#fff", padding: "14px 16px" }}>
+                <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12.5, color: INK, marginBottom: 6 }}>{title}</p>
+                <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6 }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ─── NOTA METODOLÓGICA ─── */}
+        <div style={{ padding: "12px 16px", background: "#f8f7f2", border: `1px solid ${BORDER}`, display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ flexShrink: 0, width: 3, background: SUBTLE, borderRadius: 2, minHeight: 36 }} />
+          <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.65 }}>
+            <strong style={{ color: INK }}>Nota metodológica:</strong> Este relatório usa linguagem de
+            indício, padrão e suspeita. Não afirma crimes, não nomeia culpados, não conclui sobre dolo.
+            A conclusão jurídica pertence a advogados. O julgamento moral pertence ao leitor. O Dig Dig
+            fornece as evidências documentadas — o julgamento é humano.
+          </p>
+        </div>
+
       </div>
     </div>
   );
