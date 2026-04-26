@@ -154,10 +154,12 @@ async def analisar_ato_sonnet(
     Raises anthropic.RateLimitError and anthropic.APIError on API failure.
     Callers (Celery tasks) are responsible for retry with exponential backoff.
     """
-    analise_result = await db.execute(select(Analise).where(Analise.ato_id == ato_id))
+    analise_result = await db.execute(
+        select(Analise).where(Analise.ato_id == ato_id, Analise.rodada_id == rodada_id)
+    )
     analise = analise_result.scalar_one_or_none()
     if analise is None:
-        raise ValueError(f"Analise not found for ato_id={ato_id} — Haiku must run first")
+        raise ValueError(f"Analise not found for ato_id={ato_id} rodada={rodada_id} — Haiku must run first")
 
     ato_result = await db.execute(select(Ato).where(Ato.id == ato_id))
     ato = ato_result.scalar_one()
