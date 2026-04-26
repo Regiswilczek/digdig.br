@@ -141,66 +141,79 @@ function FeedRow({ item, slug }: { item: FeedItem; slug: string }) {
       style={{ textDecoration: "none", display: "block" }}
     >
       <div
-        className="px-4 py-3 hover:bg-[#faf8f3] transition-colors"
-        style={{
-          borderBottom: `1px solid ${BORDER}`,
-          borderLeft: `3px solid ${nivelColor}`,
-        }}
+        className="group px-4 py-2.5 transition-colors hover:bg-[#faf8f3]"
+        style={{ borderBottom: `1px solid #f1efe8` }}
       >
-        {/* Line 1: tipo badge · número · tempo */}
-        <div className="flex items-center gap-2">
+        {/* Line 1: dot + tipo · número · tempo */}
+        <div className="flex items-center gap-2.5">
+          <span
+            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+            style={{
+              background: nivelColor,
+              boxShadow: `0 0 0 3px ${nivelColor}1a`,
+            }}
+          />
           <span
             style={{
               fontSize: 8.5,
               fontFamily: MONO,
-              letterSpacing: "0.06em",
-              color: MUTED,
-              background: PAPER,
-              border: `1px solid ${BORDER}`,
-              padding: "1px 5px",
-              borderRadius: 2,
+              letterSpacing: "0.14em",
+              color: "#a8a59c",
+              padding: "1px 0",
               flexShrink: 0,
               lineHeight: 1.6,
+              textTransform: "uppercase",
             }}
           >
             {tipoShort}
           </span>
           <p
-            className="flex-1 text-[12.5px] font-semibold truncate"
-            style={{ color: INK, fontFamily: MONO, letterSpacing: "-0.01em" }}
+            className="flex-1 text-[12px] font-medium truncate"
+            style={{
+              color: INK,
+              fontFamily: MONO,
+              letterSpacing: "-0.01em",
+            }}
           >
             Nº {item.numero ?? item.ato_id.slice(0, 8) + "…"}
           </p>
           <span
-            className="text-[9.5px] whitespace-nowrap flex-shrink-0 uppercase tracking-wider"
-            style={{ color: SUBTLE, fontFamily: MONO }}
+            className="text-[9.5px] whitespace-nowrap flex-shrink-0 tabular-nums"
+            style={{ color: "#a8a59c", fontFamily: MONO }}
           >
             {timeAgo(item.criado_em)}
           </span>
         </div>
 
         {/* Line 2: nível chip + score */}
-        <div className="flex items-center gap-2 mt-1.5">
+        <div className="flex items-center gap-2 mt-1.5 pl-[18px]">
           {nivelStyle && (
             <span
               style={{
-                fontSize: 9.5,
+                fontSize: 9,
                 fontFamily: MONO,
-                textTransform: "capitalize",
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
                 color: nivelStyle.fg,
                 background: nivelStyle.bg,
-                border: `1px solid ${nivelStyle.border}`,
-                padding: "1px 6px",
-                borderRadius: 2,
-                lineHeight: 1.6,
+                padding: "1.5px 6px",
+                borderRadius: 3,
+                lineHeight: 1.4,
               }}
             >
               {nivel}
             </span>
           )}
           {item.score_risco != null && (
-            <span style={{ fontSize: 9.5, color: SUBTLE, fontFamily: MONO }}>
-              score {item.score_risco}
+            <span
+              style={{
+                fontSize: 9.5,
+                color: "#a8a59c",
+                fontFamily: MONO,
+                letterSpacing: "0.04em",
+              }}
+            >
+              score · {item.score_risco}
             </span>
           )}
         </div>
@@ -221,7 +234,7 @@ function RealtimeFeed({
   variant?: "aside" | "inline";
 }) {
   const [items, setItems] = useState<FeedItem[]>([]);
-  const [busca, setBusca] = useState("");
+  // search removed — feed is read-only
   const loading = initialItems === null;
   const channelId = useRef(`feed-${slug}-${Math.random().toString(36).slice(2, 8)}`);
 
@@ -263,11 +276,7 @@ function RealtimeFeed({
     return () => { supabase.removeChannel(channel); };
   }, [slug]);
 
-  const filtered = busca
-    ? items.filter((i) =>
-        (i.numero ?? i.ato_id).toLowerCase().includes(busca.toLowerCase())
-      )
-    : items;
+  const filtered = items;
 
   // Group by tipo in defined order; unknown types go last
   const knownSet = new Set(TIPO_ORDER);
@@ -282,83 +291,101 @@ function RealtimeFeed({
       : []),
   ];
 
+  const total = filtered.length;
+
   const content = (
     <div className="flex flex-col h-full bg-white">
-      {/* Header */}
-      <div className="px-5 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: `1px solid ${BORDER}` }}>
-        <div className="flex items-center justify-between mb-3">
-          <p
-            className="text-[10px] uppercase tracking-[0.28em] font-semibold"
-            style={{ color: SUBTLE, fontFamily: MONO }}
-          >
-            Atividade Recente
-          </p>
-          {isLive && (
+      {/* ── Brand-style header ─────────────────────────── */}
+      <div
+        className="px-5 pt-6 pb-4 flex-shrink-0"
+        style={{ borderBottom: `1px solid #f1efe8` }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <span
-              className="flex items-center gap-1 text-[9px] uppercase tracking-wider px-1.5 py-0.5"
-              style={{
-                color: "#15803d",
-                background: "#f0fdf4",
-                border: "1px solid #bbf7d0",
-                borderRadius: 2,
-                fontFamily: MONO,
-              }}
+              className="flex items-center justify-center w-7 h-7 rounded-[7px] text-white"
+              style={{ background: INK }}
             >
               <span
-                className="h-1 w-1 rounded-full animate-pulse"
-                style={{ background: "#16a34a" }}
+                className="w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{
+                  background: isLive ? "#22c55e" : "#a8a59c",
+                  boxShadow: isLive
+                    ? "0 0 0 3px rgba(34,197,94,0.25)"
+                    : "none",
+                }}
               />
-              Ao vivo
             </span>
-          )}
-        </div>
-        <div
-          className="flex items-center gap-2 px-3 py-2"
-          style={{ border: `1px solid ${BORDER}`, borderRadius: 2 }}
-        >
-          <Search size={11} style={{ color: SUBTLE }} />
-          <Input
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar atividade…"
-            className="border-0 bg-transparent h-6 p-0 text-[12px] focus-visible:ring-0"
-            style={{ color: INK }}
-          />
+            <div>
+              <p
+                className="text-[11px] uppercase tracking-[0.22em] font-semibold leading-none"
+                style={{
+                  color: INK,
+                  fontFamily: MONO,
+                }}
+              >
+                Atividade
+              </p>
+              <p
+                className="text-[9.5px] uppercase tracking-[0.18em] mt-1 leading-none"
+                style={{ color: "#a8a59c", fontFamily: MONO }}
+              >
+                {isLive ? "Pipeline ao vivo" : "Em pausa"}
+              </p>
+            </div>
+          </div>
+
+          <span
+            className="text-[10px] tabular-nums px-2 py-1 rounded"
+            style={{
+              color: MUTED,
+              background: PAPER,
+              border: `1px solid #f1efe8`,
+              fontFamily: MONO,
+            }}
+          >
+            {total}
+          </span>
         </div>
       </div>
 
-      {/* Feed */}
+      {/* ── Feed ───────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto">
         {loading && (
-          <p className="text-[12px] px-4 py-8 text-center" style={{ color: SUBTLE }}>
+          <p
+            className="text-[12px] px-4 py-10 text-center"
+            style={{ color: "#a8a59c" }}
+          >
             Carregando…
           </p>
         )}
         {!loading && filtered.length === 0 && (
-          <p className="text-[12px] px-4 py-8 text-center" style={{ color: SUBTLE }}>
-            {items.length === 0 ? "Nenhum registro encontrado." : "Sem resultados."}
+          <p
+            className="text-[12px] px-4 py-10 text-center"
+            style={{ color: "#a8a59c" }}
+          >
+            Nenhum registro ainda.
           </p>
         )}
         {!loading &&
           groups.map((group) => (
             <div key={group.tipo}>
               <div
-                className="flex items-center justify-between px-4 py-2 sticky top-0 z-10"
-                style={{
-                  background: PAPER,
-                  borderBottom: `1px solid ${BORDER}`,
-                  borderTop: `1px solid ${BORDER}`,
-                }}
+                className="flex items-center gap-2 px-5 pt-5 pb-2 sticky top-0 z-10 bg-white"
               >
                 <span
-                  className="text-[9.5px] uppercase tracking-[0.22em] font-semibold"
-                  style={{ color: MUTED, fontFamily: MONO }}
+                  className="text-[9.5px] uppercase tracking-[0.22em] font-medium"
+                  style={{ color: "#a8a59c", fontFamily: MONO }}
                 >
                   {group.label}
                 </span>
                 <span
+                  className="flex-1 h-px"
+                  style={{ background: "#f1efe8" }}
+                />
+                <span
                   className="text-[9.5px] tabular-nums"
-                  style={{ color: SUBTLE, fontFamily: MONO }}
+                  style={{ color: "#a8a59c", fontFamily: MONO }}
                 >
                   {group.items.length}
                 </span>
