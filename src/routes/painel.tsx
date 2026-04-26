@@ -14,11 +14,25 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ChevronDown, MessageSquare, LogOut, Menu } from "lucide-react";
+import {
+  ChevronDown,
+  MessageSquare,
+  LogOut,
+  Menu,
+  Search,
+  Sparkles,
+  Settings,
+  HelpCircle,
+} from "lucide-react";
 
-const BORDER = "#e8e6e1";
-const MUTED = "#6b6b66";
+const BORDER = "#ebe8e0";
+const BORDER_SOFT = "#f1efe8";
+const MUTED = "#7a7872";
+const MUTED_SOFT = "#a8a59c";
 const INK = "#0a0a0a";
+const SURFACE = "#faf8f3";
+const SURFACE_HOVER = "#f5f2ea";
+const ACCENT = "#16a34a";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — route is registered once dev server regenerates routeTree.gen.ts
