@@ -52,7 +52,11 @@ except ImportError:
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 if not DATABASE_URL:
     sys.exit("ERROR: DATABASE_URL não encontrado no .env")
-ASYNCPG_URL = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+ASYNCPG_URL = (
+    DATABASE_URL
+    .replace("postgresql+asyncpg://", "postgresql://")
+    .replace(":5432/", ":6543/")
+)
 
 TENANT_ID   = "f32ed0e7-c95d-4dec-a332-fa2cf6f20eb4"
 WP_API_URL  = "https://www.caupr.gov.br/wp-json/wp/v2/pages/17916"
@@ -425,7 +429,7 @@ async def fase_html(conn: asyncpg.Connection, http: httpx.AsyncClient) -> None:
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 async def main(fases: set[str], preview: bool) -> None:
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     try:
         total = await conn.fetchval(
             "SELECT COUNT(*) FROM atos WHERE tenant_id=$1 AND tipo='deliberacao'",
