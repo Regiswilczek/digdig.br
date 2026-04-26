@@ -114,8 +114,26 @@ const TIPO_LABEL: Record<string, string> = {
   portaria_normativa: "Port. Normativas",
   deliberacao: "Deliberações",
 };
+const TIPO_SHORT: Record<string, string> = {
+  portaria: "PORT.",
+  ata_plenaria: "ATA",
+  portaria_normativa: "P.NORM.",
+  deliberacao: "DELIB.",
+  dispensa_eletronica: "DISP.",
+  contratacao_direta: "CONT.DIR.",
+  contrato: "CONTRATO",
+  convenio: "CONVÊNIO",
+  licitacao: "LICIT.",
+};
 
 function FeedRow({ item, slug }: { item: FeedItem; slug: string }) {
+  const nivel = item.nivel_alerta ?? "";
+  const nivelColor = NIVEL_DOT[nivel] ?? "#d4d2cd";
+  const nivelStyle = NIVEL_BG[nivel];
+  const tipoShort =
+    TIPO_SHORT[item.tipo ?? ""] ??
+    (item.tipo ? item.tipo.slice(0, 6).toUpperCase() : "—");
+
   return (
     <Link
       to="/painel/$slug/ato/$id"
@@ -123,32 +141,69 @@ function FeedRow({ item, slug }: { item: FeedItem; slug: string }) {
       style={{ textDecoration: "none", display: "block" }}
     >
       <div
-        className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-[#faf8f3] transition-colors"
-        style={{ borderBottom: `1px solid ${BORDER}` }}
+        className="px-4 py-3 hover:bg-[#faf8f3] transition-colors"
+        style={{
+          borderBottom: `1px solid ${BORDER}`,
+          borderLeft: `3px solid ${nivelColor}`,
+        }}
       >
-        <span
-          className="h-1.5 w-1.5 rounded-full flex-shrink-0"
-          style={{ background: NIVEL_DOT[item.nivel_alerta ?? ""] ?? "#d4d2cd" }}
-        />
-        <div className="flex-1 min-w-0">
-          <p
-            className="text-[12px] truncate font-medium leading-tight"
-            style={{ color: INK, fontFamily: MONO }}
+        {/* Line 1: tipo badge · número · tempo */}
+        <div className="flex items-center gap-2">
+          <span
+            style={{
+              fontSize: 8.5,
+              fontFamily: MONO,
+              letterSpacing: "0.06em",
+              color: MUTED,
+              background: PAPER,
+              border: `1px solid ${BORDER}`,
+              padding: "1px 5px",
+              borderRadius: 2,
+              flexShrink: 0,
+              lineHeight: 1.6,
+            }}
           >
-            {item.numero ?? item.ato_id.slice(0, 8) + "…"}
+            {tipoShort}
+          </span>
+          <p
+            className="flex-1 text-[12.5px] font-semibold truncate"
+            style={{ color: INK, fontFamily: MONO, letterSpacing: "-0.01em" }}
+          >
+            Nº {item.numero ?? item.ato_id.slice(0, 8) + "…"}
           </p>
-          {item.nivel_alerta && (
-            <p className="text-[10.5px] capitalize leading-tight" style={{ color: MUTED }}>
-              {item.nivel_alerta}
-            </p>
+          <span
+            className="text-[9.5px] whitespace-nowrap flex-shrink-0 uppercase tracking-wider"
+            style={{ color: SUBTLE, fontFamily: MONO }}
+          >
+            {timeAgo(item.criado_em)}
+          </span>
+        </div>
+
+        {/* Line 2: nível chip + score */}
+        <div className="flex items-center gap-2 mt-1.5">
+          {nivelStyle && (
+            <span
+              style={{
+                fontSize: 9.5,
+                fontFamily: MONO,
+                textTransform: "capitalize",
+                color: nivelStyle.fg,
+                background: nivelStyle.bg,
+                border: `1px solid ${nivelStyle.border}`,
+                padding: "1px 6px",
+                borderRadius: 2,
+                lineHeight: 1.6,
+              }}
+            >
+              {nivel}
+            </span>
+          )}
+          {item.score_risco != null && (
+            <span style={{ fontSize: 9.5, color: SUBTLE, fontFamily: MONO }}>
+              score {item.score_risco}
+            </span>
           )}
         </div>
-        <span
-          className="text-[9.5px] whitespace-nowrap uppercase tracking-wider flex-shrink-0"
-          style={{ color: SUBTLE, fontFamily: MONO }}
-        >
-          {timeAgo(item.criado_em)}
-        </span>
       </div>
     </Link>
   );
