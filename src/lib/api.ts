@@ -39,6 +39,19 @@ export async function fetchAnalysesRecentes(slug: string): Promise<AnaliseRecent
   return data.analises as AnaliseRecente[];
 }
 
+export interface CrescimentoPonto { dia: string; total: number }
+export interface CrescimentoResponse {
+  pontos: CrescimentoPonto[];
+  inicio: string | null;
+  total_atual: number;
+}
+
+export async function fetchCrescimento(slug: string): Promise<CrescimentoResponse> {
+  const r = await fetch(`${API_URL}/public/orgaos/${slug}/crescimento`);
+  if (!r.ok) throw new Error("Falha ao buscar crescimento");
+  return r.json();
+}
+
 // ─── types ────────────────────────────────────────────────────────────────────
 
 export interface PublicStats {

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, case
+from sqlalchemy import select, func, and_, case, cast, Date as SADate
 from app.database import get_db
 from app.models.tenant import Tenant
 from app.models.ato import Ato
@@ -117,6 +117,38 @@ async def analises_recentes(slug: str, db: AsyncSession = Depends(get_db)):
             }
             for r in rows
         ],
+    }
+
+
+@router.get("/orgaos/{slug}/crescimento")
+async def get_crescimento(slug: str, db: AsyncSession = Depends(get_db)):
+    """Série temporal cumulativa de documentos inseridos no banco por dia."""
+    tenant_r = await db.execute(select(Tenant).where(Tenant.slug == slug))
+    tenant = tenant_r.scalar_one_or_none()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Órgão não encontrado")
+
+    rows_r = await db.execute(
+        select(
+            cast(Ato.criado_em, SADate).label("dia"),
+            func.count().label("novos"),
+        )
+        .where(Ato.tenant_id == tenant.id, Ato.criado_em.isnot(None))
+        .group_by(cast(Ato.criado_em, SADate))
+        .order_by(cast(Ato.criado_em, SADate))
+    )
+    rows = rows_r.all()
+
+    pontos = []
+    acumulado = 0
+    for r in rows:
+        acumulado += r.novos
+        pontos.append({"dia": r.dia.isoformat(), "total": acumulado})
+
+    return {
+        "pontos": pontos,
+        "inicio": pontos[0]["dia"] if pontos else None,
+        "total_atual": acumulado,
     }
 
 

@@ -9,7 +9,7 @@ import {
   type PainelPendente,
   type PainelPendentesResponse,
 } from "../../../lib/api-auth";
-import { fetchStats, fetchAnalysesRecentes, type PublicStats, type AnaliseRecente } from "../../../lib/api";
+import { fetchStats, fetchAnalysesRecentes, fetchCrescimento, type PublicStats, type AnaliseRecente, type CrescimentoResponse } from "../../../lib/api";
 import { supabase } from "../../../lib/supabase";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -1096,13 +1096,121 @@ function TabPipeline({
 }
 
 // ── Tab: Relatório Final ────────────────────────────────────────────────
+const DIGDIG_START = "2026-04-22"; // data de criação do repositório
+
+function GrowthChart({ pontos }: { pontos: { dia: string; total: number }[] }) {
+  if (pontos.length < 2) return null;
+  const W = 560;
+  const H = 100;
+  const PAD = { top: 10, right: 12, bottom: 24, left: 40 };
+  const innerW = W - PAD.left - PAD.right;
+  const innerH = H - PAD.top - PAD.bottom;
+
+  const maxVal = Math.max(...pontos.map((p) => p.total));
+  const minDate = pontos[0].dia;
+  const maxDate = pontos[pontos.length - 1].dia;
+  const dateRange = new Date(maxDate).getTime() - new Date(minDate).getTime();
+
+  const toX = (dia: string) =>
+    PAD.left + ((new Date(dia).getTime() - new Date(minDate).getTime()) / dateRange) * innerW;
+  const toY = (val: number) =>
+    PAD.top + innerH - (val / maxVal) * innerH;
+
+  const pts = pontos.map((p) => `${toX(p.dia)},${toY(p.total)}`).join(" ");
+  const area = [
+    `M${toX(pontos[0].dia)},${PAD.top + innerH}`,
+    ...pontos.map((p) => `L${toX(p.dia)},${toY(p.total)}`),
+    `L${toX(maxDate)},${PAD.top + innerH}Z`,
+  ].join(" ");
+
+  const digdigX = toX(DIGDIG_START);
+  const digdigInRange = digdigX > PAD.left && digdigX < PAD.left + innerW;
+
+  const yMid = PAD.top + innerH / 2;
+  const labels = [
+    { label: "0", y: PAD.top + innerH },
+    { label: fmt(Math.round(maxVal / 2)), y: yMid },
+    { label: fmt(maxVal), y: PAD.top },
+  ];
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      style={{ width: "100%", height: H, display: "block", overflow: "visible" }}
+    >
+      <defs>
+        <linearGradient id="grow-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={INK} stopOpacity={0.12} />
+          <stop offset="100%" stopColor={INK} stopOpacity={0.01} />
+        </linearGradient>
+      </defs>
+      {/* Area fill */}
+      <path d={area} fill="url(#grow-fill)" />
+      {/* Line */}
+      <polyline points={pts} fill="none" stroke={INK} strokeWidth={1.5} />
+      {/* Y-axis labels */}
+      {labels.map((l) => (
+        <text
+          key={l.label}
+          x={PAD.left - 6}
+          y={l.y + 4}
+          textAnchor="end"
+          fontSize={9}
+          fill={MUTED}
+          fontFamily="monospace"
+        >
+          {l.label}
+        </text>
+      ))}
+      {/* X-axis: first and last date */}
+      <text x={PAD.left} y={H} textAnchor="start" fontSize={9} fill={MUTED} fontFamily="monospace">
+        {minDate.slice(0, 7)}
+      </text>
+      <text x={PAD.left + innerW} y={H} textAnchor="end" fontSize={9} fill={MUTED} fontFamily="monospace">
+        {maxDate.slice(0, 7)}
+      </text>
+      {/* Dig Dig start marker */}
+      {digdigInRange && (
+        <g>
+          <line
+            x1={digdigX}
+            y1={PAD.top}
+            x2={digdigX}
+            y2={PAD.top + innerH}
+            stroke="#d97706"
+            strokeWidth={1}
+            strokeDasharray="3,2"
+          />
+          <text
+            x={digdigX + 4}
+            y={PAD.top + 10}
+            fontSize={8}
+            fill="#d97706"
+            fontFamily="monospace"
+          >
+            Dig Dig ↗
+          </text>
+        </g>
+      )}
+    </svg>
+  );
+}
+
 function TabRelatorio({
+  slug,
   stats,
   rodada: _rodada,
 }: {
+  slug: string;
   stats: PublicStats | null;
   rodada: PainelRodada | null;
 }) {
+  const [crescimento, setCrescimento] = useState<CrescimentoResponse | null>(null);
+
+  useEffect(() => {
+    fetchCrescimento(slug).then(setCrescimento).catch(console.error);
+  }, [slug]);
+
   const pct =
     stats && stats.total_atos > 0
       ? Math.round((stats.total_analisados / stats.total_atos) * 100)
@@ -1125,7 +1233,7 @@ function TabRelatorio({
             lineHeight: 1.1,
           }}
         >
-          CAU/PR · 2020–2026
+          CAU/PR · 2012–2026
         </h2>
         <p className="text-[13.5px]" style={{ color: MUTED }}>
           {concluido
@@ -1148,6 +1256,39 @@ function TabRelatorio({
             </p>
           </>
         )}
+      </div>
+
+      {/* Growth chart */}
+      <div
+        className="p-6 space-y-4"
+        style={{ border: `1px solid ${BORDER}` }}
+      >
+        <Eyebrow>Documentos indexados</Eyebrow>
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p
+              className="text-[32px] font-medium leading-none"
+              style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.03em" }}
+            >
+              {crescimento ? fmt(crescimento.total_atual) : "—"}
+            </p>
+            <p className="text-[11px] uppercase tracking-wider mt-1" style={{ color: MUTED, fontFamily: MONO }}>
+              documentos · acumulado
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[11px] uppercase tracking-wider" style={{ color: "#d97706", fontFamily: MONO }}>
+              22 abr 2026
+            </p>
+            <p className="text-[11px]" style={{ color: MUTED, fontFamily: MONO }}>
+              Dig Dig criado · ~400 portarias
+            </p>
+          </div>
+        </div>
+        <GrowthChart pontos={crescimento?.pontos ?? []} />
+        <p className="text-[11px]" style={{ color: MUTED, fontFamily: MONO }}>
+          Série temporal cumulativa · documentos inseridos por dia desde o início da coleta
+        </p>
       </div>
     </div>
   );
@@ -1605,7 +1746,7 @@ function SlugDashboard() {
                 <TabPendentes slug={slug} />
               </TabsContent>
               <TabsContent value="relatorio">
-                <TabRelatorio stats={stats} rodada={rodada} />
+                <TabRelatorio slug={slug} stats={stats} rodada={rodada} />
               </TabsContent>
             </div>
           </Tabs>
