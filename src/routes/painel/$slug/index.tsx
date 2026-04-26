@@ -584,8 +584,87 @@ function TabAtos({
         </span>
       </div>
 
-      {/* Table */}
-      <div style={{ border: `1px solid ${BORDER}` }}>
+      {/* Mobile: card list */}
+      <div className="md:hidden" style={{ border: `1px solid ${BORDER}` }}>
+        {loading && (
+          <p className="px-4 py-10 text-center text-[13px]" style={{ color: MUTED }}>
+            Carregando…
+          </p>
+        )}
+        {!loading && atos.length === 0 && (
+          <p className="px-4 py-10 text-center text-[13px]" style={{ color: MUTED }}>
+            Nenhum resultado.
+          </p>
+        )}
+        {!loading &&
+          atos.map((ato) => {
+            const txt = ato.ementa || ato.resumo_executivo || ato.titulo;
+            const data = ato.data_publicacao
+              ? new Date(ato.data_publicacao).toLocaleDateString("pt-BR")
+              : "—";
+            return (
+              <Link
+                key={ato.id}
+                to="/painel/$slug/ato/$id"
+                params={{ slug, id: ato.id }}
+                style={{ textDecoration: "none", display: "block" }}
+              >
+                <div
+                  className="px-4 py-3.5 active:bg-[#faf8f3] transition-colors"
+                  style={{ borderBottom: `1px solid ${BORDER}` }}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span
+                      className="text-[12px] font-medium"
+                      style={{ color: INK, fontFamily: MONO }}
+                    >
+                      {ato.numero}
+                    </span>
+                    <NivelBadge nivel={ato.nivel_alerta} />
+                  </div>
+                  {txt && (
+                    <p
+                      className="text-[13px] leading-snug mb-2 line-clamp-2"
+                      style={{ color: INK }}
+                    >
+                      {txt}
+                    </p>
+                  )}
+                  <div
+                    className="flex items-center justify-between gap-2 text-[10.5px] uppercase tracking-wider"
+                    style={{ color: SUBTLE, fontFamily: MONO }}
+                  >
+                    <span>{data}</span>
+                    <span className="flex items-center gap-3">
+                      {ato.nivel_alerta && (
+                        <span>Score {ato.score_risco}</span>
+                      )}
+                      {ato.url_pdf && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.open(ato.url_pdf!, "_blank", "noopener,noreferrer");
+                          }}
+                          className="hover:text-[#0a0a0a]"
+                          style={{ color: SUBTLE }}
+                          aria-label="PDF original"
+                        >
+                          <ExternalLink size={13} />
+                        </button>
+                      )}
+                      <FileText size={13} />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden md:block overflow-x-auto" style={{ border: `1px solid ${BORDER}` }}>
         <table className="w-full text-[13px]">
           <thead>
             <tr style={{ borderBottom: `1px solid ${BORDER}`, background: PAPER }}>
