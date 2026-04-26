@@ -7,6 +7,7 @@ import {
   type PainelAto,
   type PainelRodada,
   type PainelPendente,
+  type PainelPendentesResponse,
 } from "../../../lib/api-auth";
 import { fetchStats, fetchAnalysesRecentes, type PublicStats, type AnaliseRecente } from "../../../lib/api";
 import { supabase } from "../../../lib/supabase";
@@ -1075,6 +1076,16 @@ function TabRelatorio({
 
 // ── Tab: Pendentes de Extração ──────────────────────────────────────────
 const MOTIVO_LABEL: Record<string, { label: string; desc: string; color: string }> = {
+  sem_texto: {
+    label: "Sem texto",
+    desc: "Aguardando OCR ou scraper dedicado",
+    color: "#92400e",
+  },
+  sem_analise: {
+    label: "Aguardando IA",
+    desc: "Texto extraído — na fila para análise",
+    color: "#1d4ed8",
+  },
   escaneado_sem_ocr: {
     label: "PDF escaneado",
     desc: "Aguardando OCR (Tesseract)",
@@ -1088,47 +1099,41 @@ const MOTIVO_LABEL: Record<string, { label: string; desc: string; color: string 
 };
 
 function TabPendentes({ slug }: { slug: string }) {
-  const [data, setData] = useState<{
-    total: number;
-    pages: number;
-    total_portaria_escaneada: number;
-    total_deliberacao_html: number;
-    atos: PainelPendente[];
-  } | null>(null);
-  const [filtro, setFiltro] = useState("");
+  const [data, setData] = useState<PainelPendentesResponse | null>(null);
+  const [filtroMotivo, setFiltroMotivo] = useState<"" | "sem_texto" | "sem_analise">("");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    fetchPendentes(slug, { tipo: filtro || undefined, page })
+    fetchPendentes(slug, { motivo: filtroMotivo || undefined, page })
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [slug, filtro, page]);
+  }, [slug, filtroMotivo, page]);
 
-  // Refresh a cada 30s para refletir extrações que ocorram
+  // Refresh a cada 15s enquanto há itens pendentes
   useEffect(() => {
     const id = setInterval(() => {
-      fetchPendentes(slug, { tipo: filtro || undefined, page })
+      fetchPendentes(slug, { motivo: filtroMotivo || undefined, page })
         .then(setData)
         .catch(console.error);
-    }, 30_000);
+    }, 15_000);
     return () => clearInterval(id);
-  }, [slug, filtro, page]);
+  }, [slug, filtroMotivo, page]);
 
-  const kpis = [
+  const kpis: { label: string; value: number | string; desc: string; motivo: "" | "sem_texto" | "sem_analise" }[] = [
     {
-      label: "Portarias escaneadas",
-      value: data?.total_portaria_escaneada ?? "—",
-      desc: "PDF sem camada de texto — requer OCR",
-      tipo: "portaria",
+      label: "Sem texto extraído",
+      value: data?.total_sem_texto ?? "—",
+      desc: "PDFs escaneados + deliberações HTML",
+      motivo: "sem_texto",
     },
     {
-      label: "Deliberações HTML",
-      value: data?.total_deliberacao_html ?? "—",
-      desc: "Conteúdo full-text ainda não extraído",
-      tipo: "deliberacao",
+      label: "Aguardando IA",
+      value: data?.total_sem_analise ?? "—",
+      desc: "Texto pronto — ainda não analisado",
+      motivo: "sem_analise",
     },
   ];
 
@@ -1154,16 +1159,16 @@ function TabPendentes({ slug }: { slug: string }) {
         className="grid grid-cols-2 gap-px"
         style={{ background: BORDER, border: `1px solid ${BORDER}` }}
       >
-        {kpis.map(({ label, value, desc, tipo: t }) => (
+        {kpis.map(({ label, value, desc, motivo: m }) => (
           <button
-            key={t}
+            key={m}
             onClick={() => {
-              setFiltro(filtro === t ? "" : t);
+              setFiltroMotivo(filtroMotivo === m ? "" : m);
               setPage(1);
             }}
             className="bg-white p-5 text-left transition-colors hover:bg-[#faf8f3]"
             style={{
-              outline: filtro === t ? `2px solid ${INK}` : "none",
+              outline: filtroMotivo === m ? `2px solid ${INK}` : "none",
               outlineOffset: -2,
             }}
           >
@@ -1188,17 +1193,17 @@ function TabPendentes({ slug }: { slug: string }) {
 
       {/* Tabela */}
       <div>
-        {filtro && (
+        {filtroMotivo && (
           <div className="flex items-center gap-2 mb-4">
             <span className="text-[12px]" style={{ color: MUTED }}>
               Filtrando:{" "}
               <strong style={{ color: INK }}>
-                {filtro === "portaria" ? "Portarias escaneadas" : "Deliberações HTML"}
+                {filtroMotivo === "sem_texto" ? "Sem texto extraído" : "Aguardando IA"}
               </strong>
             </span>
             <button
               onClick={() => {
-                setFiltro("");
+                setFiltroMotivo("");
                 setPage(1);
               }}
               className="text-[11px] uppercase tracking-wider px-2 py-0.5 transition-colors hover:bg-[#f5f3ee]"

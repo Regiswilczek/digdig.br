@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, or_, case, extract
+from sqlalchemy import select, func, and_, or_, case, extract, exists
 from app.database import get_db
 from app.models.tenant import Tenant
-from app.models.ato import Ato, RodadaAnalise
+from app.models.ato import Ato, ConteudoAto, RodadaAnalise
 from app.models.analise import Analise
 from app.dependencies.auth import get_current_user
 
@@ -175,44 +175,70 @@ async def get_stats(
 async def get_pendentes_extracao(
     slug: str,
     tipo: str | None = Query(None),
+    motivo: str | None = Query(None),
     page: int = Query(1, ge=1),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    """Documentos sem extração de texto completo — portarias escaneadas e deliberações HTML."""
+    """Documentos pendentes: sem texto extraído OU com texto mas sem análise de IA."""
     tenant = await _get_tenant(slug, db)
 
-    cond_sem_texto = or_(
-        and_(Ato.tipo == "portaria", Ato.pdf_baixado == False),
-        Ato.tipo == "deliberacao",
+    # Subqueries de existência
+    _tem_texto = exists(
+        select(ConteudoAto.ato_id).where(
+            ConteudoAto.ato_id == Ato.id,
+            ConteudoAto.qualidade == "boa",
+        )
+    )
+    _tem_analise = exists(
+        select(Analise.ato_id).where(Analise.ato_id == Ato.id)
     )
 
-    # Totais por categoria (sempre sem filtro de tipo para os KPIs)
+    cond_sem_texto  = ~_tem_texto
+    cond_sem_analise = and_(_tem_texto, ~_tem_analise)
+    cond_pendente   = or_(cond_sem_texto, cond_sem_analise)
+
+    # KPIs globais
+    r_sem_texto = await db.execute(
+        select(func.count()).where(Ato.tenant_id == tenant.id, cond_sem_texto)
+    )
+    r_sem_analise = await db.execute(
+        select(func.count()).where(Ato.tenant_id == tenant.id, cond_sem_analise)
+    )
+    # Backward-compat: totais das categorias originais
     r_port = await db.execute(
         select(func.count()).where(
             Ato.tenant_id == tenant.id,
             Ato.tipo == "portaria",
-            Ato.pdf_baixado == False,
+            cond_sem_texto,
         )
     )
     r_delib = await db.execute(
         select(func.count()).where(
             Ato.tenant_id == tenant.id,
             Ato.tipo == "deliberacao",
+            cond_sem_texto,
         )
     )
-    total_portaria_escaneada = r_port.scalar_one()
-    total_deliberacao_html = r_delib.scalar_one()
 
-    # Lista paginada (com filtro opcional por tipo)
+    total_sem_texto      = r_sem_texto.scalar_one()
+    total_sem_analise    = r_sem_analise.scalar_one()
+    total_portaria_escaneada = r_port.scalar_one()
+    total_deliberacao_html   = r_delib.scalar_one()
+
+    # Lista paginada
     base_q = (
         select(Ato)
-        .where(Ato.tenant_id == tenant.id, cond_sem_texto)
+        .where(Ato.tenant_id == tenant.id, cond_pendente)
         .order_by(Ato.data_publicacao.asc().nulls_last())
     )
     if tipo:
         base_q = base_q.where(Ato.tipo == tipo)
+    if motivo == "sem_texto":
+        base_q = base_q.where(cond_sem_texto)
+    elif motivo == "sem_analise":
+        base_q = base_q.where(cond_sem_analise)
 
     total_r = await db.execute(select(func.count()).select_from(base_q.subquery()))
     total = total_r.scalar_one()
@@ -220,10 +246,17 @@ async def get_pendentes_extracao(
     rows = await db.execute(base_q.offset((page - 1) * limit).limit(limit))
     atos = rows.scalars().all()
 
+    def _motivo(ato: Ato) -> str:
+        # Resolve no Python após fetch — evita join extra
+        return "sem_texto" if ato.pdf_baixado is False or ato.tipo == "deliberacao" else "sem_analise"
+
     return {
         "total": total,
         "page": page,
         "pages": max(1, -(-total // limit)),
+        "total_sem_texto": total_sem_texto,
+        "total_sem_analise": total_sem_analise,
+        # backward-compat
         "total_portaria_escaneada": total_portaria_escaneada,
         "total_deliberacao_html": total_deliberacao_html,
         "atos": [
@@ -236,9 +269,7 @@ async def get_pendentes_extracao(
                 ),
                 "url_pdf": ato.url_pdf,
                 "url_original": ato.url_original,
-                "motivo": (
-                    "escaneado_sem_ocr" if ato.tipo == "portaria" else "deliberacao_html"
-                ),
+                "motivo": _motivo(ato),
             }
             for ato in atos
         ],

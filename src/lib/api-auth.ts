@@ -124,13 +124,15 @@ export interface PainelPendente {
   data_publicacao: string | null;
   url_pdf: string | null;
   url_original: string | null;
-  motivo: "escaneado_sem_ocr" | "deliberacao_html";
+  motivo: "sem_texto" | "sem_analise" | "escaneado_sem_ocr" | "deliberacao_html";
 }
 
 export interface PainelPendentesResponse {
   total: number;
   page: number;
   pages: number;
+  total_sem_texto: number;
+  total_sem_analise: number;
   total_portaria_escaneada: number;
   total_deliberacao_html: number;
   atos: PainelPendente[];
@@ -138,10 +140,11 @@ export interface PainelPendentesResponse {
 
 export async function fetchPendentes(
   slug: string,
-  params: { tipo?: string; page?: number } = {}
+  params: { tipo?: string; motivo?: string; page?: number } = {}
 ): Promise<PainelPendentesResponse> {
   const q = new URLSearchParams();
   if (params.tipo) q.set("tipo", params.tipo);
+  if (params.motivo) q.set("motivo", params.motivo);
   if (params.page) q.set("page", String(params.page));
   const r = await fetchAuthed(`/painel/orgaos/${slug}/pendentes?${q}`);
   if (!r.ok) throw new Error("Falha ao buscar pendentes");
