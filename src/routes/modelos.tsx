@@ -44,13 +44,20 @@ const MUTED = "#5a5a5a";
 const SUBTLE = "#9a9a9a";
 const BORDER = "rgba(0,0,0,0.08)";
 
+type Benchmark = { label: string; valor: string };
 type Modelo = {
   id: string;
   nome: string;
-  papel: string;
+  classe: string;
+  geracao: string;
   tagline: string;
   descricao: string;
+  janelaContexto: string;
+  saidaMaxima: string;
+  latencia: string;
   capacidades: string[];
+  benchmarks: Benchmark[];
+  idealPara: string[];
   disponivel: boolean;
 };
 
@@ -58,45 +65,93 @@ const MODELOS: Modelo[] = [
   {
     id: "piper",
     nome: "Piper",
-    papel: "Triagem",
-    tagline: "O que ninguém leria manualmente.",
+    classe: "Modelo rápido",
+    geracao: "Geração 4.5",
+    tagline: "Velocidade em escala, com precisão suficiente para triagem.",
     descricao:
-      "Lê o acervo inteiro. Classifica cada ato em verde, amarelo, laranja ou vermelho, extrai nomes, datas e vínculos — tudo antes que qualquer analista humano abra o primeiro PDF.",
+      "Modelo compacto otimizado para throughput. Foi desenhado para processar volumes massivos de texto técnico — leis, portarias, regimentos — classificando, extraindo entidades e estruturando dados em JSON estável. Roda barato, responde em sub-segundo e mantém consistência ao longo de milhares de chamadas paralelas.",
+    janelaContexto: "200K tokens",
+    saidaMaxima: "8K tokens",
+    latencia: "Baixa — sub-segundo por requisição",
     capacidades: [
-      "Classificação em 4 níveis de alerta",
-      "Extração de pessoas, datas e vínculos",
-      "Cobertura total — nenhum ato escapa",
-      "Milhares de documentos por sessão",
+      "Saída JSON estruturada e validada",
+      "Extração de entidades nomeadas",
+      "Classificação multi-rótulo",
+      "Tool use e function calling",
+      "Prompt caching (até 90% de desconto)",
+      "Multilíngue, com forte desempenho em PT-BR",
+    ],
+    benchmarks: [
+      { label: "MMLU (conhecimento geral)", valor: "73,5%" },
+      { label: "GPQA Diamond (ciências)", valor: "33,3%" },
+      { label: "HumanEval (saída estruturada)", valor: "75,9%" },
+    ],
+    idealPara: [
+      "Triagem de grandes acervos documentais",
+      "Pipelines de classificação em lote",
+      "Extração de campos a partir de texto livre",
     ],
     disponivel: true,
   },
   {
     id: "bud",
     nome: "Bud",
-    papel: "Análise profunda",
-    tagline: "A suspeita vira argumento.",
+    classe: "Modelo de raciocínio",
+    geracao: "Geração 4.6",
+    tagline: "Raciocínio jurídico de ponta com contexto longo.",
     descricao:
-      "O analista que transforma um padrão irregular em argumento. Lê o regimento, cita o artigo violado, descreve o padrão e sugere o questionamento público correto.",
+      "Modelo de alta capacidade para tarefas que exigem compreensão profunda: ler um regimento de 70 mil tokens, cruzar com um ato administrativo, identificar o artigo violado e construir um argumento coerente, com citações diretas. Equilibra qualidade de raciocínio, fidelidade ao texto fonte e custo controlado via cache.",
+    janelaContexto: "200K tokens",
+    saidaMaxima: "64K tokens",
+    latencia: "Média — alguns segundos por análise",
     capacidades: [
-      "Fichas com citação direta do regimento",
-      "Identifica artigo violado e descreve padrão",
-      "Sugere o questionamento público",
-      "Suspeita vira evidência estruturada",
+      "Raciocínio jurídico passo a passo",
+      "Citação literal com referência ao trecho fonte",
+      "Síntese de documentos longos",
+      "Geração de peças estruturadas (fichas, relatórios)",
+      "Tool use, function calling e respostas em streaming",
+      "Prompt caching ephemeral de 5 minutos",
+    ],
+    benchmarks: [
+      { label: "MMLU (conhecimento geral)", valor: "88,7%" },
+      { label: "GPQA Diamond (ciências)", valor: "59,4%" },
+      { label: "HumanEval (raciocínio estruturado)", valor: "93,7%" },
+    ],
+    idealPara: [
+      "Aprofundamento de casos suspeitos",
+      "Geração de fichas com fundamentação legal",
+      "Chat conversacional sobre o acervo (RAG)",
     ],
     disponivel: true,
   },
   {
     id: "zew",
     nome: "Zew",
-    papel: "Investigação histórica",
-    tagline: "Uma gestão inteira sob análise.",
+    classe: "Modelo de raciocínio estendido",
+    geracao: "Geração 4.7",
+    tagline: "Raciocínio prolongado para investigação sistêmica.",
     descricao:
-      "Não analisa um ato — analisa uma gestão. Cruza décadas de documentos para identificar padrões que só aparecem ao longo do tempo: nepotismo acumulado, concentração de poder, perseguição sistemática.",
+      "O modelo mais capaz da família. Suporta raciocínio estendido — pode pensar por minutos antes de responder, mantendo cadeias longas de inferência sobre acervos de décadas. Construído para perguntas que nenhum modelo rápido resolve: identificar padrões longitudinais, correlacionar gestões distintas e produzir narrativas investigativas com profundidade analítica.",
+    janelaContexto: "200K tokens (com extended thinking)",
+    saidaMaxima: "32K tokens",
+    latencia: "Alta — projetado para profundidade, não velocidade",
     capacidades: [
-      "Cruzamento entre períodos distintos",
-      "Padrões longitudinais ao longo de anos",
-      "Comparação entre órgãos diferentes",
-      "Investigação de gestões completas",
+      "Extended thinking (raciocínio prolongado visível)",
+      "Análise longitudinal multi-período",
+      "Correlação cruzada entre órgãos",
+      "Construção de narrativas investigativas",
+      "Tool use avançado e agentic workflows",
+      "Auto-verificação e checagem de consistência",
+    ],
+    benchmarks: [
+      { label: "MMLU (conhecimento geral)", valor: "91,4%+" },
+      { label: "GPQA Diamond (ciências)", valor: "74,9%" },
+      { label: "Raciocínio estendido", valor: "Sim" },
+    ],
+    idealPara: [
+      "Auditoria de uma gestão inteira",
+      "Cruzamento histórico entre décadas",
+      "Investigações comparativas entre órgãos",
     ],
     disponivel: false,
   },
