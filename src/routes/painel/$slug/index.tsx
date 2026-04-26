@@ -561,7 +561,7 @@ function TabAtos({
           ))}
         </select>
         <div
-          className="relative flex items-center gap-2 px-3 h-8"
+          className="relative flex items-center gap-2 px-3 h-8 flex-1 min-w-0 sm:flex-none"
           style={{ border: `1px solid ${BORDER}`, borderRadius: 2 }}
         >
           <Search size={12} style={{ color: SUBTLE }} />
@@ -572,12 +572,12 @@ function TabAtos({
               setPage(1);
             }}
             placeholder="Número ou ementa…"
-            className="bg-transparent text-[12px] outline-none w-52"
+            className="bg-transparent text-[12px] outline-none w-full sm:w-52 min-w-0"
             style={{ color: INK }}
           />
         </div>
         <span
-          className="text-[10.5px] ml-auto uppercase tracking-wider"
+          className="text-[10.5px] w-full sm:w-auto sm:ml-auto uppercase tracking-wider"
           style={{ color: SUBTLE, fontFamily: MONO }}
         >
           {fmt(total)} resultado{total !== 1 ? "s" : ""}
