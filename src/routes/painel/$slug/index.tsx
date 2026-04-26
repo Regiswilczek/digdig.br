@@ -296,50 +296,75 @@ function RealtimeFeed({
 
   const content = (
     <div className="flex flex-col h-full bg-white">
-      {/* ── Brand-style header ─────────────────────────── */}
+      {/* ── IDE-style status bar ─────────────────────────── */}
       <div
-        className="px-5 pt-6 pb-4 flex-shrink-0"
-        style={{ borderBottom: `1px solid #f1efe8` }}
+        className="flex items-center justify-between px-4 h-7 flex-shrink-0"
+        style={{
+          background: PAPER,
+          borderBottom: `1px solid ${BORDER}`,
+          fontFamily: MONO,
+          fontSize: 9,
+          letterSpacing: "0.2em",
+          color: SUBTLE,
+          textTransform: "uppercase",
+        }}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <SplineEmbed
-              width={36}
-              height={36}
-              radius={8}
-              className="flex-shrink-0"
-            />
-            <div>
-              <p
-                className="text-[11px] uppercase tracking-[0.22em] font-semibold leading-none"
-                style={{
-                  color: INK,
-                  fontFamily: MONO,
-                }}
-              >
-                Atividade
-              </p>
-              <p
-                className="text-[9.5px] uppercase tracking-[0.18em] mt-1 leading-none"
-                style={{ color: "#a8a59c", fontFamily: MONO }}
-              >
-                {isLive ? "Pipeline ao vivo" : "Em pausa"}
-              </p>
-            </div>
-          </div>
-
+        <span>stream · análises</span>
+        <span className="flex items-center gap-1.5">
           <span
-            className="text-[10px] tabular-nums px-2 py-1 rounded"
+            className="h-1 w-1 rounded-full"
             style={{
-              color: MUTED,
-              background: PAPER,
-              border: `1px solid #f1efe8`,
-              fontFamily: MONO,
+              background: isLive ? "#16a34a" : "#d8d5cd",
+              boxShadow: isLive ? "0 0 6px #16a34a" : undefined,
+            }}
+          />
+          {isLive ? "live" : "idle"}
+        </span>
+      </div>
+
+      {/* ── Brand header ─────────────────────────────────── */}
+      <div
+        className="px-5 pt-5 pb-4 flex-shrink-0"
+        style={{ borderBottom: `1px solid ${BORDER}` }}
+      >
+        <div className="flex items-end justify-between gap-3 mb-2">
+          <div>
+            <p
+              className="text-[10px] uppercase tracking-[0.28em] font-semibold leading-none"
+              style={{ color: SUBTLE, fontFamily: MONO }}
+            >
+              ▮ Atividade
+            </p>
+            <h2
+              className="text-[22px] mt-2 leading-none"
+              style={{
+                color: INK,
+                fontFamily: TIGHT,
+                fontWeight: 500,
+                letterSpacing: "-0.03em",
+              }}
+            >
+              Feed em tempo real
+            </h2>
+          </div>
+          <span
+            className="text-[26px] tabular-nums leading-none"
+            style={{
+              color: INK,
+              fontFamily: TIGHT,
+              fontWeight: 500,
+              letterSpacing: "-0.04em",
             }}
           >
             {total}
           </span>
         </div>
+        <p
+          className="text-[9.5px] uppercase tracking-[0.18em]"
+          style={{ color: "#a8a59c", fontFamily: MONO }}
+        >
+          últimas análises · ws conectado
+        </p>
       </div>
 
       {/* ── Feed ───────────────────────────────────────── */}
@@ -388,6 +413,23 @@ function RealtimeFeed({
               ))}
             </div>
           ))}
+      </div>
+
+      {/* ── Bottom status ───────────────────────────────── */}
+      <div
+        className="flex items-center justify-between px-4 h-6 flex-shrink-0"
+        style={{
+          background: PAPER,
+          borderTop: `1px solid ${BORDER}`,
+          fontFamily: MONO,
+          fontSize: 8.5,
+          letterSpacing: "0.18em",
+          color: "#a8a59c",
+          textTransform: "uppercase",
+        }}
+      >
+        <span>realtime · supabase</span>
+        <span className="tabular-nums">{filtered.length} rows</span>
       </div>
     </div>
   );
