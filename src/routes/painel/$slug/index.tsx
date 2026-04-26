@@ -1399,27 +1399,30 @@ function SlugDashboard() {
   const nomeOrgao =
     slug === "cau-pr" ? "CAU/PR" : slug.toUpperCase().replace("-", "/");
 
+  const isLive = count24h > 0 || rodada?.status === "em_progresso";
+  const [feedOpen, setFeedOpen] = useState(false);
+
   return (
     <>
       <div
-        className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white"
+        className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white relative"
         style={{ color: INK }}
       >
         {/* Header */}
         <div
-          className="px-6 md:px-10 pt-8 pb-6"
+          className="px-4 sm:px-6 md:px-10 pt-5 sm:pt-8 pb-4 sm:pb-6"
           style={{ borderBottom: `1px solid ${BORDER}` }}
         >
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <p
-              className="text-[10px] uppercase tracking-[0.32em] font-semibold"
+              className="text-[9.5px] sm:text-[10px] uppercase tracking-[0.32em] font-semibold"
               style={{ color: SUBTLE, fontFamily: MONO }}
             >
               Escavação
             </p>
             <span style={{ color: SUBTLE }}>·</span>
             <h1
-              className="text-[24px] font-medium"
+              className="text-[20px] sm:text-[24px] font-medium"
               style={{
                 color: INK,
                 fontFamily: TIGHT,
@@ -1428,9 +1431,9 @@ function SlugDashboard() {
             >
               {nomeOrgao}
             </h1>
-            {(rodada?.status === "em_progresso" || count24h > 0) && (
+            {isLive && (
               <span
-                className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] px-2 py-1 ml-2"
+                className="flex items-center gap-1.5 text-[9.5px] sm:text-[10px] uppercase tracking-[0.18em] px-2 py-1 sm:ml-2"
                 style={{
                   color: "#15803d",
                   background: "#f0fdf4",
@@ -1453,7 +1456,7 @@ function SlugDashboard() {
         <div className="flex-1 overflow-y-auto">
           <Tabs defaultValue="visao-geral" className="h-full">
             <TabsList
-              className="px-6 md:px-10 pt-2 pb-0 bg-transparent rounded-none h-auto gap-0 w-full justify-start overflow-x-auto"
+              className="px-4 sm:px-6 md:px-10 pt-2 pb-0 bg-transparent rounded-none h-auto gap-0 w-full justify-start overflow-x-auto"
               style={{ borderBottom: `1px solid ${BORDER}` }}
             >
               {[
@@ -1470,7 +1473,7 @@ function SlugDashboard() {
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="rounded-none px-4 py-3 text-[11px] uppercase tracking-[0.18em] data-[state=active]:shadow-none bg-transparent transition-colors whitespace-nowrap"
+                  className="rounded-none px-3 sm:px-4 py-2.5 sm:py-3 text-[10.5px] sm:text-[11px] uppercase tracking-[0.18em] data-[state=active]:shadow-none bg-transparent transition-colors whitespace-nowrap"
                   style={{
                     color: MUTED,
                     fontFamily: MONO,
@@ -1491,7 +1494,7 @@ function SlugDashboard() {
               }
             `}</style>
 
-            <div className="px-6 md:px-10 py-8">
+            <div className="px-4 sm:px-6 md:px-10 py-6 sm:py-8 pb-24 lg:pb-8">
               <TabsContent value="visao-geral">
                 <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} />
               </TabsContent>
@@ -1522,12 +1525,50 @@ function SlugDashboard() {
             </div>
           </Tabs>
         </div>
+
+        {/* Mobile floating activity button */}
+        <Sheet open={feedOpen} onOpenChange={setFeedOpen}>
+          <SheetTrigger asChild>
+            <button
+              aria-label="Atividade ao vivo"
+              className="lg:hidden fixed bottom-20 right-4 z-30 flex items-center gap-2 px-3 py-2.5 shadow-lg transition-transform active:scale-95"
+              style={{
+                background: INK,
+                color: "#fff",
+                borderRadius: 999,
+                fontFamily: MONO,
+              }}
+            >
+              <Activity size={14} />
+              <span className="text-[10.5px] uppercase tracking-wider font-semibold">
+                Atividade
+              </span>
+              {isLive && (
+                <span
+                  className="h-1.5 w-1.5 rounded-full animate-pulse"
+                  style={{ background: "#4ade80" }}
+                />
+              )}
+            </button>
+          </SheetTrigger>
+          <SheetContent
+            side="bottom"
+            className="p-0 h-[85vh] rounded-t-2xl overflow-hidden"
+          >
+            <RealtimeFeed
+              slug={slug}
+              initialItems={recentAnalyses}
+              isLive={isLive}
+              variant="inline"
+            />
+          </SheetContent>
+        </Sheet>
       </div>
 
       <RealtimeFeed
         slug={slug}
         initialItems={recentAnalyses}
-        isLive={count24h > 0 || rodada?.status === "em_progresso"}
+        isLive={isLive}
       />
     </>
   );
