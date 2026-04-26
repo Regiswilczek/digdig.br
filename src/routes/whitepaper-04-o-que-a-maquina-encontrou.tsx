@@ -7,9 +7,9 @@ export const Route = createFileRoute("/whitepaper-04-o-que-a-maquina-encontrou")
       {
         name: "description",
         content:
-          "White Paper Nº 04: os resultados reais de 1.096 atos do CAU/PR analisados por IA — distribuição, padrões dominantes, os cinco casos mais graves e o que o Dig Dig Bug encontrou.",
+          "White Paper Nº 04: os resultados reais de 1.096 atos do CAU/PR analisados por IA — distribuição, quatro padrões dominantes, os cinco casos mais graves e o sistema que reconheceu o próprio erro.",
       },
-      { property: "og:title", content: "O Que a Máquina Encontrou" },
+      { property: "og:title", content: "O Que a Máquina Encontrou — Dig Dig" },
       {
         property: "og:description",
         content:
@@ -49,16 +49,13 @@ const STYLES = `
   .wp-root p { margin-bottom:22px; }
   .wp-root ul, .wp-root ol { margin:0 0 22px 0; padding-left:1.4em; }
   .wp-root li { margin-bottom:6px; }
-  .wp-root code { font-family:'SF Mono','Fira Code','Cascadia Code',monospace; font-size:0.82em; background:var(--bg-code); padding:2px 6px; border-radius:4px; color:#c0392b; }
-  .wp-root pre { background:var(--bg-code); border:1px solid var(--border); border-radius:6px; padding:20px 22px; margin:24px 0; overflow-x:auto; font-family:'SF Mono','Fira Code','Cascadia Code',monospace; font-size:0.82rem; line-height:1.65; color:var(--text); }
-  .wp-root pre code { background:none; padding:0; color:inherit; font-size:inherit; }
   .wp-root table { width:100%; border-collapse:collapse; margin:24px 0; font-size:0.88rem; }
   .wp-root th { text-align:left; font-weight:600; font-size:0.75rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); padding:10px 14px; border-bottom:2px solid var(--border); }
   .wp-root td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
   .wp-root tr:last-child td { border-bottom:none; }
-  .wp-root .verde    { color:#2e7d32; font-weight:600; }
-  .wp-root .amarelo  { color:#b45309; font-weight:600; }
-  .wp-root .laranja  { color:#c05b00; font-weight:600; }
+  .wp-root .verde { color:#2e7d32; font-weight:600; }
+  .wp-root .amarelo { color:#b45309; font-weight:600; }
+  .wp-root .laranja { color:#c05b00; font-weight:600; }
   .wp-root .vermelho { color:#c0392b; font-weight:600; }
   .wp-root .stat-row { display:flex; gap:32px; margin:28px 0; flex-wrap:wrap; }
   .wp-root .stat { display:flex; flex-direction:column; gap:4px; }
@@ -66,21 +63,21 @@ const STYLES = `
   .wp-root .stat .desc { font-size:0.8rem; color:var(--muted); }
   .wp-root .callout { border-left:3px solid var(--text); margin:32px 0; padding:4px 0 4px 20px; color:var(--muted); font-size:0.95rem; }
   .wp-root .callout.alert { border-left-color:#c0392b; }
+  .wp-root .case-block { border:1px solid var(--border); border-radius:8px; padding:20px 24px; margin:24px 0; }
+  .wp-root .case-header { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+  .wp-root .case-id { font-family:'Inter Tight',sans-serif; font-weight:700; font-size:1rem; letter-spacing:-0.01em; }
+  .wp-root .case-score { font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; font-weight:600; }
+  .wp-root .case-pattern { font-size:0.83rem; color:var(--muted); font-style:italic; margin-bottom:10px; }
+  .wp-root .case-block p { font-size:0.92rem; margin-bottom:0; }
   .wp-root strong { font-weight:600; }
   .wp-root .prev-paper { display:inline-flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--muted); text-decoration:none; margin-bottom:40px; }
   .wp-root .prev-paper:hover { color:var(--text); }
-  .wp-root .case-block { border:1px solid var(--border); border-radius:8px; padding:20px 24px; margin:24px 0; }
-  .wp-root .case-block .case-header { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
-  .wp-root .case-block .case-id { font-family:'Inter Tight',sans-serif; font-weight:700; font-size:1rem; letter-spacing:-0.01em; }
-  .wp-root .case-block .case-score { font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; font-weight:600; }
-  .wp-root .case-block .case-pattern { font-size:0.83rem; color:var(--muted); font-style:italic; margin-bottom:10px; }
-  .wp-root .case-block p { font-size:0.92rem; margin-bottom:0; }
   .wp-root .signature { margin-top:48px; padding-top:32px; border-top:1px solid var(--border); }
   .wp-root .signature .name { font-family:'Inter Tight',sans-serif; font-weight:600; font-size:1rem; letter-spacing:-0.01em; }
   .wp-root .signature .role { font-size:0.83rem; color:var(--muted); margin-top:4px; }
   .wp-root .post-footer { margin-top:56px; padding-top:28px; border-top:1px solid var(--border); font-size:0.83rem; color:var(--subtle); font-style:italic; }
   .wp-root .site-footer { max-width:var(--max-w); margin:0 auto; padding:32px 0 56px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:var(--subtle); }
-  @media (max-width:600px) { .wp-root { font-size:16px; } .wp-root h1 { font-size:1.75rem; } .wp-root .site-footer { flex-direction:column; gap:8px; } .wp-root .stat-row { gap:20px; } .wp-root .case-block .case-header { flex-direction:column; gap:4px; } }
+  @media (max-width:600px) { .wp-root { font-size:16px; } .wp-root h1 { font-size:1.75rem; } .wp-root .site-footer { flex-direction:column; gap:8px; } .wp-root .stat-row { gap:20px; } .wp-root .case-header { flex-direction:column; gap:4px; } }
 `;
 
 function Whitepaper04Page() {
@@ -104,10 +101,8 @@ function Whitepaper04Page() {
           <p className="byline"><strong>Regis Wilczek</strong> &nbsp;—&nbsp; Abril de 2026</p>
         </div>
 
-        <p>Nos três White Papers anteriores documentei a jornada técnica: como extraímos os PDFs do CAU/PR, como controlamos o custo depois de um incidente de $23 com workers paralelos, e como abrimos as deliberações via WordPress REST API depois de descobrir que o site bloqueava scrapers com JavaScript.</p>
-        <p>Este paper é diferente. Não é sobre como chegamos — é sobre o que encontramos.</p>
-        <p>Em abril de 2026, o Dig Dig concluiu a análise inicial de <strong>1.096 atos administrativos do CAU/PR</strong> — portarias de 2022 a 2026 com texto nativo extraível, mais as primeiras deliberações processadas. Os 21 casos mais graves passaram por análise aprofundada com o Dig Dig Bug, que gerou fichas de denúncia estruturadas com identificação de padrões, pessoas envolvidas e recomendações de ação.</p>
-        <p>O que segue é um relatório preliminar desses resultados.</p>
+        <p>Em abril de 2026, o Dig Dig concluiu a análise inicial de <strong>1.096 atos administrativos do CAU/PR</strong> — portarias de 2022 a 2026 com texto nativo extraível, mais as primeiras deliberações plenárias processadas. Os 21 casos mais graves passaram por análise aprofundada com o Dig Dig Zew, que gerou fichas de denúncia estruturadas com identificação de padrões, pessoas envolvidas e recomendações de ação.</p>
+        <p>O que segue é o que encontramos.</p>
 
         <hr />
 
@@ -118,8 +113,6 @@ function Whitepaper04Page() {
           <div className="stat"><span className="num">21</span><span className="desc">fichas de denúncia geradas</span></div>
           <div className="stat"><span className="num">~$15</span><span className="desc">custo total de IA</span></div>
         </div>
-
-        <p>A distribuição por nível de alerta do conjunto completo:</p>
 
         <table>
           <thead>
@@ -153,17 +146,16 @@ function Whitepaper04Page() {
           </tbody>
         </table>
 
-        <p>O amarelo dominante não é ruído — é a natureza dos atos administrativos. Qualquer portaria de nomeação que não explicita os critérios de escolha é suspeita por omissão. Qualquer prorrogação de prazo sem motivação expressa levanta uma observação. O amarelo diz: "algo aqui merece olhar mais de perto". O laranja e o vermelho dizem: "encontramos algo."</p>
+        <p>O amarelo dominante não é ruído — é a natureza dos atos administrativos. Qualquer portaria de nomeação que não explicita os critérios de escolha é suspeita por omissão. O amarelo diz: "algo aqui merece olhar mais de perto". O laranja e o vermelho dizem: "encontramos algo."</p>
 
         <div className="callout">
-          10,5% dos atos — 115 no total — apresentaram indício suficiente para análise aprofundada. Desses, 21 já têm ficha de denúncia completa. Os demais estão na fila do Dig Dig Bug.
+          10,5% dos atos — 115 no total — apresentaram indício suficiente para análise aprofundada. Desses, 21 já têm ficha de denúncia completa. Os demais estão na fila do Dig Dig Zew.
         </div>
 
         <hr />
 
         <h2>Os Quatro Padrões Dominantes</h2>
-
-        <p>Depois de analisar individualmente cada ficha de denúncia gerada pelo Dig Dig Bug, quatro padrões emergiram de forma recorrente. Nenhum deles aparece em um único ato isolado — é a serialidade que os torna significativos.</p>
+        <p>Depois de analisar individualmente cada ficha gerada pelo Dig Dig Zew, quatro padrões emergiram de forma recorrente. Nenhum deles aparece em um único ato isolado — é a serialidade que os torna significativos.</p>
 
         <h3>1. Controle presidencial dos mecanismos disciplinares</h3>
         <p>O padrão mais frequente — e o mais grave — é o uso dos processos administrativos disciplinares como instrumento de poder político. Em múltiplos atos, os presidentes do CAU/PR instauraram sindicâncias e processos disciplinares por ato unilateral, sem deliberação plenária prévia; prorrogaram os prazos sucessivamente, também por portaria presidencial, sem submeter ao plenário; compuseram as comissões exclusivamente com servidores administrativos subordinados à presidência, excluindo conselheiros titulares; e mantiveram o objeto e o investigado em sigilo durante meses ou anos de tramitação.</p>
@@ -174,7 +166,7 @@ function Whitepaper04Page() {
         <p>O servidor Cleverson João Veiga aparece em 31 atos. Leandro Reguelin, em 31. André Felipe Casagrande, em 33. Nenhum deles é conselheiro eleito. Todos aparecem em posições de controle processual — como membros de comissões de sindicância e inquérito — com frequência desproporcional para servidores não-titulares.</p>
 
         <h3>3. Gestão paralela da vice-presidência</h3>
-        <p>Em pelo menos quatro portarias analisadas pelo Dig Dig Bug, o Vice-Presidente Jeancarlo Versetti assinou atos de natureza presidencial — abertura e prorrogação de processos disciplinares — sem que os atos registrassem o instrumento formal de substituição: afastamento, licença ou delegação documentada do presidente titular.</p>
+        <p>Em pelo menos quatro portarias analisadas pelo Dig Dig Zew, o Vice-Presidente Jeancarlo Versetti assinou atos de natureza presidencial — abertura e prorrogação de processos disciplinares — sem que os atos registrassem o instrumento formal de substituição: afastamento, licença ou delegação documentada do presidente titular.</p>
         <p>Isoladamente, cada caso poderia ser explicado por ausência informal e assinatura de urgência. Em série, configura um padrão de presidência paralela: um segundo centro de decisão operando sem transparência sobre os pressupostos de sua autoridade.</p>
 
         <h3>4. Opacidade como estrutura</h3>
@@ -185,15 +177,13 @@ function Whitepaper04Page() {
 
         <h2>Os Cinco Casos Mais Graves</h2>
 
-        <p>Os cinco atos com maior score de risco na análise do Dig Dig Bug:</p>
-
         <div className="case-block">
           <div className="case-header">
             <span className="case-id">Portaria 667/2026</span>
             <span className="case-score vermelho">Vermelho · Score 95</span>
           </div>
           <p className="case-pattern">Padrão: Gestão disciplinar autocrática — processo de 18 meses em sigilo total</p>
-          <p>Em agosto de 2024, o Presidente Walter Gustavo Linzmeyer instaurou um Processo Administrativo Disciplinar por ato unilateral. O investigado e o objeto da investigação permanecem não identificados publicamente até fevereiro de 2026 — 18 meses depois. A comissão processante foi composta exclusivamente por servidores administrativos subordinados à presidência, em violação direta ao regimento que exige conselheiro titular. A Portaria 667 é a terceira recondução desse processo — cada uma delas por portaria presidencial, sem deliberação plenária. O Dig Dig Bug identificou incoerências cronológicas no próprio texto do ato: a data de assinatura conflita com datas internas do documento.</p>
+          <p>Em agosto de 2024, o Presidente Walter Gustavo Linzmeyer instaurou um Processo Administrativo Disciplinar por ato unilateral. O investigado e o objeto da investigação permanecem não identificados publicamente até fevereiro de 2026 — 18 meses depois. A comissão processante foi composta exclusivamente por servidores administrativos subordinados à presidência, em violação direta ao regimento que exige conselheiro titular. A Portaria 667 é a terceira recondução desse processo — cada uma delas por portaria presidencial, sem deliberação plenária. O Dig Dig Zew identificou incoerências cronológicas no próprio texto do ato: a data de assinatura conflita com datas internas do documento.</p>
         </div>
 
         <div className="case-block">
@@ -211,7 +201,7 @@ function Whitepaper04Page() {
             <span className="case-score vermelho">Vermelho · Score 88</span>
           </div>
           <p className="case-pattern">Padrão: Controle processual total — presidente como instaurador e nomeante do defensor</p>
-          <p>Na mesma comissão instaurada pela Portaria 522, o presidente prorrogou o prazo por 30 dias e, no mesmo ato, designou um subordinado direto como "defensor" do servidor investigado. O presidente que instaura o processo, compõe a comissão e nomeia o defensor elimina qualquer possibilidade de equilíbrio adversarial genuíno. O servidor Leandro Reguelin, que aparece em 31 atos institucionais, é o "braço operacional" recorrente da presidência nesse tipo de designação — mais de 40 aparições em atos formais de natureza processual.</p>
+          <p>Na mesma comissão instaurada pela Portaria 522, o presidente prorrogou o prazo por 30 dias e, no mesmo ato, designou um subordinado direto como "defensor" do servidor investigado. O presidente que instaura o processo, compõe a comissão e nomeia o defensor elimina qualquer possibilidade de equilíbrio adversarial genuíno. O servidor Leandro Reguelin, que aparece em 31 atos institucionais, é o "braço operacional" recorrente da presidência nesse tipo de designação.</p>
         </div>
 
         <div className="case-block">
@@ -220,7 +210,7 @@ function Whitepaper04Page() {
             <span className="case-score vermelho">Vermelho · Score 87</span>
           </div>
           <p className="case-pattern">Padrão: Composição cirúrgica de comissão — reconstituição direcionada para resultado predeterminado</p>
-          <p>Em setembro de 2024, uma comissão processante foi constituída por três membros. Em data não declarada, a comissão foi descontinuada. Em abril de 2025, o Vice-Presidente Versetti reinstaura o processo e substitui um membro da comissão — mantendo os dois de maior experiência institucional e inserindo um substituto com histórico mínimo de atuação em atos formais. O padrão é descontinuação seguida de reinstaura com troca pontual: o suficiente para alterar a composição sem levantar suspeita sobre a totalidade do processo. O Dig Dig Bug classificou como "composição direcionada para resultado processual predeterminado".</p>
+          <p>Em setembro de 2024, uma comissão processante foi constituída por três membros. Em data não declarada, a comissão foi descontinuada. Em abril de 2025, o Vice-Presidente Versetti reinstaura o processo e substitui um membro da comissão — mantendo os dois de maior experiência institucional e inserindo um substituto com histórico mínimo de atuação em atos formais. O padrão é descontinuação seguida de reinstaura com troca pontual: o suficiente para alterar a composição sem levantar suspeita sobre a totalidade do processo. O Dig Dig Zew classificou como "composição direcionada para resultado processual predeterminado".</p>
         </div>
 
         <div className="case-block">
@@ -229,7 +219,7 @@ function Whitepaper04Page() {
             <span className="case-score vermelho">Vermelho · Score 87</span>
           </div>
           <p className="case-pattern">Padrão: 11 meses de processo oculto com substituição unilateral de membro</p>
-          <p>O Presidente Linzmeyer instaurou comissão processante em abril de 2025 para investigar o Processo SEI nº 00169.000714/2024-81 — cujo objeto e investigado seguem não identificados publicamente. Em março de 2026, sem resolver o processo, alterou a composição da comissão por portaria presidencial unilateral, sem deliberação plenária, e prorrogou o prazo. O volume excepcional de aparições de Linzmeyer nos registros institucionais — 136 atos só nas portarias com texto extraído — e a vagueza sistemática sobre os processos disciplinares em curso configuram, nas palavras do Dig Dig Bug, "risco grave de instrumentalização do processo administrativo para fins de controle político-disciplinar interno."</p>
+          <p>O Presidente Linzmeyer instaurou comissão processante em abril de 2025 para investigar o Processo SEI nº 00169.000714/2024-81 — cujo objeto e investigado seguem não identificados publicamente. Em março de 2026, sem resolver o processo, alterou a composição da comissão por portaria presidencial unilateral, sem deliberação plenária, e prorrogou o prazo. O volume excepcional de aparições de Linzmeyer nos registros institucionais — 136 atos só nas portarias com texto extraído — e a vagueza sistemática sobre os processos disciplinares em curso configuram, nas palavras do Dig Dig Zew, "risco grave de instrumentalização do processo administrativo para fins de controle político-disciplinar interno."</p>
         </div>
 
         <hr />
@@ -237,20 +227,18 @@ function Whitepaper04Page() {
         <h2>Quando o Sistema se Autocorrige</h2>
 
         <p>Um dos resultados mais importantes não veio de um caso grave — veio de um caso onde o sistema reconheceu que havia errado.</p>
-        <p>A Portaria 234/2020 foi classificada como vermelho pelo Dig Dig Piper com score alto. A análise aprofundada do Dig Dig Bug chegou a uma conclusão diferente:</p>
+        <p>A Portaria 234/2020 foi classificada como vermelho pelo Dig Dig Piper com score alto. A análise aprofundada do Dig Dig Zew chegou a uma conclusão diferente:</p>
 
         <div className="callout alert">
           "A análise aprofundada NÃO CONFIRMA a suspeita inicial classificada como VERMELHO pelo Dig Dig Piper. O documento submetido é um arquivo digitalizado ilegível, do qual não foi possível extrair qualquer dado concreto: nome do nomeado, cargo, unidade, remuneração, fundamentação legal ou identidade do signatário. A classificação 'VERMELHO' atribuída pelo Dig Dig Piper foi produto de inferências em cascata sobre um documento sem conteúdo verificável, o que configura risco metodológico grave de falso positivo."
         </div>
 
-        <p>O Dig Dig Bug rebaixou o caso, documentou o erro do Dig Dig Piper e recomendou uma ação específica: solicitar ao CAU/PR, via Lei de Acesso à Informação, a versão legível do documento. O sistema não afirmou o erro do predecessor silenciosamente — escreveu sobre ele com precisão técnica.</p>
-        <p>Isso importa para a credibilidade do projeto. Um sistema que só sinaliza irregularidades não é auditoria — é alarme. Um sistema que também sinaliza quando a suspeita não se sustenta é uma ferramenta que pode ser confiada.</p>
+        <p>O Dig Dig Zew rebaixou o caso, documentou o erro do Dig Dig Piper e recomendou uma ação específica: solicitar ao CAU/PR, via Lei de Acesso à Informação, a versão legível do documento. O sistema não afirmou o erro do predecessor silenciosamente — escreveu sobre ele com precisão técnica.</p>
+        <p>Um sistema que só sinaliza irregularidades não é auditoria — é alarme. Um sistema que também sinaliza quando a suspeita não se sustenta é uma ferramenta que pode ser confiada.</p>
 
         <hr />
 
         <h2>Quem Aparece Mais</h2>
-
-        <p>O banco registrou todas as pessoas mencionadas nos atos — como signatários, nomeados, membros de comissão, investigados ou simplesmente citados. Os quinze nomes com maior frequência de aparição nos atos analisados:</p>
 
         <table>
           <thead>
@@ -273,33 +261,12 @@ function Whitepaper04Page() {
           </tbody>
         </table>
 
-        <p>A concentração nos três primeiros é esperada — são os presidentes da instituição no período analisado. O que chama atenção são os servidores não-eleitos nos últimos lugares da lista: Cleverson João Veiga, Leandro Reguelin e André Casagrande aparecem repetidamente em posições de controle processual — comissões de sindicância e inquérito — sem que nenhum deles tenha mandato de conselheiro. São os rosto recorrentes da gestão disciplinar.</p>
+        <p>A concentração nos três primeiros é esperada — são os presidentes da instituição no período analisado. O que chama atenção são os servidores não-eleitos: Cleverson João Veiga, Leandro Reguelin e André Casagrande aparecem repetidamente em posições de controle processual sem mandato de conselheiro. São os rostos recorrentes da gestão disciplinar.</p>
 
         <hr />
 
-        <h2>O que a IA Não Faz</h2>
-
-        <p>Este é o parágrafo mais importante do White Paper.</p>
-        <p>O Dig Dig não afirma crimes. Não afirma corrupção. Não afirma perseguição política. Não condena nenhuma pessoa ou gestão.</p>
-        <p>O que o sistema faz é identificar padrões em texto público — irregularidades em relação ao regimento interno, ausência de justificativas que a norma exige, concentração de atos em pessoas específicas, opacidade onde a transparência é obrigatória. Usa, para isso, linguagem de "indício", "suspeita", "padrão irregular" e "risco de".</p>
-        <p>A conclusão jurídica — se houve ou não ilegalidade, se houve ou não dolo, se há ou não fundamento para ação judicial — pertence a um advogado. A conclusão política pertence ao leitor. O Dig Dig fornece as evidências documentadas e a estrutura analítica. O julgamento é humano.</p>
-        <p>Essa limitação não é fraqueza do sistema. É a sua proposta de valor: uma ferramenta que encontra o que merece atenção, não uma que substitui quem deve prestar atenção.</p>
-
-        <hr />
-
-        <h2>O que Vem Agora</h2>
-
-        <p>Este relatório cobre apenas uma parte do universo de atos do CAU/PR. O pipeline completo ainda inclui:</p>
-        <ul>
-          <li><strong>~80 casos laranja/vermelho</strong> aguardando análise do Dig Dig Bug — as fichas de denúncia mais graves ainda não foram geradas para todos os atos classificados criticamente pelo Dig Dig Piper</li>
-          <li><strong>151 portarias escaneadas (2018–2021)</strong> — o período anterior ao que foi analisado, que cobre os anos de formação da gestão atual. Precisam de OCR com Tesseract para extração de texto.</li>
-          <li><strong>Deliberações plenárias</strong> — como documentado no White Paper Nº 03, as deliberações têm taxa de casos críticos de 41%, contra 10,5% das portarias. A análise completa das deliberações ainda está em andamento.</li>
-          <li><strong>Chat conversacional</strong> — com os atos e fichas no banco, a próxima camada é permitir perguntas em linguagem natural: "quais portarias mencionam esse nome?", "mostre os processos disciplinares instaurados sem deliberação plenária", "qual o histórico completo de aparições de X?"</li>
-        </ul>
-
-        <p>Os resultados deste relatório são preliminares. O conjunto completo de atos do CAU/PR — portarias, deliberações, resoluções — representa um universo muito maior. E o CAU/PR é apenas o primeiro órgão.</p>
-
-        <p>A escavação continua.</p>
+        <p>O Dig Dig não afirma crimes. Não condena nenhuma pessoa ou gestão. Identifica padrões em texto público — irregularidades em relação ao regimento, ausência de justificativas que a norma exige, concentração de atos em pessoas específicas, opacidade onde a transparência é obrigatória. A conclusão jurídica pertence a um advogado. A conclusão política pertence ao leitor.</p>
+        <p>Esse relatório é preliminar. A análise das deliberações ainda está em andamento, as portarias escaneadas de 2018–2021 aguardam OCR, e o CAU/PR é só o primeiro órgão. A escavação continua.</p>
 
         <div className="signature">
           <div className="name">Regis Wilczek</div>
@@ -307,7 +274,7 @@ function Whitepaper04Page() {
         </div>
 
         <p className="post-footer">
-          White Paper Nº 04 do projeto Dig Dig. Série de registro técnico sobre auditoria pública automatizada com IA. Os dados citados neste relatório são extraídos diretamente do banco de dados do sistema, a partir de documentos públicos disponíveis no site oficial do CAU/PR.
+          White Paper Nº 04 do projeto Dig Dig. Os dados citados neste relatório são extraídos diretamente do banco de dados do sistema, a partir de documentos públicos disponíveis no site oficial do CAU/PR.
         </p>
       </article>
 

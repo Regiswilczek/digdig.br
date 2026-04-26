@@ -98,8 +98,7 @@ function Whitepaper05Page() {
           <p className="byline"><strong>Regis Wilczek</strong> &nbsp;—&nbsp; Abril de 2026</p>
         </div>
 
-        <p>O White Paper Nº 04 documentou o que a máquina encontrou em 1.096 atos do CAU/PR — portarias e deliberações com texto nativo extraível. Quatro padrões dominantes. Vinte e um casos com ficha de denúncia. Um sistema que reconheceu o próprio erro.</p>
-        <p>Este paper documenta o que aconteceu depois: como o corpus cresceu em três frentes simultaneamente, como resolvemos o problema dos documentos históricos escaneados sem precisar de Tesseract, por que as atas plenárias mudam fundamentalmente o tipo de análise possível — e como o pipeline deixou de ser uma caixa preta para se tornar algo que você pode observar funcionando em tempo real.</p>
+        <p>O Dig Dig começou com ~400 portarias de texto nativo. Em abril de 2026, o escopo cresceu para mais de 1.340 documentos — portarias históricas escaneadas, deliberações, portarias normativas e as atas plenárias onde as decisões realmente acontecem.</p>
 
         <hr />
 
@@ -130,7 +129,7 @@ function Whitepaper05Page() {
             <tr>
               <td>Atas Plenárias</td>
               <td>179 identificadas</td>
-              <td>161 com PDF publicado; em análise com Sonnet</td>
+              <td>161 com PDF publicado; em análise com Bud</td>
             </tr>
           </tbody>
         </table>
@@ -146,7 +145,7 @@ function Whitepaper05Page() {
 
         <ol>
           <li><strong>PyMuPDF (fitz)</strong> abre o PDF e renderiza cada página como PNG a 200 DPI — resolução suficiente para preservar assinaturas, carimbos e texto manuscrito marginal.</li>
-          <li><strong>Claude Haiku</strong>, via visão, recebe a imagem e extrai o texto exatamente como aparece na página — incluindo formatação, parágrafos e estrutura do documento.</li>
+          <li><strong>Piper</strong>, via visão, recebe a imagem e extrai o texto exatamente como aparece na página — incluindo formatação, parágrafos e estrutura do documento.</li>
           <li>O resultado é salvo no banco com <code>metodo_extracao='claude_vision'</code>.</li>
         </ol>
 
@@ -159,10 +158,10 @@ function Whitepaper05Page() {
     return await _ocr_claude(...)      # PDF escaneado → visão`}</code></pre>
 
         <p>O threshold de 100 caracteres é deliberado. PDFs de imagem pura retornam zero ou alguns bytes de metadado sem sentido. Qualquer documento com substância real passa dessa marca. O script decide o método sozinho — sem intervenção manual, sem flag adicional.</p>
-        <p>O custo por página via visão é baixo o suficiente para ser viável em escala: Haiku vision custa uma fração do Sonnet e é rápido. As 151 portarias escaneadas do CAU/PR — que estavam efetivamente inacessíveis para análise — agora têm texto extraído.</p>
+        <p>O custo por página via visão é baixo o suficiente para ser viável em escala: Piper custa uma fração do Bud e é rápido. As 151 portarias escaneadas do CAU/PR — que estavam efetivamente inacessíveis para análise — agora têm texto extraído.</p>
 
         <div className="callout">
-          O Tesseract requer instalação local, dependências de linguagem e ajuste fino por tipo de documento. O Claude Haiku com PyMuPDF requer uma chave de API. A diferença de complexidade operacional, em um scraper que já precisa da API Anthropic para análise, é zero.
+          O Tesseract requer instalação local, dependências de linguagem e ajuste fino por tipo de documento. O Piper com PyMuPDF requer uma chave de API. A diferença de complexidade operacional, em um scraper que já precisa da API para análise, é zero.
         </div>
 
         <hr />
@@ -172,7 +171,7 @@ function Whitepaper05Page() {
         <p>Uma portaria diz: <em>"Fica instaurado o Processo Administrativo Disciplinar para apurar os fatos constantes do Processo SEI nº 00169.000714/2024-81."</em></p>
         <p>Uma ata diz: quem estava presente. Quem votou a favor. Quem se absteve. Quem saiu da sala antes da votação declarando impedimento. O que foi discutido antes de votar. Se o quórum atingia o mínimo regimental.</p>
         <p>A portaria é o resultado. A ata é o processo que produziu o resultado.</p>
-        <p>Isso muda o tipo de análise possível de forma fundamental. Quando o Dig Dig Bud — o Sonnet 4.6 — lê uma ata plenária completa, ele pode extrair:</p>
+        <p>Isso muda o tipo de análise possível de forma fundamental. Quando o Dig Dig Bud lê uma ata plenária completa, ele pode extrair:</p>
         <ul>
           <li>Quórum declarado vs. quórum real (presentes na votação específica)</li>
           <li>Distribuição de votos: favoráveis, contrários, abstenções — e quem foi cada um</li>
@@ -181,8 +180,8 @@ function Whitepaper05Page() {
           <li>Deliberações aprovadas por unanimidade em reuniões onde o quórum mal atingia o mínimo regimental</li>
           <li>Pauta anunciada vs. pauta efetivamente votada — itens adicionados sem comunicação prévia</li>
         </ul>
-        <p>As atas são analisadas diretamente pelo Sonnet, sem intermediação do Haiku. O motivo é estrutural: o contexto cruzado da reunião inteira é o dado relevante. Uma abstração que passa pela triagem do Haiku primeiro perderia os padrões que só aparecem quando você lê a reunião como uma sequência coerente de eventos — o que foi dito antes do voto, quem estava presente no item anterior mas saiu antes do seguinte, como o resultado de uma votação conecta com uma portaria emitida dois dias depois.</p>
-        <p>O custo é maior por análise — Sonnet custa mais que Haiku. Mas a qualidade analítica das atas exige isso. Economizar no modelo aqui seria economizar na única fonte que registra como as decisões foram tomadas, não apenas que decisões foram tomadas.</p>
+        <p>As atas são analisadas diretamente pelo Bud, sem intermediação do Piper. O motivo é estrutural: o contexto cruzado da reunião inteira é o dado relevante. Uma abstração que passa pela triagem do Piper primeiro perderia os padrões que só aparecem quando você lê a reunião como uma sequência coerente de eventos — o que foi dito antes do voto, quem estava presente no item anterior mas saiu antes do seguinte, como o resultado de uma votação conecta com uma portaria emitida dois dias depois.</p>
+        <p>O custo é maior por análise — Bud custa mais que Piper. Mas a qualidade analítica das atas exige isso. Economizar no modelo aqui seria economizar na única fonte que registra como as decisões foram tomadas, não apenas que decisões foram tomadas.</p>
 
         <hr />
 
@@ -214,7 +213,7 @@ function Whitepaper05Page() {
         <p>O painel agora exibe um feed ao vivo das análises mais recentes, agrupado por tipo de documento — portarias, atas, deliberações, portarias normativas. Com um badge "AO VIVO" que aparece quando há análises nas últimas 24 horas. A distinção entre análises com e sem rodada formal (scripts locais vs. rodadas do sistema) foi resolvida: o feed captura ambos via <code>criado_em</code>, independente de <code>rodada_id</code>.</p>
 
         <h3>LIVE card na homepage</h3>
-        <p>A homepage do Dig Dig agora tem um card que cicla pelos documentos recentemente processados — mostrando o tipo, o número do ato e qual agente realizou a análise. Piper é o Haiku 4.5, responsável pela triagem inicial de portarias e deliberações. Bud é o Sonnet 4.6, responsável pelas atas e pelas análises aprofundadas dos casos críticos. O card responde à pergunta "o que está acontecendo agora?" com dados reais, não demonstração.</p>
+        <p>A homepage do Dig Dig agora tem um card que cicla pelos documentos recentemente processados — mostrando o tipo, o número do ato e qual agente realizou a análise. Piper é o agente de triagem, responsável pela análise inicial de portarias e deliberações. Bud é o agente de análise aprofundada, responsável pelas atas e pelos casos críticos. O card responde à pergunta "o que está acontecendo agora?" com dados reais, não demonstração.</p>
 
         <h3>Tab Pendentes</h3>
         <p>O painel ganhou uma aba que mostra o que ainda não foi processado: portarias escaneadas sem OCR, deliberações sem texto extraído, documentos identificados mas ainda na fila. Com motivo, categoria e contagem. A transparência sobre o que o sistema ainda não viu é tão importante quanto a transparência sobre o que ele já viu.</p>
@@ -223,21 +222,15 @@ function Whitepaper05Page() {
 
         <h2>O Fix que Quase Não Aparece em Nenhum Relatório</h2>
 
-        <p>Entre o WP-04 e este paper, o pipeline Sonnet quebrou silenciosamente de uma forma específica: quando o mesmo ato tinha análises de rodadas diferentes no banco — o que acontece naturalmente à medida que o sistema reanalisa casos — a query que buscava a análise para aprofundamento retornava <code>MultipleResultsFound</code> e falhava.</p>
-        <p>A correção exigiu duas mudanças simultâneas: filtrar por <code>rodada_id</code> na query do serviço Sonnet, e passar o <code>analise_id</code> diretamente para os workers paralelos em vez de deixar cada worker resolver o ID por conta própria. Uma terceira mudança reduziu o número de workers de 3 para 2 — o limite de conexões do Supabase em modo Session (15 conexões simultâneas) estava sendo esgotado pelos workers em paralelo, causando falhas silenciosas no pool.</p>
+        <p>Entre o WP-04 e este paper, o pipeline Bud quebrou silenciosamente de uma forma específica: quando o mesmo ato tinha análises de rodadas diferentes no banco — o que acontece naturalmente à medida que o sistema reanalisa casos — a query que buscava a análise para aprofundamento retornava <code>MultipleResultsFound</code> e falhava.</p>
+        <p>A correção exigiu duas mudanças simultâneas: filtrar por <code>rodada_id</code> na query do serviço Bud, e passar o <code>analise_id</code> diretamente para os workers paralelos em vez de deixar cada worker resolver o ID por conta própria. Uma terceira mudança reduziu o número de workers de 3 para 2 — o limite de conexões do Supabase em modo Session (15 conexões simultâneas) estava sendo esgotado pelos workers em paralelo, causando falhas silenciosas no pool.</p>
         <p>Nenhuma dessas falhas aparecia como erro óbvio nos logs. Apareciam como análises que não avançavam. O diagnóstico exigiu instrumentação manual e leitura dos traces do asyncpg. É o tipo de bug que só aparece quando o sistema está processando volume real — e que confirmou que o sistema estava, de fato, processando volume real.</p>
 
         <hr />
 
         <h2>O que Vem Agora</h2>
 
-        <p>Com as atas plenárias no pipeline, o próximo passo é o que as atas tornam possível: cruzamento sistemático entre o que foi votado e o que foi publicado.</p>
-        <ul>
-          <li><strong>Cruzamento ata × portaria</strong>: verificar se as portarias emitidas nos dias seguintes a cada reunião correspondem ao que foi efetivamente deliberado. Portaria que não tem amparo em deliberação votada é ato unilateral.</li>
-          <li><strong>Grafo de presença e votação</strong>: quem vota com quem, quem sistematicamente se ausenta antes de votações específicas, quais conselheiros acumulam abstenções em temas sensíveis.</li>
-          <li><strong>Chat conversacional com RAG</strong>: as análises, fichas e textos completos no banco permitem perguntas em linguagem natural. "Quais reuniões aprovaram deliberações sobre processos disciplinares?", "Mostre todos os atos em que Versetti assinou por substituição", "Qual o histórico de aparições de X nas atas?"</li>
-          <li><strong>Segundo órgão</strong>: a infraestrutura está pronta. O CAU/PR é o laboratório. Qualquer órgão com site público e documentos em PDF pode ser incorporado com uma entrada no banco e um scraper específico.</li>
-        </ul>
+        <p>Com as atas no pipeline, o próximo passo é cruzamento sistemático: portarias emitidas sem amparo em deliberação votada, conselheiros que sistematicamente se ausentam antes de votações sensíveis, histórico completo de aparições em processos disciplinares. A infraestrutura está pronta para o segundo órgão — qualquer órgão com site público e documentos em PDF pode ser incorporado com uma entrada no banco e um scraper específico. O CAU/PR é o laboratório. O método, já está testado.</p>
 
         <p>As atas plenárias não são só mais um tipo de documento. São o registro de como o poder foi exercido em sala fechada — o que foi discutido, quem estava presente, como cada um votou, o que foi decidido antes de qualquer portaria ser assinada. Entrar nessa sala, com precisão e sistematicamente, é o que o Dig Dig passou as últimas semanas aprendendo a fazer.</p>
 
