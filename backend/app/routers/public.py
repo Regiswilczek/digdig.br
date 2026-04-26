@@ -1,3 +1,4 @@
+from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, case, cast, Date as SADate
@@ -87,6 +88,7 @@ async def analises_recentes(slug: str, db: AsyncSession = Depends(get_db)):
     if not tenant:
         raise HTTPException(status_code=404, detail="Órgão não encontrado")
 
+    since = datetime.now(timezone.utc) - timedelta(hours=24)
     rows_r = await db.execute(
         select(
             Analise.id,
@@ -98,9 +100,12 @@ async def analises_recentes(slug: str, db: AsyncSession = Depends(get_db)):
             Ato.tipo,
         )
         .join(Ato, Analise.ato_id == Ato.id)
-        .where(Analise.tenant_id == tenant.id)
+        .where(
+            Analise.tenant_id == tenant.id,
+            Analise.criado_em >= since,
+        )
         .order_by(Analise.criado_em.desc())
-        .limit(50)
+        .limit(1000)
     )
     rows = rows_r.all()
 
