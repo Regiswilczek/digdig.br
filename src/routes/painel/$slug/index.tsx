@@ -2308,6 +2308,7 @@ const DADOS_TIPOS = [
 
 function TabDados({ slug }: { slug: string }) {
   const [tipo, setTipo] = useState<string>("ata_plenaria");
+  const ACCENT = "#16a34a";
 
   const tipoAtivo = DADOS_TIPOS.find((t) => t.value === tipo);
   const idxAtivo = DADOS_TIPOS.findIndex((t) => t.value === tipo);
