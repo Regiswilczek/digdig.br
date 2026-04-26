@@ -15,6 +15,7 @@ import {
   Activity,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { SplineEmbed } from "@/components/SplineEmbed";
 import {
   fetchAnalysesRecentes,
   fetchStats,
@@ -363,8 +364,18 @@ function ChatPage() {
         )}
 
         {/* Scroll area */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-10 pt-6 pb-4">
-          <div className="flex flex-col items-center w-full max-w-[680px] mx-auto min-h-full justify-center">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-10 pt-4 pb-4">
+          <div className="flex flex-col items-center w-full max-w-[760px] mx-auto min-h-full justify-center">
+            {/* Spline hero */}
+            <div className="w-full flex justify-center mb-2">
+              <SplineEmbed
+                width="100%"
+                height={260}
+                radius={12}
+                className="max-w-[520px]"
+              />
+            </div>
+
             {/* Eyebrow */}
             <span
               className="text-[10px] uppercase tracking-[0.32em]"
@@ -377,10 +388,10 @@ function ChatPage() {
             </span>
 
             <h1
-              className="mt-4 text-center font-medium tracking-tight"
+              className="mt-3 text-center font-medium tracking-tight"
               style={{
                 fontFamily: "'Inter Tight', 'Inter', system-ui, sans-serif",
-                fontSize: "clamp(26px, 6vw, 44px)",
+                fontSize: "clamp(26px, 5.4vw, 42px)",
                 lineHeight: 1.05,
                 letterSpacing: "-0.02em",
               }}
@@ -388,7 +399,7 @@ function ChatPage() {
               Bem-vindo, {userName}.
             </h1>
             <p
-              className="mt-3 text-center max-w-[460px] px-2"
+              className="mt-3 text-center max-w-[480px] px-2"
               style={{ color: MUTED, fontSize: 14, lineHeight: 1.55 }}
             >
               Faça perguntas, analise portarias ou gere fichas de denúncia a
