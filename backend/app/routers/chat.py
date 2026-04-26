@@ -26,15 +26,10 @@ async def _get_tenant(db: AsyncSession) -> Tenant:
 
 
 def _require_chat(user: dict) -> None:
-    if not pode_usar_chat(user["plano"]):
-        raise HTTPException(
-            403,
-            detail={
-                "code": "PLANO_INSUFICIENTE",
-                "message": "Chat disponível para planos Investigador ou superior.",
-                "upgrade_url": "/precos",
-            },
-        )
+    # TODO: reabilitar quando billing estiver ativo
+    # if not pode_usar_chat(user["plano"]):
+    #     raise HTTPException(403, detail={"code": "PLANO_INSUFICIENTE", ...})
+    pass
 
 
 class PerguntaInput(BaseModel):
