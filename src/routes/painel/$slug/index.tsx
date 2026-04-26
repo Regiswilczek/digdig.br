@@ -1546,14 +1546,14 @@ function SlugDashboard() {
             >
               {[
                 { value: "visao-geral", label: "Visão Geral" },
+                { value: "relatorio", label: "Relatório" },
+                { value: "denuncias", label: "Denúncias" },
+                { value: "pipeline", label: "Pipeline" },
                 { value: "portarias", label: "Portarias" },
                 { value: "deliberacoes", label: "Deliberações" },
                 { value: "atas", label: "Atas Plenárias" },
                 { value: "portarias-normativas", label: "Port. Normativas" },
-                { value: "denuncias", label: "Denúncias" },
-                { value: "pipeline", label: "Pipeline" },
                 { value: "pendentes", label: "Pendentes" },
-                { value: "relatorio", label: "Relatório" },
               ].map((tab) => (
                 <TabsTrigger
                   key={tab.value}
