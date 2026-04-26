@@ -13,7 +13,8 @@ import { supabase } from "../../../lib/supabase";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { ExternalLink, FileText, Search } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ExternalLink, FileText, Search, Activity } from "lucide-react";
 
 export const Route = createFileRoute("/painel/$slug/")({
   component: SlugDashboard,
