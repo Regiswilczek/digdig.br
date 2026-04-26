@@ -7,75 +7,66 @@ export const Route = createFileRoute("/explorar")({
   component: ExplorarPage,
 });
 
-// ── constants ─────────────────────────────────────────────────────────────────
+// ── Tokens (alinhados ao painel) ──────────────────────────────────────────
+const BORDER = "#e8e6e1";
+const INK = "#0a0a0a";
+const MUTED = "#6b6b66";
+const SUBTLE = "#9a978f";
+const PAPER = "#faf8f3";
+const MONO = "'JetBrains Mono', monospace";
+const TIGHT = "'Inter Tight', 'Inter', system-ui, sans-serif";
 
-const SYNE: React.CSSProperties = { fontFamily: "'Syne', system-ui, sans-serif", fontWeight: 800 };
-const MONO: React.CSSProperties = { fontFamily: "'Space Mono', 'Courier New', monospace" };
-
-const NIVEL_LABEL: Record<string, string> = {
-  verde: "VERDE",
-  amarelo: "AMARELO",
-  laranja: "LARANJA",
-  vermelho: "VERMELHO",
+const NIVEL_BG: Record<string, { bg: string; fg: string; border: string }> = {
+  vermelho: { bg: "#fef2f2", fg: "#b91c1c", border: "#fecaca" },
+  laranja: { bg: "#fff7ed", fg: "#c2410c", border: "#fed7aa" },
+  amarelo: { bg: "#fefce8", fg: "#a16207", border: "#fde68a" },
+  verde: { bg: "#f0fdf4", fg: "#15803d", border: "#bbf7d0" },
 };
 
-const NIVEL_COLOR: Record<string, string> = {
-  verde: "#22c55e",
-  amarelo: "#eab308",
-  laranja: "#f97316",
-  vermelho: "#ef4444",
+const NIVEL_DOT: Record<string, string> = {
+  vermelho: "#dc2626",
+  laranja: "#ea580c",
+  amarelo: "#ca8a04",
+  verde: "#16a34a",
+};
+
+const NIVEL_LABEL: Record<string, string> = {
+  verde: "verde",
+  amarelo: "amarelo",
+  laranja: "laranja",
+  vermelho: "vermelho",
 };
 
 const TIPO_LABEL: Record<string, string> = {
-  portaria: "PORTARIA",
-  deliberacao: "DELIBERAÇÃO",
+  portaria: "Portaria",
+  deliberacao: "Deliberação",
 };
-
-// ── helpers ───────────────────────────────────────────────────────────────────
 
 function fmt(n: number) {
   return n.toLocaleString("pt-BR");
 }
-
 function pct(part: number, total: number) {
   if (!total) return 0;
   return Math.round((part / total) * 100);
 }
 
-// ── subcomponents ─────────────────────────────────────────────────────────────
-
-function StatBar({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
-  const p = pct(value, total);
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-white/40" style={MONO}>
-          {label}
-        </span>
-        <span className="text-[10px] tabular-nums text-white/60" style={MONO}>
-          {fmt(value)} <span className="text-white/25">({p}%)</span>
-        </span>
-      </div>
-      <div className="h-[3px] w-full bg-white/[0.06] rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${p}%`, background: color }}
-        />
-      </div>
-    </div>
-  );
-}
-
 function NivelBadge({ nivel }: { nivel: string | null }) {
-  if (!nivel) return <span className="text-white/20 text-[10px]" style={MONO}>—</span>;
+  if (!nivel)
+    return (
+      <span className="text-[12px]" style={{ color: SUBTLE }}>
+        —
+      </span>
+    );
+  const c = NIVEL_BG[nivel] ?? { bg: PAPER, fg: MUTED, border: BORDER };
   return (
     <span
-      className="text-[9px] font-bold uppercase tracking-[0.14em] px-2 py-[3px] rounded-sm"
+      className="inline-flex items-center px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider"
       style={{
-        ...MONO,
-        color: NIVEL_COLOR[nivel] ?? "#fff",
-        background: `${NIVEL_COLOR[nivel] ?? "#fff"}18`,
-        border: `1px solid ${NIVEL_COLOR[nivel] ?? "#fff"}30`,
+        background: c.bg,
+        color: c.fg,
+        border: `1px solid ${c.border}`,
+        borderRadius: 2,
+        fontFamily: MONO,
       }}
     >
       {NIVEL_LABEL[nivel] ?? nivel}
@@ -83,34 +74,39 @@ function NivelBadge({ nivel }: { nivel: string | null }) {
   );
 }
 
-function FilterBtn({
+function FilterChip({
   active,
   onClick,
   children,
-  color,
+  dot,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
-  color?: string;
+  dot?: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className="text-[9px] uppercase tracking-[0.14em] px-3 py-1.5 border transition-all duration-150"
+      className="inline-flex items-center gap-2 px-3 py-1.5 text-[11px] transition-colors"
       style={{
-        ...MONO,
-        borderColor: active ? (color ?? "rgba(255,255,255,0.5)") : "rgba(255,255,255,0.08)",
-        color: active ? (color ?? "rgba(255,255,255,0.9)") : "rgba(255,255,255,0.35)",
-        background: active ? `${color ?? "rgba(255,255,255,0.12)"}15` : "transparent",
+        fontFamily: MONO,
+        border: `1px solid ${active ? INK : BORDER}`,
+        background: active ? INK : "#ffffff",
+        color: active ? "#ffffff" : MUTED,
+        borderRadius: 2,
       }}
     >
+      {dot && (
+        <span
+          className="inline-block w-1.5 h-1.5 rounded-full"
+          style={{ background: dot }}
+        />
+      )}
       {children}
     </button>
   );
 }
-
-// ── main page ─────────────────────────────────────────────────────────────────
 
 function ExplorarPage() {
   const [stats, setStats] = useState<PublicStats | null>(null);
@@ -123,25 +119,22 @@ function ExplorarPage() {
   const [nivel, setNivel] = useState<string>("");
   const [page, setPage] = useState(1);
 
-  const loadAtos = useCallback(
-    async (t: string, n: string, p: number) => {
-      setLoadingAtos(true);
-      try {
-        const res = await fetchAtos("cau-pr", {
-          tipo: t || undefined,
-          nivel: n || undefined,
-          page: p,
-          limit: 50,
-        });
-        setData(res);
-      } catch {
-        /* silently ignore — stats already loaded */
-      } finally {
-        setLoadingAtos(false);
-      }
-    },
-    []
-  );
+  const loadAtos = useCallback(async (t: string, n: string, p: number) => {
+    setLoadingAtos(true);
+    try {
+      const res = await fetchAtos("cau-pr", {
+        tipo: t || undefined,
+        nivel: n || undefined,
+        page: p,
+        limit: 50,
+      });
+      setData(res);
+    } catch {
+      /* noop */
+    } finally {
+      setLoadingAtos(false);
+    }
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -165,13 +158,11 @@ function ExplorarPage() {
     setPage(1);
     loadAtos(t, nivel, 1);
   }
-
   function setNivelFilter(n: string) {
     setNivel(n);
     setPage(1);
     loadAtos(tipo, n, 1);
   }
-
   function goPage(p: number) {
     setPage(p);
     loadAtos(tipo, nivel, p);
@@ -182,223 +173,502 @@ function ExplorarPage() {
 
   return (
     <div
-      className="min-h-screen text-white"
-      style={{ background: "#0a0a0a", fontFamily: "'Inter', system-ui, sans-serif" }}
+      className="min-h-screen"
+      style={{
+        background: "#ffffff",
+        color: INK,
+        fontFamily: TIGHT,
+        overflowX: "hidden",
+      }}
     >
       {/* ── Nav ── */}
       <nav
-        className="flex items-center justify-between px-6 py-4 border-b"
-        style={{ borderColor: "rgba(255,255,255,0.07)", maxWidth: "1100px", margin: "0 auto" }}
+        className="flex items-center justify-between px-6 md:px-8 py-4"
+        style={{ borderBottom: `1px solid ${BORDER}` }}
       >
-        <Link to="/" style={SYNE} className="text-white text-sm tracking-[-0.01em]">
-          DIG DIG
+        <Link
+          to="/"
+          className="text-[13px] tracking-tight"
+          style={{ fontFamily: MONO, color: INK }}
+        >
+          DIG · DIG
         </Link>
-        <div className="flex items-center gap-4">
-          <Link to="/apoiar" className="text-[11px] text-white/40 hover:text-white/70 transition-colors" style={MONO}>
-            APOIAR
+        <div className="flex items-center gap-5">
+          <Link
+            to="/modelos"
+            className="text-[11px] uppercase tracking-[0.18em]"
+            style={{ fontFamily: MONO, color: MUTED }}
+          >
+            Modelos
+          </Link>
+          <Link
+            to="/apoiar"
+            className="text-[11px] uppercase tracking-[0.18em]"
+            style={{ fontFamily: MONO, color: MUTED }}
+          >
+            Apoiar
           </Link>
           <Link
             to="/entrar"
-            className="text-[11px] border border-white/15 px-3 py-1.5 text-white/60 hover:text-white hover:border-white/30 transition-all"
-            style={MONO}
+            className="text-[11px] uppercase tracking-[0.18em] px-3 py-1.5"
+            style={{
+              fontFamily: MONO,
+              border: `1px solid ${INK}`,
+              color: INK,
+              borderRadius: 2,
+            }}
           >
-            ENTRAR
+            Entrar
           </Link>
         </div>
       </nav>
 
-      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 24px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         {/* ── Header ── */}
-        <div className="pt-10 pb-8 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <p className="text-[9px] uppercase tracking-[0.28em] text-white/25 mb-3" style={MONO}>
-            CAU/PR · Conselho de Arquitetura e Urbanismo do Paraná
+        <header
+          className="px-6 md:px-8 py-12 md:py-16"
+          style={{ borderBottom: `1px solid ${BORDER}` }}
+        >
+          <p
+            className="text-[10px] uppercase tracking-[0.28em] mb-4"
+            style={{ fontFamily: MONO, color: SUBTLE }}
+          >
+            Explorar · CAU/PR
           </p>
           <h1
-            className="text-[1.9rem] font-bold leading-tight mb-1"
-            style={{ ...SYNE, letterSpacing: "-0.02em" }}
+            className="text-[34px] md:text-[44px] leading-[1.05] mb-3 font-medium"
+            style={{ letterSpacing: "-0.02em" }}
           >
-            Auditoria de Atos Administrativos
+            Auditoria de atos administrativos
           </h1>
-          <p className="text-[13px] text-white/40">
+          <p
+            className="text-[14px] md:text-[15px] max-w-[640px]"
+            style={{ color: MUTED }}
+          >
             {stats
-              ? `${fmt(stats.total_analisados)} atos analisados pelo Dig Dig — portarias e deliberações de ${stats.tenant.nome}`
-              : "Carregando..."}
+              ? `${fmt(stats.total_analisados)} atos analisados pela inteligência do Dig Dig — portarias e deliberações de ${stats.tenant.nome}.`
+              : "Carregando…"}
           </p>
-        </div>
+        </header>
 
-        {/* ── Stats ── */}
         {loading ? (
-          <div className="py-12 text-white/25 text-[12px] text-center" style={MONO}>
-            CARREGANDO...
+          <div
+            className="py-24 text-center text-[12px]"
+            style={{ fontFamily: MONO, color: SUBTLE }}
+          >
+            Carregando…
           </div>
         ) : error ? (
-          <div className="py-12 text-red-400 text-[12px] text-center" style={MONO}>
+          <div
+            className="py-24 text-center text-[12px]"
+            style={{ fontFamily: MONO, color: "#b91c1c" }}
+          >
             {error}
           </div>
         ) : stats ? (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-8 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              {(["vermelho", "laranja", "amarelo", "verde"] as const).map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setNivelFilter(nivel === n ? "" : n)}
-                  className="border p-4 text-left transition-all duration-150 hover:border-white/20"
-                  style={{
-                    borderColor: nivel === n ? NIVEL_COLOR[n] : "rgba(255,255,255,0.07)",
-                    background: nivel === n ? `${NIVEL_COLOR[n]}10` : "transparent",
-                  }}
-                >
-                  <div
-                    className="text-[2rem] font-bold tabular-nums leading-none mb-1"
-                    style={{ ...SYNE, color: NIVEL_COLOR[n] }}
-                  >
-                    {fmt(stats.distribuicao[n])}
-                  </div>
-                  <div className="text-[9px] uppercase tracking-[0.18em] text-white/35" style={MONO}>
-                    {NIVEL_LABEL[n]}
-                  </div>
-                  <div className="text-[9px] text-white/20 mt-0.5" style={MONO}>
-                    {pct(stats.distribuicao[n], total)}% dos analisados
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Barras por tipo */}
-            <div className="py-6 border-b grid md:grid-cols-2 gap-6" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              {(["portaria", "deliberacao"] as const).map((t) => (
-                <div key={t} className="flex flex-col gap-3">
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/35 mb-1" style={MONO}>
-                    {TIPO_LABEL[t]} — {fmt(stats.por_tipo[t].analisados)}/{fmt(stats.por_tipo[t].total)}
-                  </p>
-                  <div className="h-[3px] w-full bg-white/[0.06] rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
+            {/* ── KPI grid ── */}
+            <section
+              className="grid grid-cols-2 md:grid-cols-4"
+              style={{ borderBottom: `1px solid ${BORDER}` }}
+            >
+              {(["vermelho", "laranja", "amarelo", "verde"] as const).map(
+                (n, i) => {
+                  const active = nivel === n;
+                  return (
+                    <button
+                      key={n}
+                      onClick={() => setNivelFilter(active ? "" : n)}
+                      className="text-left px-6 md:px-8 py-8 md:py-10 transition-colors"
                       style={{
-                        width: `${pct(stats.por_tipo[t].analisados, stats.por_tipo[t].total)}%`,
-                        background: "rgba(255,255,255,0.35)",
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* ── Filtros ── */}
-            <div className="py-5 flex flex-wrap gap-2 items-center border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              <span className="text-[9px] uppercase tracking-[0.2em] text-white/25 mr-1" style={MONO}>TIPO:</span>
-              <FilterBtn active={tipo === ""} onClick={() => setTipoFilter("")}>Todos</FilterBtn>
-              <FilterBtn active={tipo === "portaria"} onClick={() => setTipoFilter("portaria")}>Portaria</FilterBtn>
-              <FilterBtn active={tipo === "deliberacao"} onClick={() => setTipoFilter("deliberacao")}>Deliberação</FilterBtn>
-
-              <span className="text-[9px] uppercase tracking-[0.2em] text-white/25 ml-4 mr-1" style={MONO}>NÍVEL:</span>
-              <FilterBtn active={nivel === ""} onClick={() => setNivelFilter("")}>Todos</FilterBtn>
-              {(["vermelho", "laranja", "amarelo", "verde"] as const).map((n) => (
-                <FilterBtn
-                  key={n}
-                  active={nivel === n}
-                  onClick={() => setNivelFilter(n)}
-                  color={NIVEL_COLOR[n]}
-                >
-                  {NIVEL_LABEL[n]}
-                </FilterBtn>
-              ))}
-            </div>
-
-            {/* ── Tabela ── */}
-            <div className="pb-16">
-              {loadingAtos ? (
-                <div className="py-12 text-white/25 text-[11px] text-center" style={MONO}>
-                  BUSCANDO...
-                </div>
-              ) : data && data.atos.length > 0 ? (
-                <>
-                  <div className="text-[9px] text-white/25 py-3" style={MONO}>
-                    {fmt(data.total)} atos · página {data.page} de {data.pages}
-                  </div>
-
-                  <div className="flex flex-col">
-                    {/* header */}
-                    <div
-                      className="grid gap-3 py-2 border-b text-[8px] uppercase tracking-[0.18em] text-white/25"
-                      style={{
-                        ...MONO,
-                        borderColor: "rgba(255,255,255,0.06)",
-                        gridTemplateColumns: "100px 80px 80px 1fr 90px",
+                        borderRight:
+                          i < 3 ? `1px solid ${BORDER}` : undefined,
+                        borderTop:
+                          i >= 2 ? `1px solid ${BORDER}` : undefined,
+                        background: active ? PAPER : "#ffffff",
                       }}
                     >
-                      <span>Número</span>
-                      <span>Tipo</span>
-                      <span>Data</span>
-                      <span>Ementa</span>
-                      <span>Nível</span>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span
+                          className="inline-block w-1.5 h-1.5 rounded-full"
+                          style={{ background: NIVEL_DOT[n] }}
+                        />
+                        <span
+                          className="text-[10px] uppercase tracking-[0.22em]"
+                          style={{ fontFamily: MONO, color: SUBTLE }}
+                        >
+                          {NIVEL_LABEL[n]}
+                        </span>
+                      </div>
+                      <div
+                        className="text-[40px] md:text-[48px] leading-none font-medium tabular-nums"
+                        style={{ letterSpacing: "-0.03em" }}
+                      >
+                        {fmt(stats.distribuicao[n])}
+                      </div>
+                      <div
+                        className="text-[11px] mt-2 tabular-nums"
+                        style={{ fontFamily: MONO, color: MUTED }}
+                      >
+                        {pct(stats.distribuicao[n], total)}% dos analisados
+                      </div>
+                    </button>
+                  );
+                }
+              )}
+            </section>
+
+            {/* ── Cobertura por tipo ── */}
+            <section
+              className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] gap-8 md:gap-12 px-6 md:px-8 py-12 md:py-16"
+              style={{ borderBottom: `1px solid ${BORDER}` }}
+            >
+              <div>
+                <p
+                  className="text-[10px] uppercase tracking-[0.28em] mb-2"
+                  style={{ fontFamily: MONO, color: SUBTLE }}
+                >
+                  § 01 · Cobertura
+                </p>
+                <h2
+                  className="text-[20px] md:text-[22px] font-medium leading-tight"
+                  style={{ letterSpacing: "-0.01em" }}
+                >
+                  Documentos coletados e processados
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {(["portaria", "deliberacao"] as const).map((t) => {
+                  const p = pct(
+                    stats.por_tipo[t].analisados,
+                    stats.por_tipo[t].total
+                  );
+                  return (
+                    <div
+                      key={t}
+                      className="p-5"
+                      style={{
+                        border: `1px solid ${BORDER}`,
+                        background: "#ffffff",
+                        borderRadius: 2,
+                      }}
+                    >
+                      <div className="flex items-baseline justify-between mb-3">
+                        <span
+                          className="text-[10px] uppercase tracking-[0.22em]"
+                          style={{ fontFamily: MONO, color: SUBTLE }}
+                        >
+                          {TIPO_LABEL[t]}
+                        </span>
+                        <span
+                          className="text-[11px] tabular-nums"
+                          style={{ fontFamily: MONO, color: MUTED }}
+                        >
+                          {fmt(stats.por_tipo[t].analisados)} /{" "}
+                          {fmt(stats.por_tipo[t].total)}
+                        </span>
+                      </div>
+                      <div
+                        className="text-[28px] font-medium tabular-nums leading-none mb-3"
+                        style={{ letterSpacing: "-0.02em" }}
+                      >
+                        {p}%
+                      </div>
+                      <div
+                        className="h-[2px] w-full overflow-hidden"
+                        style={{ background: PAPER }}
+                      >
+                        <div
+                          className="h-full transition-all duration-700"
+                          style={{ width: `${p}%`, background: INK }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* ── Filtros + Tabela ── */}
+            <section
+              className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] gap-8 md:gap-12 px-6 md:px-8 py-12 md:py-16"
+            >
+              <div>
+                <p
+                  className="text-[10px] uppercase tracking-[0.28em] mb-2"
+                  style={{ fontFamily: MONO, color: SUBTLE }}
+                >
+                  § 02 · Atos
+                </p>
+                <h2
+                  className="text-[20px] md:text-[22px] font-medium leading-tight mb-4"
+                  style={{ letterSpacing: "-0.01em" }}
+                >
+                  Lista filtrável
+                </h2>
+                <p
+                  className="text-[13px] leading-relaxed"
+                  style={{ color: MUTED }}
+                >
+                  Filtre por tipo de documento ou nível de alerta. Resultados
+                  ordenados pelos casos mais críticos primeiro.
+                </p>
+              </div>
+
+              <div>
+                {/* Filtros */}
+                <div className="flex flex-wrap gap-2 mb-5">
+                  <span
+                    className="text-[10px] uppercase tracking-[0.22em] self-center mr-1"
+                    style={{ fontFamily: MONO, color: SUBTLE }}
+                  >
+                    Tipo
+                  </span>
+                  <FilterChip
+                    active={tipo === ""}
+                    onClick={() => setTipoFilter("")}
+                  >
+                    Todos
+                  </FilterChip>
+                  <FilterChip
+                    active={tipo === "portaria"}
+                    onClick={() => setTipoFilter("portaria")}
+                  >
+                    Portaria
+                  </FilterChip>
+                  <FilterChip
+                    active={tipo === "deliberacao"}
+                    onClick={() => setTipoFilter("deliberacao")}
+                  >
+                    Deliberação
+                  </FilterChip>
+                </div>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  <span
+                    className="text-[10px] uppercase tracking-[0.22em] self-center mr-1"
+                    style={{ fontFamily: MONO, color: SUBTLE }}
+                  >
+                    Nível
+                  </span>
+                  <FilterChip
+                    active={nivel === ""}
+                    onClick={() => setNivelFilter("")}
+                  >
+                    Todos
+                  </FilterChip>
+                  {(["vermelho", "laranja", "amarelo", "verde"] as const).map(
+                    (n) => (
+                      <FilterChip
+                        key={n}
+                        active={nivel === n}
+                        onClick={() => setNivelFilter(n)}
+                        dot={NIVEL_DOT[n]}
+                      >
+                        {NIVEL_LABEL[n]}
+                      </FilterChip>
+                    )
+                  )}
+                </div>
+
+                {/* Resultado */}
+                {loadingAtos ? (
+                  <div
+                    className="py-16 text-center text-[12px]"
+                    style={{ fontFamily: MONO, color: SUBTLE }}
+                  >
+                    Buscando…
+                  </div>
+                ) : data && data.atos.length > 0 ? (
+                  <>
+                    <div
+                      className="text-[11px] mb-3 tabular-nums"
+                      style={{ fontFamily: MONO, color: SUBTLE }}
+                    >
+                      {fmt(data.total)} atos · página {data.page} de{" "}
+                      {data.pages}
                     </div>
 
-                    {data.atos.map((ato: AtoPublico) => (
+                    {/* Tabela desktop */}
+                    <div
+                      className="hidden md:block"
+                      style={{ border: `1px solid ${BORDER}`, borderRadius: 2 }}
+                    >
                       <div
-                        key={ato.id}
-                        className="grid gap-3 py-3 border-b items-start"
+                        className="grid gap-4 px-4 py-3 text-[10px] uppercase tracking-[0.22em]"
                         style={{
-                          borderColor: "rgba(255,255,255,0.04)",
-                          gridTemplateColumns: "100px 80px 80px 1fr 90px",
+                          fontFamily: MONO,
+                          color: SUBTLE,
+                          background: PAPER,
+                          borderBottom: `1px solid ${BORDER}`,
+                          gridTemplateColumns: "110px 100px 90px 1fr 110px",
                         }}
                       >
-                        <span className="text-[11px] text-white/70 font-medium tabular-nums" style={MONO}>
-                          {ato.numero}
-                        </span>
-                        <span className="text-[9px] text-white/35 uppercase tracking-[0.1em]" style={MONO}>
-                          {TIPO_LABEL[ato.tipo] ?? ato.tipo}
-                        </span>
-                        <span className="text-[10px] text-white/35 tabular-nums" style={MONO}>
-                          {ato.data_publicacao
-                            ? new Date(ato.data_publicacao + "T00:00:00").toLocaleDateString("pt-BR", {
-                                day: "2-digit",
-                                month: "2-digit",
-                                year: "numeric",
-                              })
-                            : "—"}
-                        </span>
-                        <span className="text-[11px] text-white/55 leading-relaxed line-clamp-2">
-                          {ato.ementa ?? ato.titulo ?? "—"}
-                        </span>
-                        <NivelBadge nivel={ato.nivel_alerta} />
+                        <span>Número</span>
+                        <span>Tipo</span>
+                        <span>Data</span>
+                        <span>Ementa</span>
+                        <span>Nível</span>
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Paginação */}
-                  {data.pages > 1 && (
-                    <div className="flex items-center gap-2 pt-6">
-                      <button
-                        onClick={() => goPage(page - 1)}
-                        disabled={page <= 1}
-                        className="text-[9px] uppercase tracking-[0.14em] px-3 py-1.5 border border-white/10 text-white/30 disabled:opacity-30 hover:border-white/25 transition-all"
-                        style={MONO}
-                      >
-                        ← anterior
-                      </button>
-                      <span className="text-[9px] text-white/25 px-2" style={MONO}>
-                        {page} / {data.pages}
-                      </span>
-                      <button
-                        onClick={() => goPage(page + 1)}
-                        disabled={page >= data.pages}
-                        className="text-[9px] uppercase tracking-[0.14em] px-3 py-1.5 border border-white/10 text-white/30 disabled:opacity-30 hover:border-white/25 transition-all"
-                        style={MONO}
-                      >
-                        próximo →
-                      </button>
+                      {data.atos.map((ato: AtoPublico, idx: number) => (
+                        <div
+                          key={ato.id}
+                          className="grid gap-4 px-4 py-3 items-start"
+                          style={{
+                            borderBottom:
+                              idx < data.atos.length - 1
+                                ? `1px solid ${BORDER}`
+                                : undefined,
+                            gridTemplateColumns: "110px 100px 90px 1fr 110px",
+                          }}
+                        >
+                          <span
+                            className="text-[12px] tabular-nums"
+                            style={{ fontFamily: MONO, color: INK }}
+                          >
+                            {ato.numero}
+                          </span>
+                          <span
+                            className="text-[11px]"
+                            style={{ color: MUTED, fontFamily: MONO }}
+                          >
+                            {TIPO_LABEL[ato.tipo] ?? ato.tipo}
+                          </span>
+                          <span
+                            className="text-[11px] tabular-nums"
+                            style={{ color: MUTED, fontFamily: MONO }}
+                          >
+                            {ato.data_publicacao
+                              ? new Date(
+                                  ato.data_publicacao + "T00:00:00"
+                                ).toLocaleDateString("pt-BR")
+                              : "—"}
+                          </span>
+                          <span
+                            className="text-[13px] leading-relaxed line-clamp-2"
+                            style={{ color: INK }}
+                          >
+                            {ato.ementa ?? ato.titulo ?? "—"}
+                          </span>
+                          <NivelBadge nivel={ato.nivel_alerta} />
+                        </div>
+                      ))}
                     </div>
-                  )}
-                </>
-              ) : (
-                <div className="py-12 text-white/25 text-[11px] text-center" style={MONO}>
-                  Nenhum ato encontrado com os filtros selecionados.
-                </div>
-              )}
-            </div>
+
+                    {/* Cards mobile */}
+                    <div className="md:hidden flex flex-col gap-3">
+                      {data.atos.map((ato: AtoPublico) => (
+                        <div
+                          key={ato.id}
+                          className="p-4"
+                          style={{
+                            border: `1px solid ${BORDER}`,
+                            borderRadius: 2,
+                            background: "#ffffff",
+                          }}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span
+                              className="text-[12px] tabular-nums"
+                              style={{ fontFamily: MONO }}
+                            >
+                              {ato.numero}
+                            </span>
+                            <NivelBadge nivel={ato.nivel_alerta} />
+                          </div>
+                          <div
+                            className="text-[10px] uppercase tracking-[0.18em] mb-2"
+                            style={{ fontFamily: MONO, color: SUBTLE }}
+                          >
+                            {TIPO_LABEL[ato.tipo] ?? ato.tipo}
+                            {ato.data_publicacao && (
+                              <>
+                                {" · "}
+                                {new Date(
+                                  ato.data_publicacao + "T00:00:00"
+                                ).toLocaleDateString("pt-BR")}
+                              </>
+                            )}
+                          </div>
+                          <p
+                            className="text-[13px] leading-relaxed"
+                            style={{ color: INK }}
+                          >
+                            {ato.ementa ?? ato.titulo ?? "—"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Paginação */}
+                    {data.pages > 1 && (
+                      <div className="flex items-center gap-3 pt-6">
+                        <button
+                          onClick={() => goPage(page - 1)}
+                          disabled={page <= 1}
+                          className="text-[11px] px-4 py-2 disabled:opacity-30 transition-colors"
+                          style={{
+                            fontFamily: MONO,
+                            border: `1px solid ${BORDER}`,
+                            color: INK,
+                            borderRadius: 2,
+                          }}
+                        >
+                          ← Anterior
+                        </button>
+                        <span
+                          className="text-[11px] tabular-nums"
+                          style={{ fontFamily: MONO, color: SUBTLE }}
+                        >
+                          {page} / {data.pages}
+                        </span>
+                        <button
+                          onClick={() => goPage(page + 1)}
+                          disabled={page >= data.pages}
+                          className="text-[11px] px-4 py-2 disabled:opacity-30 transition-colors"
+                          style={{
+                            fontFamily: MONO,
+                            border: `1px solid ${BORDER}`,
+                            color: INK,
+                            borderRadius: 2,
+                          }}
+                        >
+                          Próximo →
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div
+                    className="py-16 text-center text-[12px]"
+                    style={{ fontFamily: MONO, color: SUBTLE }}
+                  >
+                    Nenhum ato encontrado com os filtros selecionados.
+                  </div>
+                )}
+              </div>
+            </section>
           </>
         ) : null}
+
+        {/* Footer */}
+        <footer
+          className="px-6 md:px-8 py-8 flex flex-wrap items-center justify-between gap-3"
+          style={{ borderTop: `1px solid ${BORDER}` }}
+        >
+          <span
+            className="text-[10px] uppercase tracking-[0.22em]"
+            style={{ fontFamily: MONO, color: SUBTLE }}
+          >
+            Dig · Dig — auditoria pública com IA
+          </span>
+          <Link
+            to="/"
+            className="text-[10px] uppercase tracking-[0.22em]"
+            style={{ fontFamily: MONO, color: MUTED }}
+          >
+            ← Voltar para a home
+          </Link>
+        </footer>
       </div>
     </div>
   );
