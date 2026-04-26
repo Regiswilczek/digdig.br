@@ -239,7 +239,7 @@ function ModelosPage() {
               marginBottom: 24,
             }}
           >
-            Modelos
+            A família de modelos
           </p>
           <h1
             style={{
@@ -253,9 +253,9 @@ function ModelosPage() {
               maxWidth: 820,
             }}
           >
-            Três modelos.<br />
+            Três modelos de IA.<br />
             <span style={{ color: "rgba(255,255,255,0.55)" }}>
-              Um único pipeline de auditoria pública.
+              Uma família construída para auditoria pública.
             </span>
           </h1>
           <p
@@ -263,12 +263,13 @@ function ModelosPage() {
               fontSize: 17,
               color: "rgba(255,255,255,0.7)",
               lineHeight: 1.55,
-              maxWidth: 600,
+              maxWidth: 620,
               margin: 0,
             }}
           >
-            Cada modelo do Dig Dig é construído para um momento específico da
-            investigação — da triagem em escala à análise profunda de uma gestão inteira.
+            Piper, Bud e Zew formam a família de modelos do Dig Dig — do mais
+            rápido ao de raciocínio mais profundo. Cada um com sua janela de
+            contexto, seus benchmarks e o tipo de tarefa em que se destaca.
           </p>
         </div>
       </header>
