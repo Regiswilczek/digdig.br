@@ -97,22 +97,62 @@ interface FeedItem {
   id: string;
   ato_id: string;
   nivel_alerta: string | null;
+  score_risco: number | null;
   criado_em: string;
+  numero?: string;
+  tipo?: string;
 }
 
 function RealtimeFeed({ slug }: { slug: string }) {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [busca, setBusca] = useState("");
+  const [loading, setLoading] = useState(true);
 
+  // Load historical records on mount
+  useEffect(() => {
+    supabase
+      .from("analises")
+      .select("id, ato_id, nivel_alerta, score_risco, criado_em, atos(numero, tipo)")
+      .order("criado_em", { ascending: false })
+      .limit(50)
+      .then(({ data }) => {
+        if (data) {
+          setItems(
+            data.map((r) => ({
+              id: r.id,
+              ato_id: r.ato_id,
+              nivel_alerta: r.nivel_alerta,
+              score_risco: r.score_risco,
+              criado_em: r.criado_em,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              numero: (r.atos as any)?.numero,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              tipo: (r.atos as any)?.tipo,
+            }))
+          );
+        }
+        setLoading(false);
+      });
+  }, []);
+
+  // Real-time subscription — prepends new inserts as they arrive
   useEffect(() => {
     const channel = supabase
       .channel(`feed-${slug}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "analises" },
-        (payload) => {
+        async (payload) => {
           const row = payload.new as FeedItem;
-          setItems((prev) => [row, ...prev.slice(0, 49)]);
+          const { data: ato } = await supabase
+            .from("atos")
+            .select("numero, tipo")
+            .eq("id", row.ato_id)
+            .single();
+          setItems((prev) => [
+            { ...row, numero: ato?.numero, tipo: ato?.tipo },
+            ...prev.slice(0, 49),
+          ]);
         },
       )
       .subscribe();
@@ -123,7 +163,9 @@ function RealtimeFeed({ slug }: { slug: string }) {
   }, [slug]);
 
   const filtered = busca
-    ? items.filter((i) => i.ato_id.includes(busca))
+    ? items.filter((i) =>
+        (i.numero ?? i.ato_id).toLowerCase().includes(busca.toLowerCase())
+      )
     : items;
 
   return (
@@ -151,49 +193,50 @@ function RealtimeFeed({ slug }: { slug: string }) {
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-2 py-2">
-        {filtered.length === 0 && (
-          <p
-            className="text-[12px] px-2 py-6 text-center"
-            style={{ color: SUBTLE }}
-          >
-            {items.length === 0
-              ? "Aguardando inserções…"
-              : "Sem resultados."}
+        {loading && (
+          <p className="text-[12px] px-2 py-6 text-center" style={{ color: SUBTLE }}>
+            Carregando…
+          </p>
+        )}
+        {!loading && filtered.length === 0 && (
+          <p className="text-[12px] px-2 py-6 text-center" style={{ color: SUBTLE }}>
+            {items.length === 0 ? "Nenhum registro encontrado." : "Sem resultados."}
           </p>
         )}
         {filtered.map((item) => (
-          <div
+          <Link
             key={item.id}
-            className="flex items-start gap-2.5 px-3 py-2.5 hover:bg-[#faf8f3] transition-colors"
+            to="/painel/$slug/ato/$id"
+            params={{ slug, id: item.ato_id }}
+            style={{ textDecoration: "none", display: "block" }}
           >
-            <span
-              className="mt-1.5 h-1.5 w-1.5 rounded-full flex-shrink-0"
-              style={{
-                background:
-                  NIVEL_DOT[item.nivel_alerta ?? ""] ?? "#d4d2cd",
-              }}
-            />
-            <div className="flex-1 min-w-0">
-              <p
-                className="text-[12px] truncate font-medium"
-                style={{ color: INK, fontFamily: MONO }}
+            <div className="flex items-start gap-2.5 px-3 py-2.5 hover:bg-[#faf8f3] transition-colors">
+              <span
+                className="mt-1.5 h-1.5 w-1.5 rounded-full flex-shrink-0"
+                style={{
+                  background: NIVEL_DOT[item.nivel_alerta ?? ""] ?? "#d4d2cd",
+                }}
+              />
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-[12px] truncate font-medium"
+                  style={{ color: INK, fontFamily: MONO }}
+                >
+                  {item.numero ?? item.ato_id.slice(0, 8) + "…"}
+                </p>
+                <p className="text-[11px] capitalize" style={{ color: MUTED }}>
+                  {item.tipo === "deliberacao" ? "Deliberação" : "Portaria"}
+                  {item.nivel_alerta ? ` · ${item.nivel_alerta}` : ""}
+                </p>
+              </div>
+              <span
+                className="text-[10px] whitespace-nowrap uppercase tracking-wider"
+                style={{ color: SUBTLE, fontFamily: MONO }}
               >
-                {item.ato_id.slice(0, 8)}…
-              </p>
-              <p
-                className="text-[11px] capitalize"
-                style={{ color: MUTED }}
-              >
-                {item.nivel_alerta ?? "sem análise"}
-              </p>
+                {timeAgo(item.criado_em)}
+              </span>
             </div>
-            <span
-              className="text-[10px] whitespace-nowrap uppercase tracking-wider"
-              style={{ color: SUBTLE, fontFamily: MONO }}
-            >
-              {timeAgo(item.criado_em)}
-            </span>
-          </div>
+          </Link>
         ))}
       </div>
     </aside>
