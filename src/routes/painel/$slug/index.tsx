@@ -295,83 +295,101 @@ function RealtimeFeed({
       : []),
   ];
 
+  const total = filtered.length;
+
   const content = (
     <div className="flex flex-col h-full bg-white">
-      {/* Header */}
-      <div className="px-5 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: `1px solid ${BORDER}` }}>
-        <div className="flex items-center justify-between mb-3">
-          <p
-            className="text-[10px] uppercase tracking-[0.28em] font-semibold"
-            style={{ color: SUBTLE, fontFamily: MONO }}
-          >
-            Atividade Recente
-          </p>
-          {isLive && (
+      {/* ── Brand-style header ─────────────────────────── */}
+      <div
+        className="px-5 pt-6 pb-4 flex-shrink-0"
+        style={{ borderBottom: `1px solid #f1efe8` }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <span
-              className="flex items-center gap-1 text-[9px] uppercase tracking-wider px-1.5 py-0.5"
-              style={{
-                color: "#15803d",
-                background: "#f0fdf4",
-                border: "1px solid #bbf7d0",
-                borderRadius: 2,
-                fontFamily: MONO,
-              }}
+              className="flex items-center justify-center w-7 h-7 rounded-[7px] text-white"
+              style={{ background: INK }}
             >
               <span
-                className="h-1 w-1 rounded-full animate-pulse"
-                style={{ background: "#16a34a" }}
+                className="w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{
+                  background: isLive ? "#22c55e" : "#a8a59c",
+                  boxShadow: isLive
+                    ? "0 0 0 3px rgba(34,197,94,0.25)"
+                    : "none",
+                }}
               />
-              Ao vivo
             </span>
-          )}
-        </div>
-        <div
-          className="flex items-center gap-2 px-3 py-2"
-          style={{ border: `1px solid ${BORDER}`, borderRadius: 2 }}
-        >
-          <Search size={11} style={{ color: SUBTLE }} />
-          <Input
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar atividade…"
-            className="border-0 bg-transparent h-6 p-0 text-[12px] focus-visible:ring-0"
-            style={{ color: INK }}
-          />
+            <div>
+              <p
+                className="text-[11px] uppercase tracking-[0.22em] font-semibold leading-none"
+                style={{
+                  color: INK,
+                  fontFamily: MONO,
+                }}
+              >
+                Atividade
+              </p>
+              <p
+                className="text-[9.5px] uppercase tracking-[0.18em] mt-1 leading-none"
+                style={{ color: "#a8a59c", fontFamily: MONO }}
+              >
+                {isLive ? "Pipeline ao vivo" : "Em pausa"}
+              </p>
+            </div>
+          </div>
+
+          <span
+            className="text-[10px] tabular-nums px-2 py-1 rounded"
+            style={{
+              color: MUTED,
+              background: PAPER,
+              border: `1px solid #f1efe8`,
+              fontFamily: MONO,
+            }}
+          >
+            {total}
+          </span>
         </div>
       </div>
 
-      {/* Feed */}
+      {/* ── Feed ───────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto">
         {loading && (
-          <p className="text-[12px] px-4 py-8 text-center" style={{ color: SUBTLE }}>
+          <p
+            className="text-[12px] px-4 py-10 text-center"
+            style={{ color: "#a8a59c" }}
+          >
             Carregando…
           </p>
         )}
         {!loading && filtered.length === 0 && (
-          <p className="text-[12px] px-4 py-8 text-center" style={{ color: SUBTLE }}>
-            {items.length === 0 ? "Nenhum registro encontrado." : "Sem resultados."}
+          <p
+            className="text-[12px] px-4 py-10 text-center"
+            style={{ color: "#a8a59c" }}
+          >
+            Nenhum registro ainda.
           </p>
         )}
         {!loading &&
           groups.map((group) => (
             <div key={group.tipo}>
               <div
-                className="flex items-center justify-between px-4 py-2 sticky top-0 z-10"
-                style={{
-                  background: PAPER,
-                  borderBottom: `1px solid ${BORDER}`,
-                  borderTop: `1px solid ${BORDER}`,
-                }}
+                className="flex items-center gap-2 px-5 pt-5 pb-2 sticky top-0 z-10 bg-white"
               >
                 <span
-                  className="text-[9.5px] uppercase tracking-[0.22em] font-semibold"
-                  style={{ color: MUTED, fontFamily: MONO }}
+                  className="text-[9.5px] uppercase tracking-[0.22em] font-medium"
+                  style={{ color: "#a8a59c", fontFamily: MONO }}
                 >
                   {group.label}
                 </span>
                 <span
+                  className="flex-1 h-px"
+                  style={{ background: "#f1efe8" }}
+                />
+                <span
                   className="text-[9.5px] tabular-nums"
-                  style={{ color: SUBTLE, fontFamily: MONO }}
+                  style={{ color: "#a8a59c", fontFamily: MONO }}
                 >
                   {group.items.length}
                 </span>
