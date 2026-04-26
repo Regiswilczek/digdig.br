@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Do Gabinete ao Terminal — Dig Dig</title>
+  <meta name="description" content="White Paper Nº 06: Mapeamos o Portal da Transparência do CAU/PR e encontramos diárias que só mostram o futuro, salários em 404 e uma ferramenta capaz de ver o que o portal esconde.">
+  <meta property="og:title" content="Do Gabinete ao Terminal — Dig Dig">
+  <meta property="og:description" content="White Paper Nº 06 do Dig Dig: o garimpo completo do Portal da Transparência do CAU/PR, o que ele não mostra, e o que o Dig Dig conseguiu encontrar mesmo assim.">
+  <meta property="og:type" content="article">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --text:      #111111;
+      --muted:     #666666;
+      --subtle:    #999999;
+      --border:    #e5e5e5;
+      --bg:        #ffffff;
+      --bg-code:   #f5f5f5;
+      --bg-warn:   #fff8f0;
+      --border-warn: #f0d9b0;
+      --max-w:     680px;
+    }
+
+    html { font-size: 17px; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      padding: 0 24px;
+    }
+
+    .site-header {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 40px 0 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .site-header .wordmark {
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .site-header .label {
+      font-size: 0.75rem;
+      color: var(--subtle);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    article {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 56px 0 80px;
+    }
+
+    .post-header { margin-bottom: 48px; }
+
+    .post-label {
+      display: inline-block;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 700;
+      font-size: 2.1rem;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+    }
+
+    .byline {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .byline strong { font-weight: 600; color: var(--text); }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 44px 0;
+    }
+
+    h2 {
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 600;
+      font-size: 1.3rem;
+      letter-spacing: -0.02em;
+      margin: 52px 0 16px;
+    }
+
+    h3 {
+      font-weight: 600;
+      font-size: 1rem;
+      margin: 36px 0 12px;
+    }
+
+    p { margin-bottom: 22px; }
+
+    ul, ol { margin: 0 0 22px 0; padding-left: 1.4em; }
+    li { margin-bottom: 6px; }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.82em;
+      background: var(--bg-code);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #c0392b;
+    }
+
+    pre {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px 22px;
+      margin: 24px 0;
+      overflow-x: auto;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.82rem;
+      line-height: 1.65;
+      color: var(--text);
+    }
+
+    pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 0.88rem;
+    }
+
+    th {
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--subtle);
+      border-bottom: 2px solid var(--border);
+      padding: 8px 12px 8px 0;
+    }
+
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 12px 10px 0;
+      vertical-align: top;
+      color: var(--text);
+    }
+
+    td:last-child, th:last-child { text-align: right; }
+
+    .star { color: #c8a000; }
+    .empty { color: var(--subtle); }
+
+    .callout {
+      background: var(--bg-warn);
+      border: 1px solid var(--border-warn);
+      border-left: 3px solid #e8a000;
+      border-radius: 6px;
+      padding: 18px 22px;
+      margin: 28px 0;
+      font-size: 0.92rem;
+    }
+
+    .callout p:last-child { margin-bottom: 0; }
+
+    .stat-row {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      margin: 28px 0;
+      padding: 24px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-value {
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 700;
+      font-size: 1.8rem;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    figure {
+      margin: 36px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    figure img {
+      width: 100%;
+      display: block;
+    }
+
+    figcaption {
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: var(--bg-code);
+      border-top: 1px solid var(--border);
+      line-height: 1.5;
+    }
+
+    figcaption strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .site-footer {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 40px 0 60px;
+      border-top: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--subtle);
+      line-height: 1.65;
+    }
+
+    a { color: var(--text); }
+    a:hover { color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="wordmark" href="/">Dig Dig</a>
+  <span class="label">White Paper Nº 06</span>
+</header>
+
+<article>
+  <div class="post-header">
+    <span class="post-label">White Paper Nº 06 · Abril 2026</span>
+    <h1>Do Gabinete ao Terminal</h1>
+    <p style="font-size:1.1rem; color:var(--muted); line-height:1.55; margin-bottom:28px;">
+      Mapeamos o Portal da Transparência do CAU/PR de ponta a ponta.<br>
+      O que encontramos foi revelador — e não da forma que esperávamos.
+    </p>
+    <div class="byline">
+      Por <strong>Regis Alessander Wilczek</strong> · Fundador do Dig Dig
+    </div>
+  </div>
+
+  <hr>
+
+  <h2>Um Desvio que Virou uma Descoberta</h2>
+
+  <p>
+    Há alguns anos, antes de existir qualquer linha de código do Dig Dig, eu passava semanas sentado
+    numa sala da Câmara Municipal de Curitiba tentando entender o que estava acontecendo com o dinheiro público.
+    Era o gabinete do Vereador Professor Euler. Meu trabalho, na prática, era investigar.
+  </p>
+
+  <p>
+    Investigar, naquele contexto, significava abrir portais que não carregavam, baixar planilhas com
+    formatação quebrada, ligar para servidores que não atendiam e interpretar atas escritas em
+    juridiquês denso. Uma pista por vez. Quando encontrava algo bom — uma licitação suspeita,
+    uma diária fora do padrão, um contrato assinado no limite do expediente — era pauta.
+    Era denúncia. Era a semana que valeu a pena.
+  </p>
+
+  <p>
+    Essa experiência é a origem do Dig Dig. A ferramenta que eu não tinha enquanto precisava.
+  </p>
+
+  <p>
+    Esta semana, alguns dias depois de publicar o White Paper Nº 05, resolvi fazer o que qualquer
+    investigador faria: mapear todo o Portal da Transparência do CAU/PR antes de decidir o que
+    raspar a seguir. Não para entrar cegamente numa seção e baixar o que aparecesse — mas para
+    entender a magnitude do que existe lá e o que está realmente acessível.
+  </p>
+
+  <p>
+    O que encontrei foi fascinante. E também foi, em partes, frustrante da forma mais familiar possível.
+  </p>
+
+  <hr>
+
+  <h2>O Garimpo: 96 Páginas, 28 Seções</h2>
+
+  <p>
+    O Portal da Transparência do CAU/PR é construído em WordPress. Isso tem uma vantagem técnica
+    enorme: o WordPress expõe uma API REST pública em <code>/wp-json/wp/v2/pages</code> que retorna
+    todos os metadados de cada página — título, conteúdo renderizado, links embutidos.
+  </p>
+
+  <p>
+    Escrevi um script simples usando <code>httpx</code> (sem renderização de JavaScript — apenas
+    chamadas diretas à API) e vasculhei as 96 páginas do portal. De cada uma extraí o HTML renderizado
+    e contei os documentos vinculados: PDFs, XLS, DOCX, ZIPs.
+  </p>
+
+  <div class="stat-row">
+    <div class="stat">
+      <span class="stat-value">96</span>
+      <span class="stat-label">páginas encontradas</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">28</span>
+      <span class="stat-label">seções analisadas</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">400+</span>
+      <span class="stat-label">documentos mapeados</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">238</span>
+      <span class="stat-label">dispensas eletrônicas</span>
+    </div>
+  </div>
+
+  <p>Aqui está o mapa completo das seções com documentos acessíveis:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Seção</th>
+        <th>Status</th>
+        <th style="text-align:right">Docs</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Dispensa Eletrônica</td>
+        <td><span class="star">★</span> acessível</td>
+        <td>238</td>
+      </tr>
+      <tr>
+        <td>Relatórios e Pareceres</td>
+        <td><span class="star">★</span> acessível</td>
+        <td>85</td>
+      </tr>
+      <tr>
+        <td>Relação de Convênios</td>
+        <td><span class="star">★</span> acessível</td>
+        <td>26</td>
+      </tr>
+      <tr>
+        <td>Relatórios ao TCU</td>
+        <td><span class="star">★</span> acessível</td>
+        <td>12</td>
+      </tr>
+      <tr>
+        <td>Contratações Diretas / Inexigibilidades</td>
+        <td><span class="star">★</span> acessível</td>
+        <td>12</td>
+      </tr>
+      <tr>
+        <td>Auditoria Independente</td>
+        <td><span class="star">★</span> acessível</td>
+        <td>8</td>
+      </tr>
+      <tr>
+        <td>Atas de Registro de Preço</td>
+        <td><span class="star">★</span> acessível</td>
+        <td>7</td>
+      </tr>
+      <tr>
+        <td>Contratos Vigentes</td>
+        <td><span class="star">★</span> acessível</td>
+        <td>2 (PDF + XLS, Jul 2025)</td>
+      </tr>
+      <tr>
+        <td>Quadro de Empregados</td>
+        <td><span class="star">★</span> acessível</td>
+        <td>2 (Mar 2026)</td>
+      </tr>
+      <tr>
+        <td>Diárias e Deslocamentos</td>
+        <td><span class="empty">∅</span> JS-only / vazio</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>Folhas de Pagamento</td>
+        <td><span class="empty">∅</span> sem conteúdo</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>Resoluções</td>
+        <td><span class="empty">∅</span> JS-only</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>Portarias Presidenciais</td>
+        <td><span class="empty">∅</span> JS-only</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>Atas de Reuniões de Comissões</td>
+        <td><span class="empty">·</span> texto, sem docs</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>Orientações Jurídicas</td>
+        <td><span class="empty">·</span> texto, sem docs</td>
+        <td>0</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    À primeira vista, o resultado é promissor. Há documentos reais acessíveis — 238 dispensas
+    eletrônicas de 2024 a 2026 são um alvo de altíssimo valor para auditoria de licitações.
+    Relatórios trimestrais, convênios desde 2016, auditorias independentes, o quadro de
+    funcionários atualizado. Isso existe, está publicado e o Dig Dig consegue ler.
+  </p>
+
+  <p>
+    Mas há um buraco enorme no centro do portal. E esse buraco é exatamente onde estão os dados
+    que mais interessam ao cidadão comum.
+  </p>
+
+  <hr>
+
+  <h2>Quando o Portal Contradiz o Próprio Nome</h2>
+
+  <p>
+    O Portal se chama "Portal da Transparência e Prestação de Contas". O menu superior tem
+    abas chamadas VIAGENS, SERVIDORES e FINANÇAS. São as categorias que qualquer pessoa
+    leiga — qualquer arquiteto pagando sua anuidade ao CAU/PR — esperaria encontrar ao
+    acessar o site.
+  </p>
+
+  <p>
+    Fui verificar uma por uma, do mesmo jeito que faria no gabinete do Vereador Euler.
+    Só que desta vez com capturas de tela.
+  </p>
+
+  <h3>Salários: uma página que não existe mais</h3>
+
+  <figure>
+    <img src="../public/img/wp06/01-salarios-offline.png" alt="404 - Página não encontrada ao tentar acessar salários do CAU/PR">
+    <figcaption>
+      <strong>Captura 1:</strong> Ao tentar acessar os dados de remuneração dos servidores,
+      o portal retorna uma página 404. O link que deveria levar às tabelas salariais simplesmente
+      não existe. O rodapé da página é do CAU/SC — indício de que o link estava quebrado e
+      redirecionou para outro estado.
+    </figcaption>
+  </figure>
+
+  <p>
+    Não há dados de salário dos servidores do CAU/PR acessíveis no portal. A seção existe no menu,
+    mas o destino é uma página 404. Não é um dado difícil de publicar — é uma planilha.
+    Qualquer servidor público no Brasil tem sua remuneração de direito público.
+  </p>
+
+  <h3>Diárias: o portal que só olha para o futuro</h3>
+
+  <figure>
+    <img src="../public/img/wp06/02-diarias-futuro.png" alt="Buscador de diárias mostrando apenas meses futuros: julho/2026, agosto/2026...">
+    <figcaption>
+      <strong>Captura 2:</strong> O buscador de "Diárias, Deslocamentos, Jetons e Auxílio Representação"
+      tem um dropdown de REFERÊNCIA — mas ao abri-lo, os únicos meses disponíveis são futuros:
+      julho/2026, agosto/2026, setembro/2026. Não há nenhum mês passado disponível para consulta.
+      Em abril de 2026, é impossível ver qualquer diária já paga.
+    </figcaption>
+  </figure>
+
+  <figure>
+    <img src="../public/img/wp06/07-jetons-futuro.png" alt="Buscador de diárias com novembro/2026 selecionado — dados futuros">
+    <figcaption>
+      <strong>Captura 3:</strong> O mesmo buscador em outro momento de teste — com novembro/2026
+      selecionado como referência. O sistema literalmente só permite consultar meses que ainda
+      não aconteceram. Os dados do passado simplesmente não estão lá.
+    </figcaption>
+  </figure>
+
+  <p>
+    Isso não é um bug de interface. É uma falha de dados na origem: o sistema de gestão do CAU/PR
+    não está alimentando o portal com dados históricos. O resultado prático é que qualquer cidadão
+    que tente ver quanto foi pago em diárias em 2024 vai embora de mãos vazias.
+  </p>
+
+  <h3>O setor "histórico" que não tem histórico</h3>
+
+  <figure>
+    <img src="../public/img/wp06/03-diarias-sem-dados.png" alt="Pesquisa de diárias de 2021 a 2026 retorna: 'Sua pesquisa não retornou nenhum resultado'">
+    <figcaption>
+      <strong>Captura 4:</strong> O portal tem uma seção separada chamada "Diárias, Deslocamentos
+      e Passagens Aéreas (pagos até 31/12/2015)" — o próprio nome sugere que deveria cobrir
+      o período histórico até 2015. Ao pesquisar de 2021 a 2026: nenhum resultado.
+      Ao pesquisar qualquer período: nenhum resultado.
+    </figcaption>
+  </figure>
+
+  <figure>
+    <img src="../public/img/wp06/08-diarias-passagens.png" alt="Outra busca histórica de diárias e passagens sem resultado">
+    <figcaption>
+      <strong>Captura 5:</strong> Segunda tentativa com a mesma seção histórica, intervalo diferente.
+      Mesmo resultado: "Sua pesquisa não retornou nenhum resultado." A base de dados está vazia
+      ou inacessível.
+    </figcaption>
+  </figure>
+
+  <h3>Passagens Aéreas: o mesmo problema</h3>
+
+  <figure>
+    <img src="../public/img/wp06/05-passagens-futuro.png" alt="Buscador de Passagens Aéreas mostrando apenas meses futuros: julho/2026 em diante">
+    <figcaption>
+      <strong>Captura 6:</strong> A seção de Passagens Aéreas repete exatamente o mesmo problema
+      das diárias: dropdown com apenas meses futuros. Julho/2026 é o mês mais antigo disponível.
+      Qualquer passagem aérea comprada nos últimos anos é invisível ao cidadão.
+    </figcaption>
+  </figure>
+
+  <figure>
+    <img src="../public/img/wp06/06-passagens-sem-dados.png" alt="Busca histórica de passagens aéreas não retorna resultados">
+    <figcaption>
+      <strong>Captura 7:</strong> A versão histórica da seção de passagens também retorna zero
+      para qualquer período pesquisado. O padrão é consistente: o portal existe,
+      a interface funciona, mas os dados não estão lá.
+    </figcaption>
+  </figure>
+
+  <h3>Quando o servidor expõe o próprio erro</h3>
+
+  <figure>
+    <img src="../public/img/wp06/04-diarias-erro-buscador.png" alt="Stack trace Java exposto publicamente na página de busca de diárias">
+    <figcaption>
+      <strong>Captura 8:</strong> Em uma das tentativas de busca, o servidor do portal retornou
+      um stack trace Java diretamente na página — o erro técnico interno exposto ao público.
+      Isso é ao mesmo tempo um problema de segurança (vazamento de informação de infraestrutura)
+      e um diagnóstico involuntário: o sistema de busca simplesmente quebrou.
+    </figcaption>
+  </figure>
+
+  <div class="callout">
+    <p>
+      <strong>Resumo do que está inacessível:</strong> diárias e deslocamentos, passagens aéreas,
+      jetons e auxílio representação, folhas de pagamento e tabelas de remuneração. São exatamente
+      os dados financeiros mais sensíveis e mais esperados pelo cidadão — e pelo jornalista,
+      pelo advogado, pelo pesquisador.
+    </p>
+    <p>
+      O portal existe. O menu existe. A promessa de transparência existe. Os dados, não.
+    </p>
+  </div>
+
+  <hr>
+
+  <h2>O Que a Lei Exige</h2>
+
+  <p>
+    O Art. 8º da Lei 12.527/2011 (Lei de Acesso à Informação) exige que órgãos públicos publiquem,
+    em local de fácil acesso, informações de interesse coletivo — incluindo remuneração e
+    despesas com viagens e diárias. O Decreto 8.777/2016 foi mais longe: exige dados abertos
+    em formato reutilizável, atualizados periodicamente.
+  </p>
+
+  <p>
+    O CAU/PR é um conselho federal com personalidade jurídica de direito público, criado pela
+    Lei 12.378/2010. Não é uma empresa privada. Seus recursos vêm das anuidades obrigatórias
+    de mais de 40 mil arquitetos e urbanistas do Paraná.
+  </p>
+
+  <p>
+    O arquiteto que paga sua anuidade hoje não consegue ver quanto o presidente do CAU/PR
+    gastou em passagem aérea no ano passado. Não consegue ver as diárias pagas em 2023.
+    Não consegue ver os salários dos funcionários. O portal existe para cumprir a lei no papel.
+    Na prática, os dados mais relevantes simplesmente não estão lá.
+  </p>
+
+  <p>
+    Isso não é uma acusação de má-fé. É um registro factual: o portal falha no seu objetivo
+    central de transparência. Se é por falta de recursos técnicos, por negligência administrativa
+    ou por conveniência, não cabe a mim afirmar. Cabe ao CAU/PR explicar.
+  </p>
+
+  <hr>
+
+  <h2>O Que Conseguimos Ver Mesmo Assim</h2>
+
+  <p>
+    Apesar das limitações, o garimpo revelou dados reais de alto valor investigativo.
+    O Dig Dig consegue acessar e analisar:
+  </p>
+
+  <ul>
+    <li>
+      <strong>238 dispensas eletrônicas (2024–2026):</strong> contratações diretas sem licitação,
+      com valores, justificativas e fornecedores. É o corpus de maior risco para auditoria de
+      licitações — e está acessível.
+    </li>
+    <li>
+      <strong>85 relatórios trimestrais:</strong> prestações de contas financeiras periódicas
+      com balanços e execução orçamentária.
+    </li>
+    <li>
+      <strong>26 convênios desde 2016:</strong> acordos de cooperação, repasses e parcerias —
+      com histórico de dez anos.
+    </li>
+    <li>
+      <strong>12 relatórios anuais ao TCU:</strong> os relatórios de gestão enviados ao Tribunal
+      de Contas da União — a fonte mais completa de prestação de contas disponível.
+    </li>
+    <li>
+      <strong>12 contratações diretas e inexigibilidades:</strong> contratos onde o CAU/PR
+      dispensou o processo licitatório normal.
+    </li>
+    <li>
+      <strong>8 auditorias independentes:</strong> laudos de auditoria externa, incluindo
+      pareceres sobre as contas do exercício.
+    </li>
+    <li>
+      <strong>Quadro de empregados (março/2026):</strong> lista atualizada de todos os
+      servidores — sem remuneração, mas com cargos e unidades.
+    </li>
+    <li>
+      <strong>Contratos vigentes (julho/2025):</strong> planilha de todos os contratos ativos
+      do CAU/PR em um único arquivo.
+    </li>
+  </ul>
+
+  <p>
+    Isso é substancial. Não é tudo que deveria estar disponível, mas é muito mais do que eu
+    conseguia acessar manualmente em semanas no gabinete do Vereador Euler.
+  </p>
+
+  <hr>
+
+  <h2>O Que Vem Agora: Fase 3</h2>
+
+  <p>
+    A Fase 3 da operação CAU/PR no Dig Dig vai focar no que está acessível e não foi analisado.
+    A sequência planejada:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Dispensa Eletrônica (238 docs):</strong> prioridade máxima. Contratações diretas
+      são o terreno fértil da irregularidade administrativa — é onde fornecedores favorecidos
+      aparecem, onde o teto de dispensa é tocado repetidamente, onde os mesmos nomes retornam.
+      O Dig Dig vai ler cada uma.
+    </li>
+    <li>
+      <strong>Contratos Vigentes:</strong> a planilha de julho/2025 com todos os contratos
+      ativos do CAU/PR vai para o Sonnet. É um único arquivo, mas concentra informação densa
+      sobre fornecedores, valores e vigências.
+    </li>
+    <li>
+      <strong>Relatórios ao TCU:</strong> os relatórios anuais de gestão são documentos longos
+      e ricos. Com 12 anos de histórico, o Dig Dig pode detectar padrões que evoluem ao longo
+      do tempo — algo impossível de fazer manualmente.
+    </li>
+    <li>
+      <strong>Pedido de Acesso à Informação (LAI):</strong> para os dados que o portal não
+      publica — diárias, passagens, folhas de pagamento — vou protocolar um pedido formal
+      via e-SIC. O CAU/PR tem prazo legal de 20 dias para responder. A resposta, ou a negativa,
+      também vira dado.
+    </li>
+  </ol>
+
+  <hr>
+
+  <h2>Sobre Ir a Público — e Como Financiar Isso</h2>
+
+  <p>
+    Estou muito orgulhoso do que foi construído. E também ansioso.
+  </p>
+
+  <p>
+    O Dig Dig chegou a um ponto onde já tem resultados reais: 1.340 documentos mapeados,
+    análises com score de risco, fichas de denúncia geradas, pipeline em tempo real, painel
+    conectado. Mas ainda está em modo privado — só eu acesso.
+  </p>
+
+  <p>
+    A questão de ir a público não é técnica. É estratégica. Abrir antes da hora significa
+    lançar um produto incompleto para um público que ainda não existe. Abrir no momento certo
+    significa ter uma história clara para contar: "O Dig Dig analisou X atos do CAU/PR,
+    encontrou Y casos que merecem investigação, e aqui estão as fichas."
+  </p>
+
+  <p>
+    O momento certo está próximo — mas ainda não chegou. Preciso terminar a Fase 3,
+    ter resultados concretos das dispensas eletrônicas e dos contratos, e resolver a questão
+    do financiamento.
+  </p>
+
+  <p>
+    O modelo de negócio do Dig Dig é incomum: todo o conteúdo gerado é gratuito e aberto.
+    Qualquer pessoa pode ler as fichas, os scores, os resumos. O que é pago é o chat com a IA
+    — a camada de conversa onde você pode perguntar "mostre os atos com score acima de 70
+    nos últimos dois anos" e a ferramenta responde em linguagem natural.
+  </p>
+
+  <p>
+    Estou considerando formas de financiamento que preservem essa abertura: um plano de
+    patrocínio anual para quem acredita no projeto, parcerias com veículos de imprensa,
+    e potencialmente uma chamada pública quando o primeiro conjunto de resultados for revelador
+    o suficiente para gerar interesse espontâneo.
+  </p>
+
+  <p>
+    O nome "Dig Dig" — eu realmente gosto. É um nome engraçado para uma ferramenta séria.
+    Faz o que diz: cava, cava, cava. Até encontrar algo. E guarda o que encontra.
+  </p>
+
+  <hr>
+
+  <h2>O Que É o Dig Dig, Afinal</h2>
+
+  <p>
+    Essa semana de garimpo me ajudou a ver com mais clareza o que estou construindo.
+  </p>
+
+  <p>
+    O Dig Dig não é um scraper. Não é um buscador. Não é um portal de denúncias.
+    É uma <em>memória institucional automatizada</em> — uma ferramenta que lê o que os
+    órgãos publicam (e o que não publicam), guarda tudo com estrutura, analisa com critério
+    legal e moral, e apresenta o resultado de uma forma que qualquer pessoa consegue usar.
+  </p>
+
+  <p>
+    Quando um arquiteto quer saber se o CAU/PR está contratando fornecedores recorrentes
+    sem licitação, não vai ficar abrindo 238 PDFs manualmente. Não vai conseguir cruzar
+    os nomes dos contratos com os dos conselheiros. Não vai detectar o padrão de compra
+    repetida que toca o teto de dispensa várias vezes seguidas com o mesmo fornecedor.
+  </p>
+
+  <p>
+    O Dig Dig consegue. Já consegue. Agora é questão de apontar a ferramenta para os dados certos.
+  </p>
+
+  <p>
+    No gabinete do Vereador Euler, levei semanas para encontrar o escândalo da água San Pelegrino.
+    Com o Dig Dig, teria levado dias — e teria documentação, score, ficha e PDF prontos para
+    o jornalista, o vereador e o advogado ao mesmo tempo.
+  </p>
+
+  <p>
+    Essa é a capacidade real do Dig Dig. E ainda estamos no começo.
+  </p>
+
+  <hr>
+
+  <div style="background:var(--bg-code); border-radius:8px; padding:24px 28px; margin:40px 0; font-size:0.88rem; color:var(--muted); line-height:1.7;">
+    <p style="margin-bottom:12px;"><strong style="color:var(--text);">Estado do projeto em abril/2026</strong></p>
+    <ul style="margin:0; padding-left:1.3em;">
+      <li>1.340+ documentos mapeados no CAU/PR (portarias, deliberações, atas plenárias)</li>
+      <li>262 portarias analisadas por Haiku (rodada em andamento)</li>
+      <li>179 atas plenárias identificadas, 161 com PDF disponível</li>
+      <li>96 páginas do portal de transparência mapeadas via WP REST API</li>
+      <li>238 dispensas eletrônicas acessíveis — prioridade da Fase 3</li>
+      <li>Portal falha em publicar: diárias, passagens, salários, folhas de pagamento</li>
+      <li>LAI em preparação para os dados ausentes</li>
+    </ul>
+  </div>
+</article>
+
+<footer class="site-footer">
+  <p>
+    <strong>Dig Dig</strong> · Auditoria Automatizada de Atos Administrativos Públicos<br>
+    Dados derivados dos atos oficiais publicados pelo CAU/PR. Análises geradas por IA —
+    conclusões jurídicas cabem a advogados.
+  </p>
+  <p style="margin-top:12px;">
+    <a href="/blog">← Todos os White Papers</a> &nbsp;·&nbsp;
+    <a href="/whitepaper-05-quando-a-maquina-entra-na-sala">White Paper Nº 05</a>
+  </p>
+</footer>
+
+</body>
+</html>

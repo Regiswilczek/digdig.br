@@ -34,6 +34,16 @@ export const Route = createFileRoute("/blog")({
 // Add new entries here (newest first) whenever a new white paper is published.
 const PAPERS = [
   {
+    numero: "06",
+    slug: "/whitepaper-06-do-gabinete-ao-terminal",
+    titulo: "Do Gabinete ao Terminal",
+    subtitulo: "Mapeamos o Portal da Transparência do CAU/PR e encontramos o que ele esconde",
+    resumo:
+      "96 páginas vasculhadas via WP REST API, 28 seções analisadas, 238 dispensas eletrônicas acessíveis — e diárias, passagens e salários simplesmente offline. O que o portal promete, o que entrega, e por que isso importa. Com as capturas de tela da investigação manual que originou o Dig Dig.",
+    data: "Abril 2026",
+    tags: ["Portal da Transparência", "Garimpo", "Dados Ausentes", "Fase 3"],
+  },
+  {
     numero: "05",
     slug: "/whitepaper-05-quando-a-maquina-entra-na-sala",
     titulo: "Quando a Máquina Entra na Sala",
