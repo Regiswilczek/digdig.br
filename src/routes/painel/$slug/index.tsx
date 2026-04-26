@@ -223,13 +223,10 @@ function RealtimeFeed({
       : []),
   ];
 
-  return (
-    <aside
-      className="hidden lg:flex w-[300px] flex-shrink-0 flex-col bg-white sticky top-0 h-screen overflow-hidden"
-      style={{ borderLeft: `1px solid ${BORDER}` }}
-    >
+  const content = (
+    <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="px-5 pt-5 pb-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
+      <div className="px-5 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: `1px solid ${BORDER}` }}>
         <div className="flex items-center justify-between mb-3">
           <p
             className="text-[10px] uppercase tracking-[0.28em] font-semibold"
@@ -286,7 +283,6 @@ function RealtimeFeed({
         {!loading &&
           groups.map((group) => (
             <div key={group.tipo}>
-              {/* Category header */}
               <div
                 className="flex items-center justify-between px-4 py-2 sticky top-0 z-10"
                 style={{
@@ -314,6 +310,17 @@ function RealtimeFeed({
             </div>
           ))}
       </div>
+    </div>
+  );
+
+  if (variant === "inline") return content;
+
+  return (
+    <aside
+      className="hidden lg:flex w-[300px] flex-shrink-0 flex-col sticky top-0 h-screen overflow-hidden"
+      style={{ borderLeft: `1px solid ${BORDER}` }}
+    >
+      {content}
     </aside>
   );
 }
