@@ -291,24 +291,83 @@ async def admin_aprovar(
     )
     await db.commit()
 
-    # Envia invite via Supabase Admin API
+    nome, email = req[1], req[2]
+    primeiro_nome = nome.split()[0] if nome else "Olá"
+
+    # Gera link de invite via Supabase (sem enviar email pelo Supabase)
     async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"{settings.supabase_url}/auth/v1/invite",
+        invite_resp = await client.post(
+            f"{settings.supabase_url}/auth/v1/admin/generate_link",
             headers={
                 "apikey": settings.supabase_service_role_key,
                 "Authorization": f"Bearer {settings.supabase_service_role_key}",
                 "Content-Type": "application/json",
             },
-            json={"email": req[2], "data": {"nome": req[1]}},
+            json={
+                "type": "invite",
+                "email": email,
+                "data": {"nome": nome},
+                "options": {"redirect_to": "https://pnl.digdig.com.br/pnl/dashboard"},
+            },
             timeout=15,
         )
 
-    if resp.status_code not in (200, 201, 422):
-        # 422 = já existe usuário com esse email — ok, só notifica
-        raise HTTPException(502, f"Erro ao enviar invite Supabase: {resp.text}")
+    action_link = ""
+    if invite_resp.is_success:
+        action_link = invite_resp.json().get("action_link", "")
+    else:
+        # Usuário já existe — gera magic link para login direto
+        async with httpx.AsyncClient() as client:
+            ml_resp = await client.post(
+                f"{settings.supabase_url}/auth/v1/admin/generate_link",
+                headers={
+                    "apikey": settings.supabase_service_role_key,
+                    "Authorization": f"Bearer {settings.supabase_service_role_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "type": "magiclink",
+                    "email": email,
+                    "options": {"redirect_to": "https://digdig.com.br/pnl-login"},
+                },
+                timeout=15,
+            )
+        if ml_resp.is_success:
+            action_link = ml_resp.json().get("action_link", "")
 
-    return {"ok": True, "email": req[2]}
+    if not action_link:
+        raise HTTPException(502, "Não foi possível gerar o link de acesso")
+
+    resend.api_key = os.environ["RESEND_API_KEY"]
+    resend.Emails.send({
+        "from": os.environ.get("RESEND_FROM", "noreply@digdig.com.br"),
+        "to": email,
+        "subject": "Seu acesso ao Dig Dig foi liberado",
+        "html": f"""
+<div style="font-family:monospace;background:#07080f;color:#fff;padding:40px 32px;max-width:480px;margin:0 auto">
+  <p style="font-size:11px;letter-spacing:0.18em;color:#ffffff60;text-transform:uppercase;margin:0 0 28px">Dig Dig &middot; Acesso Liberado</p>
+  <h1 style="font-size:26px;margin:0 0 16px;font-weight:800">{primeiro_nome}, seu acesso foi aprovado.</h1>
+  <p style="color:#ffffffb3;line-height:1.7;margin:0 0 20px;font-size:13px">
+    Você agora tem acesso ao painel de investigações do Dig Dig. Clique no botão abaixo para definir sua senha e entrar na plataforma.
+  </p>
+  <p style="color:#ffffff70;line-height:1.7;margin:0 0 28px;font-size:12px">
+    O link é válido por 24 horas e de uso único.
+  </p>
+  <a href="{action_link}"
+     style="display:inline-block;background:#fff;color:#07080f;padding:12px 28px;font-size:11px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;text-decoration:none">
+    Acessar o painel →
+  </a>
+  <hr style="border:none;border-top:1px solid #ffffff15;margin:32px 0">
+  <p style="color:#ffffff40;font-size:11px;line-height:1.6;margin:0">
+    Dig Dig analisa automaticamente atos administrativos de órgãos públicos com IA.<br>
+    Use os dados com responsabilidade — jornalismo, advocacy e transparência pública.<br><br>
+    <a href="https://digdig.com.br" style="color:#ffffff40">digdig.com.br</a>
+  </p>
+</div>
+    """,
+    })
+
+    return {"ok": True, "email": email}
 
 
 @router.post("/admin/access-requests/{req_id}/rejeitar", status_code=200)
@@ -317,6 +376,13 @@ async def admin_rejeitar(
     db: AsyncSession = Depends(get_db),
     _: dict = Depends(require_admin),
 ):
+    row = await db.execute(
+        text("SELECT nome, email FROM access_requests WHERE id = :id").bindparams(id=req_id)
+    )
+    req = row.fetchone()
+    if not req:
+        raise HTTPException(404, "Pedido não encontrado")
+
     result = await db.execute(
         text("UPDATE access_requests SET status = 'rejeitado' WHERE id = :id RETURNING id")
         .bindparams(id=req_id)
@@ -324,7 +390,69 @@ async def admin_rejeitar(
     if not result.fetchone():
         raise HTTPException(404, "Pedido não encontrado")
     await db.commit()
+
+    nome, email = req[0], req[1]
+    primeiro_nome = nome.split()[0] if nome else "Olá"
+
+    resend.api_key = os.environ["RESEND_API_KEY"]
+    resend.Emails.send({
+        "from": os.environ.get("RESEND_FROM", "noreply@digdig.com.br"),
+        "to": email,
+        "subject": "Sobre seu pedido de acesso — Dig Dig",
+        "html": f"""
+<div style="font-family:monospace;background:#07080f;color:#fff;padding:40px 32px;max-width:480px;margin:0 auto">
+  <p style="font-size:11px;letter-spacing:0.18em;color:#ffffff60;text-transform:uppercase;margin:0 0 28px">Dig Dig &middot; Pedido de Acesso</p>
+  <h1 style="font-size:24px;margin:0 0 16px;font-weight:800">{primeiro_nome}, obrigado pelo interesse.</h1>
+  <p style="color:#ffffffb3;line-height:1.7;margin:0 0 20px;font-size:13px">
+    Analisamos seu pedido de acesso e, por ora, não conseguimos abrir uma vaga para o seu perfil.
+  </p>
+  <p style="color:#ffffff70;line-height:1.7;margin:0 0 28px;font-size:12px">
+    O Dig Dig está em fase beta fechada — o acesso é liberado gradualmente para garantir que os dados de investigação pública sejam usados com responsabilidade. Estamos expandindo aos poucos.
+  </p>
+  <p style="color:#ffffff70;line-height:1.7;margin:0 0 28px;font-size:12px">
+    Fique de olho nos nossos canais. Quando abrirmos novas vagas, você pode solicitar acesso novamente em <a href="https://digdig.com.br" style="color:#ffffff90">digdig.com.br</a>.
+  </p>
+  <hr style="border:none;border-top:1px solid #ffffff15;margin:32px 0">
+  <p style="color:#ffffff40;font-size:11px;line-height:1.6;margin:0">
+    Dig Dig &mdash; Transparência com dentes<br>
+    <a href="https://digdig.com.br" style="color:#ffffff40">digdig.com.br</a>
+  </p>
+</div>
+    """,
+    })
+
     return {"ok": True}
+
+
+@router.get("/admin/usuarios-auth")
+async def admin_list_auth_users(
+    _: dict = Depends(require_admin),
+):
+    """Lista todos os usuários cadastrados no Supabase Auth."""
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{settings.supabase_url}/auth/v1/admin/users?per_page=200",
+            headers={
+                "apikey": settings.supabase_service_role_key,
+                "Authorization": f"Bearer {settings.supabase_service_role_key}",
+            },
+            timeout=15,
+        )
+    if not resp.is_success:
+        raise HTTPException(status_code=502, detail="Erro ao buscar usuários")
+    data = resp.json()
+    users = data.get("users", [])
+    return [
+        {
+            "id": u.get("id"),
+            "email": u.get("email"),
+            "nome": (u.get("user_metadata") or {}).get("nome") or (u.get("user_metadata") or {}).get("full_name"),
+            "criado_em": u.get("created_at"),
+            "ultimo_login": u.get("last_sign_in_at"),
+            "confirmado": u.get("email_confirmed_at") is not None,
+        }
+        for u in users
+    ]
 
 
 @router.get("/admin/rodadas")

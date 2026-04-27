@@ -614,17 +614,24 @@ async def create_access_request(body: AccessRequestBody, db: AsyncSession = Depe
     resend.Emails.send({
         "from": os.environ.get("RESEND_FROM", "noreply@digdig.com.br"),
         "to": email,
-        "subject": "Pedido de acesso recebido — Dig Dig",
+        "subject": "Pedido registrado — Dig Dig",
         "html": f"""
 <div style="font-family:monospace;background:#07080f;color:#fff;padding:40px 32px;max-width:480px;margin:0 auto">
-  <p style="font-size:11px;letter-spacing:0.18em;color:#ffffff60;text-transform:uppercase;margin:0 0 24px">Dig Dig &middot; Acesso Beta</p>
-  <h1 style="font-size:26px;margin:0 0 16px;font-weight:800">{primeiro_nome}, você está na fila.</h1>
-  <p style="color:#ffffffb3;line-height:1.7;margin:0 0 24px">
-    Recebemos seu pedido de acesso. Assim que uma vaga for liberada, você receberá um link para criar sua senha e acessar o painel de investigações.
+  <p style="font-size:11px;letter-spacing:0.18em;color:#ffffff60;text-transform:uppercase;margin:0 0 28px">Dig Dig &middot; Pedido Recebido</p>
+  <h1 style="font-size:26px;margin:0 0 16px;font-weight:800">{primeiro_nome}, seu pedido foi registrado.</h1>
+  <p style="color:#ffffffb3;line-height:1.7;margin:0 0 20px;font-size:13px">
+    O Dig Dig usa inteligência artificial para analisar automaticamente atos administrativos de órgãos públicos brasileiros &mdash; portarias, deliberações e processos &mdash; e identificar padrões de irregularidade com base nos próprios documentos oficiais.
   </p>
-  <p style="color:#ffffff50;font-size:11px;line-height:1.6;margin:0">
+  <p style="color:#ffffff70;line-height:1.7;margin:0 0 20px;font-size:12px">
+    O acesso é fechado porque os dados têm peso real: indícios de irregularidades em processos disciplinares sigilosos, concentração de poder em gestões eleitas, atos emitidos sem amparo em deliberação plenária. Antes de abrir para qualquer pessoa, queremos garantir que cada usuário entenda o que está lendo e use as informações com responsabilidade.
+  </p>
+  <p style="color:#ffffff70;line-height:1.7;margin:0 0 28px;font-size:12px">
+    Analisaremos seu perfil em breve. Quando seu acesso for liberado, você receberá um email com o link para criar sua senha.
+  </p>
+  <hr style="border:none;border-top:1px solid #ffffff15;margin:0 0 28px">
+  <p style="color:#ffffff40;font-size:11px;line-height:1.6;margin:0">
     Dig Dig &mdash; Transparência com dentes<br>
-    <a href="https://digdig.com.br" style="color:#ffffff50">digdig.com.br</a>
+    <a href="https://digdig.com.br" style="color:#ffffff40">digdig.com.br</a>
   </p>
 </div>
         """,
