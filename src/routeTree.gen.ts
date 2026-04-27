@@ -23,6 +23,7 @@ import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as PatrocineRouteImport } from './routes/patrocine'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as ModelosRouteImport } from './routes/modelos'
+import { Route as EscalaRouteImport } from './routes/escala'
 import { Route as ExplorarRouteImport } from './routes/explorar'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as BlogRouteImport } from './routes/blog'
@@ -112,6 +113,11 @@ const ModelosRoute = ModelosRouteImport.update({
   path: '/modelos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EscalaRoute = EscalaRouteImport.update({
+  id: '/escala',
+  path: '/escala',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExplorarRoute = ExplorarRouteImport.update({
   id: '/explorar',
   path: '/explorar',
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/apoiar': typeof ApoiarRoute
   '/blog': typeof BlogRoute
   '/entrar': typeof EntrarRoute
+  '/escala': typeof EscalaRoute
   '/explorar': typeof ExplorarRoute
   '/modelos': typeof ModelosRoute
   '/painel': typeof PainelRouteWithChildren
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/apoiar': typeof ApoiarRoute
   '/blog': typeof BlogRoute
   '/entrar': typeof EntrarRoute
+  '/escala': typeof EscalaRoute
   '/explorar': typeof ExplorarRoute
   '/modelos': typeof ModelosRoute
   '/patrocine': typeof PatrocineRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/apoiar': typeof ApoiarRoute
   '/blog': typeof BlogRoute
   '/entrar': typeof EntrarRoute
+  '/escala': typeof EscalaRoute
   '/explorar': typeof ExplorarRoute
   '/modelos': typeof ModelosRoute
   '/painel': typeof PainelRouteWithChildren
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/apoiar'
     | '/blog'
     | '/entrar'
+    | '/escala'
     | '/explorar'
     | '/modelos'
     | '/painel'
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
     | '/apoiar'
     | '/blog'
     | '/entrar'
+    | '/escala'
     | '/explorar'
     | '/modelos'
     | '/patrocine'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/apoiar'
     | '/blog'
     | '/entrar'
+    | '/escala'
     | '/explorar'
     | '/modelos'
     | '/painel'
@@ -335,6 +347,7 @@ export interface RootRouteChildren {
   ApoiarRoute: typeof ApoiarRoute
   BlogRoute: typeof BlogRoute
   EntrarRoute: typeof EntrarRoute
+  EscalaRoute: typeof EscalaRoute
   ExplorarRoute: typeof ExplorarRoute
   ModelosRoute: typeof ModelosRoute
   PainelRoute: typeof PainelRouteWithChildren
@@ -452,6 +465,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModelosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/escala': {
+      id: '/escala'
+      path: '/escala'
+      fullPath: '/escala'
+      preLoaderRoute: typeof EscalaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/explorar': {
       id: '/explorar'
       path: '/explorar'
@@ -567,6 +587,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApoiarRoute: ApoiarRoute,
   BlogRoute: BlogRoute,
   EntrarRoute: EntrarRoute,
+  EscalaRoute: EscalaRoute,
   ExplorarRoute: ExplorarRoute,
   ModelosRoute: ModelosRoute,
   PainelRoute: PainelRouteWithChildren,
