@@ -10,37 +10,39 @@
 └──────────────────────────────┬──────────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────────┐
-│                    FRONTEND — Lovable                            │
-│                    React + Vite (Lovable) + Tailwind CSS        │
-│  • Landing page pública                                         │
-│  • App autenticado (dashboard, filtros, relatórios)             │
-│  • Painel admin (gerenciar órgãos, rodadas de análise)          │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │ HTTPS / REST API
-┌──────────────────────────────▼──────────────────────────────────┐
-│                    BACKEND — Railway                             │
-│                    FastAPI (Python 3.12)                        │
-│  • API REST com autenticação JWT                                │
-│  • Validação de planos e permissões                             │
-│  • Orquestração de jobs                                         │
-│  • Geração de relatórios                                        │
-└──────┬───────────────────────┬────────────────────┬─────────────┘
-       │                       │                    │
-┌──────▼──────┐   ┌────────────▼──────────┐   ┌────▼──────────────┐
-│  Supabase   │   │   Redis (Railway)      │   │  Claude API       │
-│  PostgreSQL │   │   Fila de Jobs         │   │  (Anthropic)      │
-│  Auth       │   │   (Celery)            │   │  Haiku + Sonnet   │
-│  Storage    │   └────────────┬──────────┘   └───────────────────┘
-└─────────────┘                │
-                  ┌────────────▼──────────────────────────────────┐
-                  │         WORKERS — Railway                       │
-                  │         Celery Workers (Python)                │
-                  │  • Scraper de PDFs                            │
-                  │  • Extrator de texto (pdfplumber)             │
-                  │  • Pipeline Haiku → Sonnet                    │
-                  │  • Construção do grafo de pessoas             │
-                  │  • Geração de relatórios HTML                 │
-                  └───────────────────────────────────────────────┘
+│          VPS HOSTINGER (187.127.30.188) — Docker Compose         │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  container: frontend (nginx)                             │    │
+│  │  • Serve SPA React/Vite (estático buildado)             │    │
+│  │  • Reverse proxy HTTPS → api:8000                       │    │
+│  │  • digdig.com.br + pnl.digdig.com.br (SSL Let's Encrypt)│    │
+│  └──────────────────────────┬──────────────────────────────┘    │
+│                             │ proxy interno                      │
+│  ┌──────────────────────────▼──────────────────────────────┐    │
+│  │  container: api — FastAPI (Python 3.12) porta 8000       │    │
+│  │  • API REST com autenticação JWT                         │    │
+│  │  • Validação de planos e permissões                      │    │
+│  │  • Orquestração de jobs                                  │    │
+│  │  • Geração de relatórios                                 │    │
+│  └──────┬───────────────────┬───────────────────┬──────────┘    │
+│         │                   │                   │               │
+│  ┌──────▼──────┐  ┌─────────▼─────────┐  ┌─────▼─────────────┐ │
+│  │  Supabase   │  │  container: redis  │  │  Claude API       │ │
+│  │  PostgreSQL │  │  Broker Celery     │  │  (Anthropic)      │ │
+│  │  Auth       │  │  + cache           │  │  Haiku + Sonnet   │ │
+│  │  Storage    │  └─────────┬─────────┘  └───────────────────┘ │
+│  └─────────────┘            │                                   │
+│              ┌──────────────▼────────────────────────────────┐  │
+│              │  containers: worker_ai + worker_beat           │  │
+│              │  Celery Workers (Python)                       │  │
+│              │  • Scraper de PDFs                             │  │
+│              │  • Extrator de texto (pdfplumber)              │  │
+│              │  • Pipeline Haiku → Sonnet                     │  │
+│              │  • Construção do grafo de pessoas              │  │
+│              │  • Geração de relatórios HTML                  │  │
+│              └───────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -50,7 +52,7 @@
 ### Frontend
 | Tecnologia | Versão | Função |
 |-----------|--------|--------|
-| React | 18 + Vite (via Lovable) | Framework frontend com bundler Vite |
+| React | 18 + Vite | Framework frontend com bundler Vite |
 | Tailwind CSS | 3.x | Estilização |
 | shadcn/ui | latest | Componentes de UI |
 | Recharts | 2.x | Gráficos e visualizações |
@@ -73,10 +75,10 @@
 | Serviço | Função |
 |---------|--------|
 | Supabase | PostgreSQL + Auth + Storage |
-| Redis (Railway) | Broker Celery + cache |
-| Railway | Deploy backend + workers |
-| Lovable | Deploy frontend |
-| Stripe | Billing e assinaturas |
+| Redis (Docker) | Broker Celery + cache |
+| VPS Hostinger (Docker Compose) | Deploy api, workers, frontend, redis |
+| nginx (container frontend) | Reverse proxy HTTPS + serve SPA estática |
+| Mercado Pago | Billing e assinaturas |
 | Resend | Email transacional |
 | Sentry | Monitoramento de erros |
 
@@ -86,7 +88,7 @@
 
 ```
 digdig/
-├── frontend/                    # React + Vite (Lovable) app
+├── frontend/                    # React + Vite SPA (servida por nginx no VPS)
 │   ├── app/
 │   │   ├── (public)/           # Rotas públicas (landing, planos)
 │   │   ├── (auth)/             # Login, cadastro, reset senha
@@ -199,7 +201,7 @@ digdig/
         ↓
 [Retorna dados paginados para o frontend]
         ↓
-[React + Vite (Lovable) renderiza dashboard]
+[React + Vite (SPA nginx/VPS) renderiza dashboard]
 ```
 
 ---
@@ -232,21 +234,21 @@ Todos os dados ficam nas mesmas tabelas, separados por `tenant_id`. Row Level Se
 
 ## 6. Escalabilidade
 
-### Fase 1 (até 10 órgãos, ~20.000 atos)
-- 1 instância Railway backend
-- 2-4 Celery workers
-- Supabase free tier (500MB)
-- Custo infra: ~R$ 150/mês
+### Fase 1 (até 10 órgãos, ~20.000 atos) — estado atual
+- VPS Hostinger (Docker Compose): api + worker_ai + worker_beat + redis + frontend
+- 2-4 Celery workers no mesmo host
+- Supabase (PostgreSQL + Auth + Storage)
+- Custo infra: ~R$ 150/mês (VPS fixo)
 
 ### Fase 2 (10-50 órgãos, ~100.000 atos)
-- Auto-scaling Railway
+- VPS maior ou múltiplos containers
 - 4-8 workers com concorrência
 - Supabase Pro ($25/mês)
-- Redis dedicado
+- Redis dedicado (container separado ou serviço gerenciado)
 - Custo infra: ~R$ 500/mês
 
 ### Fase 3 (50+ órgãos, 500.000+ atos)
-- Migrar para AWS ECS
+- Migrar para AWS ECS ou Kubernetes
 - RDS PostgreSQL
 - ElastiCache Redis
 - S3 para PDFs
@@ -262,6 +264,6 @@ Todos os dados ficam nas mesmas tabelas, separados por `tenant_id`. Row Level Se
 | Celery + Redis | FastAPI BackgroundTasks | Jobs longos precisam de fila real com retry, monitoramento e concorrência |
 | Supabase | PostgreSQL próprio | Auth + Storage + RLS prontos, economiza semanas de desenvolvimento |
 | SQLite → PostgreSQL | Manter SQLite | Multi-tenant, concorrência, RLS exigem PostgreSQL |
-| Lovable (React + Vite) | Next.js | Geração e deploy de frontend gerenciados pela plataforma Lovable, integrado ao GitHub. TanStack Router para roteamento client-side. |
+| React + Vite (SPA estática) | Next.js | SPA buildada com `npm run build:vps`, servida por nginx no VPS. TanStack Router para roteamento client-side. Sem dependência de plataforma externa. |
 | pdfplumber | PyMuPDF / PDFMiner | Melhor extração de tabelas e layout, mais Pythônico |
-| Railway | Heroku / Fly.io | Pricing previsível, suporte Redis nativo, deploy simples |
+| VPS Hostinger (Docker Compose) | Railway / Heroku / Fly.io | Controle total do ambiente, IP brasileiro (necessário para o scraper), custo fixo previsível (~R$150/mês) |

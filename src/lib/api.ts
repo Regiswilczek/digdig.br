@@ -1,5 +1,6 @@
-export const API_URL =
-  import.meta.env.VITE_API_URL || "https://digdig.com.br";
+// Em dev: VITE_API_URL vazio → URL relativa → proxy Vite → VPS.
+// Em produção (VPS): VITE_API_URL vazio → URL relativa → nginx proxia para api:8000.
+export const API_URL = import.meta.env.VITE_API_URL ?? "";
 
 export async function fetchStats(slug = "cau-pr") {
   const r = await fetch(`${API_URL}/public/orgaos/${slug}/stats`);

@@ -76,7 +76,7 @@ O Conselho de Arquitetura e Urbanismo do Paraná é o caso piloto, em análise a
 
 | Camada | Tecnologia |
 |--------|-----------|
-| Frontend | React + Vite + TanStack Router + shadcn/ui (Lovable) |
+| Frontend | React + Vite + TanStack Router + shadcn/ui |
 | Backend | FastAPI (Python 3.12) + Celery + Redis |
 | Banco de Dados | PostgreSQL via Supabase (29 tabelas, RLS) |
 | Autenticação | Supabase Auth (JWT) |
@@ -85,8 +85,7 @@ O Conselho de Arquitetura e Urbanismo do Paraná é o caso piloto, em análise a
 | IA — Análise Profunda e Chat | Claude Sonnet 4.6 (Anthropic) |
 | Extração de PDF | pdfplumber |
 | Fila de Jobs | Celery + Redis |
-| Deploy Backend | Railway |
-| Deploy Frontend | Lovable |
+| Deploy | VPS Hostinger (Docker Compose — api, workers, redis, nginx) |
 | Billing | Mercado Pago |
 | Monitoramento | structlog |
 
@@ -165,7 +164,7 @@ O Conselho de Arquitetura e Urbanismo do Paraná é o caso piloto, em análise a
 │   │   └── relatorio_cobertura.py    ← relatório de cobertura por ano
 │   └── tests/
 │
-├── src/                              ← Frontend React/Vite (Lovable)
+├── src/                              ← Frontend React/Vite (SPA servida por nginx no VPS)
 │   └── routes/
 │       ├── index.tsx
 │       ├── whitepaper-01-extracao-caupr.tsx
@@ -183,7 +182,7 @@ O Conselho de Arquitetura e Urbanismo do Paraná é o caso piloto, em análise a
 | Fase | Status | Descrição |
 |------|--------|-----------|
 | Planejamento e docs | ✅ Concluído | 15 documentos de design e arquitetura |
-| Backend foundation | ✅ Concluído | FastAPI, 29 tabelas, Celery, auth, deploy Railway |
+| Backend foundation | ✅ Concluído | FastAPI, 29 tabelas, Celery, auth, deploy VPS |
 | Scraper de portarias | ✅ Concluído | 400 portarias com texto, 151 escaneadas documentadas |
 | Pipeline Haiku | 🔄 Em progresso | 262/400 portarias analisadas |
 | Pipeline Sonnet | ⏳ Próximo | Aguarda Haiku terminar — só casos Vermelho |

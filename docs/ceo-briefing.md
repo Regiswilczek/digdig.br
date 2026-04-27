@@ -176,13 +176,13 @@ Mas o momento vai além do ciclo eleitoral. A combinação de três fatores torn
 ### Visão macro
 
 ```
-Frontend (React/Vite — Lovable — produção)
+Frontend (React/Vite — nginx VPS — produção)
     ↓ API REST HTTPS
-Backend (FastAPI — Railway — produção)
+Backend (FastAPI — VPS Hostinger Docker Compose — produção)
     ↓ Jobs assíncronos via Redis
-Workers Celery (Railway)
+Workers Celery (VPS Docker Compose)
     ├── Scraper: baixa PDFs → extrai texto → PostgreSQL
-    │   (roda localmente — Railway bloqueado pelo CAU/PR)
+    │   (roda localmente — IP de data center bloqueado pelo CAU/PR)
     ├── Haiku: analisa todos os atos → classifica nível
     ├── Sonnet: aprofunda laranja/vermelho → fichas de denúncia
     └── Sonnet: chat conversacional via RAG
@@ -198,13 +198,13 @@ Cache: Anthropic prompt caching — regimento 68k tokens, TTL 5min
 FastAPI foi escolhido sobre Django REST porque o sistema é I/O intensivo: baixa PDFs, chama APIs externas, processa filas. FastAPI tem async nativo, validação Pydantic 2.x embutida e performance comparável a frameworks Go para esse caso de uso. Não há nada de CPU intensivo no backend — toda computação pesada é delegada à API da Anthropic.
 
 **Fila de Jobs — Celery + Redis**
-Jobs de scraping e análise levam de segundos a horas. `FastAPI BackgroundTasks` não é adequado para isso — não tem retry, não tem monitoramento, não sobrevive a restart do processo. Celery com Redis como broker é o padrão da indústria para esse perfil. Em produção no Railway, o backend e os workers rodam como processos separados no mesmo projeto.
+Jobs de scraping e análise levam de segundos a horas. `FastAPI BackgroundTasks` não é adequado para isso — não tem retry, não tem monitoramento, não sobrevive a restart do processo. Celery com Redis como broker é o padrão da indústria para esse perfil. Em produção no VPS Hostinger, o backend e os workers rodam como containers separados no mesmo Docker Compose.
 
 **Banco de dados — PostgreSQL via Supabase**
 PostgreSQL foi a escolha natural para multi-tenancy com RLS (Row Level Security). O Supabase agrega Auth, Storage, Realtime e RLS numa plataforma gerenciada — poupa semanas de implementação. O banco tem 29 tabelas. A estrutura completa está documentada em `docs/02-banco-de-dados.md`.
 
-**Frontend — React + Vite via Lovable**
-O frontend é gerenciado pela Lovable — uma plataforma que hospeda o deploy, integra com o repositório GitHub e permite edição visual e por IA. O repositório é `github.com/Regiswilczek/dig-dig`. Toda mudança no branch `main` dispara rebuild automático no Lovable. O roteamento usa TanStack Router com rotas baseadas em arquivos — cada arquivo em `src/routes/` é uma rota.
+**Frontend — React + Vite via nginx VPS**
+O frontend é uma SPA buildada com `npm run build:vps` e servida pelo container `frontend` (nginx) no VPS Hostinger via Docker Compose. O repositório é `github.com/Regiswilczek/dig-dig`. Deploy requer novo build e restart do container frontend. O roteamento usa TanStack Router com rotas baseadas em arquivos — cada arquivo em `src/routes/` é uma rota.
 
 **IA — Anthropic Claude**
 - **Haiku 4.5** (`claude-haiku-4-5-20251001`): triagem de todos os atos. Rápido, barato (~$0,012/ato com caching). Classifica nível de alerta, extrai entidades, escreve resumo executivo.
@@ -216,7 +216,7 @@ Originalmente planejado para Stripe, migrado para Mercado Pago porque o público
 
 ### A restrição de IP do scraper
 
-O servidor do CAU/PR bloqueia requisições originadas de IPs de data centers americanos. O Railway roda nos EUA — qualquer request de scraping a partir do Railway recebe 403. Isso é uma limitação operacional permanente que exige que o script de scraping (`backend/scripts/scrape_local.py`) rode na máquina do Regis, em IP brasileiro, antes de subir os dados para o banco.
+O servidor do CAU/PR bloqueia requisições originadas de IPs de data centers. O VPS Hostinger tem IP de data center — qualquer request de scraping a partir do VPS recebe 403. Isso é uma limitação operacional permanente que exige que o script de scraping (`backend/scripts/scrape_local.py`) rode na máquina do Regis, em IP brasileiro residencial, antes de subir os dados para o banco.
 
 Quando o produto escalar para outros órgãos, será necessário avaliar: (a) proxy brasileiro, (b) VPS com IP brasileiro, ou (c) desenvolver um mecanismo de scraping distribuído. Para o CAU/PR especificamente, já existe um workaround estável.
 
@@ -234,11 +234,11 @@ O RLS (Row Level Security) do Supabase garante que um usuário autenticado só e
 
 | Componente | Status |
 |---|---|
-| Backend FastAPI + Celery + Redis | ✅ em produção no Railway |
+| Backend FastAPI + Celery + Redis | ✅ em produção no VPS Hostinger (Docker Compose) |
 | 29 tabelas PostgreSQL (Supabase) com RLS | ✅ completo |
 | Scraper de portarias do CAU/PR | ✅ 551 portarias coletadas |
 | Pipeline Haiku (triagem) | 🔄 262/400 portarias (66%) |
-| Painel autenticado (React + Lovable) | ✅ em produção — login, 6 abas, Realtime, ficha de ato com gating |
+| Painel autenticado (React + nginx VPS) | ✅ em produção — login, 6 abas, Realtime, ficha de ato com gating |
 | White Papers Nº 01 e Nº 02 | ✅ publicados e indexáveis |
 | Billing Mercado Pago | ✅ SDK configurado — integração live pendente |
 
@@ -265,7 +265,7 @@ O RLS (Row Level Security) do Supabase garante que um usuário autenticado só e
 
 | # | Item | Detalhe |
 |---|---|---|
-| 1 | Terminar rodada Haiku | 138 portarias pendentes — executar pipeline no Railway |
+| 1 | Terminar rodada Haiku | 138 portarias pendentes — executar pipeline no VPS |
 | 2 | Pipeline Sonnet | Análise profunda dos atos Laranja e Vermelho — custo ~$2–5 |
 | 3 | Chat conversacional | RAG no banco, Sonnet responde em linguagem natural — endpoint + interface |
 | 4 | Billing live | Webhook Mercado Pago → ativação de plano no banco — fluxo end-to-end |
@@ -498,7 +498,7 @@ Este é o custo variável mais importante do modelo:
 | Rodada completa CAU/PR (400 portarias) | ~$4,80 USD (~R$24) |
 | Cache write do regimento (68k tokens) | $0,255 USD (uma vez por rodada) |
 | Análise Sonnet por ato (via cache read) | ~$0,06 USD |
-| Custo mensal de infraestrutura (Railway + Supabase) | ~R$150–300 |
+| Custo mensal de infraestrutura (VPS Hostinger + Supabase) | ~R$150–300 |
 
 O custo de IA de uma rodada completa de análise de um novo órgão é, na prática, bem abaixo de R$100. O custo real de adicionar um novo órgão é o tempo humano de configuração (scraper, regimento, revisão), não o custo de IA.
 
@@ -637,8 +637,8 @@ Decisões de infraestrutura que desbloqueiam escala sem aumentar custo operacion
 
 | # | Item | Detalhe técnico |
 |---|---|---|
-| 14 | Automação do scraper | O scraper hoje roda na máquina do Regis porque o Railway tem IP americano bloqueado pelo CAU/PR. Mover para servidor com IP brasileiro (VPS na AWS São Paulo, DigitalOcean Rio, ou proxy residencial) — desvincula a operação do laptop do fundador. |
-| 15 | Servidor próprio | Avaliar consolidação de Railway + Lovable em infraestrutura própria (VPS + Coolify ou Dokku) para reduzir custo mensal e eliminar dependência de plataformas de terceiros em cada camada do stack. Não é prioridade antes de R$30k de MRR — custo atual de Railway + Lovable é aceitável. |
+| 14 | Automação do scraper | O scraper hoje roda na máquina do Regis porque o VPS Hostinger tem IP de data center bloqueado pelo CAU/PR. Mover para proxy residencial brasileiro ou VPS com IP residencial — desvincula a operação do laptop do fundador. |
+| 15 | Expansão de infraestrutura | Infraestrutura VPS Hostinger Docker Compose já consolidada. Avaliar expansão (mais servidores, load balancing) conforme crescimento de carga e órgãos cobertos. |
 | 16 | API Enterprise | Exportação de dados via API REST para planos Enterprise — endpoint documentado, autenticado por token, com paginação, filtros por órgão/tipo/nível e webhook para novos atos. Habilita a Persona 4 (veículos de imprensa, plataformas de compliance) de forma self-service. |
 
 ---
@@ -698,16 +698,14 @@ O produto está sendo construído rápido porque o mercado espera e o momento é
 
 **GitHub:** `github.com/Regiswilczek/dig-dig`  
 **Branch principal:** `main`  
-**Deploy:** Todo push no `main` dispara rebuild automático no Lovable (frontend). O backend no Railway requer deploy manual ou CI/CD configurado.
+**Deploy:** O frontend é buildado com `npm run build:vps` e o container `frontend` no VPS é reiniciado. O backend e workers no VPS requerem rebuild da imagem Docker e restart via Docker Compose.
 
 ### Infraestrutura
 
 | Serviço | Função | Status |
 |---|---|---|
-| Railway | Backend FastAPI + Workers Celery | Em produção |
+| VPS Hostinger (Docker Compose) | Backend FastAPI + Workers Celery + Redis + Frontend nginx | Em produção |
 | Supabase | PostgreSQL + Auth + Storage + Realtime | Em produção |
-| Redis (Railway) | Broker Celery | Em produção |
-| Lovable | Frontend React + Vite + deploy | Em produção |
 | Anthropic | Claude API (Haiku + Sonnet) | Em uso ativo |
 | Mercado Pago | Billing | Configurado, não lançado |
 | Resend | Email transacional | Configurado, não em uso |
@@ -720,7 +718,7 @@ Todas em `backend/.env` (nunca commitar). As variáveis mais críticas:
 - `DATABASE_URL`: conexão direta ao PostgreSQL do Supabase.
 - `MERCADOPAGO_ACCESS_TOKEN`: ainda em ambiente de teste — deve ser trocado para live antes do billing entrar em produção.
 
-O frontend no Lovable precisa de `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` nas variáveis de ambiente do projeto Lovable.
+O frontend buildado com `npm run build:vps` precisa de `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` definidas em `frontend/.env` (ou passadas como build ARGs no Docker) antes do build.
 
 ### Regras de operação do pipeline de IA
 
@@ -747,7 +745,7 @@ Isso não é opcional. O histórico mostra o que acontece quando se ignora: $23 
 | `docs/06-seguranca-e-lgpd.md` | Auth, RLS, CORS, LGPD |
 | `docs/07-scraper-e-instituicoes.md` | Como adicionar novo órgão |
 | `docs/08-testes.md` | Testes unitários, integração, E2E |
-| `docs/09-infraestrutura-e-deploy.md` | Railway, Lovable, Supabase |
+| `docs/09-infraestrutura-e-deploy.md` | VPS Hostinger, Docker Compose, Supabase |
 | `docs/14-revisao-pre-implementacao.md` | **LEIA ANTES DE CODAR** — 8 riscos |
 | `CLAUDE.md` | Contexto completo para agentes de IA |
 
@@ -759,11 +757,11 @@ Você assume um produto com backend em produção, pipeline de IA funcionando, p
 
 ### Semana 1 — Fechar a infraestrutura mínima de receita
 
-**1a. Variáveis de ambiente no Lovable**
+**1a. Variáveis de ambiente no build do frontend**
 
-Sem `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` configuradas no Lovable, o painel existe mas não conecta ao Supabase — login não funciona, API calls falham.
+Sem `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` definidas em `frontend/.env` (ou como build ARGs Docker), o painel existe mas não conecta ao Supabase — login não funciona, API calls falham.
 
-→ Lovable → Settings → Environment Variables → adicionar as duas variáveis com os valores do projeto Supabase.
+→ Verificar `frontend/.env` no VPS, garantir que as variáveis estão presentes antes de rodar `npm run build:vps`.
 
 **1b. Billing live (Mercado Pago)**
 
@@ -823,8 +821,8 @@ Conforme o time cresce, as frentes do roadmap avançam simultaneamente. As prior
 
 ### Repositório e deploy
 - **Código:** `github.com/Regiswilczek/dig-dig`
-- **Frontend produção:** URL no painel do Lovable
-- **Backend produção:** URL no painel do Railway
+- **Frontend produção:** https://digdig.com.br (nginx no VPS Hostinger)
+- **Backend produção:** https://pnl.digdig.com.br (FastAPI no VPS Hostinger)
 - **Banco:** Painel do Supabase — projeto `pnmtlpcdivzihspnnuid`
 
 ### Documentação técnica interna

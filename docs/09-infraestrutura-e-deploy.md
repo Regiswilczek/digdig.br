@@ -307,7 +307,7 @@ logger.error("erro_download_pdf",
 | Taxa de erro API > 5% em 5 min | Alerta Sentry |
 | Worker Celery parado > 10 min | Alerta Sentry |
 | Banco indisponível | Alerta Sentry crítico |
-| Falha de pagamento Stripe | Email para usuário + admin |
+| Falha de pagamento Mercado Pago | Email para usuário + admin |
 
 ---
 
@@ -327,10 +327,10 @@ logger.error("erro_download_pdf",
 ### Plano de Recovery (RTO/RPO)
 | Cenário | RTO | RPO | Ação |
 |---------|-----|-----|------|
-| Railway reinicia pod | < 2 min | 0 | Automático |
+| Container cai e sobe sozinho | < 2 min | 0 | `docker compose up -d` automático via restart:unless-stopped |
 | Banco corrompido | < 1h | 24h | Restore Supabase |
-| Deploy quebrado | < 10 min | 0 | Rollback Railway |
-| Perda total Railway | < 2h | 24h | Re-deploy + restore |
+| Deploy quebrado | < 10 min | 0 | `git revert` + `docker compose up -d` no commit anterior |
+| Perda total da VPS | < 2h | 24h | Provisionar nova VPS + `git clone` + `.env` + `docker compose up -d` |
 
 ---
 
@@ -348,26 +348,28 @@ logger.error("erro_download_pdf",
 
 ### Configuração de workers por fase
 
-**Fase 1 (MVP, 1-5 órgãos):**
+**Fase 1 (MVP, 1-5 órgãos — atual):**
 ```
 Uvicorn: 2 workers
-Celery: 3 workers, concurrency=4
-Redis: 1 instância Railway
+Celery worker_ai: concurrency=2
+Redis: 1 instância no Docker Compose (com senha via REDIS_PASSWORD)
+VPS: KVM2 (4 vCPU, 8 GB RAM) — Hostinger
 ```
 
 **Fase 2 (5-20 órgãos):**
 ```
-Uvicorn: 4 workers (ou auto-scale Railway)
-Celery: 5 workers, concurrency=8
-Redis: 1 instância dedicada
+Uvicorn: 4 workers
+Celery worker_ai: concurrency=4
+Redis: mesma instância (Redis é leve)
+VPS: upgrade para KVM4 (8 vCPU, 16 GB RAM) se necessário
 ```
 
 **Fase 3 (20+ órgãos):**
 ```
-Migrar para AWS ECS com auto-scaling
-SQS no lugar do Redis/Celery
-RDS PostgreSQL com read replicas
-CloudFront para assets estáticos
+Considerar migração para VPS dedicada maior ou múltiplas VPS
+Nginx load balancer na frente dos workers
+Redis Cluster se filas crescerem muito
+Supabase Pro com pgBouncer para connection pooling
 ```
 
 ---
@@ -375,17 +377,20 @@ CloudFront para assets estáticos
 ## 11. Checklist de Deploy (Pré-produção)
 
 ### Infraestrutura
-- [ ] Todos os secrets configurados no Railway e no Lovable (Settings → Environment Variables)
-- [ ] Domínio configurado com HTTPS
-- [ ] Health check respondendo `/health`
-- [ ] Migrations aplicadas em produção
-- [ ] Stripe webhook configurado com o endpoint correto
+- [ ] Arquivo `.env` na raiz da VPS preenchido com todos os secrets (nunca commitar)
+- [ ] `docker compose build` concluído sem erros
+- [ ] `docker compose up -d` — todos os 5 containers `Up`
+- [ ] Domínio configurado com HTTPS (certbot wildcard `*.digdig.com.br`)
+- [ ] Health check respondendo: `curl https://digdig.com.br/health`
+- [ ] Migrations aplicadas: `docker compose exec api alembic upgrade head`
+- [ ] Webhook Mercado Pago configurado com o endpoint correto (`/billing/webhook/mercadopago`)
 
 ### Segurança
-- [ ] CORS configurado apenas para o domínio de produção
-- [ ] RLS ativo no Supabase
-- [ ] Rate limiting ativo
+- [ ] CORS configurado apenas para os domínios de produção
+- [ ] RLS ativo no Supabase (todas as tabelas com `tenant_id`)
+- [ ] Rate limiting ativo no nginx
 - [ ] Sentry configurado e recebendo eventos
+- [ ] `REDIS_PASSWORD` definido no `.env` e referenciado no `docker-compose.yml`
 
 ### Dados
 - [ ] Planos inseridos na tabela `planos`
@@ -394,9 +399,10 @@ CloudFront para assets estáticos
 - [ ] Regras específicas do CAU-PR inseridas em `tenant_regras`
 
 ### Funcional
-- [ ] Fluxo de cadastro + login funciona
-- [ ] Stripe checkout funciona em modo live
-- [ ] Webhook Stripe recebe eventos
-- [ ] Email de boas-vindas é enviado
+- [ ] Fluxo de cadastro + login funciona (Supabase Auth)
+- [ ] Mercado Pago checkout funciona em modo live
+- [ ] Webhook Mercado Pago recebe eventos (validação HMAC-SHA256)
+- [ ] Email de boas-vindas é enviado (Resend)
 - [ ] Dashboard CAU-PR carrega com dados reais
 - [ ] Exportação de ficha de denúncia funciona
+- [ ] Verificar rodada ativa antes de disparar nova: `GET /pnl/orgaos/{slug}/rodadas`

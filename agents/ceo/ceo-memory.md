@@ -17,7 +17,7 @@
 
 | Componente | Status |
 |---|---|
-| Backend FastAPI + Celery + Redis | ✅ Railway produção |
+| Backend FastAPI + Celery + Redis | ✅ VPS Hostinger (Docker Compose) |
 | 29 tabelas PostgreSQL (Supabase) + RLS | ✅ completo |
 | Scraper portarias CAU/PR | ✅ 551 coletadas |
 | Pipeline Haiku | ✅ **1.096 atos analisados** — portarias 100%, deliberações 72% |
@@ -72,7 +72,7 @@
 ### Semana 1 — Pipeline crítico + receita
 1. **Fase Sonnet** ← **URGENTE** — 14 vermelhos + 101 laranjas aguardam análise profunda (última rodada `haiku_completo`, Sonnet não rodou)
 2. **Billing live Mercado Pago** — webhook confirmação + ativação de plano no banco
-3. **Env vars no Lovable** — `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` → login funciona
+3. **Billing live Mercado Pago** — ativar plano no banco após confirmação de pagamento
 
 ### Semana 2–3 — Produto completo
 4. **Deliberações restantes** — 212 deliberações ainda não processadas
