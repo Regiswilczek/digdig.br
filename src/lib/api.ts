@@ -39,6 +39,25 @@ export async function fetchAnalysesRecentes(slug: string): Promise<AnaliseRecent
   return data.analises as AnaliseRecente[];
 }
 
+export interface AtividadeItem {
+  ato_id: string;
+  numero: string | null;
+  tipo: string | null;
+  criado_em: string | null;
+  analisado_em: string | null;
+  nivel_alerta: string | null;
+  status: "entrando" | "analisado";
+  origem?: "ato" | "financeiro";
+  descricao?: string | null;
+}
+
+export async function fetchAtividade(slug: string): Promise<AtividadeItem[]> {
+  const r = await fetch(`${API_URL}/public/orgaos/${slug}/atividade`);
+  if (!r.ok) throw new Error("Falha ao buscar atividade");
+  const data = await r.json();
+  return data.atividade as AtividadeItem[];
+}
+
 export interface CrescimentoPonto { dia: string; total: number }
 export interface Marco {
   tipo: string;

@@ -1,11 +1,12 @@
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, case, cast, Date as SADate
+from sqlalchemy import select, func, and_, or_, case, cast, Date as SADate
 from app.database import get_db
 from app.models.tenant import Tenant
 from app.models.ato import Ato
 from app.models.analise import Analise
+from app.models.dados_financeiros import Diaria
 
 router = APIRouter(prefix="/public", tags=["public"])
 
@@ -123,6 +124,119 @@ async def analises_recentes(slug: str, db: AsyncSession = Depends(get_db)):
             for r in rows
         ],
     }
+
+
+@router.get("/orgaos/{slug}/atividade")
+async def atividade_recente(slug: str, db: AsyncSession = Depends(get_db)):
+    """
+    Feed unificado de atividade: documentos que entraram no sistema (scraper)
+    e/ou foram analisados nas últimas 24h, em ordem cronológica decrescente.
+    Status possíveis: 'entrando' (sem análise) | 'analisado'
+    """
+    tenant_r = await db.execute(select(Tenant).where(Tenant.slug == slug))
+    tenant = tenant_r.scalar_one_or_none()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Órgão não encontrado")
+
+    # Analisados: últimas 24h. Entrando (scraper): últimas 4h para evitar flood de lotes antigos.
+    since_analisado = datetime.now(timezone.utc) - timedelta(hours=24)
+    since_entrando = datetime.now(timezone.utc) - timedelta(hours=4)
+
+    # Última análise por ato (subquery lateral)
+    latest_analise = (
+        select(
+            Analise.ato_id,
+            func.max(Analise.criado_em).label("analisado_em"),
+        )
+        .where(Analise.tenant_id == tenant.id)
+        .group_by(Analise.ato_id)
+        .subquery()
+    )
+    nivel_subq = (
+        select(
+            Analise.ato_id,
+            Analise.nivel_alerta,
+            Analise.criado_em.label("analisado_em"),
+        )
+        .join(latest_analise, and_(
+            Analise.ato_id == latest_analise.c.ato_id,
+            Analise.criado_em == latest_analise.c.analisado_em,
+        ))
+        .where(Analise.tenant_id == tenant.id)
+        .subquery()
+    )
+
+    atos_r = await db.execute(
+        select(
+            Ato.id.label("item_id"),
+            Ato.numero.label("numero"),
+            Ato.tipo.label("tipo"),
+            Ato.criado_em.label("criado_em"),
+            nivel_subq.c.nivel_alerta,
+            nivel_subq.c.analisado_em,
+        )
+        .outerjoin(nivel_subq, nivel_subq.c.ato_id == Ato.id)
+        .where(
+            Ato.tenant_id == tenant.id,
+            or_(
+                and_(nivel_subq.c.analisado_em.isnot(None), nivel_subq.c.analisado_em >= since_analisado),
+                and_(nivel_subq.c.analisado_em.is_(None), Ato.criado_em >= since_entrando),
+            ),
+        )
+    )
+    atos_rows = atos_r.all()
+
+    # Diárias inseridas nas últimas 4h
+    diarias_r = await db.execute(
+        select(
+            Diaria.id.label("item_id"),
+            Diaria.codigo_processo.label("numero"),
+            Diaria.nome_passageiro.label("tipo"),
+            Diaria.criado_em.label("criado_em"),
+        )
+        .where(
+            Diaria.tenant_id == tenant.id,
+            Diaria.criado_em >= since_entrando,
+        )
+    )
+    diarias_rows = diarias_r.all()
+
+    atos_items = [
+        {
+            "ato_id":       str(r.item_id),
+            "numero":       r.numero,
+            "tipo":         r.tipo,
+            "criado_em":    r.criado_em.isoformat() if r.criado_em else None,
+            "analisado_em": r.analisado_em.isoformat() if r.analisado_em else None,
+            "nivel_alerta": r.nivel_alerta,
+            "status":       "analisado" if r.nivel_alerta else "entrando",
+            "origem":       "ato",
+        }
+        for r in atos_rows
+    ]
+
+    diarias_items = [
+        {
+            "ato_id":       str(r.item_id),
+            "numero":       r.numero,
+            "tipo":         "diaria",
+            "criado_em":    r.criado_em.isoformat() if r.criado_em else None,
+            "analisado_em": None,
+            "nivel_alerta": None,
+            "status":       "entrando",
+            "origem":       "financeiro",
+            "descricao":    r.tipo,  # nome_passageiro
+        }
+        for r in diarias_rows
+    ]
+
+    todos = sorted(
+        atos_items + diarias_items,
+        key=lambda x: x["criado_em"] or "",
+        reverse=True,
+    )[:60]
+
+    return {"atividade": todos}
 
 
 @router.get("/orgaos/{slug}/crescimento")

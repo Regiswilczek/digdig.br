@@ -9,13 +9,13 @@ import {
   type PainelPendente,
   type PainelPendentesResponse,
 } from "../../../lib/api-auth";
-import { fetchStats, fetchAnalysesRecentes, fetchCrescimento, type PublicStats, type AnaliseRecente, type CrescimentoResponse, type CrescimentoPonto, type Marco } from "../../../lib/api";
+import { fetchStats, fetchAnalysesRecentes, fetchAtividade, fetchCrescimento, type PublicStats, type AnaliseRecente, type AtividadeItem, type CrescimentoResponse, type CrescimentoPonto, type Marco } from "../../../lib/api";
 import { supabase } from "../../../lib/supabase";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ExternalLink, FileText, Search, Activity } from "lucide-react";
+import { ExternalLink, FileText, Search, Activity, ArrowDownToLine } from "lucide-react";
 import { SplineEmbed } from "@/components/SplineEmbed";
 
 export const Route = createFileRoute("/painel/$slug/")({
@@ -106,6 +106,8 @@ interface FeedItem {
   criado_em: string;
   numero?: string;
   tipo?: string;
+  status?: "entrando" | "analisado";
+  analisado_em?: string | null;
 }
 
 const TIPO_ORDER = ["portaria", "ata_plenaria", "portaria_normativa", "deliberacao"];
@@ -125,100 +127,90 @@ const TIPO_SHORT: Record<string, string> = {
   contrato: "CONTRATO",
   convenio: "CONVÊNIO",
   licitacao: "LICIT.",
+  diaria: "DIÁRIA",
 };
 
 function FeedRow({ item, slug }: { item: FeedItem; slug: string }) {
+  const isEntrando = item.status === "entrando";
   const nivel = item.nivel_alerta ?? "";
-  const nivelColor = NIVEL_DOT[nivel] ?? "#d4d2cd";
+  const nivelColor = isEntrando ? "#6366f1" : (NIVEL_DOT[nivel] ?? "#d4d2cd");
   const nivelStyle = NIVEL_BG[nivel];
   const tipoShort =
     TIPO_SHORT[item.tipo ?? ""] ??
     (item.tipo ? item.tipo.slice(0, 6).toUpperCase() : "—");
 
-  return (
-    <Link
-      to="/painel/$slug/ato/$id"
-      params={{ slug, id: item.ato_id }}
-      style={{ textDecoration: "none", display: "block" }}
+  const inner = (
+    <div
+      className="group px-4 py-2.5 transition-colors hover:bg-[#faf8f3]"
+      style={{ borderBottom: `1px solid #f1efe8`, opacity: isEntrando ? 0.85 : 1 }}
     >
-      <div
-        className="group px-4 py-2.5 transition-colors hover:bg-[#faf8f3]"
-        style={{ borderBottom: `1px solid #f1efe8` }}
-      >
-        {/* Line 1: dot + tipo · número · tempo */}
-        <div className="flex items-center gap-2.5">
+      {/* Line 1: dot/icon + tipo · número · tempo */}
+      <div className="flex items-center gap-2.5">
+        {isEntrando ? (
+          <ArrowDownToLine size={10} className="flex-shrink-0" style={{ color: "#6366f1" }} />
+        ) : (
           <span
             className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-            style={{
-              background: nivelColor,
-              boxShadow: `0 0 0 3px ${nivelColor}1a`,
-            }}
+            style={{ background: nivelColor, boxShadow: `0 0 0 3px ${nivelColor}1a` }}
           />
-          <span
-            style={{
-              fontSize: 8.5,
-              fontFamily: MONO,
-              letterSpacing: "0.14em",
-              color: "#a8a59c",
-              padding: "1px 0",
-              flexShrink: 0,
-              lineHeight: 1.6,
-              textTransform: "uppercase",
-            }}
-          >
-            {tipoShort}
-          </span>
-          <p
-            className="flex-1 text-[12px] font-medium truncate"
-            style={{
-              color: INK,
-              fontFamily: MONO,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            Nº {item.numero ?? item.ato_id.slice(0, 8) + "…"}
-          </p>
-          <span
-            className="text-[9.5px] whitespace-nowrap flex-shrink-0 tabular-nums"
-            style={{ color: "#a8a59c", fontFamily: MONO }}
-          >
-            {timeAgo(item.criado_em)}
-          </span>
-        </div>
-
-        {/* Line 2: nível chip + score */}
-        <div className="flex items-center gap-2 mt-1.5 pl-[18px]">
-          {nivelStyle && (
-            <span
-              style={{
-                fontSize: 9,
-                fontFamily: MONO,
-                textTransform: "uppercase",
-                letterSpacing: "0.12em",
-                color: nivelStyle.fg,
-                background: nivelStyle.bg,
-                padding: "1.5px 6px",
-                borderRadius: 3,
-                lineHeight: 1.4,
-              }}
-            >
-              {nivel}
-            </span>
-          )}
-          {item.score_risco != null && (
-            <span
-              style={{
-                fontSize: 9.5,
-                color: "#a8a59c",
-                fontFamily: MONO,
-                letterSpacing: "0.04em",
-              }}
-            >
-              score · {item.score_risco}
-            </span>
-          )}
-        </div>
+        )}
+        <span
+          style={{
+            fontSize: 8.5,
+            fontFamily: MONO,
+            letterSpacing: "0.14em",
+            color: isEntrando ? "#818cf8" : "#a8a59c",
+            padding: "1px 0",
+            flexShrink: 0,
+            lineHeight: 1.6,
+            textTransform: "uppercase",
+          }}
+        >
+          {tipoShort}
+        </span>
+        <p
+          className="flex-1 text-[12px] font-medium truncate"
+          style={{ color: isEntrando ? "#4f46e5" : INK, fontFamily: MONO, letterSpacing: "-0.01em" }}
+        >
+          {item.numero ? `Nº ${item.numero}` : item.ato_id.slice(0, 8) + "…"}
+        </p>
+        <span
+          className="text-[9.5px] whitespace-nowrap flex-shrink-0 tabular-nums"
+          style={{ color: "#a8a59c", fontFamily: MONO }}
+        >
+          {timeAgo(item.criado_em)}
+        </span>
       </div>
+
+      {/* Line 2: status chip ou nível + score */}
+      <div className="flex items-center gap-2 mt-1.5 pl-[18px]">
+        {isEntrando ? (
+          <span style={{ fontSize: 9, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.12em", color: "#6366f1", background: "#eef2ff", padding: "1.5px 6px", borderRadius: 3, lineHeight: 1.4 }}>
+            entrando
+          </span>
+        ) : (
+          <>
+            {nivelStyle && (
+              <span style={{ fontSize: 9, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.12em", color: nivelStyle.fg, background: nivelStyle.bg, padding: "1.5px 6px", borderRadius: 3, lineHeight: 1.4 }}>
+                {nivel}
+              </span>
+            )}
+            {item.score_risco != null && (
+              <span style={{ fontSize: 9.5, color: "#a8a59c", fontFamily: MONO, letterSpacing: "0.04em" }}>
+                score · {item.score_risco}
+              </span>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+
+  if (isEntrando) return <div style={{ textDecoration: "none", display: "block" }}>{inner}</div>;
+
+  return (
+    <Link to="/painel/$slug/ato/$id" params={{ slug, id: item.ato_id }} style={{ textDecoration: "none", display: "block" }}>
+      {inner}
     </Link>
   );
 }
@@ -230,12 +222,11 @@ function RealtimeFeed({
   variant = "aside",
 }: {
   slug: string;
-  initialItems: AnaliseRecente[] | null;
+  initialItems: AtividadeItem[] | null;
   isLive: boolean;
   variant?: "aside" | "inline";
 }) {
   const [items, setItems] = useState<FeedItem[]>([]);
-  // search removed — feed is read-only
   const loading = initialItems === null;
   const channelId = useRef(`feed-${slug}-${Math.random().toString(36).slice(2, 8)}`);
 
@@ -243,13 +234,15 @@ function RealtimeFeed({
     if (initialItems)
       setItems(
         initialItems.map((i) => ({
-          id: i.id,
+          id: i.ato_id,
           ato_id: i.ato_id,
           nivel_alerta: i.nivel_alerta,
-          score_risco: i.score_risco,
-          criado_em: i.criado_em,
+          score_risco: null,
+          criado_em: i.criado_em ?? new Date().toISOString(),
           numero: i.numero ?? undefined,
           tipo: i.tipo ?? undefined,
+          status: i.status,
+          analisado_em: i.analisado_em,
         })),
       );
   }, [initialItems]);
@@ -261,16 +254,40 @@ function RealtimeFeed({
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "analises" },
         async (payload) => {
-          const row = payload.new as FeedItem;
-          const { data: ato } = await supabase
-            .from("atos")
-            .select("numero, tipo")
-            .eq("id", row.ato_id)
-            .single();
+          const row = payload.new as { id: string; ato_id: string; nivel_alerta: string | null; score_risco: number; criado_em: string };
+          const { data: ato } = await supabase.from("atos").select("numero, tipo").eq("id", row.ato_id).single();
           setItems((prev) => [
-            { ...row, numero: ato?.numero, tipo: ato?.tipo },
-            ...prev.slice(0, 49),
+            { id: row.id, ato_id: row.ato_id, nivel_alerta: row.nivel_alerta, score_risco: row.score_risco, criado_em: row.criado_em, numero: ato?.numero, tipo: ato?.tipo, status: "analisado" as const },
+            ...prev.filter((p) => p.ato_id !== row.ato_id).slice(0, 49),
           ]);
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "atos" },
+        (payload) => {
+          const row = payload.new as { id: string; numero: string; tipo: string; criado_em: string };
+          setItems((prev) => {
+            if (prev.some((p) => p.ato_id === row.id)) return prev;
+            return [
+              { id: row.id, ato_id: row.id, nivel_alerta: null, score_risco: null, criado_em: row.criado_em, numero: row.numero, tipo: row.tipo, status: "entrando" as const },
+              ...prev.slice(0, 49),
+            ];
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "diarias" },
+        (payload) => {
+          const row = payload.new as { id: string; codigo_processo: string | null; nome_passageiro: string | null; criado_em: string };
+          setItems((prev) => {
+            if (prev.some((p) => p.ato_id === row.id)) return prev;
+            return [
+              { id: row.id, ato_id: row.id, nivel_alerta: null, score_risco: null, criado_em: row.criado_em, numero: row.codigo_processo ?? undefined, tipo: "diaria", status: "entrando" as const },
+              ...prev.slice(0, 49),
+            ];
+          });
         },
       )
       .subscribe();
@@ -1746,25 +1763,23 @@ function TabPipeline({
 }: {
   slug: string;
   rodada: PainelRodada | null;
-  initialItems: AnaliseRecente[] | null;
+  initialItems: AtividadeItem[] | null;
 }) {
-  const [items, setItems] = useState<
-    {
-      id: string;
-      nivel_alerta: string | null;
-      score_risco: number;
-      criado_em: string;
-    }[]
-  >([]);
+  const [items, setItems] = useState<FeedItem[]>([]);
 
   useEffect(() => {
     if (initialItems)
       setItems(
         initialItems.map((i) => ({
-          id: i.id,
+          id: i.ato_id,
+          ato_id: i.ato_id,
           nivel_alerta: i.nivel_alerta,
-          score_risco: i.score_risco ?? 0,
-          criado_em: i.criado_em,
+          score_risco: null,
+          criado_em: i.criado_em ?? new Date().toISOString(),
+          numero: i.numero ?? undefined,
+          tipo: i.tipo ?? undefined,
+          status: i.status,
+          analisado_em: i.analisado_em,
         })),
       );
   }, [initialItems]);
@@ -1772,23 +1787,36 @@ function TabPipeline({
   useEffect(() => {
     const channel = supabase
       .channel(`pipeline-feed-${slug}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "analises" },
-        (payload) => {
-          const row = payload.new as {
-            id: string;
-            nivel_alerta: string | null;
-            score_risco: number;
-            criado_em: string;
-          };
-          setItems((prev) => [row, ...prev.slice(0, 99)]);
-        },
-      )
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "analises" }, async (payload) => {
+        const row = payload.new as { id: string; ato_id: string; nivel_alerta: string | null; score_risco: number; criado_em: string };
+        const { data: ato } = await supabase.from("atos").select("numero, tipo").eq("id", row.ato_id).single();
+        setItems((prev) => [
+          { id: row.id, ato_id: row.ato_id, nivel_alerta: row.nivel_alerta, score_risco: row.score_risco, criado_em: row.criado_em, numero: ato?.numero, tipo: ato?.tipo, status: "analisado" as const },
+          ...prev.filter((p) => p.ato_id !== row.ato_id).slice(0, 99),
+        ]);
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "atos" }, (payload) => {
+        const row = payload.new as { id: string; numero: string; tipo: string; criado_em: string };
+        setItems((prev) => {
+          if (prev.some((p) => p.ato_id === row.id)) return prev;
+          return [
+            { id: row.id, ato_id: row.id, nivel_alerta: null, score_risco: null, criado_em: row.criado_em, numero: row.numero, tipo: row.tipo, status: "entrando" as const },
+            ...prev.slice(0, 99),
+          ];
+        });
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "diarias" }, (payload) => {
+        const row = payload.new as { id: string; codigo_processo: string | null; nome_passageiro: string | null; criado_em: string };
+        setItems((prev) => {
+          if (prev.some((p) => p.ato_id === row.id)) return prev;
+          return [
+            { id: row.id, ato_id: row.id, nivel_alerta: null, score_risco: null, criado_em: row.criado_em, numero: row.codigo_processo ?? undefined, tipo: "diaria", status: "entrando" as const },
+            ...prev.slice(0, 99),
+          ];
+        });
+      })
       .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [slug]);
 
   const pct =
@@ -1796,6 +1824,8 @@ function TabPipeline({
       ? Math.round((rodada.atos_analisados_haiku / rodada.total_atos) * 100)
       : null;
 
+  const entrando = items.filter((i) => i.status === "entrando");
+  const analisado = items.filter((i) => i.status !== "entrando");
   const isActive = !!rodada || items.length > 0;
 
   return (
@@ -1804,33 +1834,28 @@ function TabPipeline({
         <div className="flex items-center gap-2">
           <span
             className="h-1.5 w-1.5 rounded-full"
-            style={{
-              background: isActive ? "#16a34a" : "#d4d2cd",
-              animation: isActive ? "pulse 2s infinite" : undefined,
-            }}
+            style={{ background: isActive ? "#16a34a" : "#d4d2cd", animation: isActive ? "pulse 2s infinite" : undefined }}
           />
           <span className="text-[13px] font-medium" style={{ color: INK }}>
             {rodada
-              ? rodada.status === "em_progresso"
-                ? "Análise em andamento"
-                : "Rodada pendente"
-              : items.length > 0
-                ? "Análise em andamento (avulsa)"
-                : "Nenhuma rodada ativa"}
+              ? rodada.status === "em_progresso" ? "Análise em andamento" : "Rodada pendente"
+              : entrando.length > 0 ? `${entrando.length} docs entrando via scraper`
+              : analisado.length > 0 ? "Análises recentes"
+              : "Nenhuma atividade nas últimas 24h"}
           </span>
         </div>
-        {rodada && (
-          <div
-            className="flex items-center gap-4 text-[11px] uppercase tracking-wider"
-            style={{ color: MUTED, fontFamily: MONO }}
-          >
-            <span>{rodada.atos_analisados_haiku} analisados</span>
-            <span>
-              {rodada.total_atos - rodada.atos_analisados_haiku} restantes
-            </span>
-            <span>${rodada.custo_total_usd.toFixed(2)} gasto</span>
-          </div>
-        )}
+        <div className="flex items-center gap-4 text-[11px] uppercase tracking-wider" style={{ color: MUTED, fontFamily: MONO }}>
+          {entrando.length > 0 && (
+            <span style={{ color: "#6366f1" }}>{entrando.length} entrando</span>
+          )}
+          {rodada && (
+            <>
+              <span>{rodada.atos_analisados_haiku} analisados</span>
+              <span>{rodada.total_atos - rodada.atos_analisados_haiku} restantes</span>
+              <span>${rodada.custo_total_usd.toFixed(2)} gasto</span>
+            </>
+          )}
+        </div>
       </div>
 
       {rodada && pct !== null && (
@@ -1839,22 +1864,15 @@ function TabPipeline({
 
       <div style={{ border: `1px solid ${BORDER}` }}>
         {items.length === 0 ? (
-          <div
-            className="px-4 py-10 text-center text-[13px]"
-            style={{ color: MUTED }}
-          >
-            {initialItems === null ? "Carregando…" : "Nenhuma rodada ativa no momento."}
+          <div className="px-4 py-10 text-center text-[13px]" style={{ color: MUTED }}>
+            {initialItems === null ? "Carregando…" : "Nenhuma atividade nas últimas 24h."}
           </div>
         ) : (
           <table className="w-full text-[13px]">
             <thead>
               <tr style={{ borderBottom: `1px solid ${BORDER}`, background: PAPER }}>
-                {["Horário", "Nível", "Score", ""].map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-3 text-left text-[10px] uppercase tracking-[0.2em] font-semibold"
-                    style={{ color: MUTED, fontFamily: MONO }}
-                  >
+                {["Horário", "Tipo", "Documento", "Status", ""].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left text-[10px] uppercase tracking-[0.2em] font-semibold" style={{ color: MUTED, fontFamily: MONO }}>
                     {h}
                   </th>
                 ))}
@@ -1862,30 +1880,27 @@ function TabPipeline({
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr
-                  key={item.id}
-                  className="hover:bg-[#faf8f3] transition-colors"
-                  style={{ borderBottom: `1px solid ${BORDER}` }}
-                >
-                  <td
-                    className="px-4 py-2.5 text-[12px]"
-                    style={{ color: MUTED, fontFamily: MONO }}
-                  >
+                <tr key={item.id} className="hover:bg-[#faf8f3] transition-colors" style={{ borderBottom: `1px solid ${BORDER}` }}>
+                  <td className="px-4 py-2.5 text-[12px]" style={{ color: MUTED, fontFamily: MONO }}>
                     {new Date(item.criado_em).toLocaleTimeString("pt-BR")}
                   </td>
+                  <td className="px-4 py-2.5 text-[10px] uppercase tracking-wider" style={{ color: SUBTLE, fontFamily: MONO }}>
+                    {TIPO_SHORT[item.tipo ?? ""] ?? (item.tipo?.slice(0, 6).toUpperCase() ?? "—")}
+                  </td>
+                  <td className="px-4 py-2.5 text-[12px]" style={{ color: INK, fontFamily: MONO }}>
+                    {item.numero ? `Nº ${item.numero}` : item.ato_id.slice(0, 8) + "…"}
+                  </td>
                   <td className="px-4 py-2.5">
-                    <NivelBadge nivel={item.nivel_alerta} />
+                    {item.status === "entrando" ? (
+                      <span className="inline-flex items-center gap-1.5" style={{ fontSize: 10, fontFamily: MONO, color: "#6366f1", background: "#eef2ff", padding: "2px 7px", borderRadius: 3, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                        <ArrowDownToLine size={9} />
+                        entrando
+                      </span>
+                    ) : (
+                      <NivelBadge nivel={item.nivel_alerta} />
+                    )}
                   </td>
-                  <td
-                    className="px-4 py-2.5"
-                    style={{ color: MUTED, fontFamily: MONO, fontSize: 12 }}
-                  >
-                    {item.score_risco}
-                  </td>
-                  <td
-                    className="px-4 py-2.5 text-[10px] uppercase tracking-wider"
-                    style={{ color: SUBTLE, fontFamily: MONO }}
-                  >
+                  <td className="px-4 py-2.5 text-[10px] uppercase tracking-wider" style={{ color: SUBTLE, fontFamily: MONO }}>
                     {timeAgo(item.criado_em)}
                   </td>
                 </tr>
@@ -3577,27 +3592,24 @@ function SlugDashboard() {
   const [stats, setStats] = useState<PublicStats | null>(null);
   const [rodada, setRodada] = useState<PainelRodada | null>(null);
   const [recentAnalyses, setRecentAnalyses] = useState<AnaliseRecente[] | null>(null);
+  const [atividade, setAtividade] = useState<AtividadeItem[] | null>(null);
   const [crescimento, setCrescimento] = useState<CrescimentoResponse | null>(null);
 
   useEffect(() => {
     fetchStats(slug).then(setStats).catch(console.error);
     fetchPainelRodada(slug).then(setRodada).catch(console.error);
-    fetchAnalysesRecentes(slug)
-      .then(setRecentAnalyses)
-      .catch(() => setRecentAnalyses([]));
+    fetchAnalysesRecentes(slug).then(setRecentAnalyses).catch(() => setRecentAnalyses([]));
+    fetchAtividade(slug).then(setAtividade).catch(() => setAtividade([]));
     fetchCrescimento(slug).then(setCrescimento).catch(console.error);
 
     const interval = setInterval(() => {
       fetchPainelRodada(slug).then(setRodada).catch(console.error);
-    }, 30_000);
+      fetchAtividade(slug).then(setAtividade).catch(console.error);
+    }, 15_000);
     return () => clearInterval(interval);
   }, [slug]);
 
-  const count24h = recentAnalyses
-    ? recentAnalyses.filter(
-        (a) => a.criado_em && Date.now() - new Date(a.criado_em).getTime() < 86_400_000
-      ).length
-    : 0;
+  const count24h = atividade ? atividade.length : 0;
 
   const nomeOrgao =
     slug === "cau-pr" ? "CAU/PR" : slug.toUpperCase().replace("-", "/");
@@ -3756,7 +3768,7 @@ function SlugDashboard() {
                 <TabDenuncias slug={slug} />
               </TabsContent>
               <TabsContent value="pipeline">
-                <TabPipeline slug={slug} rodada={rodada} initialItems={recentAnalyses} />
+                <TabPipeline slug={slug} rodada={rodada} initialItems={atividade} />
               </TabsContent>
               <TabsContent value="relatorio">
                 <TabRelatorio stats={stats} rodada={rodada} crescimento={crescimento} recentAnalyses={recentAnalyses} />
@@ -3796,7 +3808,7 @@ function SlugDashboard() {
           >
             <RealtimeFeed
               slug={slug}
-              initialItems={recentAnalyses}
+              initialItems={atividade}
               isLive={isLive}
               variant="inline"
             />
@@ -3806,7 +3818,7 @@ function SlugDashboard() {
 
       <RealtimeFeed
         slug={slug}
-        initialItems={recentAnalyses}
+        initialItems={atividade}
         isLive={isLive}
       />
     </>

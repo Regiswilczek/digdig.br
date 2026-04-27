@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "../../lib/supabase";
 import { useState, useEffect, useRef, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Search,
   FileText,
   AlertTriangle,
-  Users,
   Download,
   Send,
   Zap,
@@ -13,13 +14,14 @@ import {
   Activity,
   Plus,
   Trash2,
+  ArrowDownToLine,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SplineEmbed } from "@/components/SplineEmbed";
 import {
-  fetchAnalysesRecentes,
+  fetchAtividade,
   fetchStats,
-  type AnaliseRecente,
+  type AtividadeItem,
   type PublicStats,
 } from "../../lib/api";
 import { fetchAuthed } from "../../lib/api-auth";
@@ -48,6 +50,7 @@ const QUICK_ACTIONS = [
 
 const NIVEL_DOT: Record<string, string> = {
   vermelho: "#dc2626", laranja: "#ea580c", amarelo: "#ca8a04", verde: "#16a34a",
+  entrando: "#6366f1",
 };
 
 function timeAgo(iso: string): string {
@@ -58,14 +61,32 @@ function timeAgo(iso: string): string {
   return `há ${Math.floor(diff / 86400)}d`;
 }
 
-function nivelIcon(nivel: string | null) {
-  if (nivel === "vermelho" || nivel === "laranja") return AlertTriangle;
+function atividadeIcon(item: AtividadeItem) {
+  if (item.status === "entrando") return ArrowDownToLine;
+  if (item.nivel_alerta === "vermelho" || item.nivel_alerta === "laranja") return AlertTriangle;
   return FileText;
+}
+
+function atividadeDot(item: AtividadeItem): string {
+  if (item.status === "entrando") return "#6366f1";
+  return NIVEL_DOT[item.nivel_alerta ?? ""] ?? "#d4d2cd";
+}
+
+function atividadeBg(item: AtividadeItem): string {
+  if (item.status === "entrando") return "#eef2ff";
+  return PAPER;
+}
+
+function atividadeLabel(item: AtividadeItem): string {
+  if (item.status === "entrando") return "Entrando no sistema";
+  if (item.nivel_alerta) return `Nível ${item.nivel_alerta}`;
+  return TIPO_LABEL[item.tipo ?? ""] ?? "Ato";
 }
 
 const TIPO_LABEL: Record<string, string> = {
   portaria: "Portaria", ata_plenaria: "Ata Plenária",
   portaria_normativa: "Port. Normativa", deliberacao: "Deliberação",
+  media_library: "Transparência", pdf: "PDF", docx: "Documento",
 };
 
 const SLUG = "cau-pr";
@@ -88,12 +109,12 @@ interface Sessao {
 // ─── Activity Panel ──────────────────────────────────────────────────────────
 
 function ActivityPanel({
-  isLive, count24h, stats, analyses, actSearch, setActSearch, filteredAnalyses,
+  isLive, count24h, stats, atividade, actSearch, setActSearch,
   sessoes, sessaoAtual, onSelectSessao, onNovaSessao, onDeletarSessao,
 }: {
   isLive: boolean; count24h: number; stats: PublicStats | null;
-  analyses: AnaliseRecente[] | null; actSearch: string;
-  setActSearch: (v: string) => void; filteredAnalyses: AnaliseRecente[];
+  atividade: AtividadeItem[] | null; actSearch: string;
+  setActSearch: (v: string) => void;
   sessoes: Sessao[]; sessaoAtual: string | null;
   onSelectSessao: (id: string) => void;
   onNovaSessao: () => void;
@@ -185,76 +206,258 @@ function ActivityPanel({
 
       {/* Feed */}
       <div className="flex-1 overflow-y-auto">
-        <p className="text-[9px] uppercase tracking-[0.22em] px-4 pt-3 pb-1" style={{ color: SUBTLE, fontFamily: MONO }}>
-          Atividade Recente {isLive && <span style={{ color: "#15803d" }}>● ao vivo</span>}
-        </p>
-        {analyses === null && (
+        <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+          <p className="text-[9px] uppercase tracking-[0.22em]" style={{ color: SUBTLE, fontFamily: MONO }}>
+            Atividade Recente
+          </p>
+          {isLive && (
+            <span className="flex items-center gap-1 text-[9px] uppercase tracking-wider" style={{ color: "#16a34a", fontFamily: MONO }}>
+              <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "#16a34a" }} />
+              ao vivo
+            </span>
+          )}
+        </div>
+        {atividade === null && (
           <p className="text-[11px] text-center pt-4" style={{ color: SUBTLE }}>Carregando…</p>
         )}
-        {filteredAnalyses.map((item) => {
-          const Icon = nivelIcon(item.nivel_alerta);
-          const dot = NIVEL_DOT[item.nivel_alerta ?? ""] ?? "#d4d2cd";
-          const tipoStr = TIPO_LABEL[item.tipo ?? ""] ?? "Ato";
-          return (
-            <Link
-              key={item.id}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              to={"/painel/$slug/ato/$id" as any}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              params={{ slug: SLUG, id: item.ato_id } as any}
-              style={{ textDecoration: "none", display: "block", borderBottom: `1px solid ${BORDER}` }}
-              className="flex items-start gap-3 px-4 py-3 hover:bg-[#faf8f3] transition-colors"
-            >
-              <div className="mt-0.5 w-6 h-6 flex items-center justify-center flex-shrink-0"
-                style={{ background: PAPER, border: `1px solid ${BORDER}`, borderRadius: 2 }}>
-                <Icon size={11} style={{ color: dot }} />
+        {(atividade ?? [])
+          .filter((item) =>
+            actSearch === "" ||
+            (item.numero ?? "").toLowerCase().includes(actSearch.toLowerCase()) ||
+            (item.tipo ?? "").toLowerCase().includes(actSearch.toLowerCase()) ||
+            (item.nivel_alerta ?? "").toLowerCase().includes(actSearch.toLowerCase())
+          )
+          .map((item, idx) => {
+            const Icon   = atividadeIcon(item);
+            const dot    = atividadeDot(item);
+            const bg     = atividadeBg(item);
+            const border = item.status === "entrando" ? "1px solid #c7d2fe" : `1px solid ${BORDER}`;
+            const tipoStr = TIPO_LABEL[item.tipo ?? ""] ?? "Ato";
+            const label   = atividadeLabel(item);
+            const ref     = (item.numero ?? "").length > 35
+              ? (item.numero ?? "").slice(0, 33) + "…"
+              : (item.numero ?? "—");
+            const ts = item.status === "entrando"
+              ? (item.criado_em ? timeAgo(item.criado_em) : "—")
+              : (item.analisado_em ? timeAgo(item.analisado_em) : item.criado_em ? timeAgo(item.criado_em) : "—");
+
+            const inner = (
+              <div
+                className="flex items-start gap-3 px-4 py-3 hover:brightness-95 transition-all"
+                style={{ borderBottom: `1px solid ${BORDER}` }}
+              >
+                <div className="mt-0.5 w-6 h-6 flex items-center justify-center flex-shrink-0"
+                  style={{ background: bg, border, borderRadius: 2 }}>
+                  <Icon size={11} style={{ color: dot }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11.5px] font-medium leading-snug truncate" style={{ color: INK, fontFamily: MONO }}>
+                    {tipoStr !== "Ato" ? `${tipoStr} ` : ""}{ref}
+                  </p>
+                  <p className="text-[10px] mt-0.5 capitalize" style={{ color: item.status === "entrando" ? "#6366f1" : MUTED }}>
+                    {label}
+                  </p>
+                </div>
+                <span className="text-[9.5px] flex-shrink-0 mt-0.5 uppercase tracking-wider whitespace-nowrap" style={{ color: SUBTLE, fontFamily: MONO }}>
+                  {ts}
+                </span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-medium leading-snug truncate" style={{ color: INK, fontFamily: MONO }}>
-                  {tipoStr} {item.numero ?? "—"}
-                </p>
-                <p className="text-[10.5px] mt-0.5 capitalize" style={{ color: MUTED }}>
-                  {item.nivel_alerta ? `Nível ${item.nivel_alerta}` : tipoStr}
-                </p>
-              </div>
-              <span className="text-[9.5px] flex-shrink-0 mt-0.5 uppercase tracking-wider whitespace-nowrap" style={{ color: SUBTLE, fontFamily: MONO }}>
-                {item.criado_em ? timeAgo(item.criado_em) : "—"}
-              </span>
-            </Link>
-          );
-        })}
+            );
+
+            if (item.status === "analisado") {
+              return (
+                <Link
+                  key={`${item.ato_id}-${idx}`}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  to={"/painel/$slug/ato/$id" as any}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  params={{ slug: SLUG, id: item.ato_id } as any}
+                  style={{ textDecoration: "none", display: "block" }}
+                >
+                  {inner}
+                </Link>
+              );
+            }
+            // "entrando" — sem link ainda (sem ficha de análise)
+            return <div key={`${item.ato_id}-${idx}`}>{inner}</div>;
+          })
+        }
       </div>
     </div>
   );
 }
 
+// ─── Markdown components ──────────────────────────────────────────────────────
+
+const mdComponents: import("react-markdown").Components = {
+  // Parágrafos
+  p: ({ children }) => (
+    <p style={{ margin: "0 0 0.75em", lineHeight: 1.65, fontSize: 14, color: INK }}>
+      {children}
+    </p>
+  ),
+  // Títulos
+  h1: ({ children }) => (
+    <h1 style={{ fontFamily: TIGHT, fontSize: 18, fontWeight: 600, letterSpacing: "-0.025em", color: INK, margin: "1.1em 0 0.4em", lineHeight: 1.2 }}>
+      {children}
+    </h1>
+  ),
+  h2: ({ children }) => (
+    <h2 style={{ fontFamily: TIGHT, fontSize: 15, fontWeight: 600, letterSpacing: "-0.02em", color: INK, margin: "1em 0 0.35em", lineHeight: 1.25, borderBottom: `1px solid ${BORDER}`, paddingBottom: "0.25em" }}>
+      {children}
+    </h2>
+  ),
+  h3: ({ children }) => (
+    <h3 style={{ fontFamily: TIGHT, fontSize: 13.5, fontWeight: 600, color: INK, margin: "0.9em 0 0.3em", lineHeight: 1.3, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+      {children}
+    </h3>
+  ),
+  // Listas
+  ul: ({ children }) => (
+    <ul style={{ margin: "0 0 0.75em", paddingLeft: "1.35em", listStyle: "none" }}>
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => (
+    <ol style={{ margin: "0 0 0.75em", paddingLeft: "1.35em" }}>
+      {children}
+    </ol>
+  ),
+  li: ({ children }) => (
+    <li style={{ margin: "0.2em 0", fontSize: 14, lineHeight: 1.6, color: INK, position: "relative" }}>
+      <span style={{ position: "absolute", left: "-1.1em", color: "#16a34a", fontFamily: MONO, fontSize: 11, top: "0.35em" }}>▸</span>
+      {children}
+    </li>
+  ),
+  // Bold / Italic
+  strong: ({ children }) => (
+    <strong style={{ fontWeight: 600, color: INK }}>{children}</strong>
+  ),
+  em: ({ children }) => (
+    <em style={{ fontStyle: "italic", color: MUTED }}>{children}</em>
+  ),
+  // Código inline
+  code: ({ children, className }) => {
+    const isBlock = className?.startsWith("language-");
+    if (isBlock) return <code className={className}>{children}</code>;
+    return (
+      <code style={{
+        fontFamily: MONO, fontSize: 12, background: "#f0ede5",
+        border: `1px solid ${BORDER}`, borderRadius: 2,
+        padding: "0.1em 0.4em", color: "#0a5c36",
+      }}>
+        {children}
+      </code>
+    );
+  },
+  // Blocos de código
+  pre: ({ children }) => (
+    <pre style={{
+      background: "#0a0a0a", color: "#d4d2cd",
+      borderRadius: 3, padding: "0.85em 1em",
+      overflowX: "auto", fontSize: 12.5,
+      fontFamily: MONO, margin: "0.75em 0",
+      lineHeight: 1.55,
+    }}>
+      {children}
+    </pre>
+  ),
+  // Blockquote
+  blockquote: ({ children }) => (
+    <blockquote style={{
+      borderLeft: `3px solid #16a34a`, paddingLeft: "0.85em",
+      margin: "0.75em 0", color: MUTED, fontStyle: "italic",
+    }}>
+      {children}
+    </blockquote>
+  ),
+  // Linha horizontal
+  hr: () => (
+    <hr style={{ border: "none", borderTop: `1px solid ${BORDER}`, margin: "1em 0" }} />
+  ),
+  // Links
+  a: ({ href, children }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer"
+      style={{ color: "#0a5c36", textDecoration: "underline", textUnderlineOffset: 2 }}>
+      {children}
+    </a>
+  ),
+  // Tabelas
+  table: ({ children }) => (
+    <div style={{ overflowX: "auto", margin: "0.75em 0" }}>
+      <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 13 }}>
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children }) => (
+    <thead style={{ background: PAPER }}>
+      {children}
+    </thead>
+  ),
+  th: ({ children }) => (
+    <th style={{ padding: "0.4em 0.75em", borderBottom: `2px solid ${BORDER}`, textAlign: "left", fontFamily: MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: SUBTLE, fontWeight: 600 }}>
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td style={{ padding: "0.4em 0.75em", borderBottom: `1px solid ${BORDER}`, color: INK, lineHeight: 1.5 }}>
+      {children}
+    </td>
+  ),
+};
+
 // ─── Message bubble ───────────────────────────────────────────────────────────
 
 function Bubble({ msg, isLast, isStreaming }: { msg: Message; isLast: boolean; isStreaming: boolean }) {
   const isUser = msg.role === "user";
+
+  if (isUser) {
+    return (
+      <div className="flex justify-end mb-4">
+        <div
+          className="max-w-[82%] px-4 py-3"
+          style={{
+            background: INK, color: "#fff",
+            borderRadius: 3, fontFamily: TIGHT,
+            fontSize: 14, lineHeight: 1.6,
+            wordBreak: "break-word",
+          }}
+        >
+          {msg.conteudo}
+        </div>
+      </div>
+    );
+  }
+
+  // Assistant bubble — renderiza markdown
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
+    <div className="flex justify-start mb-5">
       <div
-        className="max-w-[82%] px-4 py-3"
+        className="max-w-[88%] px-5 py-4"
         style={{
-          background: isUser ? INK : PAPER,
-          color: isUser ? "#fff" : INK,
-          border: isUser ? "none" : `1px solid ${BORDER}`,
+          background: PAPER,
+          border: `1px solid ${BORDER}`,
           borderRadius: 3,
-          fontFamily: isUser ? TIGHT : undefined,
-          fontSize: 14,
-          lineHeight: 1.6,
-          whiteSpace: "pre-wrap",
           wordBreak: "break-word",
         }}
       >
-        {msg.conteudo || (isLast && isStreaming ? (
+        {!msg.conteudo && isLast && isStreaming ? (
           <span className="flex gap-1 items-center" style={{ color: SUBTLE }}>
-            <span className="animate-pulse">▮</span>
+            <span className="animate-pulse" style={{ fontFamily: MONO }}>▮</span>
           </span>
-        ) : "")}
-        {isLast && isStreaming && msg.conteudo && (
-          <span className="inline-block w-0.5 h-3.5 ml-0.5 align-middle animate-pulse" style={{ background: "#16a34a" }} />
+        ) : (
+          <>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+              {msg.conteudo}
+            </ReactMarkdown>
+            {isLast && isStreaming && (
+              <span
+                className="inline-block w-0.5 h-3.5 ml-0.5 align-middle animate-pulse"
+                style={{ background: "#16a34a" }}
+              />
+            )}
+          </>
         )}
       </div>
     </div>
@@ -267,7 +470,7 @@ function ChatPage() {
   const [userName, setUserName] = useState("Usuário");
   const [input, setInput] = useState("");
   const [actSearch, setActSearch] = useState("");
-  const [analyses, setAnalyses] = useState<AnaliseRecente[] | null>(null);
+  const [analyses, setAnalyses] = useState<AtividadeItem[] | null>(null);
   const [stats, setStats] = useState<PublicStats | null>(null);
   const [activityOpen, setActivityOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -285,9 +488,15 @@ function ChatPage() {
       const raw = meta ?? session.user.email?.split("@")[0] ?? "Usuário";
       setUserName(raw.charAt(0).toUpperCase() + raw.slice(1));
     });
-    fetchAnalysesRecentes(SLUG).then(setAnalyses).catch(() => setAnalyses([]));
+    fetchAtividade(SLUG).then(setAnalyses).catch(() => setAnalyses([]));
     fetchStats(SLUG).then(setStats).catch(console.error);
     carregarSessoes();
+
+    // Auto-refresh da atividade a cada 15s para mostrar novos docs em tempo real
+    const interval = setInterval(() => {
+      fetchAtividade(SLUG).then(setAnalyses).catch(() => {});
+    }, 15_000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -439,19 +648,8 @@ function ChatPage() {
     }
   }
 
-  const count24h = analyses
-    ? analyses.filter((a) => a.criado_em && Date.now() - new Date(a.criado_em).getTime() < 86_400_000).length
-    : 0;
+  const count24h = analyses ? analyses.length : 0;
   const isLive = count24h > 0;
-  const filteredAnalyses = analyses
-    ? analyses.filter(
-        (a) =>
-          actSearch === "" ||
-          (a.numero ?? "").toLowerCase().includes(actSearch.toLowerCase()) ||
-          (a.tipo ?? "").toLowerCase().includes(actSearch.toLowerCase()) ||
-          (a.nivel_alerta ?? "").toLowerCase().includes(actSearch.toLowerCase())
-      )
-    : [];
 
   const hasMessages = messages.length > 0;
 
@@ -621,8 +819,8 @@ function ChatPage() {
           </SheetTrigger>
           <SheetContent side="bottom" className="p-0 h-[85vh] rounded-t-2xl overflow-hidden">
             <ActivityPanel
-              isLive={isLive} count24h={count24h} stats={stats} analyses={analyses}
-              actSearch={actSearch} setActSearch={setActSearch} filteredAnalyses={filteredAnalyses}
+              isLive={isLive} count24h={count24h} stats={stats} atividade={analyses}
+              actSearch={actSearch} setActSearch={setActSearch}
               sessoes={sessoes} sessaoAtual={sessaoId}
               onSelectSessao={carregarSessao} onNovaSessao={novaSessao}
               onDeletarSessao={deletarSessao}
@@ -637,8 +835,8 @@ function ChatPage() {
         style={{ borderLeft: `1px solid ${BORDER}` }}
       >
         <ActivityPanel
-          isLive={isLive} count24h={count24h} stats={stats} analyses={analyses}
-          actSearch={actSearch} setActSearch={setActSearch} filteredAnalyses={filteredAnalyses}
+          isLive={isLive} count24h={count24h} stats={stats} atividade={analyses}
+          actSearch={actSearch} setActSearch={setActSearch}
           sessoes={sessoes} sessaoAtual={sessaoId}
           onSelectSessao={carregarSessao} onNovaSessao={novaSessao}
           onDeletarSessao={deletarSessao}
