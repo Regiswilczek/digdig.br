@@ -9,7 +9,7 @@ import {
   type PainelPendente,
   type PainelPendentesResponse,
 } from "../../../lib/api-auth";
-import { fetchStats, fetchAnalysesRecentes, fetchAtividade, fetchCrescimento, type PublicStats, type AnaliseRecente, type AtividadeItem, type CrescimentoResponse, type CrescimentoPonto, type Marco } from "../../../lib/api";
+import { fetchStats, fetchAnalysesRecentes, fetchAtividade, fetchCrescimento, fetchFinanceiroStats, fetchFinanceiroDiarias, fetchFinanceiroPassagens, type PublicStats, type AnaliseRecente, type AtividadeItem, type CrescimentoResponse, type CrescimentoPonto, type Marco, type FinanceiroStats, type FinanceiroResponse } from "../../../lib/api";
 import { supabase } from "../../../lib/supabase";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -825,15 +825,22 @@ function TabVisaoGeral({
   recentCount24h,
   recentAnalyses: _recentAnalyses,
   crescimento,
+  slug,
 }: {
   stats: PublicStats | null;
   rodada: PainelRodada | null;
   recentCount24h: number;
   recentAnalyses: AnaliseRecente[] | null;
   crescimento: CrescimentoResponse | null;
+  slug: string;
 }) {
   const [modal, setModal] = useState<null | "cobertura" | "alertas" | "custo">(null);
   const [cardHover, setCardHover] = useState<string | null>(null);
+  const [finStats, setFinStats] = useState<FinanceiroStats | null>(null);
+
+  useEffect(() => {
+    fetchFinanceiroStats(slug).then(setFinStats).catch(() => {});
+  }, [slug]);
 
   const dist = stats?.distribuicao;
   const totalComNivel = dist ? dist.verde + dist.amarelo + dist.laranja + dist.vermelho : 0;
@@ -1294,6 +1301,50 @@ function TabVisaoGeral({
             </p>
           </div>
         </div>
+      </div>
+
+      {/* ── 5. Dados Financeiros ── */}
+      <div style={{ border: `1px solid #c7d2fe`, background: "#eef2ff", padding: "18px 24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <p style={{ fontFamily: MONO, fontSize: 9, color: "#4338ca", letterSpacing: "0.18em", textTransform: "uppercase" }}>
+            Dados Financeiros
+          </p>
+          <span style={{
+            fontFamily: MONO, fontSize: 8, letterSpacing: "0.22em", textTransform: "uppercase",
+            background: "#4338ca", color: "#fff", padding: "2px 7px", borderRadius: 2,
+          }}>
+            NOVIDADE
+          </span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {/* Diárias */}
+          <div style={{ background: "#fff", border: `1px solid #c7d2fe`, padding: "14px 16px" }}>
+            <p style={{ fontFamily: MONO, fontSize: 8.5, color: "#6366f1", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 6 }}>
+              Diárias &amp; Deslocamentos
+            </p>
+            <p style={{ fontFamily: TIGHT, fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1, color: INK, marginBottom: 4 }}>
+              {finStats ? fmt(finStats.diarias.total) : "—"}
+            </p>
+            <p style={{ fontFamily: MONO, fontSize: 10, color: MUTED }}>
+              registros extraídos · 0 analisados
+            </p>
+          </div>
+          {/* Passagens */}
+          <div style={{ background: "#fff", border: `1px solid #c7d2fe`, padding: "14px 16px" }}>
+            <p style={{ fontFamily: MONO, fontSize: 8.5, color: "#6366f1", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 6 }}>
+              Passagens Aéreas
+            </p>
+            <p style={{ fontFamily: TIGHT, fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1, color: INK, marginBottom: 4 }}>
+              {finStats ? fmt(finStats.passagens.total) : "—"}
+            </p>
+            <p style={{ fontFamily: MONO, fontSize: 10, color: MUTED }}>
+              registros extraídos · 0 analisados
+            </p>
+          </div>
+        </div>
+        <p style={{ fontSize: 11, color: "#6366f1", fontFamily: MONO, marginTop: 10 }}>
+          Fonte: Portal de Transparência Implanta · CAU/PR · 2024–2026
+        </p>
       </div>
     </div>
   );
@@ -3457,20 +3508,123 @@ function TabPendentes({ slug }: { slug: string }) {
   );
 }
 
+// ── Tab: Financeiro (diárias / passagens) ────────────────────────────────
+function TabFinanceiro({ slug, tipo }: { slug: string; tipo: "diarias" | "passagens" }) {
+  const [data, setData] = useState<FinanceiroResponse | null>(null);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setPage(1);
+    setData(null);
+  }, [tipo]);
+
+  useEffect(() => {
+    setLoading(true);
+    const fn = tipo === "diarias" ? fetchFinanceiroDiarias : fetchFinanceiroPassagens;
+    fn(slug, page).then(setData).catch(() => setData(null)).finally(() => setLoading(false));
+  }, [slug, tipo, page]);
+
+  const cols = tipo === "diarias"
+    ? ["Data", "Proc.", "Tipo", "Beneficiário", "Cidade", "Valor"]
+    : ["Data", "Proc.", "Cia Aérea", "Passageiro", "Trecho", "Valor"];
+
+  const fmtBRL = (v: number | null) =>
+    v == null ? "—" : `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, letterSpacing: "0.16em", textTransform: "uppercase" }}>
+          {data ? `${data.total.toLocaleString("pt-BR")} registros` : "carregando…"}
+        </p>
+        {data && data.pages > 1 && (
+          <div className="flex items-center gap-2">
+            <button
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              style={{ fontFamily: MONO, fontSize: 10, color: page <= 1 ? SUBTLE : INK, background: "none", border: `1px solid ${BORDER}`, padding: "3px 8px", cursor: page <= 1 ? "default" : "pointer" }}
+            >
+              ←
+            </button>
+            <span style={{ fontFamily: MONO, fontSize: 10, color: MUTED }}>{page}/{data.pages}</span>
+            <button
+              disabled={page >= data.pages}
+              onClick={() => setPage((p) => p + 1)}
+              style={{ fontFamily: MONO, fontSize: 10, color: page >= data.pages ? SUBTLE : INK, background: "none", border: `1px solid ${BORDER}`, padding: "3px 8px", cursor: page >= data.pages ? "default" : "pointer" }}
+            >
+              →
+            </button>
+          </div>
+        )}
+      </div>
+      <div style={{ border: `1px solid ${BORDER}`, overflowX: "auto" }}>
+        {loading || !data ? (
+          <div className="px-4 py-10 text-center text-[13px]" style={{ color: MUTED }}>
+            {loading ? "Carregando…" : "Nenhum registro."}
+          </div>
+        ) : (
+          <table className="w-full text-[12px]" style={{ minWidth: 640 }}>
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${BORDER}`, background: PAPER }}>
+                {cols.map((h) => (
+                  <th key={h} className="px-3 py-2.5 text-left" style={{ fontFamily: MONO, fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED, fontWeight: 600, whiteSpace: "nowrap" }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.registros.map((r) => (
+                <tr key={r.id} style={{ borderBottom: `1px solid #f1efe8` }} className="hover:bg-[#faf8f3] transition-colors">
+                  <td className="px-3 py-2" style={{ color: MUTED, fontFamily: MONO, whiteSpace: "nowrap" }}>
+                    {r.data ? new Date(r.data).toLocaleDateString("pt-BR") : r.periodo_ref ?? "—"}
+                  </td>
+                  <td className="px-3 py-2" style={{ color: SUBTLE, fontFamily: MONO, whiteSpace: "nowrap" }}>
+                    {r.codigo_processo ?? "—"}
+                  </td>
+                  {tipo === "diarias" ? (
+                    <>
+                      <td className="px-3 py-2 max-w-[200px] truncate" style={{ color: MUTED }} title={r.tipo ?? undefined}>{r.tipo ?? "—"}</td>
+                      <td className="px-3 py-2" style={{ color: INK }}>{r.beneficiario ?? "—"}</td>
+                      <td className="px-3 py-2" style={{ color: MUTED }}>{r.cidade ?? "—"}</td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-3 py-2 max-w-[180px] truncate" style={{ color: MUTED }} title={r.cia ?? undefined}>{r.cia ?? "—"}</td>
+                      <td className="px-3 py-2" style={{ color: INK }}>{r.passageiro ?? "—"}</td>
+                      <td className="px-3 py-2 max-w-[200px] truncate" style={{ color: MUTED }} title={r.trecho ?? undefined}>{r.trecho ?? "—"}</td>
+                    </>
+                  )}
+                  <td className="px-3 py-2 text-right" style={{ color: INK, fontFamily: MONO, whiteSpace: "nowrap" }}>
+                    {fmtBRL(r.valor)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Tab: Dados (submenu interno) ─────────────────────────────────────────
 const DADOS_TIPOS = [
-  { value: "ata_plenaria",         label: "Atas Plenárias" },
-  { value: "portaria",             label: "Portarias" },
-  { value: "deliberacao",          label: "Deliberações" },
-  { value: "portaria_normativa",   label: "Port. Normativas" },
-  { value: "dispensa_eletronica",  label: "Dispensas Eletr." },
-  { value: "relatorio_parecer",    label: "Rel./Parecer" },
-  { value: "relatorio_tcu",        label: "Rel. TCU" },
-  { value: "contratacao_direta",   label: "Cont. Direta" },
-  { value: "auditoria_independente", label: "Auditorias" },
-  { value: "contrato",             label: "Contratos" },
-  { value: "convenio",             label: "Convênios" },
-  { value: "pendentes",            label: "Pendentes" },
+  { value: "ata_plenaria",         label: "Atas Plenárias",     grupo: "docs" },
+  { value: "portaria",             label: "Portarias",           grupo: "docs" },
+  { value: "deliberacao",          label: "Deliberações",        grupo: "docs" },
+  { value: "portaria_normativa",   label: "Port. Normativas",    grupo: "docs" },
+  { value: "dispensa_eletronica",  label: "Dispensas Eletr.",    grupo: "docs" },
+  { value: "relatorio_parecer",    label: "Rel./Parecer",        grupo: "docs" },
+  { value: "relatorio_tcu",        label: "Rel. TCU",            grupo: "docs" },
+  { value: "contratacao_direta",   label: "Cont. Direta",        grupo: "docs" },
+  { value: "auditoria_independente", label: "Auditorias",        grupo: "docs" },
+  { value: "contrato",             label: "Contratos",           grupo: "docs" },
+  { value: "convenio",             label: "Convênios",           grupo: "docs" },
+  { value: "pendentes",            label: "Pendentes",           grupo: "docs" },
+  { value: "diarias",             label: "Diárias",              grupo: "financeiro" },
+  { value: "passagens",            label: "Passagens Aéreas",    grupo: "financeiro" },
 ] as const;
 
 function TabDados({ slug }: { slug: string }) {
@@ -3525,60 +3679,90 @@ function TabDados({ slug }: { slug: string }) {
         </span>
       </div>
 
-      {/* Grid de chips — sem scroll horizontal, totalmente visível */}
-      <div
-        className="grid gap-[1px] mb-6"
-        style={{
-          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-          background: BORDER,
-          border: `1px solid ${BORDER}`,
-        }}
-      >
-        {DADOS_TIPOS.map((t, i) => {
-          const ativo = tipo === t.value;
-          return (
-            <button
-              key={t.value}
-              onClick={() => setTipo(t.value)}
-              className="text-left transition-colors group relative"
-              style={{
-                fontFamily: MONO,
-                fontSize: 10.5,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                padding: "10px 12px",
-                background: ativo ? INK : "#fff",
-                color: ativo ? "#fff" : MUTED,
-                fontWeight: ativo ? 600 : 500,
-                cursor: "pointer",
-                border: "none",
-                borderLeft: ativo ? `2px solid ${ACCENT}` : "2px solid transparent",
-              }}
-              onMouseEnter={(e) => {
-                if (!ativo) e.currentTarget.style.background = PAPER;
-              }}
-              onMouseLeave={(e) => {
-                if (!ativo) e.currentTarget.style.background = "#fff";
-              }}
-            >
-              <span
+      {/* Grid de chips — docs */}
+      <div className="mb-2">
+        <p style={{ fontFamily: MONO, fontSize: 8.5, color: SUBTLE, letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
+          Documentos
+        </p>
+        <div
+          className="grid gap-[1px] mb-4"
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+            background: BORDER,
+            border: `1px solid ${BORDER}`,
+          }}
+        >
+          {DADOS_TIPOS.filter((t) => t.grupo === "docs").map((t, i) => {
+            const ativo = tipo === t.value;
+            return (
+              <button
+                key={t.value}
+                onClick={() => setTipo(t.value)}
+                className="text-left transition-colors"
                 style={{
-                  fontSize: 9,
-                  color: ativo ? ACCENT : SUBTLE,
-                  marginRight: 6,
+                  fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.1em", textTransform: "uppercase",
+                  padding: "10px 12px",
+                  background: ativo ? INK : "#fff",
+                  color: ativo ? "#fff" : MUTED,
+                  fontWeight: ativo ? 600 : 500,
+                  cursor: "pointer", border: "none",
+                  borderLeft: ativo ? `2px solid ${ACCENT}` : "2px solid transparent",
                 }}
+                onMouseEnter={(e) => { if (!ativo) e.currentTarget.style.background = PAPER; }}
+                onMouseLeave={(e) => { if (!ativo) e.currentTarget.style.background = "#fff"; }}
               >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              {t.label}
-            </button>
-          );
-        })}
+                <span style={{ fontSize: 9, color: ativo ? ACCENT : SUBTLE, marginRight: 6 }}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Grupo financeiro */}
+        <p style={{ fontFamily: MONO, fontSize: 8.5, color: "#6366f1", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
+          Financeiro · novidade
+        </p>
+        <div
+          className="grid gap-[1px] mb-6"
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+            background: "#c7d2fe",
+            border: `1px solid #c7d2fe`,
+          }}
+        >
+          {DADOS_TIPOS.filter((t) => t.grupo === "financeiro").map((t) => {
+            const ativo = tipo === t.value;
+            return (
+              <button
+                key={t.value}
+                onClick={() => setTipo(t.value)}
+                className="text-left transition-colors"
+                style={{
+                  fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.1em", textTransform: "uppercase",
+                  padding: "10px 12px",
+                  background: ativo ? "#4338ca" : "#eef2ff",
+                  color: ativo ? "#fff" : "#4338ca",
+                  fontWeight: ativo ? 600 : 500,
+                  cursor: "pointer", border: "none",
+                  borderLeft: ativo ? `2px solid #818cf8` : "2px solid transparent",
+                }}
+                onMouseEnter={(e) => { if (!ativo) e.currentTarget.style.background = "#e0e7ff"; }}
+                onMouseLeave={(e) => { if (!ativo) e.currentTarget.style.background = "#eef2ff"; }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Conteúdo */}
       {tipo === "pendentes" ? (
         <TabPendentes slug={slug} />
+      ) : tipo === "diarias" || tipo === "passagens" ? (
+        <TabFinanceiro slug={slug} tipo={tipo} />
       ) : (
         <TabAtos slug={slug} tipo={tipo} />
       )}
@@ -3759,7 +3943,7 @@ function SlugDashboard() {
 
             <div className="px-4 sm:px-6 md:px-10 py-6 sm:py-8 pb-24 lg:pb-8">
               <TabsContent value="visao-geral">
-                <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} recentAnalyses={recentAnalyses} crescimento={crescimento} />
+                <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} recentAnalyses={recentAnalyses} crescimento={crescimento} slug={slug} />
               </TabsContent>
               <TabsContent value="dados">
                 <TabDados slug={slug} />

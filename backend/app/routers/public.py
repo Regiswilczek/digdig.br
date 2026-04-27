@@ -1,12 +1,17 @@
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, or_, case, cast, Date as SADate
+from sqlalchemy import select, func, and_, or_, case, cast, Date as SADate, text
 from app.database import get_db
 from app.models.tenant import Tenant
 from app.models.ato import Ato
 from app.models.analise import Analise
 from app.models.dados_financeiros import Diaria
+
+# SQL fragment: identifica passagens aéreas pelo nome da cia
+_PASSAGEM_COND = Diaria.nome_despesa_padrao.ilike("%Linhas Aéreas%") | \
+                 Diaria.nome_despesa_padrao.ilike("%Linhas Aereas%") | \
+                 Diaria.nome_despesa_padrao.ilike("%AIRLINES%")
 
 router = APIRouter(prefix="/public", tags=["public"])
 
@@ -425,6 +430,144 @@ async def get_atos(
                 "data_publicacao": r.data_publicacao.isoformat() if r.data_publicacao else None,
                 "nivel_alerta": r.nivel_alerta,
                 "score_risco": r.score_risco,
+            }
+            for r in rows
+        ],
+    }
+
+
+# ── Financeiro ──────────────────────────────────────────────────────────────
+
+async def _resolve_tenant(slug: str, db: AsyncSession):
+    r = await db.execute(select(Tenant).where(Tenant.slug == slug))
+    t = r.scalar_one_or_none()
+    if not t:
+        raise HTTPException(status_code=404, detail="Órgão não encontrado")
+    return t
+
+
+@router.get("/orgaos/{slug}/financeiro/stats")
+async def get_financeiro_stats(slug: str, db: AsyncSession = Depends(get_db)):
+    tenant = await _resolve_tenant(slug, db)
+
+    total_r = await db.execute(
+        select(func.count()).where(Diaria.tenant_id == tenant.id)
+    )
+    total = total_r.scalar_one()
+
+    passagens_r = await db.execute(
+        select(func.count()).where(Diaria.tenant_id == tenant.id, _PASSAGEM_COND)
+    )
+    total_passagens = passagens_r.scalar_one()
+
+    return {
+        "diarias": {"total": total - total_passagens, "analisados": 0},
+        "passagens": {"total": total_passagens, "analisados": 0},
+    }
+
+
+@router.get("/orgaos/{slug}/financeiro/diarias")
+async def get_financeiro_diarias(
+    slug: str,
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=50, le=200),
+    db: AsyncSession = Depends(get_db),
+):
+    tenant = await _resolve_tenant(slug, db)
+    base = and_(Diaria.tenant_id == tenant.id, ~_PASSAGEM_COND)
+
+    total_r = await db.execute(select(func.count()).where(base))
+    total = total_r.scalar_one()
+
+    rows_r = await db.execute(
+        select(
+            Diaria.id,
+            Diaria.codigo_processo,
+            Diaria.nome_despesa_padrao,
+            Diaria.nome_passageiro,
+            Diaria.valor_total,
+            Diaria.data_pagamento,
+            Diaria.periodo_deslocamento,
+            Diaria.cidade,
+            Diaria.periodo_ref,
+        )
+        .where(base)
+        .order_by(Diaria.data_pagamento.desc().nullslast(), Diaria.criado_em.desc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+    )
+    rows = rows_r.all()
+
+    return {
+        "total": total,
+        "page": page,
+        "pages": max(1, -(-total // limit)),
+        "limit": limit,
+        "registros": [
+            {
+                "id": str(r.id),
+                "codigo_processo": r.codigo_processo,
+                "tipo": r.nome_despesa_padrao,
+                "beneficiario": r.nome_passageiro,
+                "valor": float(r.valor_total) if r.valor_total else None,
+                "data": r.data_pagamento.isoformat() if r.data_pagamento else None,
+                "periodo": r.periodo_deslocamento,
+                "cidade": r.cidade,
+                "periodo_ref": r.periodo_ref,
+            }
+            for r in rows
+        ],
+    }
+
+
+@router.get("/orgaos/{slug}/financeiro/passagens")
+async def get_financeiro_passagens(
+    slug: str,
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=50, le=200),
+    db: AsyncSession = Depends(get_db),
+):
+    tenant = await _resolve_tenant(slug, db)
+    base = and_(Diaria.tenant_id == tenant.id, _PASSAGEM_COND)
+
+    total_r = await db.execute(select(func.count()).where(base))
+    total = total_r.scalar_one()
+
+    rows_r = await db.execute(
+        select(
+            Diaria.id,
+            Diaria.codigo_processo,
+            Diaria.nome_despesa_padrao,
+            Diaria.nome_passageiro,
+            Diaria.valor_total,
+            Diaria.data_pagamento,
+            Diaria.periodo_deslocamento,
+            Diaria.nome_evento,
+            Diaria.periodo_ref,
+        )
+        .where(base)
+        .order_by(Diaria.data_pagamento.desc().nullslast(), Diaria.criado_em.desc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+    )
+    rows = rows_r.all()
+
+    return {
+        "total": total,
+        "page": page,
+        "pages": max(1, -(-total // limit)),
+        "limit": limit,
+        "registros": [
+            {
+                "id": str(r.id),
+                "codigo_processo": r.codigo_processo,
+                "cia": r.nome_despesa_padrao,
+                "passageiro": r.nome_passageiro,
+                "valor": float(r.valor_total) if r.valor_total else None,
+                "data": r.data_pagamento.isoformat() if r.data_pagamento else None,
+                "trecho": r.periodo_deslocamento,
+                "evento": r.nome_evento,
+                "periodo_ref": r.periodo_ref,
             }
             for r in rows
         ],
