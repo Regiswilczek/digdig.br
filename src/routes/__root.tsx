@@ -1,4 +1,5 @@
 import { Outlet, Link, createRootRoute, HeadContent } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 function NotFoundComponent() {
   return (
@@ -46,6 +47,19 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  useEffect(() => {
+    // Supabase sometimes falls back to Site URL (digdig.com.br) instead of
+    // pnl.digdig.com.br when redirect_to fails validation. Intercept here and
+    // relay the auth hash to the admin panel on the correct origin.
+    const hash = window.location.hash;
+    if (
+      hash.includes("type=magiclink") &&
+      window.location.hostname !== "pnl.digdig.com.br"
+    ) {
+      window.location.replace(`https://pnl.digdig.com.br/pnl/dashboard${hash}`);
+    }
+  }, []);
+
   return (
     <>
       <HeadContent />
