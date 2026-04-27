@@ -34,6 +34,16 @@ export const Route = createFileRoute("/blog")({
 // Add new entries here (newest first) whenever a new white paper is published.
 const PAPERS = [
   {
+    numero: "08",
+    slug: "/whitepaper-08-tres-dias",
+    titulo: "Três Dias Sem Dormir",
+    subtitulo: "Como o corpus foi de 2.300 para 7.718 documentos — e por que a Dig Dig vai abrir por convite",
+    resumo:
+      "Praticamente 72 horas consecutivas no projeto: a frustração com os dados que o portal não entregou, a descoberta do Implanta, 2.985 diárias e 44 passagens no banco, 1.674 análises com resultados conclusivos, U$0,40 por documento calibrado, os testes do Zew em amostras — e a decisão de abrir por convite.",
+    data: "Abril 2026",
+    tags: ["Corpus", "Dados Financeiros", "Implanta", "Por Convite"],
+  },
+  {
     numero: "07",
     slug: "/whitepaper-07-pre-auditoria-integrada",
     titulo: "Pré-Auditoria Integrada do CAU/PR",

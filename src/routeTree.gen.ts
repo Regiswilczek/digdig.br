@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Whitepaper08TresDiasRouteImport } from './routes/whitepaper-08-tres-dias'
 import { Route as Whitepaper07PreAuditoriaIntegradaRouteImport } from './routes/whitepaper-07-pre-auditoria-integrada'
 import { Route as Whitepaper06DoGabineteAoTerminalRouteImport } from './routes/whitepaper-06-do-gabinete-ao-terminal'
 import { Route as Whitepaper05QuandoAMaquinaEntraNaSalaRouteImport } from './routes/whitepaper-05-quando-a-maquina-entra-na-sala'
@@ -34,6 +35,11 @@ import { Route as PainelSlugRouteImport } from './routes/painel/$slug'
 import { Route as PainelSlugIndexRouteImport } from './routes/painel/$slug/index'
 import { Route as PainelSlugAtoIdRouteImport } from './routes/painel/$slug/ato.$id'
 
+const Whitepaper08TresDiasRoute = Whitepaper08TresDiasRouteImport.update({
+  id: '/whitepaper-08-tres-dias',
+  path: '/whitepaper-08-tres-dias',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Whitepaper07PreAuditoriaIntegradaRoute =
   Whitepaper07PreAuditoriaIntegradaRouteImport.update({
     id: '/whitepaper-07-pre-auditoria-integrada',
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/whitepaper-05-quando-a-maquina-entra-na-sala': typeof Whitepaper05QuandoAMaquinaEntraNaSalaRoute
   '/whitepaper-06-do-gabinete-ao-terminal': typeof Whitepaper06DoGabineteAoTerminalRoute
   '/whitepaper-07-pre-auditoria-integrada': typeof Whitepaper07PreAuditoriaIntegradaRoute
+  '/whitepaper-08-tres-dias': typeof Whitepaper08TresDiasRoute
   '/painel/$slug': typeof PainelSlugRouteWithChildren
   '/painel/chat': typeof PainelChatRoute
   '/painel/': typeof PainelIndexRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/whitepaper-05-quando-a-maquina-entra-na-sala': typeof Whitepaper05QuandoAMaquinaEntraNaSalaRoute
   '/whitepaper-06-do-gabinete-ao-terminal': typeof Whitepaper06DoGabineteAoTerminalRoute
   '/whitepaper-07-pre-auditoria-integrada': typeof Whitepaper07PreAuditoriaIntegradaRoute
+  '/whitepaper-08-tres-dias': typeof Whitepaper08TresDiasRoute
   '/painel/chat': typeof PainelChatRoute
   '/painel': typeof PainelIndexRoute
   '/painel/$slug': typeof PainelSlugIndexRoute
@@ -233,6 +241,7 @@ export interface FileRoutesById {
   '/whitepaper-05-quando-a-maquina-entra-na-sala': typeof Whitepaper05QuandoAMaquinaEntraNaSalaRoute
   '/whitepaper-06-do-gabinete-ao-terminal': typeof Whitepaper06DoGabineteAoTerminalRoute
   '/whitepaper-07-pre-auditoria-integrada': typeof Whitepaper07PreAuditoriaIntegradaRoute
+  '/whitepaper-08-tres-dias': typeof Whitepaper08TresDiasRoute
   '/painel/$slug': typeof PainelSlugRouteWithChildren
   '/painel/chat': typeof PainelChatRoute
   '/painel/': typeof PainelIndexRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/whitepaper-05-quando-a-maquina-entra-na-sala'
     | '/whitepaper-06-do-gabinete-ao-terminal'
     | '/whitepaper-07-pre-auditoria-integrada'
+    | '/whitepaper-08-tres-dias'
     | '/painel/$slug'
     | '/painel/chat'
     | '/painel/'
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/whitepaper-05-quando-a-maquina-entra-na-sala'
     | '/whitepaper-06-do-gabinete-ao-terminal'
     | '/whitepaper-07-pre-auditoria-integrada'
+    | '/whitepaper-08-tres-dias'
     | '/painel/$slug'
     | '/painel/chat'
     | '/painel/'
@@ -338,10 +349,18 @@ export interface RootRouteChildren {
   Whitepaper05QuandoAMaquinaEntraNaSalaRoute: typeof Whitepaper05QuandoAMaquinaEntraNaSalaRoute
   Whitepaper06DoGabineteAoTerminalRoute: typeof Whitepaper06DoGabineteAoTerminalRoute
   Whitepaper07PreAuditoriaIntegradaRoute: typeof Whitepaper07PreAuditoriaIntegradaRoute
+  Whitepaper08TresDiasRoute: typeof Whitepaper08TresDiasRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/whitepaper-08-tres-dias': {
+      id: '/whitepaper-08-tres-dias'
+      path: '/whitepaper-08-tres-dias'
+      fullPath: '/whitepaper-08-tres-dias'
+      preLoaderRoute: typeof Whitepaper08TresDiasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/whitepaper-07-pre-auditoria-integrada': {
       id: '/whitepaper-07-pre-auditoria-integrada'
       path: '/whitepaper-07-pre-auditoria-integrada'
@@ -566,16 +585,8 @@ const rootRouteChildren: RootRouteChildren = {
   Whitepaper06DoGabineteAoTerminalRoute: Whitepaper06DoGabineteAoTerminalRoute,
   Whitepaper07PreAuditoriaIntegradaRoute:
     Whitepaper07PreAuditoriaIntegradaRoute,
+  Whitepaper08TresDiasRoute: Whitepaper08TresDiasRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

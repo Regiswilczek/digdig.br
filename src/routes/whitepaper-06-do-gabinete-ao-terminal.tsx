@@ -419,7 +419,7 @@ function Whitepaper06Page() {
         </p>
 
         <p className="wp06-p">
-          Fui verificar uma por uma, do mesmo jeito que faria no gabinete do Vereador Euler.
+          Fui verificar uma por uma, do mesmo jeito que faria naquele trabalho.
           Só que desta vez com capturas de tela.
         </p>
 
@@ -590,7 +590,7 @@ function Whitepaper06Page() {
 
         <p className="wp06-p">
           Isso é substancial. Não é tudo que deveria estar disponível, mas é muito mais do que eu
-          conseguia acessar manualmente em semanas no gabinete do Vereador Euler.
+          conseguia acessar manualmente em semanas naquele período.
         </p>
 
         <hr className="wp06-hr" />
@@ -688,7 +688,7 @@ function Whitepaper06Page() {
         </p>
 
         <p className="wp06-p">
-          No gabinete do Vereador Euler, levei semanas para encontrar o escândalo da água San
+          Naquela investigação, levei semanas para encontrar o escândalo da água San
           Pelegrino. Com o Dig Dig, teria levado dias — e teria documentação, score, ficha e PDF
           prontos para o jornalista, o vereador e o advogado ao mesmo tempo.
         </p>
