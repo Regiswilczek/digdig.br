@@ -18,8 +18,10 @@ import { Route as Whitepaper03DeliberacoesEPrimeirosAchadosRouteImport } from '.
 import { Route as Whitepaper02CustoEControleRouteImport } from './routes/whitepaper-02-custo-e-controle'
 import { Route as Whitepaper01ExtracaoCauprRouteImport } from './routes/whitepaper-01-extracao-caupr'
 import { Route as SolucoesRouteImport } from './routes/solucoes'
+import { Route as SolicitarAcessoRouteImport } from './routes/solicitar-acesso'
 import { Route as ProdutoRouteImport } from './routes/produto'
 import { Route as PrecosRouteImport } from './routes/precos'
+import { Route as PnlRouteImport } from './routes/pnl'
 import { Route as PatrocineRouteImport } from './routes/patrocine'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as ModelosRouteImport } from './routes/modelos'
@@ -30,7 +32,12 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as ApoiarRouteImport } from './routes/apoiar'
 import { Route as ApagarRouteImport } from './routes/apagar'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PnlIndexRouteImport } from './routes/pnl/index'
 import { Route as PainelIndexRouteImport } from './routes/painel/index'
+import { Route as PnlUsuariosRouteImport } from './routes/pnl/usuarios'
+import { Route as PnlPipelineRouteImport } from './routes/pnl/pipeline'
+import { Route as PnlFinanceiroRouteImport } from './routes/pnl/financeiro'
+import { Route as PnlDashboardRouteImport } from './routes/pnl/dashboard'
 import { Route as PainelChatRouteImport } from './routes/painel/chat'
 import { Route as PainelSlugRouteImport } from './routes/painel/$slug'
 import { Route as PainelSlugIndexRouteImport } from './routes/painel/$slug/index'
@@ -88,6 +95,11 @@ const SolucoesRoute = SolucoesRouteImport.update({
   path: '/solucoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SolicitarAcessoRoute = SolicitarAcessoRouteImport.update({
+  id: '/solicitar-acesso',
+  path: '/solicitar-acesso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProdutoRoute = ProdutoRouteImport.update({
   id: '/produto',
   path: '/produto',
@@ -96,6 +108,11 @@ const ProdutoRoute = ProdutoRouteImport.update({
 const PrecosRoute = PrecosRouteImport.update({
   id: '/precos',
   path: '/precos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PnlRoute = PnlRouteImport.update({
+  id: '/pnl',
+  path: '/pnl',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PatrocineRoute = PatrocineRouteImport.update({
@@ -148,10 +165,35 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PnlIndexRoute = PnlIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PnlRoute,
+} as any)
 const PainelIndexRoute = PainelIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => PainelRoute,
+} as any)
+const PnlUsuariosRoute = PnlUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => PnlRoute,
+} as any)
+const PnlPipelineRoute = PnlPipelineRouteImport.update({
+  id: '/pipeline',
+  path: '/pipeline',
+  getParentRoute: () => PnlRoute,
+} as any)
+const PnlFinanceiroRoute = PnlFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => PnlRoute,
+} as any)
+const PnlDashboardRoute = PnlDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => PnlRoute,
 } as any)
 const PainelChatRoute = PainelChatRouteImport.update({
   id: '/chat',
@@ -185,8 +227,10 @@ export interface FileRoutesByFullPath {
   '/modelos': typeof ModelosRoute
   '/painel': typeof PainelRouteWithChildren
   '/patrocine': typeof PatrocineRoute
+  '/pnl': typeof PnlRouteWithChildren
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
+  '/solicitar-acesso': typeof SolicitarAcessoRoute
   '/solucoes': typeof SolucoesRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
@@ -198,7 +242,12 @@ export interface FileRoutesByFullPath {
   '/whitepaper-08-tres-dias': typeof Whitepaper08TresDiasRoute
   '/painel/$slug': typeof PainelSlugRouteWithChildren
   '/painel/chat': typeof PainelChatRoute
+  '/pnl/dashboard': typeof PnlDashboardRoute
+  '/pnl/financeiro': typeof PnlFinanceiroRoute
+  '/pnl/pipeline': typeof PnlPipelineRoute
+  '/pnl/usuarios': typeof PnlUsuariosRoute
   '/painel/': typeof PainelIndexRoute
+  '/pnl/': typeof PnlIndexRoute
   '/painel/$slug/': typeof PainelSlugIndexRoute
   '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
@@ -214,6 +263,7 @@ export interface FileRoutesByTo {
   '/patrocine': typeof PatrocineRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
+  '/solicitar-acesso': typeof SolicitarAcessoRoute
   '/solucoes': typeof SolucoesRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
@@ -224,7 +274,12 @@ export interface FileRoutesByTo {
   '/whitepaper-07-pre-auditoria-integrada': typeof Whitepaper07PreAuditoriaIntegradaRoute
   '/whitepaper-08-tres-dias': typeof Whitepaper08TresDiasRoute
   '/painel/chat': typeof PainelChatRoute
+  '/pnl/dashboard': typeof PnlDashboardRoute
+  '/pnl/financeiro': typeof PnlFinanceiroRoute
+  '/pnl/pipeline': typeof PnlPipelineRoute
+  '/pnl/usuarios': typeof PnlUsuariosRoute
   '/painel': typeof PainelIndexRoute
+  '/pnl': typeof PnlIndexRoute
   '/painel/$slug': typeof PainelSlugIndexRoute
   '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
@@ -240,8 +295,10 @@ export interface FileRoutesById {
   '/modelos': typeof ModelosRoute
   '/painel': typeof PainelRouteWithChildren
   '/patrocine': typeof PatrocineRoute
+  '/pnl': typeof PnlRouteWithChildren
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
+  '/solicitar-acesso': typeof SolicitarAcessoRoute
   '/solucoes': typeof SolucoesRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
@@ -253,7 +310,12 @@ export interface FileRoutesById {
   '/whitepaper-08-tres-dias': typeof Whitepaper08TresDiasRoute
   '/painel/$slug': typeof PainelSlugRouteWithChildren
   '/painel/chat': typeof PainelChatRoute
+  '/pnl/dashboard': typeof PnlDashboardRoute
+  '/pnl/financeiro': typeof PnlFinanceiroRoute
+  '/pnl/pipeline': typeof PnlPipelineRoute
+  '/pnl/usuarios': typeof PnlUsuariosRoute
   '/painel/': typeof PainelIndexRoute
+  '/pnl/': typeof PnlIndexRoute
   '/painel/$slug/': typeof PainelSlugIndexRoute
   '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
@@ -270,8 +332,10 @@ export interface FileRouteTypes {
     | '/modelos'
     | '/painel'
     | '/patrocine'
+    | '/pnl'
     | '/precos'
     | '/produto'
+    | '/solicitar-acesso'
     | '/solucoes'
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
@@ -283,7 +347,12 @@ export interface FileRouteTypes {
     | '/whitepaper-08-tres-dias'
     | '/painel/$slug'
     | '/painel/chat'
+    | '/pnl/dashboard'
+    | '/pnl/financeiro'
+    | '/pnl/pipeline'
+    | '/pnl/usuarios'
     | '/painel/'
+    | '/pnl/'
     | '/painel/$slug/'
     | '/painel/$slug/ato/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -299,6 +368,7 @@ export interface FileRouteTypes {
     | '/patrocine'
     | '/precos'
     | '/produto'
+    | '/solicitar-acesso'
     | '/solucoes'
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
@@ -307,8 +377,14 @@ export interface FileRouteTypes {
     | '/whitepaper-05-quando-a-maquina-entra-na-sala'
     | '/whitepaper-06-do-gabinete-ao-terminal'
     | '/whitepaper-07-pre-auditoria-integrada'
+    | '/whitepaper-08-tres-dias'
     | '/painel/chat'
+    | '/pnl/dashboard'
+    | '/pnl/financeiro'
+    | '/pnl/pipeline'
+    | '/pnl/usuarios'
     | '/painel'
+    | '/pnl'
     | '/painel/$slug'
     | '/painel/$slug/ato/$id'
   id:
@@ -323,8 +399,10 @@ export interface FileRouteTypes {
     | '/modelos'
     | '/painel'
     | '/patrocine'
+    | '/pnl'
     | '/precos'
     | '/produto'
+    | '/solicitar-acesso'
     | '/solucoes'
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
@@ -336,7 +414,12 @@ export interface FileRouteTypes {
     | '/whitepaper-08-tres-dias'
     | '/painel/$slug'
     | '/painel/chat'
+    | '/pnl/dashboard'
+    | '/pnl/financeiro'
+    | '/pnl/pipeline'
+    | '/pnl/usuarios'
     | '/painel/'
+    | '/pnl/'
     | '/painel/$slug/'
     | '/painel/$slug/ato/$id'
   fileRoutesById: FileRoutesById
@@ -352,8 +435,10 @@ export interface RootRouteChildren {
   ModelosRoute: typeof ModelosRoute
   PainelRoute: typeof PainelRouteWithChildren
   PatrocineRoute: typeof PatrocineRoute
+  PnlRoute: typeof PnlRouteWithChildren
   PrecosRoute: typeof PrecosRoute
   ProdutoRoute: typeof ProdutoRoute
+  SolicitarAcessoRoute: typeof SolicitarAcessoRoute
   SolucoesRoute: typeof SolucoesRoute
   Whitepaper01ExtracaoCauprRoute: typeof Whitepaper01ExtracaoCauprRoute
   Whitepaper02CustoEControleRoute: typeof Whitepaper02CustoEControleRoute
@@ -430,6 +515,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolucoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/solicitar-acesso': {
+      id: '/solicitar-acesso'
+      path: '/solicitar-acesso'
+      fullPath: '/solicitar-acesso'
+      preLoaderRoute: typeof SolicitarAcessoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/produto': {
       id: '/produto'
       path: '/produto'
@@ -442,6 +534,13 @@ declare module '@tanstack/react-router' {
       path: '/precos'
       fullPath: '/precos'
       preLoaderRoute: typeof PrecosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pnl': {
+      id: '/pnl'
+      path: '/pnl'
+      fullPath: '/pnl'
+      preLoaderRoute: typeof PnlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/patrocine': {
@@ -514,12 +613,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pnl/': {
+      id: '/pnl/'
+      path: '/'
+      fullPath: '/pnl/'
+      preLoaderRoute: typeof PnlIndexRouteImport
+      parentRoute: typeof PnlRoute
+    }
     '/painel/': {
       id: '/painel/'
       path: '/'
       fullPath: '/painel/'
       preLoaderRoute: typeof PainelIndexRouteImport
       parentRoute: typeof PainelRoute
+    }
+    '/pnl/usuarios': {
+      id: '/pnl/usuarios'
+      path: '/usuarios'
+      fullPath: '/pnl/usuarios'
+      preLoaderRoute: typeof PnlUsuariosRouteImport
+      parentRoute: typeof PnlRoute
+    }
+    '/pnl/pipeline': {
+      id: '/pnl/pipeline'
+      path: '/pipeline'
+      fullPath: '/pnl/pipeline'
+      preLoaderRoute: typeof PnlPipelineRouteImport
+      parentRoute: typeof PnlRoute
+    }
+    '/pnl/financeiro': {
+      id: '/pnl/financeiro'
+      path: '/financeiro'
+      fullPath: '/pnl/financeiro'
+      preLoaderRoute: typeof PnlFinanceiroRouteImport
+      parentRoute: typeof PnlRoute
+    }
+    '/pnl/dashboard': {
+      id: '/pnl/dashboard'
+      path: '/dashboard'
+      fullPath: '/pnl/dashboard'
+      preLoaderRoute: typeof PnlDashboardRouteImport
+      parentRoute: typeof PnlRoute
     }
     '/painel/chat': {
       id: '/painel/chat'
@@ -581,6 +715,24 @@ const PainelRouteChildren: PainelRouteChildren = {
 const PainelRouteWithChildren =
   PainelRoute._addFileChildren(PainelRouteChildren)
 
+interface PnlRouteChildren {
+  PnlDashboardRoute: typeof PnlDashboardRoute
+  PnlFinanceiroRoute: typeof PnlFinanceiroRoute
+  PnlPipelineRoute: typeof PnlPipelineRoute
+  PnlUsuariosRoute: typeof PnlUsuariosRoute
+  PnlIndexRoute: typeof PnlIndexRoute
+}
+
+const PnlRouteChildren: PnlRouteChildren = {
+  PnlDashboardRoute: PnlDashboardRoute,
+  PnlFinanceiroRoute: PnlFinanceiroRoute,
+  PnlPipelineRoute: PnlPipelineRoute,
+  PnlUsuariosRoute: PnlUsuariosRoute,
+  PnlIndexRoute: PnlIndexRoute,
+}
+
+const PnlRouteWithChildren = PnlRoute._addFileChildren(PnlRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApagarRoute: ApagarRoute,
@@ -592,8 +744,10 @@ const rootRouteChildren: RootRouteChildren = {
   ModelosRoute: ModelosRoute,
   PainelRoute: PainelRouteWithChildren,
   PatrocineRoute: PatrocineRoute,
+  PnlRoute: PnlRouteWithChildren,
   PrecosRoute: PrecosRoute,
   ProdutoRoute: ProdutoRoute,
+  SolicitarAcessoRoute: SolicitarAcessoRoute,
   SolucoesRoute: SolucoesRoute,
   Whitepaper01ExtracaoCauprRoute: Whitepaper01ExtracaoCauprRoute,
   Whitepaper02CustoEControleRoute: Whitepaper02CustoEControleRoute,
@@ -611,3 +765,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

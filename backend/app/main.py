@@ -1,6 +1,8 @@
 import sentry_sdk
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.config import settings
 from app.routers import health, webhooks
 from app.routers.admin import router as admin_router
@@ -33,6 +35,13 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
         allow_headers=["Authorization", "Content-Type", "X-Admin-Secret"],
     )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        return JSONResponse(
+            status_code=400,
+            content={"detail": "Erro de validação nos dados enviados"},
+        )
 
     app.include_router(health.router)
     app.include_router(webhooks.router, prefix="/webhooks")

@@ -1,5 +1,7 @@
+import os
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, case, cast, Date as SADate, text
 from app.database import get_db
@@ -7,6 +9,7 @@ from app.models.tenant import Tenant
 from app.models.ato import Ato
 from app.models.analise import Analise
 from app.models.dados_financeiros import Diaria
+import resend
 
 # SQL fragment: identifica passagens aéreas pelo nome da cia
 _PASSAGEM_COND = Diaria.nome_despesa_padrao.ilike("%Linhas Aéreas%") | \
@@ -572,3 +575,53 @@ async def get_financeiro_passagens(
             for r in rows
         ],
     }
+
+
+# ── Lista de espera / acesso beta ─────────────────────────────────────────────
+
+class AccessRequestBody(BaseModel):
+    nome: str
+    email: str
+    profissao: str | None = None
+    motivacao: str | None = None
+
+
+@router.post("/access-requests", status_code=201)
+async def create_access_request(body: AccessRequestBody, db: AsyncSession = Depends(get_db)):
+    email = body.email.strip().lower()
+    nome = body.nome.strip()
+
+    await db.execute(
+        text("""
+            INSERT INTO access_requests (nome, email, profissao, motivacao)
+            VALUES (:nome, :email, :profissao, :motivacao)
+            ON CONFLICT DO NOTHING
+        """),
+        {"nome": nome, "email": email,
+         "profissao": body.profissao or None, "motivacao": body.motivacao or None},
+    )
+    await db.commit()
+
+    primeiro_nome = nome.split()[0] if nome else "Olá"
+
+    resend.api_key = os.environ["RESEND_API_KEY"]
+    resend.Emails.send({
+        "from": os.environ.get("RESEND_FROM", "noreply@digdig.com.br"),
+        "to": email,
+        "subject": "Pedido de acesso recebido — Dig Dig",
+        "html": f"""
+<div style="font-family:monospace;background:#07080f;color:#fff;padding:40px 32px;max-width:480px;margin:0 auto">
+  <p style="font-size:11px;letter-spacing:0.18em;color:#ffffff60;text-transform:uppercase;margin:0 0 24px">Dig Dig &middot; Acesso Beta</p>
+  <h1 style="font-size:26px;margin:0 0 16px;font-weight:800">{primeiro_nome}, você está na fila.</h1>
+  <p style="color:#ffffffb3;line-height:1.7;margin:0 0 24px">
+    Recebemos seu pedido de acesso. Assim que uma vaga for liberada, você receberá um link para criar sua senha e acessar o painel de investigações.
+  </p>
+  <p style="color:#ffffff50;font-size:11px;line-height:1.6;margin:0">
+    Dig Dig &mdash; Transparência com dentes<br>
+    <a href="https://digdig.com.br" style="color:#ffffff50">digdig.com.br</a>
+  </p>
+</div>
+        """,
+    })
+
+    return {"ok": True}

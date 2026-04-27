@@ -1,13 +1,19 @@
 import uuid
 import hmac
+import os
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends, Request, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func, text
 from app.config import settings
 from app.database import get_db
-from app.models.ato import RodadaAnalise
+from app.models.ato import RodadaAnalise, Ato
+from app.models.analise import Analise
 from app.models.tenant import Tenant
+import jwt as pyjwt
+import httpx
+import resend
 
 router = APIRouter(prefix="/pnl", tags=["admin"])
 
@@ -166,3 +172,235 @@ def _rodada_dict(rodada: RodadaAnalise) -> dict:
         "concluido_em": rodada.concluido_em.isoformat() if rodada.concluido_em else None,
         "erro_mensagem": rodada.erro_mensagem,
     }
+
+
+# ── Painel Administrativo (JWT via Supabase session) ─────────────────────────
+
+ADMIN_EMAIL = "regisalessander@gmail.com"
+_bearer = HTTPBearer(auto_error=False)
+
+
+async def require_admin(
+    creds: HTTPAuthorizationCredentials | None = Security(_bearer),
+) -> dict:
+    if not creds:
+        raise HTTPException(status_code=401, detail="Token necessário")
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{settings.supabase_url}/auth/v1/user",
+            headers={
+                "Authorization": f"Bearer {creds.credentials}",
+                "apikey": settings.supabase_service_role_key,
+            },
+            timeout=10,
+        )
+    if not resp.is_success:
+        raise HTTPException(status_code=401, detail="Token inválido")
+    user = resp.json()
+    if user.get("email") != ADMIN_EMAIL:
+        raise HTTPException(status_code=403, detail="Acesso restrito ao administrador")
+    return user
+
+
+@router.get("/admin/stats")
+async def admin_stats(
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
+):
+    # Fila de espera por status
+    waitlist = await db.execute(
+        text("SELECT status, COUNT(*) FROM access_requests GROUP BY status")
+    )
+    waitlist_rows = waitlist.fetchall()
+    wl = {row[0]: row[1] for row in waitlist_rows}
+
+    # Total atos e custo acumulado
+    atos_total = await db.execute(select(func.count()).select_from(Ato))
+    analises_total = await db.execute(
+        select(func.count()).where(Analise.nivel_alerta.isnot(None))
+    )
+    custo = await db.execute(
+        select(func.sum(RodadaAnalise.custo_total_usd))
+    )
+
+    # Rodadas ativas
+    rodadas_ativas = await db.execute(
+        select(func.count()).where(RodadaAnalise.status.in_(["em_progresso", "pendente"]))
+    )
+
+    return {
+        "waitlist": {
+            "pendente": wl.get("pendente", 0),
+            "aprovado": wl.get("aprovado", 0),
+            "rejeitado": wl.get("rejeitado", 0),
+            "total": sum(wl.values()),
+        },
+        "atos_total": atos_total.scalar_one(),
+        "analises_total": analises_total.scalar_one(),
+        "custo_total_usd": float(custo.scalar_one() or 0),
+        "rodadas_ativas": rodadas_ativas.scalar_one(),
+    }
+
+
+@router.get("/admin/access-requests")
+async def admin_list_access_requests(
+    status: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
+):
+    if status:
+        rows = await db.execute(
+            text("SELECT id, nome, email, profissao, motivacao, status, created_at "
+                 "FROM access_requests WHERE status = :s ORDER BY created_at DESC")
+            .bindparams(s=status)
+        )
+    else:
+        rows = await db.execute(
+            text("SELECT id, nome, email, profissao, motivacao, status, created_at "
+                 "FROM access_requests ORDER BY created_at DESC")
+        )
+    return [
+        {
+            "id": str(r[0]),
+            "nome": r[1],
+            "email": r[2],
+            "profissao": r[3],
+            "motivacao": r[4],
+            "status": r[5],
+            "created_at": r[6].isoformat() if r[6] else None,
+        }
+        for r in rows.fetchall()
+    ]
+
+
+@router.post("/admin/access-requests/{req_id}/aprovar", status_code=200)
+async def admin_aprovar(
+    req_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
+):
+    row = await db.execute(
+        text("SELECT id, nome, email FROM access_requests WHERE id = :id").bindparams(id=req_id)
+    )
+    req = row.fetchone()
+    if not req:
+        raise HTTPException(404, "Pedido não encontrado")
+
+    await db.execute(
+        text("UPDATE access_requests SET status = 'aprovado' WHERE id = :id").bindparams(id=req_id)
+    )
+    await db.commit()
+
+    # Envia invite via Supabase Admin API
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            f"{settings.supabase_url}/auth/v1/invite",
+            headers={
+                "apikey": settings.supabase_service_role_key,
+                "Authorization": f"Bearer {settings.supabase_service_role_key}",
+                "Content-Type": "application/json",
+            },
+            json={"email": req[2], "data": {"nome": req[1]}},
+            timeout=15,
+        )
+
+    if resp.status_code not in (200, 201, 422):
+        # 422 = já existe usuário com esse email — ok, só notifica
+        raise HTTPException(502, f"Erro ao enviar invite Supabase: {resp.text}")
+
+    return {"ok": True, "email": req[2]}
+
+
+@router.post("/admin/access-requests/{req_id}/rejeitar", status_code=200)
+async def admin_rejeitar(
+    req_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
+):
+    result = await db.execute(
+        text("UPDATE access_requests SET status = 'rejeitado' WHERE id = :id RETURNING id")
+        .bindparams(id=req_id)
+    )
+    if not result.fetchone():
+        raise HTTPException(404, "Pedido não encontrado")
+    await db.commit()
+    return {"ok": True}
+
+
+@router.get("/admin/rodadas")
+async def admin_all_rodadas(
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
+):
+    result = await db.execute(
+        select(RodadaAnalise, Tenant.slug, Tenant.nome)
+        .join(Tenant, RodadaAnalise.tenant_id == Tenant.id)
+        .order_by(RodadaAnalise.criado_em.desc())
+        .limit(50)
+    )
+    rows = result.all()
+    return [
+        {
+            **_rodada_dict(row[0]),
+            "slug": row[1],
+            "orgao": row[2],
+        }
+        for row in rows
+    ]
+
+
+@router.post("/admin/magic-link", status_code=200)
+async def send_magic_link_via_resend(request: Request):
+    """Gera magic link via Supabase Admin API e envia pelo Resend (sem limite de envios)."""
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+
+    if email != ADMIN_EMAIL:
+        raise HTTPException(status_code=403, detail="Acesso restrito")
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            f"{settings.supabase_url}/auth/v1/admin/generate_link",
+            headers={
+                "apikey": settings.supabase_service_role_key,
+                "Authorization": f"Bearer {settings.supabase_service_role_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "type": "magiclink",
+                "email": email,
+                "options": {"redirect_to": "https://digdig.com.br/pnl-login"},
+            },
+            timeout=15,
+        )
+
+    if not resp.is_success:
+        raise HTTPException(status_code=502, detail=f"Erro Supabase: {resp.text}")
+
+    action_link = resp.json().get("action_link", "")
+
+    resend.api_key = os.environ["RESEND_API_KEY"]
+    resend.Emails.send({
+        "from": os.environ.get("RESEND_FROM", "noreply@digdig.com.br"),
+        "to": email,
+        "subject": "Link de acesso — Dig Dig Admin",
+        "html": f"""
+<div style="font-family:monospace;background:#07080f;color:#fff;padding:40px 32px;max-width:440px;margin:0 auto">
+  <p style="font-size:10px;letter-spacing:0.2em;color:#ffffff40;text-transform:uppercase;margin:0 0 28px">Dig Dig &middot; Admin</p>
+  <h1 style="font-size:22px;margin:0 0 16px;font-weight:800">Link de acesso</h1>
+  <p style="color:#ffffffb3;line-height:1.7;margin:0 0 28px;font-size:13px">
+    Clique no botão abaixo para acessar o painel administrativo. O link expira em 1 hora e é de uso único.
+  </p>
+  <a href="{action_link}"
+     style="display:inline-block;background:#fff;color:#07080f;padding:12px 24px;font-size:11px;font-weight:800;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none">
+    Acessar painel →
+  </a>
+  <p style="color:#ffffff30;font-size:10px;margin-top:32px;line-height:1.6">
+    Se você não solicitou este link, ignore este email.<br>
+    Dig Dig &mdash; digdig.com.br
+  </p>
+</div>
+        """,
+    })
+
+    return {"ok": True}

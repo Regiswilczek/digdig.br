@@ -10,9 +10,8 @@ export const Route = createFileRoute("/entrar")({
       {
         name: "description",
         content:
-          "Acesse sua conta Dig Dig ou crie uma nova para investigar atos administrativos com IA.",
+          "Acesse sua conta Dig Dig para investigar atos administrativos com IA.",
       },
-      // Mobile app-like polish
       { name: "theme-color", content: "#07080f" },
       {
         name: "viewport",
@@ -36,7 +35,7 @@ const SCANLINE: React.CSSProperties = {
   backgroundClip: "text",
 };
 
-// ── Same ParticleField as the home ────────────────────────────────────────────
+// ── ParticleField ─────────────────────────────────────────────────────────────
 function ParticleField() {
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -173,56 +172,33 @@ function ParticleField() {
   return <div ref={wrapRef} aria-hidden="true" className="absolute inset-0" />;
 }
 
-// ── Shared form logic hook ────────────────────────────────────────────────────
-function useAuthForm() {
-  const [mode, setMode] = useState<"login" | "signup">("login");
+// ── Form logic ────────────────────────────────────────────────────────────────
+function useLoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const isLogin = mode === "login";
 
   const navigate = useNavigate();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!email || !password || (!isLogin && !name)) {
+    if (!email || !password) {
       setError("Preencha todos os campos.");
       return;
     }
     setSubmitting(true);
     try {
-      if (isLogin) {
-        const { error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (authError) throw authError;
-      } else {
-        const { data: signUpData, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { nome: name } },
-        });
-        if (authError) throw authError;
-        if (!signUpData.session) {
-          setSubmitting(false);
-          setError("Cadastro realizado! Verifique seu email para confirmar a conta.");
-          return;
-        }
-      }
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      if (authError) throw authError;
       navigate({ to: "/painel" });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro ao autenticar.";
       setError(
         msg === "Invalid login credentials"
           ? "Email ou senha incorretos."
-          : msg === "User already registered"
-            ? "Este email já está cadastrado."
-            : msg,
+          : msg,
       );
     } finally {
       setSubmitting(false);
@@ -246,54 +222,23 @@ function useAuthForm() {
     }
   }
 
-  return {
-    mode,
-    setMode,
-    isLogin,
-    email,
-    setEmail,
-    password,
-    setPassword,
-    name,
-    setName,
-    submitting,
-    error,
-    onSubmit,
-    resetPassword,
-  };
+  return { email, setEmail, password, setPassword, submitting, error, onSubmit, resetPassword };
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 function EntrarPage() {
-  const f = useAuthForm();
-
+  const f = useLoginForm();
   return (
     <>
-      {/* ── Mobile (app-like) ──────────────────────────────────────────────── */}
       <MobileView f={f} />
-
-      {/* ── Desktop / Tablet (split screen) ────────────────────────────────── */}
       <DesktopView f={f} />
     </>
   );
 }
 
-// ── Mobile: full-bleed app feel ───────────────────────────────────────────────
-function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
-  const {
-    isLogin,
-    setMode,
-    email,
-    setEmail,
-    password,
-    setPassword,
-    name,
-    setName,
-    submitting,
-    error,
-    onSubmit,
-    resetPassword,
-  } = f;
+// ── Mobile ────────────────────────────────────────────────────────────────────
+function MobileView({ f }: { f: ReturnType<typeof useLoginForm> }) {
+  const { email, setEmail, password, setPassword, submitting, error, onSubmit, resetPassword } = f;
 
   return (
     <div
@@ -303,10 +248,8 @@ function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      {/* Animated background — top third only, like app hero */}
       <div className="absolute inset-x-0 top-0 h-[42%] overflow-hidden">
         <ParticleField />
-        {/* Bottom fade into card */}
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
           style={{
@@ -314,7 +257,6 @@ function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
               "linear-gradient(to top, #07080f 0%, rgba(7,8,15,0.85) 35%, rgba(7,8,15,0) 100%)",
           }}
         />
-        {/* Top status-bar fade */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-16"
           style={{
@@ -324,7 +266,6 @@ function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
         />
       </div>
 
-      {/* Top bar */}
       <header className="relative z-20 flex items-center justify-between px-5 pt-4">
         <Link
           to="/"
@@ -342,28 +283,14 @@ function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
         <span className="w-[52px]" aria-hidden />
       </header>
 
-      {/* Hero word */}
       <div className="relative z-20 px-5 pt-10 pb-6 text-center">
         <h1
           style={SYNE}
           className="text-white uppercase leading-[0.92] tracking-tight"
         >
-          <span
-            className="block"
-            style={{ fontSize: "clamp(3rem, 18vw, 4.5rem)" }}
-          >
+          <span className="block" style={{ fontSize: "clamp(3rem, 18vw, 4.5rem)" }}>
             DIG <span style={SCANLINE}>DIG</span>
-            <sup
-              style={{
-                fontSize: "0.25em",
-                verticalAlign: "super",
-                fontWeight: 400,
-                letterSpacing: 0,
-                color: "rgba(255,255,255,0.4)",
-              }}
-            >
-              ®
-            </sup>
+            <sup style={{ fontSize: "0.25em", verticalAlign: "super", fontWeight: 400, letterSpacing: 0, color: "rgba(255,255,255,0.4)" }}>®</sup>
           </span>
         </h1>
         <p className="mt-3 text-white/55 text-[12px] leading-relaxed max-w-[280px] mx-auto">
@@ -371,111 +298,54 @@ function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
         </p>
       </div>
 
-      {/* Card sheet — pushes up to feel like a native bottom sheet */}
-      <main
-        className="relative z-20 flex-1 mt-2 px-5 pb-6"
-      >
-        <div
-          className="bg-[#0d0f1a]/95 border border-white/10 rounded-t-[28px] rounded-b-2xl px-6 pt-6 pb-7 shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.6)]"
-        >
-          {/* Drag handle */}
+      <main className="relative z-20 flex-1 mt-2 px-5 pb-6">
+        <div className="bg-[#0d0f1a]/95 border border-white/10 rounded-t-[28px] rounded-b-2xl px-6 pt-6 pb-7 shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.6)]">
           <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-white/15" aria-hidden />
 
           <div className="flex items-baseline justify-between mb-1">
-            <h2
-              style={SYNE}
-              className="text-white text-[1.35rem] uppercase tracking-tight"
-            >
-              {isLogin ? "Entrar" : "Criar conta"}
+            <h2 style={SYNE} className="text-white text-[1.35rem] uppercase tracking-tight">
+              Entrar
             </h2>
             <span className="text-[10px] uppercase tracking-[0.18em] text-white/35">
-              {isLogin ? "01 / Acesso" : "01 / Cadastro"}
+              01 / Acesso
             </span>
           </div>
           <p className="text-white/45 text-[12px] leading-relaxed mb-5">
-            {isLogin
-              ? "Acesse o painel e continue investigando."
-              : "Crie sua conta gratuita em segundos."}
+            Acesse o painel e continue investigando.
           </p>
 
-          {/* Segmented control */}
-          <div
-            role="tablist"
-            className="flex items-center bg-white/[0.04] border border-white/10 rounded-full p-1 mb-5"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={isLogin}
-              onClick={() => setMode("login")}
-              className={`flex-1 py-2.5 text-[11px] uppercase tracking-[0.18em] rounded-full transition-all ${
-                isLogin
-                  ? "bg-white text-[#07080f] shadow-sm"
-                  : "text-white/55"
-              }`}
-              style={SYNE}
-            >
-              Entrar
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={!isLogin}
-              onClick={() => setMode("signup")}
-              className={`flex-1 py-2.5 text-[11px] uppercase tracking-[0.18em] rounded-full transition-all ${
-                !isLogin
-                  ? "bg-white text-[#07080f] shadow-sm"
-                  : "text-white/55"
-              }`}
-              style={SYNE}
-            >
-              Cadastro
-            </button>
-          </div>
-
           <form onSubmit={onSubmit} className="space-y-3.5">
-            {!isLogin && (
-              <MobileField
-                label="Nome"
-                type="text"
-                autoComplete="name"
-                value={name}
-                onChange={setName}
-                placeholder="Seu nome completo"
+            <div>
+              <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5 px-1" style={SYNE}>
+                Email
+              </label>
+              <input
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-[15px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 focus:bg-white/[0.06] transition-colors"
+                placeholder="voce@exemplo.com"
               />
-            )}
-
-            <MobileField
-              label="Email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={setEmail}
-              placeholder="voce@exemplo.com"
-              inputMode="email"
-            />
+            </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5 px-1">
-                <label
-                  className="text-[10px] uppercase tracking-[0.2em] text-white/45"
-                  style={SYNE}
-                >
+                <label className="text-[10px] uppercase tracking-[0.2em] text-white/45" style={SYNE}>
                   Senha
                 </label>
-                {isLogin && (
-                  <button
-                    type="button"
-                    onClick={resetPassword}
-                    className="text-[10px] uppercase tracking-[0.16em] text-white/45 hover:text-white transition-colors"
-                  >
-                    Esqueci
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={resetPassword}
+                  className="text-[10px] uppercase tracking-[0.16em] text-white/45 hover:text-white transition-colors"
+                >
+                  Esqueci
+                </button>
               </div>
               <input
                 type="password"
-                autoComplete={isLogin ? "current-password" : "new-password"}
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-[15px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 focus:bg-white/[0.06] transition-colors"
@@ -495,23 +365,15 @@ function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
               style={SYNE}
               className="w-full bg-white text-[#07080f] py-4 text-[12px] uppercase tracking-[0.2em] rounded-xl hover:bg-white/90 active:scale-[0.99] transition-all disabled:opacity-50"
             >
-              {submitting
-                ? "Aguarde..."
-                : isLogin
-                  ? "Entrar"
-                  : "Criar conta"}
+              {submitting ? "Aguarde..." : "Entrar"}
             </button>
           </form>
 
           <p className="mt-5 text-center text-[12.5px] text-white/55">
-            {isLogin ? "Ainda não tem conta? " : "Já tem uma conta? "}
-            <button
-              type="button"
-              onClick={() => setMode(isLogin ? "signup" : "login")}
-              className="text-white font-medium underline-offset-4 hover:underline"
-            >
-              {isLogin ? "Cadastre-se" : "Entrar"}
-            </button>
+            Quer acesso?{" "}
+            <Link to="/solicitar-acesso" className="text-white font-medium underline-offset-4 hover:underline">
+              Solicitar acesso →
+            </Link>
           </p>
         </div>
 
@@ -523,64 +385,12 @@ function MobileView({ f }: { f: ReturnType<typeof useAuthForm> }) {
   );
 }
 
-function MobileField({
-  label,
-  type,
-  autoComplete,
-  value,
-  onChange,
-  placeholder,
-  inputMode,
-}: {
-  label: string;
-  type: string;
-  autoComplete: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  inputMode?: "email" | "text" | "numeric" | "tel" | "url" | "search";
-}) {
-  return (
-    <div>
-      <label
-        className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5 px-1"
-        style={SYNE}
-      >
-        {label}
-      </label>
-      <input
-        type={type}
-        autoComplete={autoComplete}
-        inputMode={inputMode}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-[15px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 focus:bg-white/[0.06] transition-colors"
-        placeholder={placeholder}
-      />
-    </div>
-  );
-}
-
-// ── Desktop: original split-screen ────────────────────────────────────────────
-function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
-  const {
-    isLogin,
-    setMode,
-    email,
-    setEmail,
-    password,
-    setPassword,
-    name,
-    setName,
-    submitting,
-    error,
-    onSubmit,
-    resetPassword,
-  } = f;
+// ── Desktop ───────────────────────────────────────────────────────────────────
+function DesktopView({ f }: { f: ReturnType<typeof useLoginForm> }) {
+  const { email, setEmail, password, setPassword, submitting, error, onSubmit, resetPassword } = f;
 
   return (
     <div className="hidden md:flex min-h-[100dvh] bg-[#07080f] text-white flex-row">
-      {/* Left: form */}
       <section className="w-[46%] lg:w-[42%] xl:w-[38%] flex flex-col px-12 lg:px-16 py-10">
         <div className="flex items-center justify-between">
           <Link
@@ -604,12 +414,10 @@ function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
               style={SYNE}
               className="text-white text-[2rem] leading-tight uppercase tracking-tight mb-1.5"
             >
-              {isLogin ? "Entrar" : "Criar conta"}
+              Entrar
             </h1>
             <p className="text-white/45 text-[13px] leading-relaxed mb-7">
-              {isLogin
-                ? "Acesse o painel e continue investigando."
-                : "Crie sua conta gratuita e comece a investigar atos públicos."}
+              Acesse o painel e continue investigando.
             </p>
 
             <p className="text-[12px] text-white/35 leading-relaxed mb-8">
@@ -618,58 +426,9 @@ function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
               <br />Junte-se à escavação.
             </p>
 
-            <div className="flex items-center border border-white/10 bg-white/[0.02] mb-6 p-0.5">
-              <button
-                type="button"
-                onClick={() => setMode("login")}
-                className={`flex-1 py-2 text-[11px] uppercase tracking-[0.18em] transition-colors ${
-                  isLogin
-                    ? "bg-white text-[#07080f]"
-                    : "text-white/55 hover:text-white"
-                }`}
-                style={SYNE}
-              >
-                Entrar
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("signup")}
-                className={`flex-1 py-2 text-[11px] uppercase tracking-[0.18em] transition-colors ${
-                  !isLogin
-                    ? "bg-white text-[#07080f]"
-                    : "text-white/55 hover:text-white"
-                }`}
-                style={SYNE}
-              >
-                Cadastro
-              </button>
-            </div>
-
             <form onSubmit={onSubmit} className="space-y-4">
-              {!isLogin && (
-                <div>
-                  <label
-                    className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5"
-                    style={SYNE}
-                  >
-                    Nome
-                  </label>
-                  <input
-                    type="text"
-                    autoComplete="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-white/[0.03] border border-white/10 px-3 py-2.5 text-[14px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors"
-                    placeholder="Seu nome"
-                  />
-                </div>
-              )}
-
               <div>
-                <label
-                  className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5"
-                  style={SYNE}
-                >
+                <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5" style={SYNE}>
                   Email
                 </label>
                 <input
@@ -684,25 +443,20 @@ function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label
-                    className="block text-[10px] uppercase tracking-[0.2em] text-white/45"
-                    style={SYNE}
-                  >
+                  <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45" style={SYNE}>
                     Senha
                   </label>
-                  {isLogin && (
-                    <button
-                      type="button"
-                      onClick={resetPassword}
-                      className="text-[10px] uppercase tracking-[0.16em] text-white/40 hover:text-white/70 transition-colors"
-                    >
-                      Esqueci
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={resetPassword}
+                    className="text-[10px] uppercase tracking-[0.16em] text-white/40 hover:text-white/70 transition-colors"
+                  >
+                    Esqueci
+                  </button>
                 </div>
                 <input
                   type="password"
-                  autoComplete={isLogin ? "current-password" : "new-password"}
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-white/[0.03] border border-white/10 px-3 py-2.5 text-[14px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors"
@@ -722,23 +476,18 @@ function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
                 style={SYNE}
                 className="w-full bg-white text-[#07080f] py-3 text-[12px] uppercase tracking-[0.2em] hover:bg-white/90 transition-colors disabled:opacity-50"
               >
-                {submitting
-                  ? "Aguarde..."
-                  : isLogin
-                    ? "Entrar"
-                    : "Criar conta"}
+                {submitting ? "Aguarde..." : "Entrar"}
               </button>
             </form>
 
             <p className="mt-5 text-center text-[12px] text-white/45">
-              {isLogin ? "Ainda não tem conta? " : "Já tem uma conta? "}
-              <button
-                type="button"
-                onClick={() => setMode(isLogin ? "signup" : "login")}
+              Quer acesso?{" "}
+              <Link
+                to="/solicitar-acesso"
                 className="text-white hover:text-white/80 underline-offset-4 hover:underline"
               >
-                {isLogin ? "Cadastre-se" : "Entrar"}
-              </button>
+                Solicitar acesso →
+              </Link>
             </p>
 
             <p className="mt-8 text-center text-[10px] text-white/30 uppercase tracking-[0.16em]">
@@ -748,7 +497,6 @@ function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
         </div>
       </section>
 
-      {/* Right: animated background */}
       <section className="relative flex-1 bg-[#07080f] overflow-hidden border-l border-white/[0.06]">
         <ParticleField />
 
@@ -779,22 +527,9 @@ function DesktopView({ f }: { f: ReturnType<typeof useAuthForm> }) {
             style={SYNE}
             className="text-white uppercase leading-[0.92] tracking-tight"
           >
-            <span
-              className="block"
-              style={{ fontSize: "clamp(3.5rem, 9vw, 7rem)" }}
-            >
+            <span className="block" style={{ fontSize: "clamp(3.5rem, 9vw, 7rem)" }}>
               DIG <span style={SCANLINE}>DIG</span>
-              <sup
-                style={{
-                  fontSize: "0.25em",
-                  verticalAlign: "super",
-                  fontWeight: 400,
-                  letterSpacing: 0,
-                  color: "rgba(255,255,255,0.35)",
-                }}
-              >
-                ®
-              </sup>
+              <sup style={{ fontSize: "0.25em", verticalAlign: "super", fontWeight: 400, letterSpacing: 0, color: "rgba(255,255,255,0.35)" }}>®</sup>
             </span>
           </h2>
           <p className="mt-6 text-white/55 max-w-[360px] text-[13px] leading-relaxed">

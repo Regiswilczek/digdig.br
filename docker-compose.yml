@@ -5,12 +5,13 @@ services:
   redis:
     image: redis:7-alpine
     restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     networks:
       - backend_net
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,14 +24,12 @@ services:
     restart: always
     env_file: ./backend/.env
     environment:
-      - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - backend_net
-    volumes:
-      - ./backend:/app          # hot-reload in dev; remove for prod
     command: >
       uvicorn app.main:app
         --host 0.0.0.0
@@ -45,7 +44,7 @@ services:
     restart: always
     env_file: ./backend/.env
     environment:
-      - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
     depends_on:
       redis:
         condition: service_healthy
@@ -65,7 +64,7 @@ services:
     restart: always
     env_file: ./backend/.env
     environment:
-      - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
     depends_on:
       redis:
         condition: service_healthy
