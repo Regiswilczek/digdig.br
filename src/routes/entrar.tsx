@@ -176,6 +176,7 @@ function ParticleField() {
 function useLoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -222,7 +223,7 @@ function useLoginForm() {
     }
   }
 
-  return { email, setEmail, password, setPassword, submitting, error, onSubmit, resetPassword };
+  return { email, setEmail, password, setPassword, showPassword, setShowPassword, submitting, error, onSubmit, resetPassword };
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -238,7 +239,7 @@ function EntrarPage() {
 
 // ── Mobile ────────────────────────────────────────────────────────────────────
 function MobileView({ f }: { f: ReturnType<typeof useLoginForm> }) {
-  const { email, setEmail, password, setPassword, submitting, error, onSubmit, resetPassword } = f;
+  const { email, setEmail, password, setPassword, showPassword, setShowPassword, submitting, error, onSubmit, resetPassword } = f;
 
   return (
     <div
@@ -343,14 +344,35 @@ function MobileView({ f }: { f: ReturnType<typeof useLoginForm> }) {
                   Esqueci
                 </button>
               </div>
-              <input
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-[15px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 focus:bg-white/[0.06] transition-colors"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 pr-11 text-[15px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 focus:bg-white/[0.06] transition-colors"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             {error && (
@@ -387,7 +409,7 @@ function MobileView({ f }: { f: ReturnType<typeof useLoginForm> }) {
 
 // ── Desktop ───────────────────────────────────────────────────────────────────
 function DesktopView({ f }: { f: ReturnType<typeof useLoginForm> }) {
-  const { email, setEmail, password, setPassword, submitting, error, onSubmit, resetPassword } = f;
+  const { email, setEmail, password, setPassword, showPassword, setShowPassword, submitting, error, onSubmit, resetPassword } = f;
 
   return (
     <div className="hidden md:flex min-h-[100dvh] bg-[#07080f] text-white flex-row">
@@ -454,14 +476,35 @@ function DesktopView({ f }: { f: ReturnType<typeof useLoginForm> }) {
                     Esqueci
                   </button>
                 </div>
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/10 px-3 py-2.5 text-[14px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors"
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-white/[0.03] border border-white/10 px-3 py-2.5 pr-10 text-[14px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               {error && (

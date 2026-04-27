@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabase";
 
 export const Route = createFileRoute("/pnl/usuarios")({
@@ -19,6 +19,15 @@ interface AccessRequest {
   motivacao: string | null;
   status: "pendente" | "aprovado" | "rejeitado";
   created_at: string | null;
+}
+
+interface AuthUser {
+  id: string;
+  email: string;
+  nome: string | null;
+  criado_em: string | null;
+  ultimo_login: string | null;
+  confirmado: boolean;
 }
 
 async function authedFetch(path: string, options: RequestInit = {}) {
@@ -41,7 +50,9 @@ const STATUS_COLORS: Record<string, string> = {
 
 function UsuariosPage() {
   const [requests, setRequests] = useState<AccessRequest[]>([]);
+  const [authUsers, setAuthUsers] = useState<AuthUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingAuth, setLoadingAuth] = useState(true);
   const [filter, setFilter] = useState<string>("pendente");
   const [processing, setProcessing] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -51,6 +62,13 @@ function UsuariosPage() {
     setTimeout(() => setToast(null), 3500);
   }
 
+  const loadAuthUsers = useCallback(async () => {
+    setLoadingAuth(true);
+    const res = await authedFetch("/pnl/admin/usuarios-auth");
+    if (res.ok) setAuthUsers(await res.json());
+    setLoadingAuth(false);
+  }, []);
+
   async function load() {
     setLoading(true);
     const res = await authedFetch(`/pnl/admin/access-requests?status=${filter}`);
@@ -58,6 +76,7 @@ function UsuariosPage() {
     setLoading(false);
   }
 
+  useEffect(() => { loadAuthUsers(); }, [loadAuthUsers]);
   useEffect(() => { load(); }, [filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function aprovar(id: string, nome: string) {
@@ -102,11 +121,66 @@ function UsuariosPage() {
 
       <div className="mb-6">
         <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 mb-1" style={SYNE}>
-          Fila de espera
+          Plataforma
         </p>
         <h1 className="text-white text-[1.6rem] uppercase tracking-tight" style={SYNE}>
           Usuários
         </h1>
+      </div>
+
+      {/* Usuários cadastrados no Supabase Auth */}
+      <section className="mb-10">
+        <p className="text-[10px] uppercase tracking-[0.16em] text-white/30 mb-3" style={SYNE}>
+          Cadastrados na plataforma ({loadingAuth ? "…" : authUsers.length})
+        </p>
+        {loadingAuth ? (
+          <p className="text-white/30 text-[12px] uppercase tracking-[0.16em]">Carregando…</p>
+        ) : authUsers.length === 0 ? (
+          <p className="text-white/20 text-[12px]">Nenhum usuário cadastrado.</p>
+        ) : (
+          <div className="border border-white/[0.07] overflow-hidden">
+            <div
+              className="grid text-[9px] uppercase tracking-[0.16em] text-white/30 px-4 py-2.5 border-b border-white/[0.07]"
+              style={{ gridTemplateColumns: "1fr 140px 140px 80px", background: "#0a0c15" }}
+            >
+              <span style={SYNE}>Email / Nome</span>
+              <span style={SYNE}>Cadastro</span>
+              <span style={SYNE}>Último login</span>
+              <span style={SYNE}>Status</span>
+            </div>
+            {authUsers.map((u) => (
+              <div
+                key={u.id}
+                className="grid px-4 py-3 border-b border-white/[0.05] hover:bg-white/[0.02] transition-colors"
+                style={{ gridTemplateColumns: "1fr 140px 140px 80px", background: "#0d0f1a" }}
+              >
+                <div>
+                  <p className="text-white text-[12px] font-medium">{u.email}</p>
+                  {u.nome && <p className="text-white/40 text-[11px] mt-0.5">{u.nome}</p>}
+                </div>
+                <div className="text-white/40 text-[11px]">{fmtDate(u.criado_em)}</div>
+                <div className="text-white/40 text-[11px]">{fmtDate(u.ultimo_login)}</div>
+                <div>
+                  <span
+                    className="text-[9px] uppercase tracking-[0.12em] px-2 py-0.5"
+                    style={u.confirmado
+                      ? { color: "#22c55e", border: "1px solid #22c55e40", background: "#22c55e10" }
+                      : { color: "#f59e0b", border: "1px solid #f59e0b40", background: "#f59e0b10" }}
+                  >
+                    {u.confirmado ? "Ativo" : "Pendente"}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Fila de espera */}
+      <div className="mb-4">
+        <p className="text-[10px] uppercase tracking-[0.16em] text-white/30" style={SYNE}>
+          Fila de espera (solicitar acesso)
+        </p>
       </div>
 
       {/* Filtros */}
