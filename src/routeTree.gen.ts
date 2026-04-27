@@ -21,6 +21,7 @@ import { Route as SolucoesRouteImport } from './routes/solucoes'
 import { Route as SolicitarAcessoRouteImport } from './routes/solicitar-acesso'
 import { Route as ProdutoRouteImport } from './routes/produto'
 import { Route as PrecosRouteImport } from './routes/precos'
+import { Route as PnlLoginRouteImport } from './routes/pnl-login'
 import { Route as PnlRouteImport } from './routes/pnl'
 import { Route as PatrocineRouteImport } from './routes/patrocine'
 import { Route as PainelRouteImport } from './routes/painel'
@@ -108,6 +109,11 @@ const ProdutoRoute = ProdutoRouteImport.update({
 const PrecosRoute = PrecosRouteImport.update({
   id: '/precos',
   path: '/precos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PnlLoginRoute = PnlLoginRouteImport.update({
+  id: '/pnl-login',
+  path: '/pnl-login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PnlRoute = PnlRouteImport.update({
@@ -228,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof PainelRouteWithChildren
   '/patrocine': typeof PatrocineRoute
   '/pnl': typeof PnlRouteWithChildren
+  '/pnl-login': typeof PnlLoginRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
   '/solicitar-acesso': typeof SolicitarAcessoRoute
@@ -261,6 +268,7 @@ export interface FileRoutesByTo {
   '/explorar': typeof ExplorarRoute
   '/modelos': typeof ModelosRoute
   '/patrocine': typeof PatrocineRoute
+  '/pnl-login': typeof PnlLoginRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
   '/solicitar-acesso': typeof SolicitarAcessoRoute
@@ -296,6 +304,7 @@ export interface FileRoutesById {
   '/painel': typeof PainelRouteWithChildren
   '/patrocine': typeof PatrocineRoute
   '/pnl': typeof PnlRouteWithChildren
+  '/pnl-login': typeof PnlLoginRoute
   '/precos': typeof PrecosRoute
   '/produto': typeof ProdutoRoute
   '/solicitar-acesso': typeof SolicitarAcessoRoute
@@ -333,6 +342,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/patrocine'
     | '/pnl'
+    | '/pnl-login'
     | '/precos'
     | '/produto'
     | '/solicitar-acesso'
@@ -366,6 +376,7 @@ export interface FileRouteTypes {
     | '/explorar'
     | '/modelos'
     | '/patrocine'
+    | '/pnl-login'
     | '/precos'
     | '/produto'
     | '/solicitar-acesso'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/patrocine'
     | '/pnl'
+    | '/pnl-login'
     | '/precos'
     | '/produto'
     | '/solicitar-acesso'
@@ -436,6 +448,7 @@ export interface RootRouteChildren {
   PainelRoute: typeof PainelRouteWithChildren
   PatrocineRoute: typeof PatrocineRoute
   PnlRoute: typeof PnlRouteWithChildren
+  PnlLoginRoute: typeof PnlLoginRoute
   PrecosRoute: typeof PrecosRoute
   ProdutoRoute: typeof ProdutoRoute
   SolicitarAcessoRoute: typeof SolicitarAcessoRoute
@@ -534,6 +547,13 @@ declare module '@tanstack/react-router' {
       path: '/precos'
       fullPath: '/precos'
       preLoaderRoute: typeof PrecosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pnl-login': {
+      id: '/pnl-login'
+      path: '/pnl-login'
+      fullPath: '/pnl-login'
+      preLoaderRoute: typeof PnlLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pnl': {
@@ -745,6 +765,7 @@ const rootRouteChildren: RootRouteChildren = {
   PainelRoute: PainelRouteWithChildren,
   PatrocineRoute: PatrocineRoute,
   PnlRoute: PnlRouteWithChildren,
+  PnlLoginRoute: PnlLoginRoute,
   PrecosRoute: PrecosRoute,
   ProdutoRoute: ProdutoRoute,
   SolicitarAcessoRoute: SolicitarAcessoRoute,
@@ -765,12 +786,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

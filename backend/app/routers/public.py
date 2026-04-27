@@ -12,9 +12,15 @@ from app.models.dados_financeiros import Diaria
 import resend
 
 # SQL fragment: identifica passagens aéreas pelo nome da cia
-_PASSAGEM_COND = Diaria.nome_despesa_padrao.ilike("%Linhas Aéreas%") | \
-                 Diaria.nome_despesa_padrao.ilike("%Linhas Aereas%") | \
-                 Diaria.nome_despesa_padrao.ilike("%AIRLINES%")
+_PASSAGEM_COND = (
+    Diaria.nome_despesa_padrao.ilike("%Linhas Aéreas%") |
+    Diaria.nome_despesa_padrao.ilike("%Linhas Aereas%") |
+    Diaria.nome_despesa_padrao.ilike("%AIRLINES%") |
+    Diaria.nome_despesa_padrao.ilike("%AZUL%") |
+    Diaria.nome_despesa_padrao.ilike("%GOL%") |
+    Diaria.nome_despesa_padrao.ilike("%LATAM%") |
+    Diaria.nome_despesa_padrao.ilike("%passagem%")
+)
 
 router = APIRouter(prefix="/public", tags=["public"])
 
