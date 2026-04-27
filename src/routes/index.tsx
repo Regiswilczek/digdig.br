@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import claudeLogo from "@/assets/claude-logo.png";
-import { fetchStats, fetchAnalysesRecentes } from "@/lib/api";
+import { fetchAnalysesRecentes } from "@/lib/api";
 import type { PublicStats, AnaliseRecente } from "@/lib/api";
+import { useOrgao } from "@/lib/orgao-store";
 import { ParticleField } from "@/components/ParticleField";
 
 export const Route = createFileRoute("/")({
@@ -281,7 +282,7 @@ function Skeleton({ w, h = "1em", className = "" }: { w: string; h?: string; cla
   );
 }
 
-function DesktopBadge({ stats, loading, analyses }: { stats: PublicStats | null; loading: boolean; analyses: AnaliseRecente[] | null }) {
+function DesktopBadge({ stats, loading, analyses, totalDocs }: { stats: PublicStats | null; loading: boolean; analyses: AnaliseRecente[] | null; totalDocs: number }) {
   return (
     <div className="flex flex-col gap-[3px] select-none flex-shrink-0 w-[215px]">
       <PoweredByClaude fullWidth />
@@ -295,10 +296,10 @@ function DesktopBadge({ stats, loading, analyses }: { stats: PublicStats | null;
       </div>
       <div className="border border-white/20 bg-black/55 backdrop-blur-sm px-4 pt-3 pb-3 w-[215px]">
         <p className="text-[9px] font-mono text-white/40 tracking-[0.22em] uppercase mb-[2px]">
-          ATOS MAPEADOS:
+          DOCS MAPEADOS:
         </p>
         <p className="text-[3rem] font-bold text-white leading-none tabular-nums mb-3">
-          {loading ? <Skeleton w="120px" h="3rem" /> : stats ? stats.total_atos.toLocaleString("pt-BR") : "—"}
+          {loading ? <Skeleton w="120px" h="3rem" /> : stats ? totalDocs.toLocaleString("pt-BR") : "—"}
         </p>
         <div style={{ borderTop: "1px dashed rgba(255,255,255,0.16)" }} className="mb-[7px]" />
         <div className="flex items-center justify-between">
@@ -317,7 +318,7 @@ function DesktopBadge({ stats, loading, analyses }: { stats: PublicStats | null;
 
 // ── Mobile stats — 2-column strip (mirrors desktop card) ─────────────────────
 
-function MobileStats({ stats, loading }: { stats: PublicStats | null; loading: boolean }) {
+function MobileStats({ stats, loading, totalDocs }: { stats: PublicStats | null; loading: boolean; totalDocs: number }) {
   return (
     <div className="border border-white/10 bg-black/55 select-none rounded-lg overflow-hidden">
       {/* Top row: alert */}
@@ -334,10 +335,10 @@ function MobileStats({ stats, loading }: { stats: PublicStats | null; loading: b
       <div className="flex items-end justify-between px-4 pt-3 pb-3">
         <div className="flex flex-col">
           <span className="text-[9px] font-mono text-white/40 tracking-[0.18em] uppercase mb-1">
-            ATOS MAPEADOS:
+            DOCS MAPEADOS:
           </span>
           <span className="text-[2.4rem] font-bold text-white tabular-nums leading-none">
-            {loading ? <Skeleton w="100px" h="2.4rem" /> : stats ? stats.total_atos.toLocaleString("pt-BR") : "—"}
+            {loading ? <Skeleton w="100px" h="2.4rem" /> : stats ? totalDocs.toLocaleString("pt-BR") : "—"}
           </span>
         </div>
       </div>
@@ -453,7 +454,7 @@ function Nav() {
 
 // ── Desktop hero ──────────────────────────────────────────────────────────────
 
-function DesktopHero({ stats, loading, analyses }: { stats: PublicStats | null; loading: boolean; analyses: AnaliseRecente[] | null }) {
+function DesktopHero({ stats, loading, analyses, totalDocs }: { stats: PublicStats | null; loading: boolean; analyses: AnaliseRecente[] | null; totalDocs: number }) {
   return (
     <main className="hidden md:flex relative z-20 flex-row items-end justify-between gap-8 px-14 pb-10">
       <div className="flex flex-col gap-[18px]">
@@ -501,7 +502,7 @@ function DesktopHero({ stats, loading, analyses }: { stats: PublicStats | null; 
       </div>
 
       <div className="mb-1">
-        <DesktopBadge stats={stats} loading={loading} analyses={analyses} />
+        <DesktopBadge stats={stats} loading={loading} analyses={analyses} totalDocs={totalDocs} />
       </div>
     </main>
   );
@@ -509,7 +510,7 @@ function DesktopHero({ stats, loading, analyses }: { stats: PublicStats | null; 
 
 // ── Mobile hero ───────────────────────────────────────────────────────────────
 
-function MobileHero({ stats, loading, analyses }: { stats: PublicStats | null; loading: boolean; analyses: AnaliseRecente[] | null }) {
+function MobileHero({ stats, loading, analyses, totalDocs }: { stats: PublicStats | null; loading: boolean; analyses: AnaliseRecente[] | null; totalDocs: number }) {
   return (
     <div
       className="md:hidden relative z-20 flex flex-col px-5 pb-5 gap-5"
@@ -550,7 +551,7 @@ function MobileHero({ stats, loading, analyses }: { stats: PublicStats | null; l
         <br />Indícios aparecem. Você age.
       </p>
 
-      <MobileStats stats={stats} loading={loading} />
+      <MobileStats stats={stats} loading={loading} totalDocs={totalDocs} />
 
       <LiveCard analyses={analyses} fullWidth />
 
@@ -578,15 +579,14 @@ function MobileHero({ stats, loading, analyses }: { stats: PublicStats | null; l
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 function HomePage() {
-  const [stats, setStats] = useState<PublicStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { stats, finStats, isLoading: loading } = useOrgao("cau-pr");
   const [recentAnalyses, setRecentAnalyses] = useState<AnaliseRecente[] | null>(null);
 
+  const totalDocs = (stats?.total_atos ?? 0)
+    + (finStats?.diarias.total ?? 0)
+    + (finStats?.passagens.total ?? 0);
+
   useEffect(() => {
-    fetchStats("cau-pr")
-      .then(setStats)
-      .catch(() => {})
-      .finally(() => setLoading(false));
     fetchAnalysesRecentes("cau-pr")
       .then(setRecentAnalyses)
       .catch(() => setRecentAnalyses([]));
@@ -625,8 +625,8 @@ function HomePage() {
         style={{ height: "30%", background: "linear-gradient(to bottom, rgba(7,8,15,0.85) 0%, rgba(7,8,15,0) 100%)" }}
       />
 
-      <DesktopHero stats={stats} loading={loading} analyses={recentAnalyses} />
-      <MobileHero stats={stats} loading={loading} analyses={recentAnalyses} />
+      <DesktopHero stats={stats} loading={loading} analyses={recentAnalyses} totalDocs={totalDocs} />
+      <MobileHero stats={stats} loading={loading} analyses={recentAnalyses} totalDocs={totalDocs} />
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
-import { fetchStats, fetchAtos } from "@/lib/api";
+import { fetchAtos } from "@/lib/api";
 import type { PublicStats, AtoPublico, PublicAtosResponse } from "@/lib/api";
+import { useOrgao } from "@/lib/orgao-store";
 
 export const Route = createFileRoute("/explorar")({
   component: ExplorarPage,
@@ -109,15 +110,20 @@ function FilterChip({
 }
 
 function ExplorarPage() {
-  const [stats, setStats] = useState<PublicStats | null>(null);
+  const { stats, finStats, isLoading: statsLoading } = useOrgao("cau-pr");
   const [data, setData] = useState<PublicAtosResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingAtos, setLoadingAtos] = useState(false);
+  const [loadingAtos, setLoadingAtos] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [tipo, setTipo] = useState<string>("");
   const [nivel, setNivel] = useState<string>("");
   const [page, setPage] = useState(1);
+
+  const totalDocs = (stats?.total_atos ?? 0)
+    + (finStats?.diarias.total ?? 0)
+    + (finStats?.passagens.total ?? 0);
+
+  const loading = statsLoading || (!data && !error);
 
   const loadAtos = useCallback(async (t: string, n: string, p: number) => {
     setLoadingAtos(true);
@@ -139,16 +145,12 @@ function ExplorarPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [s, a] = await Promise.all([
-          fetchStats("cau-pr"),
-          fetchAtos("cau-pr", { page: 1, limit: 50 }),
-        ]);
-        setStats(s);
+        const a = await fetchAtos("cau-pr", { page: 1, limit: 50 });
         setData(a);
       } catch {
         setError("Não foi possível carregar os dados. Tente novamente.");
       } finally {
-        setLoading(false);
+        setLoadingAtos(false);
       }
     })();
   }, []);
@@ -246,7 +248,7 @@ function ExplorarPage() {
             style={{ color: MUTED }}
           >
             {stats
-              ? `${fmt(stats.total_analisados)} atos analisados pela inteligência do Dig Dig — portarias e deliberações de ${stats.tenant.nome}.`
+              ? `${fmt(stats.total_analisados)} atos analisados pela inteligência do Dig Dig — ${fmt(totalDocs)} documentos indexados no total de ${stats.tenant.nome}.`
               : "Carregando…"}
           </p>
         </header>
@@ -386,6 +388,45 @@ function ExplorarPage() {
                     </div>
                   );
                 })}
+                {finStats && (
+                  <div
+                    className="p-5 md:col-span-2"
+                    style={{ border: `1px solid #c7d2fe`, background: "#eef2ff", borderRadius: 2 }}
+                  >
+                    <div className="flex items-baseline justify-between mb-3">
+                      <span
+                        className="text-[10px] uppercase tracking-[0.22em]"
+                        style={{ fontFamily: MONO, color: "#4338ca" }}
+                      >
+                        Dados Financeiros
+                      </span>
+                      <span
+                        className="text-[9px] uppercase tracking-[0.14em] px-2 py-0.5"
+                        style={{ fontFamily: MONO, background: "#4338ca", color: "#fff", borderRadius: 2 }}
+                      >
+                        Extração completa · análise IA pendente
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.18em] mb-1" style={{ fontFamily: MONO, color: "#6366f1" }}>
+                          Diárias &amp; Deslocamentos
+                        </p>
+                        <p className="text-[28px] font-medium tabular-nums leading-none" style={{ letterSpacing: "-0.02em", color: "#1e1b4b" }}>
+                          {fmt(finStats.diarias.total)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.18em] mb-1" style={{ fontFamily: MONO, color: "#6366f1" }}>
+                          Passagens Aéreas
+                        </p>
+                        <p className="text-[28px] font-medium tabular-nums leading-none" style={{ letterSpacing: "-0.02em", color: "#1e1b4b" }}>
+                          {fmt(finStats.passagens.total)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
 

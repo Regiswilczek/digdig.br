@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { ParticleField } from "@/components/ParticleField";
-import { fetchStats, type PublicStats } from "@/lib/api";
+import { useOrgao } from "@/lib/orgao-store";
 
 export const Route = createFileRoute("/solucoes")({
   head: () => ({
@@ -256,10 +255,10 @@ const SOLUCOES: Solucao[] = [
 
 // ─── Page ──────────────────────────────────────────────────────────
 function SolucoesPage() {
-  const [stats, setStats] = useState<PublicStats | null>(null);
-  useEffect(() => {
-    fetchStats("cau-pr").then(setStats).catch(() => {});
-  }, []);
+  const { stats, finStats } = useOrgao("cau-pr");
+  const totalDocs = (stats?.total_atos ?? 0)
+    + (finStats?.diarias.total ?? 0)
+    + (finStats?.passagens.total ?? 0);
 
   const niveis = [
     { cor: "#16a34a", label: "Verde", desc: "Conforme. Ato rotineiro sem indícios de irregularidade.", exemplo: "PORTARIA Nº 676 — Exonera de Cargo a pedido (CJV)", pct: "~70%" },
@@ -386,7 +385,7 @@ function SolucoesPage() {
             }}
           >
             {[
-              { v: fmt(stats?.total_atos), l: "documentos coletados" },
+              { v: fmt(totalDocs || stats?.total_atos), l: "documentos coletados" },
               { v: fmt(stats?.total_analisados), l: "analisados" },
               { v: fmt(stats?.total_criticos), l: "casos críticos" },
               { v: "R$ 0", l: "para começar" },
@@ -434,7 +433,7 @@ function SolucoesPage() {
         <Section eyebrow="Como funciona" title="Quatro etapas. Zero leitura humana.">
           <NumberedList
             items={[
-              { n: "01", titulo: "Coleta", texto: "O sistema baixa 100% dos atos do site oficial. PDFs ficam armazenados — nada se perde quando a gestão muda o site.", detalhe: `${fmt(stats?.total_atos)} documentos coletados no CAU/PR` },
+              { n: "01", titulo: "Coleta", texto: "O sistema baixa 100% dos atos do site oficial. PDFs ficam armazenados — nada se perde quando a gestão muda o site.", detalhe: `${fmt(totalDocs || stats?.total_atos)} documentos coletados no CAU/PR` },
               { n: "02", titulo: "Extração de texto", texto: "Processamos o texto nativo dos PDFs. Para documentos escaneados, a leitura óptica garante cobertura total.", detalhe: `${fmt(stats?.por_tipo.portaria.total)} documentos com texto extraído` },
               { n: "03", titulo: "Triagem — Dig Dig Piper", texto: "Cada ato recebe nível de alerta: verde, amarelo, laranja ou vermelho. Baixo custo, escala milhar de atos por hora.", detalhe: `${fmt(stats?.total_analisados)} triados — ${fmt(stats?.total_criticos)} críticos` },
               { n: "04", titulo: "Análise — Dig Dig Bud", texto: "Atos críticos viram fichas com violação de regimento, citação direta e sugestão de questionamento público.", detalhe: `${fmt(stats?.distribuicao.vermelho)} vermelhos com fichas geradas` },
@@ -635,7 +634,7 @@ function SolucoesPage() {
             }}
           >
             {[
-              { v: fmt(stats?.total_atos), l: "coletados" },
+              { v: fmt(totalDocs || stats?.total_atos), l: "coletados" },
               { v: fmt(stats?.total_analisados), l: "analisados" },
               { v: fmt(stats?.total_criticos), l: "críticos" },
               { v: fmt(stats?.distribuicao.laranja), l: "laranja" },

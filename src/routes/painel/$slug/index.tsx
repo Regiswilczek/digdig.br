@@ -796,10 +796,12 @@ function TabVisaoGeral({
 
   const dist = stats?.distribuicao;
   const totalComNivel = dist ? dist.verde + dist.amarelo + dist.laranja + dist.vermelho : 0;
-  const pctAnalisados =
-    stats && stats.total_atos > 0
-      ? Math.round((stats.total_analisados / stats.total_atos) * 100)
-      : 0;
+  const totalDocs = (stats?.total_atos ?? 0)
+    + (finStats?.diarias.total ?? 0)
+    + (finStats?.passagens.total ?? 0);
+  const pctAnalisados = totalDocs > 0
+    ? Math.round(((stats?.total_analisados ?? 0) / totalDocs) * 100)
+    : 0;
   const isSuccess = pctAnalisados >= 90;
   const isLive = recentCount24h > 0 || rodada?.status === "em_progresso";
   const totalVermelhos = dist?.vermelho ?? 0;
@@ -907,7 +909,7 @@ function TabVisaoGeral({
                       {isSuccess ? "✓ meta atingida" : `faltam ${90 - pctAnalisados}pp`}
                     </p>
                     <p style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>
-                      {fmt(stats?.total_analisados)} de {fmt(stats?.total_atos)} documentos
+                      {fmt(stats?.total_analisados)} de {fmt(totalDocs)} documentos
                     </p>
                   </div>
                 </div>
@@ -1085,7 +1087,7 @@ function TabVisaoGeral({
               {fmt(stats?.total_analisados)}
             </span>
             <span style={{ fontFamily: MONO, fontSize: 12, color: SUBTLE, paddingBottom: 7 }}>
-              / {fmt(stats?.total_atos)}
+              / {fmt(totalDocs)}
             </span>
           </div>
           <p style={{ fontSize: 11.5, color: cardHover === "cobertura" ? INK : MUTED, lineHeight: 1.65, transition: "color 0.15s" }}>
@@ -2658,16 +2660,20 @@ function TabRelatorio({
   rodada: _rodada,
   crescimento,
   recentAnalyses,
+  finStats,
 }: {
   stats: PublicStats | null;
   rodada: PainelRodada | null;
   crescimento: CrescimentoResponse | null;
   recentAnalyses: AnaliseRecente[] | null;
+  finStats: FinanceiroStats | null;
 }) {
-  const pct =
-    stats && stats.total_atos > 0
-      ? Math.round((stats.total_analisados / stats.total_atos) * 100)
-      : 0;
+  const totalDocs = (stats?.total_atos ?? 0)
+    + (finStats?.diarias.total ?? 0)
+    + (finStats?.passagens.total ?? 0);
+  const pct = totalDocs > 0
+    ? Math.round(((stats?.total_analisados ?? 0) / totalDocs) * 100)
+    : 0;
   const concluido = pct >= 100;
 
   const crescimentoMarcos = crescimento?.marcos?.length ? crescimento.marcos : null;
@@ -2755,8 +2761,8 @@ function TabRelatorio({
         <div style={{ marginBottom: 28 }}>
           <Eyebrow>1 — Cobertura da análise</Eyebrow>
           <p style={PARA}>
-            Em abril de 2026, o Dig Dig indexou e analisou <strong>{fmt(stats?.total_analisados)}</strong> de{" "}
-            <strong>{fmt(stats?.total_atos)}</strong> atos administrativos do CAU/PR —{" "}
+            Em abril de 2026, o Dig Dig indexou e analisou <strong>{fmt(stats?.total_analisados)}</strong> atos de{" "}
+            <strong>{fmt(totalDocs)}</strong> documentos do CAU/PR (atos administrativos + dados financeiros) —{" "}
             <strong>{pct}%</strong> do acervo total identificado.{" "}
             {!concluido
               ? "A análise está em andamento; este relatório reflete o estado atual da investigação e será atualizado à medida que a cobertura avança."
@@ -2770,7 +2776,7 @@ function TabRelatorio({
             </div>
           )}
           <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, marginTop: 14 }}>
-            {fmt(stats?.total_analisados)} analisados · {fmt(stats?.total_atos)} total · {pct}% cobertura
+            {fmt(stats?.total_analisados)} analisados · {fmt(totalDocs)} total · {pct}% cobertura
           </p>
         </div>
 
@@ -3861,7 +3867,7 @@ function SlugDashboard() {
                 <TabPipeline slug={slug} rodada={rodada} initialItems={atividade} />
               </TabsContent>
               <TabsContent value="relatorio">
-                <TabRelatorio stats={stats} rodada={rodada} crescimento={crescimento} recentAnalyses={recentAnalyses} />
+                <TabRelatorio stats={stats} rodada={rodada} crescimento={crescimento} recentAnalyses={recentAnalyses} finStats={finStats} />
               </TabsContent>
             </div>
           </Tabs>

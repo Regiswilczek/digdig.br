@@ -84,7 +84,7 @@ function SidebarContent({
   onNavigate?: () => void;
 }) {
   const initial = (userEmail?.[0] ?? "•").toUpperCase();
-  const { stats: pipelineStats } = useOrgao("cau-pr");
+  const { stats: pipelineStats, finStats: pipelineFinStats } = useOrgao("cau-pr");
   const orgaos = [
     { nome: "CAU/PR", slug: "cau-pr", ativo: true, n: 1 },
     { nome: "Pref. de Curitiba", slug: null, ativo: false, n: 2 },
@@ -308,7 +308,11 @@ function SidebarContent({
           </div>
           {(() => {
             const analisados = pipelineStats?.total_analisados ?? null;
-            const total = pipelineStats?.total_atos ?? null;
+            const total = pipelineStats
+              ? (pipelineStats.total_atos
+                  + (pipelineFinStats?.diarias.total ?? 0)
+                  + (pipelineFinStats?.passagens.total ?? 0))
+              : null;
             const pct = analisados != null && total ? Math.round((analisados / total) * 1000) / 10 : null;
             return (
               <>
@@ -354,7 +358,7 @@ function SidebarContent({
                   className="text-[9px] mt-2 leading-snug uppercase tracking-[0.14em]"
                   style={{ color: MUTED_SOFT, fontFamily: MONO }}
                 >
-                  cau/pr · {total != null ? `${total} atos` : "carregando…"}
+                  cau/pr · {total != null ? `${total} docs` : "carregando…"}
                 </p>
               </>
             );
