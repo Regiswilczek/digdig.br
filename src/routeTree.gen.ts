@@ -23,8 +23,8 @@ import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as PatrocineRouteImport } from './routes/patrocine'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as ModelosRouteImport } from './routes/modelos'
-import { Route as EscalaRouteImport } from './routes/escala'
 import { Route as ExplorarRouteImport } from './routes/explorar'
+import { Route as EscalaRouteImport } from './routes/escala'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as ApoiarRouteImport } from './routes/apoiar'
@@ -113,14 +113,14 @@ const ModelosRoute = ModelosRouteImport.update({
   path: '/modelos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EscalaRoute = EscalaRouteImport.update({
-  id: '/escala',
-  path: '/escala',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ExplorarRoute = ExplorarRouteImport.update({
   id: '/explorar',
   path: '/explorar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EscalaRoute = EscalaRouteImport.update({
+  id: '/escala',
+  path: '/escala',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarRoute = EntrarRouteImport.update({
@@ -307,6 +307,7 @@ export interface FileRouteTypes {
     | '/whitepaper-05-quando-a-maquina-entra-na-sala'
     | '/whitepaper-06-do-gabinete-ao-terminal'
     | '/whitepaper-07-pre-auditoria-integrada'
+    | '/whitepaper-08-tres-dias'
     | '/painel/chat'
     | '/painel'
     | '/painel/$slug'
@@ -465,18 +466,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModelosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/escala': {
-      id: '/escala'
-      path: '/escala'
-      fullPath: '/escala'
-      preLoaderRoute: typeof EscalaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/explorar': {
       id: '/explorar'
       path: '/explorar'
       fullPath: '/explorar'
       preLoaderRoute: typeof ExplorarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/escala': {
+      id: '/escala'
+      path: '/escala'
+      fullPath: '/escala'
+      preLoaderRoute: typeof EscalaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar': {
