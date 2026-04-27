@@ -67,7 +67,7 @@ INSERTS = [
 
 
 async def main(dry_run: bool) -> None:
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     try:
         print(f"\n{'='*60}")
         print(f"  SEED PLANOS — {'DRY-RUN' if dry_run else 'REAL'}")

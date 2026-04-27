@@ -107,7 +107,7 @@ async def main(dry_run: bool) -> None:
     print("OCR Portarias Normativas (Claude vision) — CAU/PR")
     print(f"{'='*60}\n")
 
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     try:
         rows = await conn.fetch(
             """

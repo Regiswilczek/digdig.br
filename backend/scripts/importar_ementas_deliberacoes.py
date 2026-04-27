@@ -193,7 +193,7 @@ async def main(dry_run: bool):
     print(f"  Entradas encontradas no HTML: {len(indice)}")
 
     dsn = os.environ["DATABASE_URL"].replace("postgresql+asyncpg://", "postgresql://")
-    conn = await asyncpg.connect(dsn)
+    conn = await asyncpg.connect(dsn, statement_cache_size=0)
 
     # Busca todos os atos tipo deliberacao
     atos = await conn.fetch("""

@@ -74,7 +74,7 @@ async def main() -> None:
     print(f"   {len(text):,} chars  (~{len(text)//4:,} tokens)")
 
     print("💾 Connecting to database...")
-    conn = await asyncpg.connect(db_url)
+    conn = await asyncpg.connect(db_url, statement_cache_size=0)
     try:
         tenant_id = await conn.fetchval(
             "SELECT id FROM tenants WHERE slug = 'cau-pr'"

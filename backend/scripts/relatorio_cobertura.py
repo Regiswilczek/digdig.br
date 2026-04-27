@@ -37,7 +37,7 @@ ASYNCPG_URL = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
 
 
 async def main(output_path: Path) -> None:
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
 
     try:
         # ── Por ano ────────────────────────────────────────────────────────────

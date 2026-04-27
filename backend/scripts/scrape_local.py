@@ -72,7 +72,7 @@ def extract_text(pdf_bytes: bytes) -> tuple[str, int]:
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 async def main(limit: Optional[int], offset: int) -> None:
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
 
     try:
         # Fetch pending atos

@@ -55,7 +55,7 @@ async def main() -> None:
     print(f"📂 Portarias JSON: {PORTARIAS_JSON} (exists={PORTARIAS_JSON.exists()})")
     print(f"📂 Deliberações JSON: {DELIBERACOES_JSON} (exists={DELIBERACOES_JSON.exists()})")
 
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     try:
         tenant_id = await conn.fetchval("SELECT id FROM tenants WHERE slug = 'cau-pr'")
         if not tenant_id:

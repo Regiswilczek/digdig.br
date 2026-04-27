@@ -273,7 +273,7 @@ async def main(dry_run: bool) -> None:
         sys.exit("ERROR: ANTHROPIC_API_KEY não encontrado no backend/.env")
     claude = AsyncAnthropic(api_key=anthropic_key)
 
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     try:
         ok = ja_existe = sem_pdf = erro = 0
         total = len(docs)

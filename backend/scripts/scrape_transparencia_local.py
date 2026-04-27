@@ -310,7 +310,7 @@ async def main(filtro: list[str], dry_run: bool, limit: int | None) -> None:
     modo = "DRY RUN" if dry_run else "DOWNLOAD"
     print(f"Modo: {modo} | Seções: {len(secoes)} | Limit por seção: {limit or 'todas'}\n")
 
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     totais: dict[str, int] = {"ok": 0, "ja_existe": 0, "escaneado": 0, "nao_pdf": 0, "erro": 0}
 
     try:

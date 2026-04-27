@@ -124,7 +124,7 @@ def extrair_data(texto: str) -> date | None:
 
 
 async def main(dry_run: bool) -> None:
-    conn = await asyncpg.connect(ASYNCPG_URL)
+    conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     try:
         rows = await conn.fetch(
             """

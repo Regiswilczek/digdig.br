@@ -85,7 +85,7 @@ ALL_UPDATES = {**GRUPO2, **GRUPO3_OK}
 
 async def main():
     salvar = "--salvar" in sys.argv
-    conn = await asyncpg.connect(DB_URL)
+    conn = await asyncpg.connect(DB_URL, statement_cache_size=0)
 
     # Verificar quais números realmente existem no DB e estão pendentes
     pendentes = await conn.fetch(
