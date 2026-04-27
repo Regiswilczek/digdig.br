@@ -50,7 +50,11 @@ class Settings(BaseSettings):
 
     @property
     def allowed_origins_list(self) -> list[str]:
-        return [o.strip() for o in self.allowed_origins.split(",")]
+        origins = {o.strip() for o in self.allowed_origins.split(",") if o.strip()}
+        # always allow local dev regardless of what the env var says
+        origins.add("http://localhost:5173")
+        origins.add("http://localhost:3000")
+        return list(origins)
 
     @property
     def is_production(self) -> bool:
