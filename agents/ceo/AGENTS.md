@@ -114,7 +114,7 @@ Regis não é arquiteto — não pode integrar chapas do CAU/PR. O tom é de tra
 | # | Item | Detalhe |
 |---|---|---|
 | 14 | Automação fora do localhost | Mover scraper para servidor (hoje roda na máquina do Regis) |
-| 15 | Servidor próprio | Unificar Railway + Lovable em infraestrutura própria consolidada |
+| 15 | Servidor próprio | Infraestrutura VPS Hostinger com Docker Compose já consolidada — avaliar expansão conforme crescimento |
 | 16 | API Enterprise | Exportação de dados via API REST para planos Enterprise |
 
 ### Roadmap — Comunidade e engajamento

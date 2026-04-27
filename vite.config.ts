@@ -6,8 +6,9 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-// Proxy target: usa localhost:8000 se o backend local estiver rodando (via BACKEND_URL=http://localhost:8000),
-// caso contrário cai na VPS para que o dev local funcione sem backend local.
+// Proxy para dev local (modo dev:lovable). Sem BACKEND_URL, cai na VPS de produção.
+// Para dev com backend local: BACKEND_URL=http://localhost:8000 npm run dev:lovable
+// Em produção: nginx do container frontend proxia diretamente para api:8000.
 const BACKEND_URL = process.env.BACKEND_URL ?? "https://digdig.com.br";
 
 export default defineConfig({

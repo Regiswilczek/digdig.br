@@ -1,6 +1,6 @@
-// In dev: VITE_API_URL="" uses Vite proxy. In prod: set to Railway URL in Lovable env vars.
-export const API_URL =
-  import.meta.env.VITE_API_URL ?? "https://dig-dig-production.up.railway.app";
+// Em dev: usa proxy Vite (VITE_API_URL vazio → URL relativa → proxy → localhost:8000).
+// Em produção: VITE_API_URL="" no .env → URL relativa → nginx proxia para api:8000.
+export const API_URL = import.meta.env.VITE_API_URL ?? "";
 
 export async function fetchStats(slug = "cau-pr") {
   const r = await fetch(`${API_URL}/public/orgaos/${slug}/stats`);

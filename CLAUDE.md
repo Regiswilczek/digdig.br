@@ -99,7 +99,7 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 Em abril/2026, rodadas paralelas + bugs de debug consumiram $23 sem resultado rastreado. As 4 camadas de proteção (endpoint guard, idempotência, cancellation check, cost threshold) + índice único parcial no banco foram implementadas para prevenir reincidência. Veja `docs/whitepaper-02-custo-e-controle.html` para o diagnóstico completo.
 
 ### Scraper local
-O `scrape_local.py` **precisa rodar na máquina do Regis**, não no Railway. O servidor do CAU/PR bloqueia IPs de data centers americanos com 403. Headers de browser não ajudam — o bloqueio é por IP.
+O `scrape_local.py` **precisa rodar na máquina do Regis**, não na VPS. O servidor do CAU/PR bloqueia IPs de data centers (incluindo a VPS Hostinger) com 403. Headers de browser não ajudam — o bloqueio é por IP.
 
 ---
 
@@ -160,7 +160,7 @@ Cache: Anthropic prompt caching — regimento 68k tokens, ephemeral 5min TTL
 | `docs/06-seguranca-e-lgpd.md` | Auth, RLS, CORS, SQL injection, LGPD |
 | `docs/07-scraper-e-instituicoes.md` | Código do scraper, como adicionar novo órgão |
 | `docs/08-testes.md` | Unitários, integração, E2E, segurança, CI/CD |
-| `docs/09-infraestrutura-e-deploy.md` | Railway, Lovable, Supabase, monitoramento |
+| `docs/09-infraestrutura-e-deploy.md` | VPS Hostinger, Docker Compose, nginx, Supabase, monitoramento |
 | `docs/10-logs-e-analytics.md` | Structlog, auditoria de usuário, PostHog |
 | `docs/11-chat-e-ia-conversacional.md` | RAG completo, tipos de pergunta, custos |
 | `docs/12-plano-de-negocios.md` | Plano de negócios, posicionamento, projeções |

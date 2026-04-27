@@ -15,7 +15,7 @@ Plataforma SaaS de auditoria de atos administrativos públicos com IA.
 | 06 | [Segurança e LGPD](06-seguranca-e-lgpd.md) | Auth, RLS, CORS, proteções, conformidade LGPD |
 | 07 | [Scraper e Instituições](07-scraper-e-instituicoes.md) | Como adicionar novos órgãos, extração de PDF |
 | 08 | [Testes](08-testes.md) | Unitários, integração, E2E, segurança, CI/CD |
-| 09 | [Infraestrutura e Deploy](09-infraestrutura-e-deploy.md) | Railway, Vercel, Supabase, monitoramento, backup |
+| 09 | [Infraestrutura e Deploy](09-infraestrutura-e-deploy.md) | VPS Hostinger, Docker Compose, nginx, Supabase, monitoramento, backup |
 | 10 | [Logs e Analytics](10-logs-e-analytics.md) | Logs de aplicação, auditoria de usuário, analytics de produto, suporte |
 | 11 | [Chat e IA Conversacional](11-chat-e-ia-conversacional.md) | RAG, como a IA navega os dados, tipos de perguntas, custos, limites por plano |
 | 12 | [Plano de Negócios e Estratégia Comercial](12-plano-de-negocios.md) | Posicionamento, modelo de receita, Patrocine uma Auditoria, go-to-market, projeções |
