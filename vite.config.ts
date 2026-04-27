@@ -6,9 +6,10 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-// Em dev local: aponta para FastAPI rodando em localhost:8000
-// Em produção (Lovable): VITE_API_URL é definido e as chamadas vão direto para Railway
-const BACKEND_URL = "http://localhost:8000";
+// Proxy target: usa localhost:8000 se o backend local estiver rodando (via BACKEND_URL=http://localhost:8000),
+// caso contrário cai no Railway para que o dev local funcione sem backend local.
+// Em produção (Lovable): VITE_API_URL é definido no env e as chamadas vão direto para Railway, ignorando este proxy.
+const BACKEND_URL = process.env.BACKEND_URL ?? "https://dig-dig-production.up.railway.app";
 
 export default defineConfig({
   vite: {
