@@ -108,68 +108,6 @@ function StatCard({
   );
 }
 
-// ── Check row ─────────────────────────────────────────────────────────────────
-function CheckRow({
-  status,
-  label,
-  detail,
-}: {
-  status: "ok" | "fix" | "pending" | "fp";
-  label: string;
-  detail?: string;
-}) {
-  const colors: Record<string, { dot: string; text: string; bg: string }> = {
-    ok: { dot: "#16a34a", text: "#15803d", bg: "#f0fdf4" },
-    fix: { dot: "#ca8a04", text: "#92400e", bg: "#fffbeb" },
-    pending: { dot: "#6366f1", text: "#4338ca", bg: "#eef2ff" },
-    fp: { dot: SUBTLE, text: SUBTLE, bg: "#fafafa" },
-  };
-  const labels: Record<string, string> = {
-    ok: "OK",
-    fix: "Corrigindo",
-    pending: "Pendente",
-    fp: "Falso positivo",
-  };
-  const c = colors[status];
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "90px 1fr",
-        gap: 16,
-        alignItems: "start",
-        padding: "14px 0",
-        borderBottom: `1px solid ${BORDER}`,
-      }}
-    >
-      <span
-        style={{
-          ...MONO,
-          fontSize: 10,
-          fontWeight: 500,
-          color: c.text,
-          background: c.bg,
-          padding: "3px 8px",
-          borderRadius: 2,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 5,
-          whiteSpace: "nowrap",
-        }}
-      >
-        <span style={{ width: 5, height: 5, borderRadius: "50%", background: c.dot, display: "inline-block" }} />
-        {labels[status]}
-      </span>
-      <div>
-        <p style={{ fontSize: 14, color: TEXT, margin: "0 0 3px", fontWeight: 500 }}>{label}</p>
-        {detail && <p style={{ fontSize: 13, color: MUTED, margin: 0, lineHeight: 1.5 }}>{detail}</p>}
-      </div>
-    </div>
-  );
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 function EscalaPage() {
   const { stats, finStats } = useOrgao("cau-pr");
@@ -223,7 +161,8 @@ function EscalaPage() {
               maxWidth: 860,
             }}
           >
-            Começamos com um órgão.{" "}
+            Começamos com um órgão.
+            <br />
             <span style={{ color: "rgba(255,255,255,0.45)" }}>
               O Brasil tem trinta mil.
             </span>
@@ -358,89 +297,134 @@ function EscalaPage() {
           </div>
         </Section>
 
-        {/* § 03 — Infraestrutura */}
+        {/* § 03 — Volume de dados */}
         <Section
-          eyebrow="§ 03 · Infraestrutura"
-          title="Auditoria de segurança externa."
-          intro={
-            <>
-              Em 27 de abril de 2026, o digdig.com.br passou por uma auditoria de segurança externa.
-              Analisamos o relatório linha a linha — separamos o que é real, o que é falso positivo e o que
-              já estávamos sabendo antes de qualquer auditor chegar.
-            </>
-          }
+          eyebrow="§ 03 · Volume de dados"
+          title={<>411 milhões de registros<br /><span style={{ color: SUBTLE }}>gerados por ano.</span></>}
+          intro="O Dig Dig não audita apenas documentos jurídicos. Qualquer dado presente nos portais de transparência — diárias, contratos, licitações, notas fiscais, folhas de pagamento — entra no escopo."
         >
           <div>
+            {/* Máquina pública */}
             <p style={{ ...MONO, fontSize: 11, color: SUBTLE, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 16, marginTop: 4 }}>
-              O que o relatório acertou
+              A máquina que gera os dados
             </p>
-            <CheckRow
-              status="fix"
-              label="Versão do Nginx exposta (nginx/1.29.8)"
-              detail="server_tokens off; sendo adicionado. Facilitar identificação de versão específica é risco real."
-            />
-            <CheckRow
-              status="fix"
-              label="Headers de segurança ausentes"
-              detail="X-Frame-Options, X-Content-Type-Options, HSTS, CSP, X-XSS-Protection e Referrer-Policy sendo configurados no Nginx."
-            />
-            <CheckRow
-              status="fix"
-              label="Rate limiting não configurado"
-              detail="Rotas públicas (/public/orgaos/...) sem proteção contra scraping abusivo ou DDoS L7. Zona limit_req sendo criada."
-            />
-            <CheckRow
-              status="fix"
-              label="FastAPI revelando stack nos erros"
-              detail="Mensagens de validação do Pydantic expõem que o backend é FastAPI. Exception handler customizado sendo adicionado."
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+              {[
+                { v: "7,2M", l: "servidores públicos", sub: "1,2M federais · 2,5M estaduais · 3,5M municipais" },
+                { v: "5.600", l: "órgãos públicos", sub: "Prefeituras, governos estaduais, ministérios e autarquias" },
+                { v: "24M", l: "beneficiários de programas sociais", sub: "Bolsa Família, BPC e demais transferências mensais" },
+              ].map((s) => (
+                <div key={s.l} style={{ padding: "16px 0", borderBottom: `1px solid ${BORDER}` }}>
+                  <p style={{ ...MONO, fontSize: 28, fontWeight: 500, color: TEXT, margin: "0 0 5px", letterSpacing: "-0.02em", lineHeight: 1 }}>{s.v}</p>
+                  <p style={{ fontSize: 13, color: TEXT, margin: "0 0 3px", fontWeight: 500 }}>{s.l}</p>
+                  <p style={{ fontSize: 11, color: MUTED, margin: 0, lineHeight: 1.5 }}>{s.sub}</p>
+                </div>
+              ))}
+            </div>
 
-            <p style={{ ...MONO, fontSize: 11, color: SUBTLE, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 16, marginTop: 32 }}>
-              O que o relatório errou (falsos positivos)
+            {/* Volume por categoria */}
+            <p style={{ ...MONO, fontSize: 11, color: SUBTLE, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 16 }}>
+              Volume estimado por categoria · por ano
             </p>
-            <CheckRow
-              status="fp"
-              label='"Sem proteção CORS"'
-              detail="CORSMiddleware está implementado no FastAPI (main.py). O auditor testou sem enviar header Origin válido — o middleware simplesmente não injeta headers quando não há Origin. A proteção existe."
-            />
-            <CheckRow
-              status="fp"
-              label='"Chaves públicas do Supabase expostas"'
-              detail="A anon_key do Supabase é projetada para ficar no frontend. A segurança é garantida pelo Row Level Security (RLS) no banco — não pelo sigilo da chave anônima."
-            />
-            <CheckRow
-              status="fp"
-              label='"robots.txt e sitemap.xml mal configurados"'
-              detail="Comportamento padrão de SPA com React Router em modo catch-all. Não é vulnerabilidade — é ausência de otimização de SEO."
-            />
+            <div style={{ border: `1px solid ${BORDER}`, borderRadius: 4, overflow: "hidden", marginBottom: 32 }}>
+              {[
+                { cat: "Beneficiários de programas sociais", v: "~288M", pct: 70, note: "Pagamentos mensais — dados altamente estruturados" },
+                { cat: "Folha de pagamento de servidores", v: "~86M", pct: 21, note: "Um registro de remuneração por servidor por mês" },
+                { cat: "Notas fiscais e empenhos", v: "~14M", pct: 3, note: "10 registros/dia por órgão em dias úteis" },
+                { cat: "Diárias e deslocamentos", v: "~4,3M", pct: 1, note: "30% dos servidores viajam ~2x/ano com múltiplos registros" },
+                { cat: "Passagens e hospedagem", v: "~13M", pct: 3, note: "Vinculadas aos deslocamentos de servidores" },
+                { cat: "Contratos e licitações", v: "~860k", pct: 0.2, note: "100/prefeitura · 500/estado · 2.000/federal por ano" },
+                { cat: "Atos administrativos (PDFs)", v: "~4,6M", pct: 1, note: "Portarias, decretos, deliberações — aqui a IA gera mais valor" },
+              ].map((row, i) => (
+                <div
+                  key={row.cat}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 80px",
+                    gap: 12,
+                    padding: "12px 16px",
+                    borderBottom: i < 6 ? `1px solid ${BORDER}` : undefined,
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <p style={{ fontSize: 13, color: TEXT, margin: "0 0 2px", fontWeight: 500 }}>{row.cat}</p>
+                    <p style={{ fontSize: 11, color: MUTED, margin: 0 }}>{row.note}</p>
+                  </div>
+                  <p style={{ ...MONO, fontSize: 14, fontWeight: 500, color: TEXT, margin: 0, textAlign: "right", letterSpacing: "-0.01em" }}>
+                    {row.v}
+                  </p>
+                </div>
+              ))}
+            </div>
 
-            <p style={{ ...MONO, fontSize: 11, color: SUBTLE, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 16, marginTop: 32 }}>
-              O que o relatório não viu (achamos internamente)
+            {/* Totais */}
+            <p style={{ ...MONO, fontSize: 11, color: SUBTLE, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 16 }}>
+              Resumo do desafio
             </p>
-            <CheckRow
-              status="fix"
-              label="Rota administrativa sem bloqueio de IP"
-              detail="O router /pnl contém endpoints que disparam rodadas de IA (custo real em dólares). Protegido apenas por X-Admin-Secret. Nginx sendo configurado para bloquear acesso externo ao path /admin/."
-            />
-            <CheckRow
-              status="fix"
-              label="Redis sem senha no Docker"
-              detail="Container do Redis rodando sem requirepass. Rede interna do Docker mitiga, mas qualquer SSRF na API abriria a fila do Celery. Senha sendo adicionada."
-            />
-            <CheckRow
-              status="fix"
-              label="Volume de hot-reload montado em produção"
-              detail="docker-compose.yml monta ./backend:/app — configuração de desenvolvimento que impede imutabilidade do container. Volume sendo removido do compose de produção."
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-0" style={{ border: `1px solid ${BORDER}`, borderRadius: 4, overflow: "hidden", marginBottom: 32 }}>
+              {[
+                { v: "~1,1M", l: "registros por dia", sub: "Volume diário consolidado de todos os órgãos do Brasil" },
+                { v: "~411M", l: "registros por ano", sub: "Fluxo anual completo de transparência pública" },
+                { v: "~8,2B", l: "registros históricos", sub: "Acumulado dos últimos 20 anos — nunca auditado por IA" },
+              ].map((s, i) => (
+                <div
+                  key={s.l}
+                  style={{
+                    padding: "20px 20px",
+                    borderRight: i < 2 ? `1px solid ${BORDER}` : undefined,
+                  }}
+                >
+                  <p style={{ ...MONO, fontSize: 26, fontWeight: 500, color: TEXT, margin: "0 0 5px", letterSpacing: "-0.02em", lineHeight: 1 }}>{s.v}</p>
+                  <p style={{ fontSize: 13, color: TEXT, margin: "0 0 3px", fontWeight: 500 }}>{s.l}</p>
+                  <p style={{ fontSize: 11, color: MUTED, margin: 0, lineHeight: 1.4 }}>{s.sub}</p>
+                </div>
+              ))}
+            </div>
 
-            <p style={{ ...MONO, fontSize: 11, color: SUBTLE, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 16, marginTop: 32 }}>
-              O que já estava OK
+            {/* Duas esteiras */}
+            <p style={{ ...MONO, fontSize: 11, color: SUBTLE, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 16 }}>
+              Como processar isso
             </p>
-            <CheckRow status="ok" label="HTTPS com TLS 1.3 e certificado válido (Let's Encrypt)" />
-            <CheckRow status="ok" label="SQL Injection — parâmetros validados pelo FastAPI/Pydantic" />
-            <CheckRow status="ok" label="Arquivos sensíveis não expostos (.git, .env, config.php)" />
-            <CheckRow status="ok" label="Validação de entrada com limite máximo no paginador (limit ≤ 100)" />
-            <CheckRow status="ok" label="Autenticação nos endpoints do painel via Bearer Token (Supabase)" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              <div style={{ padding: 20, border: `1px solid ${BORDER}`, borderRadius: 4 }}>
+                <p style={{ ...MONO, fontSize: 10, color: SUBTLE, letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 8px" }}>
+                  Esteira 1 · Dados estruturados
+                </p>
+                <p style={{ fontSize: 15, color: TEXT, fontWeight: 600, margin: "0 0 8px", lineHeight: 1.3 }}>
+                  Machine Learning estatístico
+                </p>
+                <p style={{ fontSize: 13, color: MUTED, margin: "0 0 12px", lineHeight: 1.55 }}>
+                  Folhas de pagamento, programas sociais e diárias simples. Sem LLMs — algoritmos de detecção de anomalias identificam outliers: servidor municipal com R$150k num mês, 40 diárias em 30 dias.
+                </p>
+                <p style={{ ...MONO, fontSize: 11, color: SUBTLE }}>~91% do volume · custo baixo</p>
+              </div>
+              <div style={{ padding: 20, border: `1px solid ${TEXT}`, borderRadius: 4 }}>
+                <p style={{ ...MONO, fontSize: 10, color: SUBTLE, letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 8px" }}>
+                  Esteira 2 · Dados não estruturados
+                </p>
+                <p style={{ fontSize: 15, color: TEXT, fontWeight: 600, margin: "0 0 8px", lineHeight: 1.3 }}>
+                  Piper · Bud · Zew
+                </p>
+                <p style={{ fontSize: 13, color: MUTED, margin: "0 0 12px", lineHeight: 1.55 }}>
+                  Contratos, licitações, atos administrativos e justificativas de viagem. A IA lê o PDF do contrato, cruza com o edital, lê a portaria de nomeação. ~5–10M documentos/ano — alto valor por análise.
+                </p>
+                <p style={{ ...MONO, fontSize: 11, color: SUBTLE }}>~9% do volume · onde a IA brilha</p>
+              </div>
+            </div>
+
+            {/* Comparação */}
+            <div style={{ padding: 20, background: "#fafafa", border: `1px solid ${BORDER}`, borderRadius: 4 }}>
+              <p style={{ ...MONO, fontSize: 11, color: SUBTLE, letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 10px" }}>
+                Para efeito de comparação
+              </p>
+              <p style={{ fontSize: 15, color: TEXT, lineHeight: 1.65, margin: 0 }}>
+                O projeto <em>Querido Diário</em> possui hoje cerca de <strong>850.000 documentos</strong> em sua base.
+                O Dig Dig, em visão completa, processaria{" "}
+                <strong style={{ fontSize: 17 }}>480× mais dados</strong>{" "}
+                — englobando toda a teia de gastos e regras da máquina pública brasileira.
+              </p>
+            </div>
           </div>
         </Section>
 
