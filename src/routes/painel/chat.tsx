@@ -18,12 +18,8 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SplineEmbed } from "@/components/SplineEmbed";
-import {
-  fetchAtividade,
-  fetchStats,
-  type AtividadeItem,
-  type PublicStats,
-} from "../../lib/api";
+import { type AtividadeItem, type PublicStats } from "../../lib/api";
+import { useOrgao } from "../../lib/orgao-store";
 import { fetchAuthed } from "../../lib/api-auth";
 
 const BORDER = "#e8e6e1";
@@ -470,8 +466,7 @@ function ChatPage() {
   const [userName, setUserName] = useState("Usuário");
   const [input, setInput] = useState("");
   const [actSearch, setActSearch] = useState("");
-  const [analyses, setAnalyses] = useState<AtividadeItem[] | null>(null);
-  const [stats, setStats] = useState<PublicStats | null>(null);
+  const { atividade: analyses, stats } = useOrgao(SLUG);
   const [activityOpen, setActivityOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessaoId, setSessaoId] = useState<string | null>(null);
@@ -488,15 +483,7 @@ function ChatPage() {
       const raw = meta ?? session.user.email?.split("@")[0] ?? "Usuário";
       setUserName(raw.charAt(0).toUpperCase() + raw.slice(1));
     });
-    fetchAtividade(SLUG).then(setAnalyses).catch(() => setAnalyses([]));
-    fetchStats(SLUG).then(setStats).catch(console.error);
     carregarSessoes();
-
-    // Auto-refresh da atividade a cada 15s para mostrar novos docs em tempo real
-    const interval = setInterval(() => {
-      fetchAtividade(SLUG).then(setAnalyses).catch(() => {});
-    }, 15_000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

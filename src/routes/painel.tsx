@@ -32,7 +32,7 @@ import {
   RADIUS,
   tag,
 } from "../lib/painel-theme";
-import { fetchStats, type PublicStats } from "../lib/api";
+import { useOrgao } from "../lib/orgao-store";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — route is registered once dev server regenerates routeTree.gen.ts
@@ -84,11 +84,7 @@ function SidebarContent({
   onNavigate?: () => void;
 }) {
   const initial = (userEmail?.[0] ?? "•").toUpperCase();
-  const [pipelineStats, setPipelineStats] = useState<PublicStats | null>(null);
-
-  useEffect(() => {
-    fetchStats("cau-pr").then(setPipelineStats).catch(() => null);
-  }, []);
+  const { stats: pipelineStats } = useOrgao("cau-pr");
   const orgaos = [
     { nome: "CAU/PR", slug: "cau-pr", ativo: true, n: 1 },
     { nome: "Pref. de Curitiba", slug: null, ativo: false, n: 2 },

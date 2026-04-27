@@ -9,7 +9,8 @@ import {
   type PainelPendente,
   type PainelPendentesResponse,
 } from "../../../lib/api-auth";
-import { fetchStats, fetchAnalysesRecentes, fetchAtividade, fetchCrescimento, fetchFinanceiroStats, fetchFinanceiroDiarias, fetchFinanceiroPassagens, type PublicStats, type AnaliseRecente, type AtividadeItem, type CrescimentoResponse, type CrescimentoPonto, type Marco, type FinanceiroStats, type FinanceiroResponse } from "../../../lib/api";
+import { fetchAnalysesRecentes, fetchFinanceiroDiarias, fetchFinanceiroPassagens, type PublicStats, type AnaliseRecente, type AtividadeItem, type CrescimentoResponse, type CrescimentoPonto, type Marco, type FinanceiroStats, type FinanceiroResponse } from "../../../lib/api";
+import { useOrgao } from "../../../lib/orgao-store";
 import { supabase } from "../../../lib/supabase";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -247,52 +248,8 @@ function RealtimeFeed({
       );
   }, [initialItems]);
 
-  useEffect(() => {
-    const channel = supabase
-      .channel(channelId.current)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "analises" },
-        async (payload) => {
-          const row = payload.new as { id: string; ato_id: string; nivel_alerta: string | null; score_risco: number; criado_em: string };
-          const { data: ato } = await supabase.from("atos").select("numero, tipo").eq("id", row.ato_id).single();
-          setItems((prev) => [
-            { id: row.id, ato_id: row.ato_id, nivel_alerta: row.nivel_alerta, score_risco: row.score_risco, criado_em: row.criado_em, numero: ato?.numero, tipo: ato?.tipo, status: "analisado" as const },
-            ...prev.filter((p) => p.ato_id !== row.ato_id).slice(0, 49),
-          ]);
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "atos" },
-        (payload) => {
-          const row = payload.new as { id: string; numero: string; tipo: string; criado_em: string };
-          setItems((prev) => {
-            if (prev.some((p) => p.ato_id === row.id)) return prev;
-            return [
-              { id: row.id, ato_id: row.id, nivel_alerta: null, score_risco: null, criado_em: row.criado_em, numero: row.numero, tipo: row.tipo, status: "entrando" as const },
-              ...prev.slice(0, 49),
-            ];
-          });
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "diarias" },
-        (payload) => {
-          const row = payload.new as { id: string; codigo_processo: string | null; nome_passageiro: string | null; criado_em: string };
-          setItems((prev) => {
-            if (prev.some((p) => p.ato_id === row.id)) return prev;
-            return [
-              { id: row.id, ato_id: row.id, nivel_alerta: null, score_risco: null, criado_em: row.criado_em, numero: row.codigo_processo ?? undefined, tipo: "diaria", status: "entrando" as const },
-              ...prev.slice(0, 49),
-            ];
-          });
-        },
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [slug]);
+  // Realtime events are handled centrally by orgao-store.
+  // initialItems is already kept fresh by the store's 30s polling + Supabase channel.
 
   const filtered = items;
 
@@ -825,22 +782,17 @@ function TabVisaoGeral({
   recentCount24h,
   recentAnalyses: _recentAnalyses,
   crescimento,
-  slug,
+  finStats,
 }: {
   stats: PublicStats | null;
   rodada: PainelRodada | null;
   recentCount24h: number;
   recentAnalyses: AnaliseRecente[] | null;
   crescimento: CrescimentoResponse | null;
-  slug: string;
+  finStats: FinanceiroStats | null;
 }) {
   const [modal, setModal] = useState<null | "cobertura" | "alertas" | "custo">(null);
   const [cardHover, setCardHover] = useState<string | null>(null);
-  const [finStats, setFinStats] = useState<FinanceiroStats | null>(null);
-
-  useEffect(() => {
-    fetchFinanceiroStats(slug).then(setFinStats).catch(() => {});
-  }, [slug]);
 
   const dist = stats?.distribuicao;
   const totalComNivel = dist ? dist.verde + dist.amarelo + dist.laranja + dist.vermelho : 0;
@@ -1835,40 +1787,7 @@ function TabPipeline({
       );
   }, [initialItems]);
 
-  useEffect(() => {
-    const channel = supabase
-      .channel(`pipeline-feed-${slug}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "analises" }, async (payload) => {
-        const row = payload.new as { id: string; ato_id: string; nivel_alerta: string | null; score_risco: number; criado_em: string };
-        const { data: ato } = await supabase.from("atos").select("numero, tipo").eq("id", row.ato_id).single();
-        setItems((prev) => [
-          { id: row.id, ato_id: row.ato_id, nivel_alerta: row.nivel_alerta, score_risco: row.score_risco, criado_em: row.criado_em, numero: ato?.numero, tipo: ato?.tipo, status: "analisado" as const },
-          ...prev.filter((p) => p.ato_id !== row.ato_id).slice(0, 99),
-        ]);
-      })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "atos" }, (payload) => {
-        const row = payload.new as { id: string; numero: string; tipo: string; criado_em: string };
-        setItems((prev) => {
-          if (prev.some((p) => p.ato_id === row.id)) return prev;
-          return [
-            { id: row.id, ato_id: row.id, nivel_alerta: null, score_risco: null, criado_em: row.criado_em, numero: row.numero, tipo: row.tipo, status: "entrando" as const },
-            ...prev.slice(0, 99),
-          ];
-        });
-      })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "diarias" }, (payload) => {
-        const row = payload.new as { id: string; codigo_processo: string | null; nome_passageiro: string | null; criado_em: string };
-        setItems((prev) => {
-          if (prev.some((p) => p.ato_id === row.id)) return prev;
-          return [
-            { id: row.id, ato_id: row.id, nivel_alerta: null, score_risco: null, criado_em: row.criado_em, numero: row.codigo_processo ?? undefined, tipo: "diaria", status: "entrando" as const },
-            ...prev.slice(0, 99),
-          ];
-        });
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [slug]);
+  // Realtime handled by orgao-store — initialItems is kept fresh by the store.
 
   const pct =
     rodada && rodada.total_atos > 0
@@ -3773,24 +3692,11 @@ function TabDados({ slug }: { slug: string }) {
 // ── Main Dashboard ──────────────────────────────────────────────────────
 function SlugDashboard() {
   const { slug } = Route.useParams();
-  const [stats, setStats] = useState<PublicStats | null>(null);
-  const [rodada, setRodada] = useState<PainelRodada | null>(null);
+  const { stats, rodada, atividade, crescimento, finStats } = useOrgao(slug);
   const [recentAnalyses, setRecentAnalyses] = useState<AnaliseRecente[] | null>(null);
-  const [atividade, setAtividade] = useState<AtividadeItem[] | null>(null);
-  const [crescimento, setCrescimento] = useState<CrescimentoResponse | null>(null);
 
   useEffect(() => {
-    fetchStats(slug).then(setStats).catch(console.error);
-    fetchPainelRodada(slug).then(setRodada).catch(console.error);
     fetchAnalysesRecentes(slug).then(setRecentAnalyses).catch(() => setRecentAnalyses([]));
-    fetchAtividade(slug).then(setAtividade).catch(() => setAtividade([]));
-    fetchCrescimento(slug).then(setCrescimento).catch(console.error);
-
-    const interval = setInterval(() => {
-      fetchPainelRodada(slug).then(setRodada).catch(console.error);
-      fetchAtividade(slug).then(setAtividade).catch(console.error);
-    }, 15_000);
-    return () => clearInterval(interval);
   }, [slug]);
 
   const count24h = atividade ? atividade.length : 0;
@@ -3943,7 +3849,7 @@ function SlugDashboard() {
 
             <div className="px-4 sm:px-6 md:px-10 py-6 sm:py-8 pb-24 lg:pb-8">
               <TabsContent value="visao-geral">
-                <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} recentAnalyses={recentAnalyses} crescimento={crescimento} slug={slug} />
+                <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} recentAnalyses={recentAnalyses} crescimento={crescimento} finStats={finStats} />
               </TabsContent>
               <TabsContent value="dados">
                 <TabDados slug={slug} />
