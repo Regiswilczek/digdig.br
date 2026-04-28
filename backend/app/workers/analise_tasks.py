@@ -12,7 +12,7 @@ from app.models.tenant import Tenant
 from app.services.piper_service import analisar_ato_piper, montar_system_prompt
 from app.services.bud_service import analisar_ato_bud
 
-CUSTO_LIMITE_USD = Decimal("15.00")
+CUSTO_LIMITE_USD = Decimal("5.00")
 
 
 async def _rodada_esta_ativa(db, rodada_id: uuid.UUID) -> bool:

@@ -344,6 +344,12 @@ async def analisar_ato_piper(
     )
 
     full_system = system_prompt + PIPER_EXTRA
+    est_tokens = (len(full_system) + len(user_prompt)) // 4
+    est_custo = est_tokens * PRECO_PIPER["input"] + 4000 * PRECO_PIPER["output"]
+    logger.info(
+        "piper_call tipo=%s numero=%s est_tokens=%d est_usd=%.4f",
+        ato.tipo, ato.numero, est_tokens, est_custo,
+    )
     client = _get_client()
 
     response = await client.chat.completions.create(
@@ -361,6 +367,10 @@ async def analisar_ato_piper(
     input_tokens = response.usage.prompt_tokens if response.usage else 0
     output_tokens = response.usage.completion_tokens if response.usage else 0
     custo = input_tokens * PRECO_PIPER["input"] + output_tokens * PRECO_PIPER["output"]
+    logger.info(
+        "piper_done tipo=%s numero=%s in=%d out=%d usd=%.4f",
+        ato.tipo, ato.numero, input_tokens, output_tokens, custo,
+    )
 
     analise = await _salvar_resultado_piper(
         db, ato, ato_id, rodada_id, resultado, input_tokens, output_tokens, custo
@@ -437,6 +447,13 @@ async def analisar_ato_piper_visao(
 
     content: list = image_blocks + [{"type": "text", "text": user_prompt_text}]
     full_system = system_prompt + PIPER_EXTRA
+    est_tokens_sys = len(full_system) // 4
+    est_tokens_img = len(paginas) * 6000  # ~6k tokens por página de imagem
+    est_custo = (est_tokens_sys + est_tokens_img) * PRECO_PIPER["input"] + 4000 * PRECO_PIPER["output"]
+    logger.info(
+        "piper_visao_call tipo=%s numero=%s paginas=%d est_tokens=%d est_usd=%.4f",
+        ato.tipo, ato.numero, len(paginas), est_tokens_sys + est_tokens_img, est_custo,
+    )
     client = _get_client()
 
     response = await client.chat.completions.create(
@@ -454,6 +471,10 @@ async def analisar_ato_piper_visao(
     input_tokens = response.usage.prompt_tokens if response.usage else 0
     output_tokens = response.usage.completion_tokens if response.usage else 0
     custo = input_tokens * PRECO_PIPER["input"] + output_tokens * PRECO_PIPER["output"]
+    logger.info(
+        "piper_visao_done tipo=%s numero=%s in=%d out=%d usd=%.4f",
+        ato.tipo, ato.numero, input_tokens, output_tokens, custo,
+    )
 
     analise = await _salvar_resultado_piper(
         db, ato, ato_id, rodada_id, resultado, input_tokens, output_tokens, custo

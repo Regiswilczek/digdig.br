@@ -58,7 +58,7 @@ from app.models.analise import Analise
 from app.services.haiku_service import analisar_ato_haiku, montar_system_prompt
 
 TENANT_ID    = uuid.UUID("f32ed0e7-c95d-4dec-a332-fa2cf6f20eb4")
-CUSTO_LIMITE = Decimal("15.00")
+CUSTO_LIMITE = Decimal("5.00")
 EMOJIS       = {"verde": "🟢", "amarelo": "🟡", "laranja": "🟠", "vermelho": "🔴"}
 
 TIPOS_ALVO = [
