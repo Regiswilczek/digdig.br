@@ -40,6 +40,7 @@ NIVEIS_VALIDOS = {"verde", "amarelo", "laranja", "vermelho"}
 
 PRECO_PIPER = {
     "input": 1.25 / 1_000_000,
+    "cache_hit": 0.125 / 1_000_000,  # implicit cache hit — 10× mais barato que input normal
     "output": 10.00 / 1_000_000,
 }
 
@@ -372,14 +373,26 @@ async def analisar_ato_piper(
 
     input_tokens = response.usage.prompt_tokens if response.usage else 0
     output_tokens = response.usage.completion_tokens if response.usage else 0
-    custo = input_tokens * PRECO_PIPER["input"] + output_tokens * PRECO_PIPER["output"]
+
+    # Capturar tokens com implicit cache hit (Gemini 2.5 Pro — ativo por padrão)
+    cached_tokens = 0
+    if response.usage and hasattr(response.usage, "prompt_tokens_details"):
+        details = response.usage.prompt_tokens_details
+        if details and hasattr(details, "cached_tokens"):
+            cached_tokens = details.cached_tokens or 0
+
+    custo = (
+        (input_tokens - cached_tokens) * PRECO_PIPER["input"]
+        + cached_tokens * PRECO_PIPER["cache_hit"]
+        + output_tokens * PRECO_PIPER["output"]
+    )
     logger.info(
-        "piper_done tipo=%s numero=%s in=%d out=%d usd=%.4f",
-        ato.tipo, ato.numero, input_tokens, output_tokens, custo,
+        "piper_done tipo=%s numero=%s in=%d out=%d cached=%d usd=%.4f",
+        ato.tipo, ato.numero, input_tokens, output_tokens, cached_tokens, custo,
     )
 
     analise = await _salvar_resultado_piper(
-        db, ato, ato_id, rodada_id, resultado, input_tokens, output_tokens, custo
+        db, ato, ato_id, rodada_id, resultado, input_tokens, output_tokens, cached_tokens, custo
     )
 
     await salvar_tags_piper(
@@ -476,14 +489,26 @@ async def analisar_ato_piper_visao(
 
     input_tokens = response.usage.prompt_tokens if response.usage else 0
     output_tokens = response.usage.completion_tokens if response.usage else 0
-    custo = input_tokens * PRECO_PIPER["input"] + output_tokens * PRECO_PIPER["output"]
+
+    # Capturar tokens com implicit cache hit (Gemini 2.5 Pro — ativo por padrão)
+    cached_tokens = 0
+    if response.usage and hasattr(response.usage, "prompt_tokens_details"):
+        details = response.usage.prompt_tokens_details
+        if details and hasattr(details, "cached_tokens"):
+            cached_tokens = details.cached_tokens or 0
+
+    custo = (
+        (input_tokens - cached_tokens) * PRECO_PIPER["input"]
+        + cached_tokens * PRECO_PIPER["cache_hit"]
+        + output_tokens * PRECO_PIPER["output"]
+    )
     logger.info(
-        "piper_visao_done tipo=%s numero=%s in=%d out=%d usd=%.4f",
-        ato.tipo, ato.numero, input_tokens, output_tokens, custo,
+        "piper_visao_done tipo=%s numero=%s in=%d out=%d cached=%d usd=%.4f",
+        ato.tipo, ato.numero, input_tokens, output_tokens, cached_tokens, custo,
     )
 
     analise = await _salvar_resultado_piper(
-        db, ato, ato_id, rodada_id, resultado, input_tokens, output_tokens, custo
+        db, ato, ato_id, rodada_id, resultado, input_tokens, output_tokens, cached_tokens, custo
     )
 
     # Registra metadado de que o ato foi processado via visão
@@ -526,6 +551,7 @@ async def _salvar_resultado_piper(
     resultado: dict,
     input_tokens: int,
     output_tokens: int,
+    cached_tokens: int,
     custo: float,
 ) -> Analise:
     analise_result = await db.execute(select(Analise).where(Analise.ato_id == ato_id))
@@ -547,6 +573,7 @@ async def _salvar_resultado_piper(
     analise.resultado_piper = resultado
     analise.resumo_executivo = resultado.get("resumo")
     analise.tokens_piper = input_tokens + output_tokens
+    analise.tokens_piper_cached = cached_tokens
     analise.custo_usd = Decimal(str(custo))
 
     # CVSS-A — cálculo determinístico a partir das variáveis extraídas pelo Piper

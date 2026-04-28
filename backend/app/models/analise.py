@@ -34,6 +34,7 @@ class Analise(Base):
     resultado_bud: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     resultado_new: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     tokens_piper: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_piper_cached: Mapped[int | None] = mapped_column(Integer, nullable=True)  # tokens com implicit cache hit
     tokens_bud: Mapped[int] = mapped_column(Integer, default=0)
     tokens_new: Mapped[int] = mapped_column(Integer, default=0)
     custo_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal("0"))
