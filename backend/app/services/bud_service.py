@@ -186,7 +186,6 @@ async def _montar_contexto_bud(
                 select(AparicaoPessoa)
                 .where(AparicaoPessoa.pessoa_id == pessoa_id)
                 .order_by(AparicaoPessoa.data_ato.desc())
-                .limit(30)
             )
             ap_hist = ap_hist_result.scalars().all()
             tipos = dict(Counter(ap.tipo_aparicao for ap in ap_hist if ap.tipo_aparicao))
@@ -229,7 +228,7 @@ async def _montar_contexto_bud(
             blocos = []
             for ato_ref, conteudo_ref in atos_ref_result.all():
                 if conteudo_ref and conteudo_ref.texto_completo:
-                    trecho = conteudo_ref.texto_completo[:8_000]
+                    trecho = conteudo_ref.texto_completo[:50_000]
                     blocos.append(
                         f"[{ato_ref.tipo.upper()} Nº {ato_ref.numero} — {ato_ref.data_publicacao}]\n{trecho}"
                     )

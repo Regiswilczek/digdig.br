@@ -144,7 +144,10 @@ Use apenas códigos presentes na lista. Inclua somente tags com evidência real 
 VARIÁVEIS CVSS-A (preencher para todo ato — o backend calcula o score):
 - cvss_fi (Impacto Financeiro): "nenhum" (sem gasto), "baixo" (< R$50k), "medio" (R$50k–500k), "alto" (> R$500k)
 - cvss_li (Impacto Legal): "formal" (vício de forma, sem crime), "grave" (violação de lei, improbidade), "crime" (tipo penal configurado)
-- cvss_ri (Impacto Reputacional): "interno" (restrito ao órgão), "publico" (repercussão pública provável), "sistemico" (dano à confiança institucional)
+- cvss_ri (Impacto Reputacional):
+    "interno": afeta apenas o funcionamento administrativo interno (ex: férias, designação de sala, portaria de expediente)
+    "publico": afeta pessoas externas, reputação pública ou direitos de terceiros — USE PARA: comissões processantes, nomeações políticas, contratos com terceiros, exonerações de servidores com repercussão pública
+    "sistemico": padrão recorrente que compromete a confiança na instituição como um todo (ex: série de nomeações sem critério técnico, concentração de poder documentada)
 - cvss_av (Vetor de Ataque): "colegiado" (exigiu aprovação coletiva), "unilateral" (ato de autoridade única)
 - cvss_ac (Complexidade): "alta" (exigiu planejamento elaborado), "baixa" (ato simples, sem obstáculos)
 - cvss_pr (Privilégios): "baixo_escalao" (servidor operacional), "alto_escalao" (Presidente, Diretor, Conselheiro)
