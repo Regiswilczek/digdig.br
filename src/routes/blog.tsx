@@ -34,6 +34,16 @@ export const Route = createFileRoute("/blog")({
 // Add new entries here (newest first) whenever a new white paper is published.
 const PAPERS = [
   {
+    numero: "09",
+    slug: "/whitepaper-09-dados-o-que-fazer",
+    titulo: "Dados: O Que Fazer Com Eles",
+    subtitulo: "Tags, Dune Analytics, linhas investigativas e a pergunta que mudou",
+    resumo:
+      "A pausa estratégica nas rodadas de análise, a conversa com Dan Niero sobre indexação como o Dune Analytics, a taxonomia de 60 tags em 9 categorias, a evolução dos critérios de IA (Mindset de Auditoria, base legal expandida, princípio de linguagem) e a arquitetura dos três agentes — Piper, Bud e Zew — documentada antes do próximo sprint.",
+    data: "Abril 2026",
+    tags: ["Tags", "Indexação", "Pipeline", "Três Agentes"],
+  },
+  {
     numero: "08",
     slug: "/whitepaper-08-tres-dias",
     titulo: "Três Dias Sem Dormir",
