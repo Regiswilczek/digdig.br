@@ -4,18 +4,25 @@ cvss_service.py — CVSS-A (Score de Vulnerabilidade Adaptado para Auditoria Pú
 Baseado no CVSS v4.0 (FIRST, 2023), adaptado para risco administrativo.
 O LLM extrai variáveis qualitativas; este módulo calcula o score deterministicamente.
 
-Fórmula:
-  I = 10.41 × (1 − (1−FI) × (1−LI) × (1−RI))
-  E = 20 × AV × AC × PR
-  CVSS-A = round(min(I + E, 10.0), 1)
+Fórmula (v2 — híbrida ponderada):
+  I_norm = (FI + LI + RI) / 3          # média dos sub-scores de impacto  [0.0–1.0]
+  E_norm = AV × AC × PR                # produto dos sub-scores de explorabilidade [0.0–1.0]
+  CVSS-A = round(min((I_norm × 6) + (E_norm × 4), 10.0), 1)
+
+Impacto recebe 60% do peso, Explorabilidade 40%.
+Isso garante que atos rotineiros (baixo impacto) não saturam o score só por serem
+unilaterais — condição normal em auditoria pública, não um agravante per se.
 """
 from __future__ import annotations
 
 from decimal import Decimal, ROUND_HALF_UP
 
-PESOS_FI = {"nenhum": 0.00, "baixo": 0.22, "medio": 0.40, "alto": 0.56}
-PESOS_LI = {"formal": 0.22, "grave": 0.56, "crime": 0.85}
-PESOS_RI = {"interno": 0.22, "publico": 0.56, "sistemico": 0.85}
+# Pesos de Impacto — escala 0.0–1.0
+PESOS_FI = {"nenhum": 0.00, "baixo": 0.30, "medio": 0.50, "alto": 1.00}
+PESOS_LI = {"formal": 0.10, "grave": 0.50, "crime": 1.00}
+PESOS_RI = {"interno": 0.30, "publico": 0.60, "sistemico": 1.00}
+
+# Pesos de Explorabilidade — escala 0.0–1.0 (sem multiplicador externo)
 PESOS_AV = {"colegiado": 0.20, "unilateral": 0.85}
 PESOS_AC = {"alta": 0.44, "baixa": 1.00}
 PESOS_PR = {"baixo_escalao": 0.68, "alto_escalao": 0.85}
@@ -66,9 +73,9 @@ def calcular_cvss_a(
     ac_v = PESOS_AC.get(ac or "", PESOS_AC[_DEFAULTS["ac"]])
     pr_v = PESOS_PR.get(pr or "", PESOS_PR[_DEFAULTS["pr"]])
 
-    impacto = 10.41 * (1 - (1 - fi_v) * (1 - li_v) * (1 - ri_v))
-    explorabilidade = 20 * av_v * ac_v * pr_v
-    score_raw = min(impacto + explorabilidade, 10.0)
+    i_norm = (fi_v + li_v + ri_v) / 3
+    e_norm = av_v * ac_v * pr_v
+    score_raw = min((i_norm * 6) + (e_norm * 4), 10.0)
     score = Decimal(str(score_raw)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
 
     av_key = _ABREV.get(av or _DEFAULTS["av"], (av or _DEFAULTS["av"])[:3].upper())
@@ -77,7 +84,7 @@ def calcular_cvss_a(
     fi_key = _ABREV.get(fi or _DEFAULTS["fi"], (fi or _DEFAULTS["fi"])[:3].upper())
     li_key = _ABREV.get(li or _DEFAULTS["li"], (li or _DEFAULTS["li"])[:3].upper())
     ri_key = _ABREV.get(ri or _DEFAULTS["ri"], (ri or _DEFAULTS["ri"])[:3].upper())
-    vetor = f"CVSS-A:1.0/AV:{av_key}/AC:{ac_key}/PR:{pr_key}/FI:{fi_key}/LI:{li_key}/RI:{ri_key}"
+    vetor = f"CVSS-A:2.0/AV:{av_key}/AC:{ac_key}/PR:{pr_key}/FI:{fi_key}/LI:{li_key}/RI:{ri_key}"
 
     return score, vetor
 
