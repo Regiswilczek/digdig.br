@@ -17,6 +17,7 @@ import { Route as Whitepaper04OQueAMaquinaEncontrouRouteImport } from './routes/
 import { Route as Whitepaper03DeliberacoesEPrimeirosAchadosRouteImport } from './routes/whitepaper-03-deliberacoes-e-primeiros-achados'
 import { Route as Whitepaper02CustoEControleRouteImport } from './routes/whitepaper-02-custo-e-controle'
 import { Route as Whitepaper01ExtracaoCauprRouteImport } from './routes/whitepaper-01-extracao-caupr'
+import { Route as TestemodeloRouteImport } from './routes/testemodelo'
 import { Route as SolucoesRouteImport } from './routes/solucoes'
 import { Route as SolicitarAcessoRouteImport } from './routes/solicitar-acesso'
 import { Route as ProdutoRouteImport } from './routes/produto'
@@ -91,6 +92,11 @@ const Whitepaper01ExtracaoCauprRoute =
     path: '/whitepaper-01-extracao-caupr',
     getParentRoute: () => rootRouteImport,
   } as any)
+const TestemodeloRoute = TestemodeloRouteImport.update({
+  id: '/testemodelo',
+  path: '/testemodelo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SolucoesRoute = SolucoesRouteImport.update({
   id: '/solucoes',
   path: '/solucoes',
@@ -239,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/produto': typeof ProdutoRoute
   '/solicitar-acesso': typeof SolicitarAcessoRoute
   '/solucoes': typeof SolucoesRoute
+  '/testemodelo': typeof TestemodeloRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
@@ -273,6 +280,7 @@ export interface FileRoutesByTo {
   '/produto': typeof ProdutoRoute
   '/solicitar-acesso': typeof SolicitarAcessoRoute
   '/solucoes': typeof SolucoesRoute
+  '/testemodelo': typeof TestemodeloRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
@@ -309,6 +317,7 @@ export interface FileRoutesById {
   '/produto': typeof ProdutoRoute
   '/solicitar-acesso': typeof SolicitarAcessoRoute
   '/solucoes': typeof SolucoesRoute
+  '/testemodelo': typeof TestemodeloRoute
   '/whitepaper-01-extracao-caupr': typeof Whitepaper01ExtracaoCauprRoute
   '/whitepaper-02-custo-e-controle': typeof Whitepaper02CustoEControleRoute
   '/whitepaper-03-deliberacoes-e-primeiros-achados': typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
@@ -347,6 +356,7 @@ export interface FileRouteTypes {
     | '/produto'
     | '/solicitar-acesso'
     | '/solucoes'
+    | '/testemodelo'
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
@@ -381,6 +391,7 @@ export interface FileRouteTypes {
     | '/produto'
     | '/solicitar-acesso'
     | '/solucoes'
+    | '/testemodelo'
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
@@ -416,6 +427,7 @@ export interface FileRouteTypes {
     | '/produto'
     | '/solicitar-acesso'
     | '/solucoes'
+    | '/testemodelo'
     | '/whitepaper-01-extracao-caupr'
     | '/whitepaper-02-custo-e-controle'
     | '/whitepaper-03-deliberacoes-e-primeiros-achados'
@@ -453,6 +465,7 @@ export interface RootRouteChildren {
   ProdutoRoute: typeof ProdutoRoute
   SolicitarAcessoRoute: typeof SolicitarAcessoRoute
   SolucoesRoute: typeof SolucoesRoute
+  TestemodeloRoute: typeof TestemodeloRoute
   Whitepaper01ExtracaoCauprRoute: typeof Whitepaper01ExtracaoCauprRoute
   Whitepaper02CustoEControleRoute: typeof Whitepaper02CustoEControleRoute
   Whitepaper03DeliberacoesEPrimeirosAchadosRoute: typeof Whitepaper03DeliberacoesEPrimeirosAchadosRoute
@@ -519,6 +532,13 @@ declare module '@tanstack/react-router' {
       path: '/whitepaper-01-extracao-caupr'
       fullPath: '/whitepaper-01-extracao-caupr'
       preLoaderRoute: typeof Whitepaper01ExtracaoCauprRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/testemodelo': {
+      id: '/testemodelo'
+      path: '/testemodelo'
+      fullPath: '/testemodelo'
+      preLoaderRoute: typeof TestemodeloRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/solucoes': {
@@ -770,6 +790,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProdutoRoute: ProdutoRoute,
   SolicitarAcessoRoute: SolicitarAcessoRoute,
   SolucoesRoute: SolucoesRoute,
+  TestemodeloRoute: TestemodeloRoute,
   Whitepaper01ExtracaoCauprRoute: Whitepaper01ExtracaoCauprRoute,
   Whitepaper02CustoEControleRoute: Whitepaper02CustoEControleRoute,
   Whitepaper03DeliberacoesEPrimeirosAchadosRoute:

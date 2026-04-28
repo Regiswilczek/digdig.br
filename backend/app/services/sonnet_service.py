@@ -107,11 +107,11 @@ async def _montar_contexto_enriquecido(
         select(ConteudoAto).where(ConteudoAto.ato_id == ato_id)
     )
     conteudo = conteudo_result.scalar_one_or_none()
-    texto = conteudo.texto_completo[:6000] if conteudo else ""
+    texto = conteudo.texto_completo[:100_000] if conteudo else ""
 
     # Get involved persons with history
     aparicoes_result = await db.execute(
-        select(AparicaoPessoa).where(AparicaoPessoa.ato_id == ato_id).limit(10)
+        select(AparicaoPessoa).where(AparicaoPessoa.ato_id == ato_id).limit(50)
     )
     aparicoes = aparicoes_result.scalars().all()
 
@@ -169,7 +169,7 @@ async def analisar_ato_sonnet(
 
     response = await client.messages.create(
         model=settings.claude_sonnet_model,
-        max_tokens=8000,
+        max_tokens=16000,
         system=[
             {
                 "type": "text",

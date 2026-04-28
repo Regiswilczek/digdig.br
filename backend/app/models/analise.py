@@ -25,6 +25,17 @@ class Analise(Base):
     recomendacao_campanha: Mapped[str | None] = mapped_column(Text, nullable=True)
     tokens_haiku: Mapped[int] = mapped_column(Integer, default=0)
     tokens_sonnet: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Novos agentes: Piper (Gemini Pro), Bud (Sonnet), New (Opus)
+    analisado_por_piper: Mapped[bool] = mapped_column(Boolean, default=False)
+    analisado_por_bud: Mapped[bool] = mapped_column(Boolean, default=False)
+    analisado_por_new: Mapped[bool] = mapped_column(Boolean, default=False)
+    resultado_piper: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    resultado_bud: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    resultado_new: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    tokens_piper: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_bud: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_new: Mapped[int] = mapped_column(Integer, default=0)
     custo_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal("0"))
     criado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

@@ -26,11 +26,17 @@ class Settings(BaseSettings):
     # Claude
     claude_haiku_model: str = "claude-haiku-4-5-20251001"
     claude_sonnet_model: str = "claude-sonnet-4-6"
+    claude_opus_model: str = "claude-opus-4-7"
     anthropic_api_key: str = ""
 
     # OpenAI (chat)
     openai_api_key: str = ""
     openai_chat_model: str = "gpt-4o-mini"
+
+    # Google Gemini
+    gemini_api_key: str = ""
+    gemini_flash_lite_model: str = "gemini-2.5-flash-lite-preview-06-17"
+    gemini_pro_model: str = "gemini-2.5-pro"
 
     # Mercado Pago (billing)
     mercadopago_access_token: str = ""

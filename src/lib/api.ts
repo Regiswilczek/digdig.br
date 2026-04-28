@@ -144,6 +144,16 @@ export interface PublicStats {
   por_tipo: Record<string, { total: number; analisados: number }>;
 }
 
+export interface AtoTag {
+  codigo: string;
+  nome: string;
+  categoria: string;
+  categoria_nome: string;
+  gravidade: "baixa" | "media" | "alta" | "critica";
+  atribuido_por: "piper" | "bud" | "new";
+  revisado_por: string | null;
+}
+
 export interface AtoPublico {
   id: string;
   numero: string;
@@ -153,6 +163,7 @@ export interface AtoPublico {
   data_publicacao: string | null;
   nivel_alerta: "verde" | "amarelo" | "laranja" | "vermelho" | null;
   score_risco: number;
+  tags: AtoTag[];
 }
 
 export interface PublicAtosResponse {

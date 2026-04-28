@@ -1,0 +1,270 @@
+"""
+bud_service.py — Bud: análise profunda via Claude Sonnet
+
+Substitui o sonnet_service como agente de análise profunda.
+Recebe o contexto enriquecido (texto completo + análise do Piper + histórico de pessoas)
+e produz uma ficha de denúncia com indicíos legais/morais detalhados.
+Também executa revisão e refinamento das tags identificadas pelo Piper.
+"""
+from __future__ import annotations
+
+import json
+import re
+import uuid
+from decimal import Decimal
+
+from anthropic import AsyncAnthropic
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
+from app.config import settings
+from app.models.ato import Ato, ConteudoAto
+from app.models.analise import Analise, Irregularidade
+from app.models.pessoa import AparicaoPessoa, Pessoa
+from app.services.haiku_service import NIVEIS_VALIDOS
+from app.services.tag_service import (
+    LISTA_TAGS_PROMPT,
+    buscar_tags_ativas,
+    revisar_tags_bud_new,
+)
+
+client = AsyncAnthropic()
+
+PRECOS_BUD = {
+    "input": 3.00 / 1_000_000,
+    "output": 15.00 / 1_000_000,
+    "cache_read": 0.30 / 1_000_000,
+    "cache_write": 3.75 / 1_000_000,
+}
+
+BUD_EXTRA = f"""
+
+MODO: ANÁLISE PROFUNDA (BUD)
+
+Você está recebendo um ato que foi PRÉ-CLASSIFICADO como suspeito pelo Piper.
+Use o histórico das pessoas envolvidas e os atos relacionados para:
+1. Confirmar ou refutar a suspeita inicial do Piper
+2. Identificar padrões que só aparecem com contexto histórico
+3. Construir uma narrativa política coerente
+4. Gerar uma ficha de denúncia pronta para uso
+
+REVISÃO DE TAGS:
+O contexto inclui as tags identificadas pelo Piper. Com base na análise profunda:
+- Confirme as tags corretas
+- Remova as que não se sustentam com o contexto completo
+- Adicione novas que o Piper não identificou por falta de contexto histórico
+
+TAGS DISPONÍVEIS:
+{LISTA_TAGS_PROMPT}
+
+Responda em JSON com esta estrutura:
+{{
+  "nivel_alerta_confirmado": "verde|amarelo|laranja|vermelho",
+  "score_risco_final": 0,
+  "confirmacao_suspeita": true,
+  "analise_aprofundada": {{
+    "indicios_legais": [{{"tipo": "string", "descricao": "string", "artigo_violado": "string", "gravidade": "string"}}],
+    "indicios_morais": [{{"tipo": "string", "descricao": "string", "impacto_politico": "string", "gravidade": "string"}}],
+    "padrao_identificado": "string|null",
+    "narrativa_completa": "string"
+  }},
+  "ficha_denuncia": {{
+    "titulo": "string",
+    "fato": "string",
+    "indicio_legal": "string",
+    "indicio_moral": "string",
+    "evidencias": ["string"],
+    "impacto": "string",
+    "recomendacao_campanha": "string"
+  }},
+  "tags_revisadas": [
+    {{"codigo": "<codigo_exato>", "acao": "confirmada|adicionada|removida|elevada|rebaixada", "gravidade": "baixa|media|alta|critica", "justificativa": "1 frase"}}
+  ]
+}}"""
+
+
+def _parse_bud_response(raw_text: str) -> dict:
+    text = re.sub(r"^```(?:json)?\s*\n?", "", raw_text.strip(), flags=re.MULTILINE)
+    text = re.sub(r"\n?```\s*$", "", text.strip(), flags=re.MULTILINE)
+    try:
+        result = json.loads(text)
+    except json.JSONDecodeError:
+        m = re.search(r"\{.*\}", text, re.DOTALL)
+        if m:
+            try:
+                result = json.loads(m.group())
+            except json.JSONDecodeError:
+                result = {}
+        else:
+            result = {}
+
+    if result.get("nivel_alerta_confirmado") not in NIVEIS_VALIDOS:
+        nivel_match = re.search(r'"nivel_alerta_confirmado"\s*:\s*"(\w+)"', raw_text)
+        nivel = nivel_match.group(1) if nivel_match else "laranja"
+        result["nivel_alerta_confirmado"] = nivel if nivel in NIVEIS_VALIDOS else "laranja"
+
+    result.setdefault("score_risco_final", 60)
+    result.setdefault("confirmacao_suspeita", True)
+    result.setdefault("analise_aprofundada", {
+        "indicios_legais": [],
+        "indicios_morais": [],
+        "padrao_identificado": None,
+        "narrativa_completa": "",
+    })
+    result.setdefault("ficha_denuncia", {
+        "titulo": "",
+        "fato": "",
+        "indicio_legal": "",
+        "indicio_moral": "",
+        "evidencias": [],
+        "impacto": "",
+        "recomendacao_campanha": "",
+    })
+    result.setdefault("tags_revisadas", [])
+    return result
+
+
+async def _montar_contexto_bud(
+    db: AsyncSession,
+    ato_id: uuid.UUID,
+    analise: Analise,
+) -> str:
+    ato_result = await db.execute(select(Ato).where(Ato.id == ato_id))
+    ato = ato_result.scalar_one()
+
+    conteudo_result = await db.execute(
+        select(ConteudoAto).where(ConteudoAto.ato_id == ato_id)
+    )
+    conteudo = conteudo_result.scalar_one_or_none()
+    texto = conteudo.texto_completo[:100_000] if conteudo else ""
+
+    aparicoes_result = await db.execute(
+        select(AparicaoPessoa).where(AparicaoPessoa.ato_id == ato_id).limit(50)
+    )
+    aparicoes = aparicoes_result.scalars().all()
+
+    pessoa_ids = [ap.pessoa_id for ap in aparicoes]
+    if pessoa_ids:
+        pessoas_result = await db.execute(
+            select(Pessoa).where(Pessoa.id.in_(pessoa_ids))
+        )
+        pessoas_by_id = {p.id: p for p in pessoas_result.scalars().all()}
+    else:
+        pessoas_by_id = {}
+
+    historico_pessoas = [
+        {
+            "nome": pessoas_by_id[ap.pessoa_id].nome_normalizado,
+            "cargo": ap.cargo,
+            "total_aparicoes": pessoas_by_id[ap.pessoa_id].total_aparicoes,
+        }
+        for ap in aparicoes
+        if ap.pessoa_id in pessoas_by_id
+    ]
+
+    # Fonte de análise prévia: prefere resultado_piper, fallback resultado_haiku
+    analise_previa = analise.resultado_piper or analise.resultado_haiku or {}
+    tags_atuais = await buscar_tags_ativas(db, ato_id)
+
+    return (
+        f"TEXTO DO ATO:\n{texto}\n\n"
+        f"ANÁLISE PRÉVIA DO PIPER:\n{json.dumps(analise_previa, ensure_ascii=False, indent=2)}\n\n"
+        f"TAGS IDENTIFICADAS PELO PIPER:\n{json.dumps(tags_atuais, ensure_ascii=False, indent=2)}\n\n"
+        f"HISTÓRICO DAS PESSOAS ENVOLVIDAS:\n{json.dumps(historico_pessoas, ensure_ascii=False, indent=2)}"
+    )
+
+
+async def analisar_ato_bud(
+    db: AsyncSession,
+    ato_id: uuid.UUID,
+    rodada_id: uuid.UUID,
+    system_prompt_base: str,
+) -> Analise:
+    """
+    Executa análise profunda com Bud (Sonnet).
+    Requer que o Piper (ou Haiku legado) já tenha rodado.
+    Raises anthropic.RateLimitError / APIError no chamador para retry.
+    """
+    analise_result = await db.execute(
+        select(Analise).where(Analise.ato_id == ato_id, Analise.rodada_id == rodada_id)
+    )
+    analise = analise_result.scalar_one_or_none()
+    if analise is None:
+        raise ValueError(f"Analise não encontrada para ato_id={ato_id} — Piper deve rodar primeiro")
+
+    ato_result = await db.execute(select(Ato).where(Ato.id == ato_id))
+    ato = ato_result.scalar_one()
+
+    contexto = await _montar_contexto_bud(db, ato_id, analise)
+    system_prompt = system_prompt_base + BUD_EXTRA
+
+    response = await client.messages.create(
+        model=settings.claude_sonnet_model,
+        max_tokens=16000,
+        system=[
+            {
+                "type": "text",
+                "text": system_prompt,
+                "cache_control": {"type": "ephemeral"},
+            }
+        ],
+        messages=[{"role": "user", "content": contexto}],
+    )
+
+    resultado = _parse_bud_response(response.content[0].text)
+
+    custo = (
+        response.usage.input_tokens * PRECOS_BUD["input"]
+        + response.usage.output_tokens * PRECOS_BUD["output"]
+        + getattr(response.usage, "cache_read_input_tokens", 0) * PRECOS_BUD["cache_read"]
+        + getattr(response.usage, "cache_creation_input_tokens", 0) * PRECOS_BUD["cache_write"]
+    )
+
+    analise.status = "bud_completo"
+    analise.nivel_alerta = resultado["nivel_alerta_confirmado"]
+    analise.score_risco = resultado.get("score_risco_final", analise.score_risco)
+    analise.analisado_por_bud = True
+    analise.resultado_bud = resultado
+    analise.recomendacao_campanha = resultado.get("ficha_denuncia", {}).get("recomendacao_campanha")
+    analise.tokens_bud = response.usage.input_tokens + response.usage.output_tokens
+    analise.custo_usd = analise.custo_usd + Decimal(str(custo))
+
+    # Irregularidades — só insere se ainda não foi feito (guard de retry)
+    if not analise.analisado_por_sonnet and not analise.analisado_por_bud:
+        for indicio in resultado.get("analise_aprofundada", {}).get("indicios_legais", []):
+            db.add(Irregularidade(
+                id=uuid.uuid4(),
+                analise_id=analise.id,
+                ato_id=ato_id,
+                tenant_id=ato.tenant_id,
+                categoria="legal",
+                tipo=indicio.get("tipo", "desconhecido"),
+                descricao=indicio.get("descricao", ""),
+                artigo_violado=indicio.get("artigo_violado"),
+                gravidade=indicio.get("gravidade", "alta"),
+            ))
+        for indicio in resultado.get("analise_aprofundada", {}).get("indicios_morais", []):
+            db.add(Irregularidade(
+                id=uuid.uuid4(),
+                analise_id=analise.id,
+                ato_id=ato_id,
+                tenant_id=ato.tenant_id,
+                categoria="moral",
+                tipo=indicio.get("tipo", "desconhecido"),
+                descricao=indicio.get("descricao", ""),
+                artigo_violado=None,
+                gravidade=indicio.get("gravidade", "alta"),
+                impacto_politico=indicio.get("impacto_politico"),
+            ))
+
+    # Revisão de tags pelo Bud
+    await revisar_tags_bud_new(
+        db, ato_id, analise.id, ato.tenant_id,
+        resultado.get("tags_revisadas", []),
+        modelo="bud",
+    )
+
+    analise.analisado_por_sonnet = True  # mantém compat com campo legado
+
+    await db.commit()
+    return analise

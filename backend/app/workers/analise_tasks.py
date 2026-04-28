@@ -1,21 +1,22 @@
 import uuid
 import asyncio
 from decimal import Decimal
-from anthropic import RateLimitError, APIError
+from anthropic import RateLimitError as AnthropicRateLimitError, APIError as AnthropicAPIError
+from openai import RateLimitError as OpenAIRateLimitError, APIError as OpenAIAPIError
 from sqlalchemy import select, update, func
 from app.workers.celery_app import celery_app
 from app.database import async_session_factory
 from app.models.ato import Ato, RodadaAnalise
 from app.models.analise import Analise
 from app.models.tenant import Tenant
-from app.services.haiku_service import analisar_ato_haiku, montar_system_prompt
-from app.services.sonnet_service import analisar_ato_sonnet
+from app.services.haiku_service import montar_system_prompt
+from app.services.piper_service import analisar_ato_piper
+from app.services.bud_service import analisar_ato_bud
 
 CUSTO_LIMITE_USD = Decimal("15.00")
 
 
 async def _rodada_esta_ativa(db, rodada_id: uuid.UUID) -> bool:
-    """Returns False if the rodada was cancelled externally — workers must stop."""
     result = await db.execute(
         select(RodadaAnalise.status).where(RodadaAnalise.id == rodada_id)
     )
@@ -23,17 +24,23 @@ async def _rodada_esta_ativa(db, rodada_id: uuid.UUID) -> bool:
     return status in ("em_progresso", "pendente")
 
 
-@celery_app.task(bind=True, max_retries=3, queue="analise", name="analise.haiku_lote")
-def analisar_lote_haiku_task(self, ato_ids: list[str], rodada_id: str, tenant_id: str) -> dict:
+@celery_app.task(bind=True, max_retries=3, queue="analise", name="analise.piper_lote")
+def analisar_lote_piper_task(self, ato_ids: list[str], rodada_id: str, tenant_id: str) -> dict:
     try:
-        return asyncio.run(_analisar_lote_haiku(ato_ids, rodada_id, tenant_id))
-    except RateLimitError as exc:
+        return asyncio.run(_analisar_lote_piper(ato_ids, rodada_id, tenant_id))
+    except (OpenAIRateLimitError, AnthropicRateLimitError) as exc:
         raise self.retry(exc=exc, countdown=(2 ** self.request.retries) * 5)
-    except APIError as exc:
+    except (OpenAIAPIError, AnthropicAPIError) as exc:
         raise self.retry(exc=exc, countdown=5)
 
 
-async def _analisar_lote_haiku(
+# Mantém alias legado para não quebrar rodadas em curso
+@celery_app.task(bind=True, max_retries=3, queue="analise", name="analise.haiku_lote")
+def analisar_lote_haiku_task(self, ato_ids: list[str], rodada_id: str, tenant_id: str) -> dict:
+    return analisar_lote_piper_task(ato_ids, rodada_id, tenant_id)
+
+
+async def _analisar_lote_piper(
     ato_ids: list[str], rodada_id_str: str, tenant_id_str: str
 ) -> dict:
     rodada_id = uuid.UUID(rodada_id_str)
@@ -44,22 +51,15 @@ async def _analisar_lote_haiku(
 
         results = {"ok": 0, "erro": 0, "pulados": 0, "cancelado": False}
         for ato_id_str in ato_ids:
-            # Check cancellation before each ato to stop quickly after cancel
             if not await _rodada_esta_ativa(db, rodada_id):
                 results["cancelado"] = True
                 break
 
             ato_id = uuid.UUID(ato_id_str)
             try:
-                await analisar_ato_haiku(db, ato_id, rodada_id, system_prompt)
+                await analisar_ato_piper(db, ato_id, rodada_id, system_prompt)
 
-                # Only increment counter for newly analyzed atos (not idempotency hits)
-                ato_result = await db.execute(select(Ato).where(Ato.id == ato_id))
-                ato = ato_result.scalar_one()
-
-                analise_result = await db.execute(
-                    select(Analise).where(Analise.ato_id == ato_id)
-                )
+                analise_result = await db.execute(select(Analise).where(Analise.ato_id == ato_id))
                 analise = analise_result.scalar_one_or_none()
                 custo_ato = analise.custo_usd if analise else Decimal("0")
 
@@ -74,7 +74,6 @@ async def _analisar_lote_haiku(
                 await db.commit()
                 results["ok"] += 1
 
-                # Cost threshold: abort if rodada is burning too much money
                 rodada_result = await db.execute(
                     select(RodadaAnalise.custo_total_usd).where(RodadaAnalise.id == rodada_id)
                 )
@@ -92,8 +91,8 @@ async def _analisar_lote_haiku(
                     results["cancelado"] = True
                     break
 
-            except (RateLimitError, APIError):
-                raise  # bubble up to task wrapper for retry
+            except (OpenAIRateLimitError, AnthropicRateLimitError, OpenAIAPIError, AnthropicAPIError):
+                raise
             except Exception:
                 results["erro"] += 1
                 continue
@@ -101,17 +100,23 @@ async def _analisar_lote_haiku(
         return results
 
 
-@celery_app.task(bind=True, max_retries=3, queue="analise", name="analise.sonnet_criticos")
-def analisar_criticos_sonnet_task(self, rodada_id: str, tenant_id: str) -> dict:
+@celery_app.task(bind=True, max_retries=3, queue="analise", name="analise.bud_criticos")
+def analisar_criticos_bud_task(self, rodada_id: str, tenant_id: str) -> dict:
     try:
-        return asyncio.run(_analisar_criticos_sonnet(rodada_id, tenant_id))
-    except RateLimitError as exc:
+        return asyncio.run(_analisar_criticos_bud(rodada_id, tenant_id))
+    except (AnthropicRateLimitError,) as exc:
         raise self.retry(exc=exc, countdown=(2 ** self.request.retries) * 10)
-    except APIError as exc:
+    except (AnthropicAPIError,) as exc:
         raise self.retry(exc=exc, countdown=5)
 
 
-async def _analisar_criticos_sonnet(rodada_id_str: str, tenant_id_str: str) -> dict:
+# Mantém alias legado
+@celery_app.task(bind=True, max_retries=3, queue="analise", name="analise.sonnet_criticos")
+def analisar_criticos_sonnet_task(self, rodada_id: str, tenant_id: str) -> dict:
+    return analisar_criticos_bud_task(rodada_id, tenant_id)
+
+
+async def _analisar_criticos_bud(rodada_id_str: str, tenant_id_str: str) -> dict:
     rodada_id = uuid.UUID(rodada_id_str)
     tenant_id = uuid.UUID(tenant_id_str)
 
@@ -122,8 +127,9 @@ async def _analisar_criticos_sonnet(rodada_id_str: str, tenant_id_str: str) -> d
         criticos_result = await db.execute(
             select(Analise).where(
                 Analise.rodada_id == rodada_id,
-                Analise.nivel_alerta.in_(["vermelho"]),
-                Analise.analisado_por_sonnet == False,
+                Analise.nivel_alerta.in_(["vermelho", "laranja"]),
+                Analise.analisado_por_bud == False,
+                Analise.analisado_por_sonnet == False,  # garante compat com runs legados
             )
         )
         criticos = criticos_result.scalars().all()
@@ -138,7 +144,7 @@ async def _analisar_criticos_sonnet(rodada_id_str: str, tenant_id_str: str) -> d
             if not await _rodada_esta_ativa(db, rodada_id):
                 break
             try:
-                await analisar_ato_sonnet(db, analise.ato_id, rodada_id, system_prompt)
+                await analisar_ato_bud(db, analise.ato_id, rodada_id, system_prompt)
                 await db.execute(
                     update(RodadaAnalise)
                     .where(RodadaAnalise.id == rodada_id)
@@ -146,7 +152,7 @@ async def _analisar_criticos_sonnet(rodada_id_str: str, tenant_id_str: str) -> d
                 )
                 await db.commit()
                 results["ok"] += 1
-            except (RateLimitError, APIError):
+            except (AnthropicRateLimitError, AnthropicAPIError):
                 raise
             except Exception:
                 results["erro"] += 1

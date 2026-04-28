@@ -208,7 +208,7 @@ async def analisar_ato_haiku(
         select(ConteudoAto).where(ConteudoAto.ato_id == ato_id)
     )
     conteudo = conteudo_result.scalar_one_or_none()
-    texto = conteudo.texto_completo[:8000] if conteudo else "(texto não disponível)"
+    texto = conteudo.texto_completo[:32_000] if conteudo else "(texto não disponível)"
 
     user_prompt = f"""Analise o seguinte ato administrativo:
 
@@ -222,7 +222,7 @@ TEXTO COMPLETO:
 
     response = await client.messages.create(
         model=settings.claude_haiku_model,
-        max_tokens=8192,
+        max_tokens=16000,
         system=[
             {
                 "type": "text",
@@ -299,7 +299,7 @@ TEXTO COMPLETO:
     return analise
 
 
-MAX_PAGES_VISAO = 10  # evita explosão de tokens em PDFs longos
+MAX_PAGES_VISAO = 50
 
 
 async def analisar_ato_haiku_visao(
@@ -363,7 +363,7 @@ async def analisar_ato_haiku_visao(
 
     response = await client.messages.create(
         model=settings.claude_haiku_model,
-        max_tokens=8192,
+        max_tokens=16000,
         system=[
             {
                 "type": "text",

@@ -9,6 +9,7 @@ from app.models.tenant import Tenant
 from app.models.ato import Ato
 from app.models.analise import Analise
 from app.models.dados_financeiros import Diaria
+from app.models.tag import AtoTag
 import resend
 
 # SQL fragment: identifica passagens aéreas pelo nome da cia
@@ -424,6 +425,27 @@ async def get_atos(
     rows_r = await db.execute(q.offset(offset).limit(limit))
     rows = rows_r.all()
 
+    # Busca tags ativas para os atos retornados
+    ato_ids_page = [r.id for r in rows]
+    tags_map: dict[str, list[dict]] = {}
+    if ato_ids_page:
+        tags_r = await db.execute(
+            select(AtoTag)
+            .where(AtoTag.ato_id.in_(ato_ids_page), AtoTag.ativa == True)
+            .order_by(AtoTag.ato_id, AtoTag.gravidade.desc())
+        )
+        for tag in tags_r.scalars().all():
+            key = str(tag.ato_id)
+            tags_map.setdefault(key, []).append({
+                "codigo": tag.codigo,
+                "nome": tag.nome,
+                "categoria": tag.categoria,
+                "categoria_nome": tag.categoria_nome,
+                "gravidade": tag.gravidade,
+                "atribuido_por": tag.atribuido_por,
+                "revisado_por": tag.revisado_por,
+            })
+
     return {
         "total": total,
         "page": page,
@@ -439,6 +461,7 @@ async def get_atos(
                 "data_publicacao": r.data_publicacao.isoformat() if r.data_publicacao else None,
                 "nivel_alerta": r.nivel_alerta,
                 "score_risco": r.score_risco,
+                "tags": tags_map.get(str(r.id), []),
             }
             for r in rows
         ],

@@ -8,7 +8,7 @@ from app.models.ato import Ato, RodadaAnalise
 from app.models.tenant import Tenant
 from app.services.importador import importar_atos_cau_pr
 from app.workers.scraper_tasks import scrape_lote_async
-from app.workers.analise_tasks import _analisar_lote_haiku, _analisar_criticos_sonnet
+from app.workers.analise_tasks import _analisar_lote_piper, _analisar_criticos_bud
 
 LOTE_SIZE = 50
 
@@ -77,10 +77,10 @@ async def _iniciar_rodada(rodada_id_str: str, tenant_slug: str) -> dict:
 
             for i in range(0, len(ids_para_haiku), LOTE_SIZE):
                 lote = ids_para_haiku[i:i + LOTE_SIZE]
-                await _analisar_lote_haiku(lote, rodada_id_str, str(tenant.id))
+                await _analisar_lote_piper(lote, rodada_id_str, str(tenant.id))
 
-            # Step 5: Sonnet on critical acts
-            await _analisar_criticos_sonnet(rodada_id_str, str(tenant.id))
+            # Step 5: Bud (Sonnet) on critical acts
+            await _analisar_criticos_bud(rodada_id_str, str(tenant.id))
 
             await db.execute(
                 update(RodadaAnalise)

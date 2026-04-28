@@ -12,6 +12,7 @@ from app.models.patrocinio import CampanhaPatrocinio, DoacaoPatrocinio, VotoPatr
 from app.models.api_key import ApiKey
 from app.models.preferencia_alerta import PreferenciaAlerta
 from app.models.log import LogSessao, LogAtividade, LogErroUsuario, LogAcessoNegado
+from app.models.tag import AtoTag, TagHistorico
 
 __all__ = [
     "Base", "Plano", "User", "Assinatura", "Tenant", "UserTenantAcesso",
@@ -21,4 +22,5 @@ __all__ = [
     "Relatorio", "CampanhaPatrocinio", "DoacaoPatrocinio", "VotoPatrocinio",
     "ApiKey", "PreferenciaAlerta",
     "LogSessao", "LogAtividade", "LogErroUsuario", "LogAcessoNegado",
+    "AtoTag", "TagHistorico",
 ]

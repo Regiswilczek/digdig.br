@@ -7,6 +7,7 @@ import {
 } from "@/lib/api";
 import type {
   AtoPublico,
+  AtoTag,
   PublicAtosResponse,
   FinanceiroRegistro,
   FinanceiroResponse,
@@ -84,6 +85,52 @@ function NivelBadge({ nivel }: { nivel: string | null }) {
     >
       {NIVEL_LABEL[nivel] ?? nivel}
     </span>
+  );
+}
+
+const GRAVIDADE_COLOR: Record<string, { bg: string; fg: string; border: string }> = {
+  critica: { bg: "#fef2f2", fg: "#991b1b", border: "#fca5a5" },
+  alta:    { bg: "#fff7ed", fg: "#9a3412", border: "#fdba74" },
+  media:   { bg: "#fefce8", fg: "#854d0e", border: "#fde047" },
+  baixa:   { bg: "#f0fdf4", fg: "#166534", border: "#86efac" },
+};
+
+function TagChip({ tag }: { tag: AtoTag }) {
+  const c = GRAVIDADE_COLOR[tag.gravidade] ?? GRAVIDADE_COLOR.media;
+  return (
+    <span
+      className="inline-flex items-center px-1.5 py-0.5 text-[9.5px] font-medium"
+      style={{
+        background: c.bg,
+        color: c.fg,
+        border: `1px solid ${c.border}`,
+        borderRadius: 2,
+        fontFamily: MONO,
+        whiteSpace: "nowrap",
+      }}
+      title={`${tag.categoria_nome} · ${tag.gravidade} · por ${tag.revisado_por ?? tag.atribuido_por}`}
+    >
+      {tag.nome}
+    </span>
+  );
+}
+
+function TagsRow({ tags, max = 4 }: { tags: AtoTag[]; max?: number }) {
+  if (!tags || tags.length === 0) return null;
+  const visible = tags.slice(0, max);
+  const hidden = tags.length - visible.length;
+  return (
+    <div className="flex flex-wrap gap-1 mt-1.5">
+      {visible.map((t) => <TagChip key={t.codigo} tag={t} />)}
+      {hidden > 0 && (
+        <span
+          className="inline-flex items-center px-1.5 py-0.5 text-[9.5px]"
+          style={{ fontFamily: MONO, color: SUBTLE }}
+        >
+          +{hidden}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -285,9 +332,12 @@ function AtosTable({
                 <span className="text-[11px] tabular-nums" style={{ color: MUTED, fontFamily: MONO }}>
                   {ato.data_publicacao ? new Date(ato.data_publicacao + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
                 </span>
-                <span className="text-[13px] leading-relaxed line-clamp-2" style={{ color: INK }}>
-                  {ato.ementa ?? ato.titulo ?? "—"}
-                </span>
+                <div>
+                  <span className="text-[13px] leading-relaxed line-clamp-2" style={{ color: INK }}>
+                    {ato.ementa ?? ato.titulo ?? "—"}
+                  </span>
+                  <TagsRow tags={ato.tags ?? []} max={3} />
+                </div>
                 <NivelBadge nivel={ato.nivel_alerta} />
               </div>
             ))}
@@ -308,6 +358,7 @@ function AtosTable({
                 <p className="text-[13px] leading-relaxed" style={{ color: INK }}>
                   {ato.ementa ?? ato.titulo ?? "—"}
                 </p>
+                <TagsRow tags={ato.tags ?? []} max={4} />
               </div>
             ))}
           </div>
