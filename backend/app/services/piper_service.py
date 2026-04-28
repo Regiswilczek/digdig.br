@@ -125,6 +125,12 @@ PIPER_EXTRA = f"""
 MODO: TRIAGEM INVESTIGATIVA (PIPER)
 Você é a primeira linha de defesa. Leia o texto integral do ato e classifique o risco.
 
+CONCISÃO OBRIGATÓRIA:
+- Cada `descricao` de indício: máximo 2 frases.
+- Cada `justificativa` de tag: máximo 1 frase, citando o trecho exato.
+- `resumo`: 2 frases no total. Sem floreio, sem repetição do que já está no JSON.
+- Não comente sobre o processo de análise; apenas entregue o resultado.
+
 INSTRUÇÕES ESPECÍFICAS:
 1. Aplique o Princípio da Prevenção: Na dúvida sobre omissão ou linguagem vaga, eleve para AMARELO ou LARANJA. Não presuma boa-fé em textos mal redigidos ou incompletos.
 2. Extração Cirúrgica: Extraia todos os nomes, cargos e valores monetários com precisão absoluta.
@@ -354,7 +360,7 @@ async def analisar_ato_piper(
 
     response = await client.chat.completions.create(
         model=settings.gemini_pro_model,
-        max_tokens=16000,
+        max_tokens=4000,
         messages=[
             {"role": "system", "content": full_system},
             {"role": "user", "content": user_prompt},
@@ -458,7 +464,7 @@ async def analisar_ato_piper_visao(
 
     response = await client.chat.completions.create(
         model=settings.gemini_pro_model,
-        max_tokens=16000,
+        max_tokens=4000,
         messages=[
             {"role": "system", "content": full_system},
             {"role": "user", "content": content},

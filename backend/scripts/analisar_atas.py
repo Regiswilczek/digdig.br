@@ -213,7 +213,7 @@ async def main(dry_run: bool, limit: int | None) -> None:
             try:
                 response = await client.messages.create(
                     model=SONNET_MODEL,
-                    max_tokens=16000,
+                    max_tokens=6000,
                     system=SYSTEM_PROMPT,
                     messages=[{
                         "role": "user",

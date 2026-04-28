@@ -45,6 +45,12 @@ MODO: INVESTIGAÇÃO PROFUNDA E CRUZAMENTO DE DADOS (BUD)
 Você é o investigador final. O Piper já pré-classificou este ato como suspeito.
 Você tem acesso ao texto do ato, à análise do Piper, ao HISTÓRICO DE APARIÇÕES das pessoas e a atos relacionados do corpus.
 
+CONCISÃO OBRIGATÓRIA:
+- `narrativa_completa`: 400-600 palavras. Sem repetir o que já está nos campos estruturados.
+- Cada `descricao` de indício: máximo 3 frases.
+- `ficha_denuncia.fato` e `ficha_denuncia.impacto`: máximo 2 frases cada.
+- `recomendacao_campanha`: 1 frase impactante.
+
 INSTRUÇÕES DE CRUZAMENTO (CRÍTICO):
 1. Analise o Histórico: Se uma pessoa nomeada já aparece em dezenas de comissões ou cargos de confiança no histórico, sinalize indício de "Concentração de Poder" ou "Clientelismo".
 2. Conexões Ocultas: Busque relações entre as pessoas citadas e possíveis conflitos de interesse com base no histórico fornecido.
@@ -274,7 +280,7 @@ async def analisar_ato_bud(
 
     response = await client.messages.create(
         model=settings.claude_sonnet_model,
-        max_tokens=16000,
+        max_tokens=6000,
         system=[
             {
                 "type": "text",

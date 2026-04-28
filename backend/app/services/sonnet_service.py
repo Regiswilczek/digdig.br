@@ -169,7 +169,7 @@ async def analisar_ato_sonnet(
 
     response = await client.messages.create(
         model=settings.claude_sonnet_model,
-        max_tokens=16000,
+        max_tokens=6000,
         system=[
             {
                 "type": "text",

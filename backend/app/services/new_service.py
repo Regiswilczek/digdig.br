@@ -178,7 +178,7 @@ async def analisar_ato_new(
 
     response = await client.messages.create(
         model=settings.claude_opus_model,
-        max_tokens=16000,
+        max_tokens=6000,
         system=[
             {
                 "type": "text",
