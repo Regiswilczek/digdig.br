@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.config import settings
+import re as _re
 from app.models.ato import Ato, ConteudoAto
 from app.models.analise import Analise, Irregularidade
 from app.models.pessoa import AparicaoPessoa, Pessoa
@@ -136,10 +137,10 @@ async def _montar_contexto_bud(
         select(ConteudoAto).where(ConteudoAto.ato_id == ato_id)
     )
     conteudo = conteudo_result.scalar_one_or_none()
-    texto = conteudo.texto_completo[:100_000] if conteudo else ""
+    texto = conteudo.texto_completo if conteudo else ""
 
     aparicoes_result = await db.execute(
-        select(AparicaoPessoa).where(AparicaoPessoa.ato_id == ato_id).limit(50)
+        select(AparicaoPessoa).where(AparicaoPessoa.ato_id == ato_id)
     )
     aparicoes = aparicoes_result.scalars().all()
 
@@ -166,12 +167,47 @@ async def _montar_contexto_bud(
     analise_previa = analise.resultado_piper or analise.resultado_haiku or {}
     tags_atuais = await buscar_tags_ativas(db, ato_id)
 
-    return (
+    # Atos relacionados: busca textos de atos referenciados no documento
+    referencias_raw = analise_previa.get("referencias_atos", [])
+    atos_relacionados_ctx = ""
+    if referencias_raw:
+        # Extrai números de strings como "Portaria 123/2023" ou "123/2023"
+        numeros = []
+        for ref in referencias_raw[:10]:  # no máximo 10 referências
+            ref_str = str(ref)
+            m = _re.search(r"(\d{1,5}/\d{4}|\d{3,5})", ref_str)
+            if m:
+                numeros.append(m.group(1))
+
+        if numeros:
+            atos_ref_result = await db.execute(
+                select(Ato, ConteudoAto)
+                .join(ConteudoAto, ConteudoAto.ato_id == Ato.id, isouter=True)
+                .where(
+                    Ato.tenant_id == ato.tenant_id,
+                    Ato.numero.in_(numeros),
+                )
+                .limit(5)
+            )
+            blocos = []
+            for ato_ref, conteudo_ref in atos_ref_result.all():
+                if conteudo_ref and conteudo_ref.texto_completo:
+                    trecho = conteudo_ref.texto_completo[:8_000]
+                    blocos.append(
+                        f"[{ato_ref.tipo.upper()} Nº {ato_ref.numero} — {ato_ref.data_publicacao}]\n{trecho}"
+                    )
+            if blocos:
+                atos_relacionados_ctx = "\n\n---\n\n".join(blocos)
+
+    ctx = (
         f"TEXTO DO ATO:\n{texto}\n\n"
         f"ANÁLISE PRÉVIA DO PIPER:\n{json.dumps(analise_previa, ensure_ascii=False, indent=2)}\n\n"
         f"TAGS IDENTIFICADAS PELO PIPER:\n{json.dumps(tags_atuais, ensure_ascii=False, indent=2)}\n\n"
         f"HISTÓRICO DAS PESSOAS ENVOLVIDAS:\n{json.dumps(historico_pessoas, ensure_ascii=False, indent=2)}"
     )
+    if atos_relacionados_ctx:
+        ctx += f"\n\nATOS RELACIONADOS (referenciados no documento):\n{atos_relacionados_ctx}"
+    return ctx
 
 
 async def analisar_ato_bud(

@@ -164,23 +164,35 @@ async def montar_system_prompt(db: AsyncSession, tenant_id: uuid.UUID) -> str:
     tenant_result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
     tenant = tenant_result.scalar_one()
 
-    # KnowledgeBase has no `ativo` field — fetch the most recent regimento entry.
+    # Busca todos os documentos da KB — regimento, lei, resolucao, etc.
     kb_result = await db.execute(
         select(KnowledgeBase)
-        .where(
-            KnowledgeBase.tenant_id == tenant_id,
-            KnowledgeBase.tipo == "regimento",
-        )
-        .order_by(KnowledgeBase.criado_em.desc())
-        .limit(1)
+        .where(KnowledgeBase.tenant_id == tenant_id)
+        .order_by(KnowledgeBase.tipo.asc(), KnowledgeBase.criado_em.desc())
     )
-    kb = kb_result.scalar_one_or_none()
-    regimento = kb.conteudo if kb else "Regimento não cadastrado — analise com base na Lei 12.378/2010."
+    kb_docs = kb_result.scalars().all()
+
+    regimento = "Regimento não cadastrado — analise com base na Lei 12.378/2010."
+    docs_extras: list[str] = []
+
+    for doc in kb_docs:
+        if doc.tipo == "regimento":
+            regimento = doc.conteudo
+        else:
+            docs_extras.append(
+                f"─── {doc.titulo} ({doc.tipo}) ───\n{doc.conteudo}"
+            )
+
+    regras_especificas = (
+        "\n\n".join(docs_extras)
+        if docs_extras
+        else "Sem documentos adicionais cadastrados (lei federal, resoluções CAU/BR)."
+    )
 
     return SYSTEM_PROMPT_TEMPLATE.format(
         nome_orgao=tenant.nome_completo,
         regimento=regimento,
-        regras_especificas="Sem regras específicas cadastradas.",
+        regras_especificas=regras_especificas,
     )
 
 

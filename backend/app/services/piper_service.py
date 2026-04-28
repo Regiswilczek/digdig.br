@@ -116,7 +116,7 @@ async def analisar_ato_piper(
         select(ConteudoAto).where(ConteudoAto.ato_id == ato_id)
     )
     conteudo = conteudo_result.scalar_one_or_none()
-    texto = conteudo.texto_completo[:32_000] if conteudo else "(texto não disponível)"
+    texto = conteudo.texto_completo if conteudo else "(texto não disponível)"
 
     user_prompt = (
         f"Analise o seguinte ato administrativo:\n\n"
