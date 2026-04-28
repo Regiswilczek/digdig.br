@@ -23,7 +23,7 @@ import re as _re
 from app.models.ato import Ato, ConteudoAto
 from app.models.analise import Analise, Irregularidade
 from app.models.pessoa import AparicaoPessoa, Pessoa
-from app.services.haiku_service import NIVEIS_VALIDOS
+from app.services.piper_service import NIVEIS_VALIDOS
 from app.services.tag_service import (
     LISTA_TAGS_PROMPT,
     buscar_tags_ativas,

@@ -9,8 +9,7 @@ from app.database import async_session_factory
 from app.models.ato import Ato, RodadaAnalise
 from app.models.analise import Analise
 from app.models.tenant import Tenant
-from app.services.haiku_service import montar_system_prompt
-from app.services.piper_service import analisar_ato_piper
+from app.services.piper_service import analisar_ato_piper, montar_system_prompt
 from app.services.bud_service import analisar_ato_bud
 
 CUSTO_LIMITE_USD = Decimal("15.00")

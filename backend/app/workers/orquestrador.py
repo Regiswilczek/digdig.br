@@ -73,10 +73,10 @@ async def _iniciar_rodada(rodada_id_str: str, tenant_slug: str) -> dict:
                 ).limit(1000)
             )
             atos_com_texto = atos_com_texto_result.scalars().all()
-            ids_para_haiku = [str(a.id) for a in atos_com_texto]
+            ids_para_piper = [str(a.id) for a in atos_com_texto]
 
-            for i in range(0, len(ids_para_haiku), LOTE_SIZE):
-                lote = ids_para_haiku[i:i + LOTE_SIZE]
+            for i in range(0, len(ids_para_piper), LOTE_SIZE):
+                lote = ids_para_piper[i:i + LOTE_SIZE]
                 await _analisar_lote_piper(lote, rodada_id_str, str(tenant.id))
 
             # Step 5: Bud (Sonnet) on critical acts
@@ -96,7 +96,7 @@ async def _iniciar_rodada(rodada_id_str: str, tenant_slug: str) -> dict:
                 "status": "concluida",
                 "importados": import_result.get("importados", 0),
                 "scrapeados": len(ato_ids),
-                "haiku": len(ids_para_haiku),
+                "piper": len(ids_para_piper),
             }
 
         except Exception as exc:
