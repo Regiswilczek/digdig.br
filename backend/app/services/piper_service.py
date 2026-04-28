@@ -37,17 +37,21 @@ PRECO_PIPER = {
 
 PIPER_EXTRA = f"""
 
-MODO: TRIAGEM INTELIGENTE (PIPER)
+MODO: TRIAGEM INVESTIGATIVA (PIPER)
+Você é a primeira linha de defesa. Leia o texto integral do ato e classifique o risco.
 
-Além da análise padrão, identifique quais tipos de irregularidade se aplicam a este ato
-usando EXCLUSIVAMENTE os códigos da lista abaixo.
+INSTRUÇÕES ESPECÍFICAS:
+1. Aplique o Princípio da Prevenção: Na dúvida sobre omissão ou linguagem vaga, eleve para AMARELO ou LARANJA. Não presuma boa-fé em textos mal redigidos ou incompletos.
+2. Extração Cirúrgica: Extraia todos os nomes, cargos e valores monetários com precisão absoluta.
+3. Silêncio Suspeito: Se o ato gera despesa mas não cita dotação orçamentária, isso é LARANJA.
 
-LISTA DE TAGS DISPONÍVEIS:
+TAXONOMIA DE IRREGULARIDADES:
+Identifique as irregularidades usando EXCLUSIVAMENTE os códigos abaixo.
 {LISTA_TAGS_PROMPT}
 
 Acrescente ao JSON de resposta o campo:
 "tags_identificadas": [
-  {{"codigo": "<código_exato>", "gravidade": "baixa|media|alta|critica", "justificativa": "1 frase"}}
+  {{"codigo": "<código_exato>", "gravidade": "baixa|media|alta|critica", "justificativa": "Cite o trecho exato do texto que comprova a tag (ou a omissão que a evidencia)"}}
 ]
 
 Use apenas códigos presentes na lista. Inclua somente tags com evidência real no texto.

@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import re
 import uuid
+from collections import Counter
 from decimal import Decimal
 
 from anthropic import AsyncAnthropic
@@ -40,20 +41,34 @@ PRECOS_BUD = {
 
 BUD_EXTRA = f"""
 
-MODO: ANÁLISE PROFUNDA (BUD)
+MODO: INVESTIGAÇÃO PROFUNDA E CRUZAMENTO DE DADOS (BUD)
+Você é o investigador final. O Piper já pré-classificou este ato como suspeito.
+Você tem acesso ao texto do ato, à análise do Piper, ao HISTÓRICO DE APARIÇÕES das pessoas e a atos relacionados do corpus.
 
-Você está recebendo um ato que foi PRÉ-CLASSIFICADO como suspeito pelo Piper.
-Use o histórico das pessoas envolvidas e os atos relacionados para:
+INSTRUÇÕES DE CRUZAMENTO (CRÍTICO):
+1. Analise o Histórico: Se uma pessoa nomeada já aparece em dezenas de comissões ou cargos de confiança no histórico, sinalize indício de "Concentração de Poder" ou "Clientelismo".
+2. Conexões Ocultas: Busque relações entre as pessoas citadas e possíveis conflitos de interesse com base no histórico fornecido.
+3. Materialidade: A Ficha de Denúncia deve ser irrefutável. Use citações diretas do texto como prova material.
+
+INVESTIGAÇÃO EXPANDIDA (USE O CORPUS COMPLETO):
+Além do texto do ato e da análise do Piper, você tem acesso ao histórico completo das pessoas no corpus inteiro do órgão.
+Use esse histórico para traçar linhas investigativas:
+- Se uma pessoa aparece sistematicamente em nomeações + exonerações, pode ser indício de clientelismo
+- Se o mesmo grupo controla múltiplas comissões, pode ser indício de concentração de poder
+- Cruze datas, cargos e tipos de aparição para identificar padrões que um ato isolado não revela
+Documente essas conexões na "narrativa_completa" e inclua como evidências na ficha de denúncia.
+
+USE O CONTEXTO FORNECIDO PARA:
 1. Confirmar ou refutar a suspeita inicial do Piper
 2. Identificar padrões que só aparecem com contexto histórico
-3. Construir uma narrativa política coerente
+3. Construir uma narrativa investigativa coerente
 4. Gerar uma ficha de denúncia pronta para uso
 
-REVISÃO DE TAGS:
-O contexto inclui as tags identificadas pelo Piper. Com base na análise profunda:
-- Confirme as tags corretas
-- Remova as que não se sustentam com o contexto completo
-- Adicione novas que o Piper não identificou por falta de contexto histórico
+REVISÃO DE TAGS DO PIPER:
+O Piper identificou tags iniciais. Sua missão é auditar o trabalho dele:
+- Confirme as tags que têm base real no texto ou no histórico
+- Remova (ação "removida") tags que são falsos positivos sem evidência concreta
+- Adicione novas tags que o Piper não viu, especialmente as baseadas no cruzamento histórico de pessoas
 
 TAGS DISPONÍVEIS:
 {LISTA_TAGS_PROMPT}
@@ -66,20 +81,20 @@ Responda em JSON com esta estrutura:
   "analise_aprofundada": {{
     "indicios_legais": [{{"tipo": "string", "descricao": "string", "artigo_violado": "string", "gravidade": "string"}}],
     "indicios_morais": [{{"tipo": "string", "descricao": "string", "impacto_politico": "string", "gravidade": "string"}}],
-    "padrao_identificado": "string|null",
-    "narrativa_completa": "string"
+    "padrao_identificado": "Descreva o padrão anômalo encontrado ao cruzar o ato com o histórico de pessoas (ex: mesma pessoa em 12 comissões em 6 meses) — ou null se não houver padrão",
+    "narrativa_completa": "Explicação detalhada conectando o ato atual com o histórico de pessoas e atos relacionados"
   }},
   "ficha_denuncia": {{
-    "titulo": "string",
-    "fato": "string",
-    "indicio_legal": "string",
-    "indicio_moral": "string",
-    "evidencias": ["string"],
-    "impacto": "string",
-    "recomendacao_campanha": "string"
+    "titulo": "Título jornalístico direto e objetivo",
+    "fato": "O que aconteceu (com citação do trecho exato do documento que prova o fato)",
+    "indicio_legal": "Qual lei ou regra apresenta indício de violação",
+    "indicio_moral": "Qual princípio ético apresenta indício de violação",
+    "evidencias": ["Evidência 1 (trecho do texto)", "Evidência 2 (do histórico de pessoas)"],
+    "impacto": "Possível dano ao erário ou à instituição",
+    "recomendacao_campanha": "Como usar isso em transparência pública, jornalismo ou processo"
   }},
   "tags_revisadas": [
-    {{"codigo": "<codigo_exato>", "acao": "confirmada|adicionada|removida|elevada|rebaixada", "gravidade": "baixa|media|alta|critica", "justificativa": "1 frase"}}
+    {{"codigo": "<codigo_exato>", "acao": "confirmada|adicionada|removida|elevada|rebaixada", "gravidade": "baixa|media|alta|critica", "justificativa": "Por que a tag foi alterada ou confirmada (citar evidência ou ausência de evidência)"}}
   ]
 }}"""
 
@@ -163,6 +178,28 @@ async def _montar_contexto_bud(
         if ap.pessoa_id in pessoas_by_id
     ]
 
+    # Histórico expandido por pessoa — padrões no corpus completo do órgão
+    historico_expandido = []
+    for pessoa_id, pessoa in pessoas_by_id.items():
+        if pessoa.total_aparicoes > 1:
+            ap_hist_result = await db.execute(
+                select(AparicaoPessoa)
+                .where(AparicaoPessoa.pessoa_id == pessoa_id)
+                .order_by(AparicaoPessoa.data_ato.desc())
+                .limit(30)
+            )
+            ap_hist = ap_hist_result.scalars().all()
+            tipos = dict(Counter(ap.tipo_aparicao for ap in ap_hist if ap.tipo_aparicao))
+            cargos = list({ap.cargo for ap in ap_hist if ap.cargo})[:5]
+            datas = [str(ap.data_ato) for ap in ap_hist if ap.data_ato]
+            historico_expandido.append({
+                "nome": pessoa.nome_normalizado,
+                "total_aparicoes_corpus": pessoa.total_aparicoes,
+                "distribuicao_por_tipo": tipos,
+                "cargos_exercidos": cargos,
+                "periodo": f"{datas[-1]} a {datas[0]}" if len(datas) >= 2 else (datas[0] if datas else "N/A"),
+            })
+
     # Fonte de análise prévia: prefere resultado_piper, fallback resultado_haiku
     analise_previa = analise.resultado_piper or analise.resultado_haiku or {}
     tags_atuais = await buscar_tags_ativas(db, ato_id)
@@ -203,8 +240,10 @@ async def _montar_contexto_bud(
         f"TEXTO DO ATO:\n{texto}\n\n"
         f"ANÁLISE PRÉVIA DO PIPER:\n{json.dumps(analise_previa, ensure_ascii=False, indent=2)}\n\n"
         f"TAGS IDENTIFICADAS PELO PIPER:\n{json.dumps(tags_atuais, ensure_ascii=False, indent=2)}\n\n"
-        f"HISTÓRICO DAS PESSOAS ENVOLVIDAS:\n{json.dumps(historico_pessoas, ensure_ascii=False, indent=2)}"
+        f"PESSOAS NESTE ATO:\n{json.dumps(historico_pessoas, ensure_ascii=False, indent=2)}"
     )
+    if historico_expandido:
+        ctx += f"\n\nHISTÓRICO EXPANDIDO DAS PESSOAS NO CORPUS (padrões para cruzamento investigativo):\n{json.dumps(historico_expandido, ensure_ascii=False, indent=2)}"
     if atos_relacionados_ctx:
         ctx += f"\n\nATOS RELACIONADOS (referenciados no documento):\n{atos_relacionados_ctx}"
     return ctx
