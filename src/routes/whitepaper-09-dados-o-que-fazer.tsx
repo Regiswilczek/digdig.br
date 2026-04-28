@@ -7,7 +7,7 @@ export const Route = createFileRoute("/whitepaper-09-dados-o-que-fazer")({
       {
         name: "description",
         content:
-          "White Paper Nº 09: pausa estratégica, a conversa com Dan Niero, tags como primeiro passo de indexação, a evolução da IA e o que acontece quando os dados são bons mas a pergunta mudou.",
+          "White Paper Nº 09: pausa estratégica, tags como primeiro passo de indexação, a evolução da IA e o que acontece quando os dados são bons mas a pergunta mudou.",
       },
       { property: "og:title", content: "Dados: O Que Fazer Com Eles — Dig Dig" },
       {
@@ -132,9 +132,9 @@ function Whitepaper09Page() {
 
         <hr />
 
-        <h2>2. A Conversa com Dan Niero — El Canary e a Questão de Indexação</h2>
+        <h2>2. A Conversa com um Amigo — Questões de Indexação</h2>
 
-        <p>Em uma conversa com <strong>Dan Niero</strong>, da <strong>El Canary</strong> — empresa especializada em cibersegurança e inteligência de dados —, o problema da estruturação ganhou um ângulo que não tinha considerado.</p>
+        <p>Em uma conversa com um amigo com experiência em inteligência de dados, o problema da estruturação ganhou um ângulo que não tinha considerado.</p>
 
         <p>Dan trouxe o exemplo do <strong>Dune Analytics</strong>: uma plataforma que permite que qualquer pessoa construa dashboards e faça queries sobre dados de blockchain sem saber escrever código. Não é um sistema fechado com relatórios pré-definidos — é uma infraestrutura de dados indexados onde o usuário define a pergunta. Um jornalista pode perguntar "quais portarias envolvem esse CPF especificamente?". Um advogado pode perguntar "qual a distribuição temporal dos processos disciplinares neste órgão?". Um pesquisador pode perguntar "quais servidores aparecem juntos em mais de dez atos?". Cada um com a sua pergunta, todos respondidos pela mesma base.</p>
 
@@ -259,7 +259,7 @@ function Whitepaper09Page() {
 
         <h2>8. O que Mudou na Pergunta</h2>
 
-        <p>Quando o Dig Dig começou, a pergunta era operacional: <em>conseguimos extrair e analisar atos administrativos com IA?</em> A resposta foi sim. 1.789 atos, $20 de custo de API, pipeline funcionando.</p>
+        <p>Quando o Dig Dig começou, a pergunta era operacional: <em>conseguimos extrair e analisar atos administrativos com IA?</em> A resposta foi sim. 1.789 atos, $0,40 por documento, pipeline funcionando.</p>
 
         <p>Quando o White Paper Nº 07 foi escrito, a pergunta era investigativa: <em>o que o sistema encontrou?</em> A resposta foi detalhada — processos disciplinares secretos, rede de servidores não-eleitos com acesso ao aparato investigativo, 14 atas plenárias ausentes.</p>
 
