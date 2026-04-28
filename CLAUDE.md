@@ -92,7 +92,7 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 1. **NUNCA dispare nova rodada sem verificar se existe uma ativa** — use `GET /pnl/orgaos/{slug}/rodadas` primeiro
 2. Se existir rodada `em_progresso` ou `pendente`, cancele via `POST /pnl/rodadas/{id}/cancelar` antes de criar nova
 3. O endpoint agora rejeita com 409 se já existe rodada ativa — mas verifique antes mesmo assim
-4. Limite de custo por rodada: $15. Se atingir, a rodada cancela automaticamente.
+4. Limite de custo por rodada: $5. Se atingir, a rodada cancela automaticamente.
 5. A idempotência está implementada: re-rodar sobre atos já processados é gratuito (não chama API)
 
 ### Por que isso importa

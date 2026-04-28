@@ -119,7 +119,8 @@ async def main(dry_run: bool, limit: int | None) -> None:
             total_atos=len(parciais) + len(ruins),
         )
         db.add(rodada)
-        await db.flush()
+        await db.commit()
+        await db.refresh(rodada)
         rodada_id = rodada.id
         print(f"\nRodada criada: {rodada_id}\n")
 
@@ -129,6 +130,7 @@ async def main(dry_run: bool, limit: int | None) -> None:
 
         custo_sessao = Decimal("0")
         ok = erro = 0
+        parou_por_limite = False
         inicio = datetime.now()
         total = len(parciais) + len(ruins)
         idx = 0
@@ -174,6 +176,7 @@ async def main(dry_run: bool, limit: int | None) -> None:
 
             if custo_sessao >= CUSTO_LIMITE:
                 print(f"\n⚠  Limite de ${CUSTO_LIMITE} atingido. Parando.")
+                parou_por_limite = True
                 break
 
             if idx < total:
@@ -184,6 +187,7 @@ async def main(dry_run: bool, limit: int | None) -> None:
             for ato_id, numero, data_str, url_pdf in ruins_dados:
                 if custo_sessao >= CUSTO_LIMITE:
                     print(f"\n⚠  Limite de ${CUSTO_LIMITE} atingido. Parando.")
+                    parou_por_limite = True
                     break
 
                 idx += 1
@@ -237,10 +241,14 @@ async def main(dry_run: bool, limit: int | None) -> None:
                     await asyncio.sleep(RATE_LIMIT_SEGUNDOS)
 
         # Fecha rodada
+        if parou_por_limite or erro > 0:
+            status_final = "parcial"
+        else:
+            status_final = "concluido"
         await db.execute(
             update(RodadaAnalise)
             .where(RodadaAnalise.id == rodada_id)
-            .values(status="concluido" if erro == 0 else "parcial")
+            .values(status=status_final)
         )
         await db.commit()
 

@@ -206,8 +206,8 @@ if not await _rodada_esta_ativa(db, rodada_id):
     break`}</code></pre>
 
         <h3>Camada 4 — Teto de custo por rodada</h3>
-        <p>Cada rodada tem um limite de $15. Se o custo acumulado ultrapassar esse valor, o worker aborta e registra o motivo. Uma rodada completa das 400 portarias custa ~$5. O teto de $15 dá margem tripla antes de parar — suficiente para absorver retentativas legítimas, insuficiente para deixar uma rodada duplicada rodar até o fim.</p>
-        <pre><code>{`CUSTO_LIMITE_USD = Decimal("15.00")
+        <p>Cada rodada tem um limite de $5. Se o custo acumulado ultrapassar esse valor, o worker aborta e registra o motivo. Uma rodada completa das 400 portarias custa ~$5 em condições normais, então o teto é justaposto ao custo esperado — qualquer escalada acima disso indica retentativa em loop, ato fora do perfil ou bug, não trabalho legítimo. A idempotência (Camada 2) garante que reprocessar atos já analisados é gratuito, então o limite estreito não impede retomadas.</p>
+        <pre><code>{`CUSTO_LIMITE_USD = Decimal("5.00")
 
 if custo_acumulado > CUSTO_LIMITE_USD:
     await db.execute(

@@ -1,5 +1,5 @@
 interface SplineEmbedProps {
-  /** Override default celestial flow scene */
+  /** Override the default 3D background scene */
   src?: string;
   /** Width in CSS units (e.g. "100%", 280) */
   width?: string | number;
@@ -17,7 +17,7 @@ interface SplineEmbedProps {
  * Uses an iframe so we don't ship the runtime bundle.
  */
 export function SplineEmbed({
-  src = "https://my.spline.design/celestialflowabstractdigitalform-cyYL95n5wAKMKyu3nCKryb3b/",
+  src = "https://my.spline.design/particles-f6xFiWCaq16O5rpaA7nIxf2O/",
   width = "100%",
   height = 280,
   className,
@@ -39,7 +39,7 @@ export function SplineEmbed({
     >
       <iframe
         src={src}
-        title="Dig Dig · Celestial Flow"
+        title="Dig Dig · 3D background"
         loading="lazy"
         frameBorder={0}
         style={{

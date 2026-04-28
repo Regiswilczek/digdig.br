@@ -11,7 +11,7 @@ Uso:
 
 Segurança:
     - Só processa atos com processado=False (idempotente)
-    - Para automaticamente se custo acumulado > $15
+    - Para automaticamente se custo acumulado > $5
     - Usa a rodada de deliberações criada em 2026-04-24
 """
 import asyncio
