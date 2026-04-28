@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, or_, case, extract, exists
+from sqlalchemy import select, func, and_, or_, case, extract, exists, text
 from app.database import get_db
 from app.models.tenant import Tenant
 from app.models.ato import Ato, ConteudoAto, RodadaAnalise
@@ -311,3 +311,47 @@ async def get_rodada_ativa(
             ),
         }
     }
+
+
+@router.get("/orgaos/{slug}/metricas/icp")
+async def get_metricas_icp(
+    slug: str,
+    recalcular: bool = Query(False, description="Força recálculo mesmo que exista snapshot recente"),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Retorna o ICP (Índice de Concentração de Poder) do órgão.
+    Usa snapshot em cache (icp_orgao) se existir e recalcular=False.
+    """
+    from app.services.icp_service import calcular_icp_orgao
+    from app.models.pessoa import IcpOrgao
+
+    tenant = await _get_tenant(slug, db)
+
+    if not recalcular:
+        snap_r = await db.execute(
+            select(IcpOrgao)
+            .where(IcpOrgao.tenant_id == tenant.id)
+            .order_by(IcpOrgao.calculado_em.desc())
+            .limit(1)
+        )
+        snap = snap_r.scalar_one_or_none()
+        if snap:
+            return {
+                "icp_sistemico": float(snap.icp_sistemico) if snap.icp_sistemico else None,
+                "classificacao": snap.top_concentradores[0].get("interpretacao", "") if snap.top_concentradores else "",
+                "total_atos_base": snap.total_atos,
+                "total_pessoas": snap.total_pessoas,
+                "top_concentradores": snap.top_concentradores or [],
+                "calculado_em": snap.calculado_em.isoformat(),
+                "cache": True,
+            }
+
+    resultado = await calcular_icp_orgao(db, tenant.id)
+
+    if "erro" in resultado:
+        raise HTTPException(status_code=422, detail=resultado["erro"])
+
+    resultado["cache"] = False
+    return resultado

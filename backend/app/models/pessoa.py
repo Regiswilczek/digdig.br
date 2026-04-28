@@ -3,7 +3,7 @@ from datetime import datetime, date
 from decimal import Decimal
 from sqlalchemy import String, Boolean, Text, Integer, ForeignKey, DateTime, Date, Numeric, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
 from app.models.base import Base
 
 
@@ -22,6 +22,8 @@ class Pessoa(Base):
     ultimo_ato_data: Mapped[date | None] = mapped_column(Date, nullable=True)
     score_concentracao: Mapped[int] = mapped_column(Integer, default=0)
     eh_suspeito: Mapped[bool] = mapped_column(Boolean, default=False)
+    icp_individual: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
+    icp_atualizado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     criado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -64,3 +66,15 @@ class RelacaoPessoa(Base):
     criado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class IcpOrgao(Base):
+    __tablename__ = "icp_orgao"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
+    calculado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    icp_sistemico: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
+    total_atos: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    total_pessoas: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    top_concentradores: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
