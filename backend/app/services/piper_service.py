@@ -109,7 +109,14 @@ Responda SEMPRE em JSON válido com esta estrutura exata:
   "valores_monetarios": [],
   "referencias_atos": [],
   "requer_aprofundamento": false,
-  "motivo_aprofundamento": "string|null"
+  "motivo_aprofundamento": "string|null",
+  "cvss_fi": "nenhum|baixo|medio|alto",
+  "cvss_li": "formal|grave|crime",
+  "cvss_ri": "interno|publico|sistemico",
+  "cvss_av": "colegiado|unilateral",
+  "cvss_ac": "alta|baixa",
+  "cvss_pr": "baixo_escalao|alto_escalao",
+  "opacidade_linguistica": "baixa|media|alta"
 }}"""
 
 PIPER_EXTRA = f"""
@@ -132,6 +139,15 @@ Acrescente ao JSON de resposta o campo:
 ]
 
 Use apenas códigos presentes na lista. Inclua somente tags com evidência real no texto.
+
+VARIÁVEIS CVSS-A (preencher para todo ato — o backend calcula o score):
+- cvss_fi (Impacto Financeiro): "nenhum" (sem gasto), "baixo" (< R$50k), "medio" (R$50k–500k), "alto" (> R$500k)
+- cvss_li (Impacto Legal): "formal" (vício de forma, sem crime), "grave" (violação de lei, improbidade), "crime" (tipo penal configurado)
+- cvss_ri (Impacto Reputacional): "interno" (restrito ao órgão), "publico" (repercussão pública provável), "sistemico" (dano à confiança institucional)
+- cvss_av (Vetor de Ataque): "colegiado" (exigiu aprovação coletiva), "unilateral" (ato de autoridade única)
+- cvss_ac (Complexidade): "alta" (exigiu planejamento elaborado), "baixa" (ato simples, sem obstáculos)
+- cvss_pr (Privilégios): "baixo_escalao" (servidor operacional), "alto_escalao" (Presidente, Diretor, Conselheiro)
+- opacidade_linguistica: "baixa" (linguagem clara, motivação explícita), "media" (linguagem vaga em pontos relevantes), "alta" (expressões de camuflagem como "necessidade imperiosa", "reestruturação estratégica")
 """
 
 
@@ -501,6 +517,25 @@ async def _salvar_resultado_piper(
     analise.resumo_executivo = resultado.get("resumo")
     analise.tokens_piper = input_tokens + output_tokens
     analise.custo_usd = Decimal(str(custo))
+
+    # CVSS-A — cálculo determinístico a partir das variáveis extraídas pelo Piper
+    from app.services.cvss_service import calcular_cvss_a
+    cvss_score, cvss_vector = calcular_cvss_a(
+        resultado.get("cvss_fi"),
+        resultado.get("cvss_li"),
+        resultado.get("cvss_ri"),
+        resultado.get("cvss_av"),
+        resultado.get("cvss_ac"),
+        resultado.get("cvss_pr"),
+    )
+    analise.cvss_score = cvss_score
+    analise.cvss_vector = cvss_vector
+    analise.cvss_fi = resultado.get("cvss_fi")
+    analise.cvss_li = resultado.get("cvss_li")
+    analise.cvss_ri = resultado.get("cvss_ri")
+    analise.cvss_av = resultado.get("cvss_av")
+    analise.cvss_ac = resultado.get("cvss_ac")
+    analise.cvss_pr = resultado.get("cvss_pr")
 
     for indicio in resultado.get("indicios", []):
         db.add(Irregularidade(

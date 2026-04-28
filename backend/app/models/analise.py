@@ -37,6 +37,17 @@ class Analise(Base):
     tokens_bud: Mapped[int] = mapped_column(Integer, default=0)
     tokens_new: Mapped[int] = mapped_column(Integer, default=0)
     custo_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal("0"))
+
+    # CVSS-A — calculado deterministicamente pelo backend após extração do Piper
+    cvss_score: Mapped[Decimal | None] = mapped_column(Numeric(3, 1), nullable=True)
+    cvss_vector: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    cvss_fi: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    cvss_li: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    cvss_ri: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    cvss_av: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    cvss_ac: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    cvss_pr: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     criado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
