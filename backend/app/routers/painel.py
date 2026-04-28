@@ -324,7 +324,7 @@ async def get_metricas_icp(
     Retorna o ICP (Índice de Concentração de Poder) do órgão.
     Usa snapshot em cache (icp_orgao) se existir e recalcular=False.
     """
-    from app.services.icp_service import calcular_icp_orgao
+    from app.services.icp_service import calcular_icp_orgao, _interpretar_sistemico
     from app.models.pessoa import IcpOrgao
 
     tenant = await _get_tenant(slug, db)
@@ -340,7 +340,7 @@ async def get_metricas_icp(
         if snap:
             return {
                 "icp_sistemico": float(snap.icp_sistemico) if snap.icp_sistemico else None,
-                "classificacao": snap.top_concentradores[0].get("interpretacao", "") if snap.top_concentradores else "",
+                "classificacao": _interpretar_sistemico(float(snap.icp_sistemico)) if snap.icp_sistemico else "",
                 "total_atos_base": snap.total_atos,
                 "total_pessoas": snap.total_pessoas,
                 "top_concentradores": snap.top_concentradores or [],

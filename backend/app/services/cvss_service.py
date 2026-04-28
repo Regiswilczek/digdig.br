@@ -29,6 +29,15 @@ _DEFAULTS = {
     "pr": "baixo_escalao",
 }
 
+_ABREV = {
+    "nenhum": "NEN", "baixo": "BAX", "medio": "MED", "alto": "ALT",
+    "formal": "FOR", "grave": "GRV", "crime": "CRM",
+    "interno": "INT", "publico": "PUB", "sistemico": "SIS",
+    "colegiado": "COL", "unilateral": "UNI",
+    "alta": "ALT", "baixa": "BAX",
+    "baixo_escalao": "BXE", "alto_escalao": "ALE",
+}
+
 _NIVEL_MAP = [
     (Decimal("8.0"), "vermelho"),
     (Decimal("6.0"), "laranja"),
@@ -62,12 +71,12 @@ def calcular_cvss_a(
     score_raw = min(impacto + explorabilidade, 10.0)
     score = Decimal(str(score_raw)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
 
-    av_key = (av or _DEFAULTS["av"])[0].upper()
-    ac_key = (ac or _DEFAULTS["ac"])[0].upper()
-    pr_key = (pr or _DEFAULTS["pr"])[0].upper()
-    fi_key = (fi or _DEFAULTS["fi"])[0].upper()
-    li_key = (li or _DEFAULTS["li"])[0].upper()
-    ri_key = (ri or _DEFAULTS["ri"])[0].upper()
+    av_key = _ABREV.get(av or _DEFAULTS["av"], (av or _DEFAULTS["av"])[:3].upper())
+    ac_key = _ABREV.get(ac or _DEFAULTS["ac"], (ac or _DEFAULTS["ac"])[:3].upper())
+    pr_key = _ABREV.get(pr or _DEFAULTS["pr"], (pr or _DEFAULTS["pr"])[:3].upper())
+    fi_key = _ABREV.get(fi or _DEFAULTS["fi"], (fi or _DEFAULTS["fi"])[:3].upper())
+    li_key = _ABREV.get(li or _DEFAULTS["li"], (li or _DEFAULTS["li"])[:3].upper())
+    ri_key = _ABREV.get(ri or _DEFAULTS["ri"], (ri or _DEFAULTS["ri"])[:3].upper())
     vetor = f"CVSS-A:1.0/AV:{av_key}/AC:{ac_key}/PR:{pr_key}/FI:{fi_key}/LI:{li_key}/RI:{ri_key}"
 
     return score, vetor

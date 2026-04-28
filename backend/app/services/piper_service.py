@@ -32,6 +32,7 @@ from app.models.analise import Analise, Irregularidade
 from app.models.tenant import Tenant, KnowledgeBase
 from app.services.pessoas_service import salvar_pessoas
 from app.services.tag_service import LISTA_TAGS_PROMPT, salvar_tags_piper
+from app.services.cvss_service import calcular_cvss_a
 
 # ─── Constantes compartilhadas por todo o pipeline ───────────────────────────
 
@@ -519,7 +520,6 @@ async def _salvar_resultado_piper(
     analise.custo_usd = Decimal(str(custo))
 
     # CVSS-A — cálculo determinístico a partir das variáveis extraídas pelo Piper
-    from app.services.cvss_service import calcular_cvss_a
     cvss_score, cvss_vector = calcular_cvss_a(
         resultado.get("cvss_fi"),
         resultado.get("cvss_li"),
