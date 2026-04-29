@@ -58,9 +58,19 @@ class Settings(BaseSettings):
     # Default mantém compat com o email histórico hardcoded.
     admin_emails: str = "regisalessander@gmail.com"
 
+    # Hosts permitidos no download de PDF (anti-SSRF). CSV.
+    # Adicionar host explicitamente quando subir novo tenant.
+    pdf_allowed_hosts: str = (
+        "www.caupr.gov.br,transparencia.caupr.gov.br,caupr.gov.br,www.caupr.org.br"
+    )
+
     @property
     def admin_emails_list(self) -> list[str]:
         return [e.strip().lower() for e in self.admin_emails.split(",") if e.strip()]
+
+    @property
+    def pdf_allowed_hosts_list(self) -> list[str]:
+        return [h.strip().lower() for h in self.pdf_allowed_hosts.split(",") if h.strip()]
 
     @property
     def allowed_origins_list(self) -> list[str]:
