@@ -313,6 +313,107 @@ async def get_rodada_ativa(
     }
 
 
+@router.get("/orgaos/{slug}/pipeline-status")
+async def get_pipeline_status(
+    slug: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """Status agregado das filas de análise para o painel público.
+
+    Retorna 3 filas (uma por agente) com total e amostra de 10 documentos:
+    - aguarda_piper: ato com texto/PDF, sem resultado_piper
+    - aguarda_bud: Piper marcou vermelho/laranja, sem resultado_bud
+    - aguarda_new: Bud confirmou vermelho, sem resultado_new
+    """
+    tenant = await _get_tenant(slug, db)
+    tid = tenant.id
+
+    def _serialize(rows) -> list[dict]:
+        out = []
+        for row in rows:
+            ato_id, tipo, numero, data = row[0], row[1], row[2], row[3]
+            nivel = row[4] if len(row) > 4 else None
+            out.append({
+                "ato_id": str(ato_id),
+                "tipo": tipo,
+                "numero": numero or "?",
+                "data_publicacao": data.isoformat() if data else None,
+                "nivel_alerta": nivel,
+            })
+        return out
+
+    aguarda_piper_base = (
+        select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao)
+        .join(ConteudoAto, ConteudoAto.ato_id == Ato.id)
+        .where(
+            Ato.tenant_id == tid,
+            ConteudoAto.qualidade.in_(["boa", "parcial", "ruim"]),
+            ~select(Analise.id).where(
+                Analise.ato_id == Ato.id, Analise.resultado_piper.isnot(None)
+            ).exists(),
+        )
+    )
+    piper_total = (await db.execute(select(func.count()).select_from(aguarda_piper_base.subquery()))).scalar_one()
+    piper_amostra = (
+        await db.execute(aguarda_piper_base.order_by(Ato.data_publicacao.desc().nullslast()).limit(10))
+    ).all()
+
+    aguarda_bud_base = (
+        select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao, Analise.nivel_alerta)
+        .join(Analise, Analise.ato_id == Ato.id)
+        .where(
+            Ato.tenant_id == tid,
+            Analise.resultado_piper.isnot(None),
+            Analise.nivel_alerta.in_(["vermelho", "laranja"]),
+            Analise.resultado_bud.is_(None),
+        )
+    )
+    bud_total = (await db.execute(select(func.count()).select_from(aguarda_bud_base.subquery()))).scalar_one()
+    bud_amostra = (
+        await db.execute(aguarda_bud_base.order_by(Analise.criado_em.desc()).limit(10))
+    ).all()
+
+    aguarda_new_base = (
+        select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao, Analise.nivel_alerta)
+        .join(Analise, Analise.ato_id == Ato.id)
+        .where(
+            Ato.tenant_id == tid,
+            Analise.resultado_bud.isnot(None),
+            Analise.nivel_alerta == "vermelho",
+            Analise.resultado_new.is_(None),
+        )
+    )
+    new_total = (await db.execute(select(func.count()).select_from(aguarda_new_base.subquery()))).scalar_one()
+    new_amostra = (
+        await db.execute(aguarda_new_base.order_by(Analise.criado_em.desc()).limit(10))
+    ).all()
+
+    return {
+        "tenant": {"id": str(tid), "slug": slug, "nome": tenant.nome_completo},
+        "filas": {
+            "aguarda_piper": {
+                "total": piper_total,
+                "amostra": _serialize(piper_amostra),
+                "agente": "Piper (Gemini 2.5 Pro)",
+                "descricao": "Triagem inicial — todo ato com texto entra aqui",
+            },
+            "aguarda_bud": {
+                "total": bud_total,
+                "amostra": _serialize(bud_amostra),
+                "agente": "Bud (Claude Sonnet)",
+                "descricao": "Aprofundamento de críticos (vermelho ou laranja)",
+            },
+            "aguarda_new": {
+                "total": new_total,
+                "amostra": _serialize(new_amostra),
+                "agente": "New (Claude Opus)",
+                "descricao": "Revisão sistêmica de vermelhos confirmados pelo Bud",
+            },
+        },
+    }
+
+
 @router.get("/orgaos/{slug}/metricas/icp")
 async def get_metricas_icp(
     slug: str,

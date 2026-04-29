@@ -141,6 +141,14 @@ export async function fetchPainelRodada(
   return data.rodada_ativa ?? null;
 }
 
+export async function fetchPipelineStatus(
+  slug: string
+): Promise<PipelineStatus | null> {
+  const r = await fetchAuthed(`/painel/orgaos/${slug}/pipeline-status`);
+  if (!r.ok) return null;
+  return r.json();
+}
+
 export interface PainelPendente {
   id: string;
   numero: string;

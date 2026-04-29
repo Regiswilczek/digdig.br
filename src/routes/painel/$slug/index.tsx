@@ -4,10 +4,14 @@ import {
   fetchPainelAtos,
   fetchPainelRodada,
   fetchPendentes,
+  fetchPipelineStatus,
   type PainelAto,
   type PainelRodada,
   type PainelPendente,
   type PainelPendentesResponse,
+  type PipelineStatus,
+  type FilaInfo,
+  type FilaItem,
 } from "../../../lib/api-auth";
 import { fetchAnalysesRecentes, fetchFinanceiroDiarias, fetchFinanceiroPassagens, type PublicStats, type AnaliseRecente, type AtividadeItem, type CrescimentoResponse, type CrescimentoPonto, type Marco, type FinanceiroStats, type FinanceiroResponse } from "../../../lib/api";
 import { useOrgao } from "../../../lib/orgao-store";
@@ -1760,6 +1764,82 @@ function TabDenuncias({ slug }: { slug: string }) {
   );
 }
 
+// ── Componente: card de fila por agente (paleta clara do painel) ───────
+const NIVEL_COLOR_PAINEL: Record<string, string> = {
+  vermelho: "#b91c1c",
+  laranja: "#c2410c",
+  amarelo: "#a16207",
+  verde: "#15803d",
+};
+
+function PainelFilaCard({ fila, accent }: { fila: FilaInfo; accent: string }) {
+  const isEmpty = fila.total === 0;
+  return (
+    <div
+      style={{
+        border: `1px solid ${isEmpty ? BORDER : accent + "40"}`,
+        background: PAPER,
+        padding: "16px",
+      }}
+    >
+      <div className="flex items-start justify-between mb-3 gap-2">
+        <div className="min-w-0">
+          <p
+            className="text-[10px] uppercase tracking-[0.14em] font-semibold truncate"
+            style={{ color: isEmpty ? MUTED : accent, fontFamily: MONO }}
+          >
+            {fila.agente}
+          </p>
+          <p className="text-[10px] mt-0.5" style={{ color: SUBTLE }}>{fila.descricao}</p>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="text-[1.6rem] font-semibold leading-none" style={{ fontFamily: MONO, color: INK }}>
+            {fila.total.toLocaleString("pt-BR")}
+          </p>
+          <p className="text-[9px] uppercase tracking-[0.12em] mt-1" style={{ color: SUBTLE, fontFamily: MONO }}>
+            aguardando
+          </p>
+        </div>
+      </div>
+      {fila.amostra.length > 0 ? (
+        <ul className="space-y-1">
+          {fila.amostra.map((item) => (
+            <PainelFilaRow key={item.ato_id} item={item} accent={accent} />
+          ))}
+        </ul>
+      ) : (
+        <p className="text-[11px] py-2" style={{ color: MUTED }}>Nenhum documento na fila.</p>
+      )}
+      {fila.total > fila.amostra.length && (
+        <p className="text-[10px] mt-3" style={{ color: SUBTLE, fontFamily: MONO }}>
+          + {(fila.total - fila.amostra.length).toLocaleString("pt-BR")} adicional(is)
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PainelFilaRow({ item, accent }: { item: FilaItem; accent: string }) {
+  const niv = item.nivel_alerta;
+  const tipoLabel = item.tipo.replace(/_/g, " ");
+  return (
+    <li className="flex items-center gap-2 text-[11px] py-0.5" style={{ color: INK, fontFamily: MONO }}>
+      <span
+        className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+        style={{ background: niv ? (NIVEL_COLOR_PAINEL[niv] ?? accent) : accent + "60" }}
+        title={niv ?? undefined}
+      />
+      <span className="w-24 shrink-0 truncate" style={{ color: SUBTLE }} title={tipoLabel}>{tipoLabel}</span>
+      <span className="flex-1 truncate" title={item.numero}>{item.numero}</span>
+      {item.data_publicacao && (
+        <span className="shrink-0 text-[10px]" style={{ color: SUBTLE }}>
+          {new Date(item.data_publicacao).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+        </span>
+      )}
+    </li>
+  );
+}
+
 // ── Tab: Pipeline ───────────────────────────────────────────────────────
 function TabPipeline({
   slug,
@@ -1771,6 +1851,9 @@ function TabPipeline({
   initialItems: AtividadeItem[] | null;
 }) {
   const [items, setItems] = useState<FeedItem[]>([]);
+  const [filas, setFilas] = useState<PipelineStatus | null>(null);
+  const [pulse, setPulse] = useState(false);
+  const debounceRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (initialItems)
@@ -1788,6 +1871,40 @@ function TabPipeline({
         })),
       );
   }, [initialItems]);
+
+  // Carrega filas + assinatura realtime para atualização ao vivo
+  useEffect(() => {
+    let alive = true;
+    const refresh = () => {
+      fetchPipelineStatus(slug).then((p) => {
+        if (alive) setFilas(p);
+      });
+    };
+    refresh();
+    const interval = setInterval(refresh, 30_000);
+
+    const scheduleRefetch = () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+      debounceRef.current = window.setTimeout(() => {
+        refresh();
+        setPulse(true);
+        window.setTimeout(() => setPulse(false), 800);
+      }, 500);
+    };
+
+    const ch = supabase
+      .channel(`pipeline-status-${slug}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "analises" }, scheduleRefetch)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "analises" }, scheduleRefetch)
+      .subscribe();
+
+    return () => {
+      alive = false;
+      clearInterval(interval);
+      supabase.removeChannel(ch);
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
+  }, [slug]);
 
   // Realtime handled by orgao-store — initialItems is kept fresh by the store.
 
@@ -1832,6 +1949,29 @@ function TabPipeline({
 
       {rodada && pct !== null && (
         <Progress value={pct} className="h-1" style={{ background: PAPER }} />
+      )}
+
+      {/* Filas de análise em tempo real */}
+      {filas && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] uppercase tracking-[0.2em] font-semibold" style={{ color: MUTED, fontFamily: MONO }}>
+              Filas de análise
+            </span>
+            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em]" style={{ color: MUTED, fontFamily: MONO }}>
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full transition-colors"
+                style={{ background: pulse ? "#16a34a" : "#3b82f680" }}
+              />
+              <span>{pulse ? "atualizando" : "realtime"}</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <PainelFilaCard fila={filas.filas.aguarda_piper} accent="#3b82f6" />
+            <PainelFilaCard fila={filas.filas.aguarda_bud} accent="#8b5cf6" />
+            <PainelFilaCard fila={filas.filas.aguarda_new} accent="#ec4899" />
+          </div>
+        </div>
       )}
 
       <div style={{ border: `1px solid ${BORDER}` }}>
