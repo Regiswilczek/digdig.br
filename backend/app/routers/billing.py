@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import time
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from pydantic import BaseModel
@@ -7,6 +8,10 @@ import mercadopago
 import structlog
 
 from app.config import settings
+
+# Janela máxima entre o timestamp assinado pelo MP e nosso tempo do servidor.
+# Bloqueia replay de webhooks antigos (auditoria A-6).
+MP_TIMESTAMP_TOLERANCE_SECONDS = 300
 
 log = structlog.get_logger()
 router = APIRouter(prefix="/billing", tags=["billing"])
@@ -77,7 +82,10 @@ async def criar_pagamento(req: CriarPagamentoRequest):
 def _verify_mp_signature(request: Request, data_id: str) -> bool:
     secret = settings.mercadopago_webhook_secret
     if not secret:
-        return True  # sem secret configurado, aceita tudo (dev)
+        # Em produção isso nunca deveria acontecer — config.validate_production_secrets
+        # bloqueia o boot. Mas se chegar aqui sem secret, recusa em vez de aceitar.
+        log.error("mp_webhook_no_secret_configured", environment=settings.environment)
+        return False
 
     x_signature = request.headers.get("x-signature", "")
     x_request_id = request.headers.get("x-request-id", "")
@@ -92,6 +100,17 @@ def _verify_mp_signature(request: Request, data_id: str) -> bool:
             v1 = v
 
     if not ts or not v1:
+        return False
+
+    # Replay protection (A-6): rejeita timestamps fora da janela de tolerância.
+    try:
+        ts_int = int(ts)
+    except ValueError:
+        log.warning("mp_webhook_ts_not_int", ts=ts)
+        return False
+    delta = abs(time.time() - ts_int)
+    if delta > MP_TIMESTAMP_TOLERANCE_SECONDS:
+        log.warning("mp_webhook_ts_out_of_window", delta_seconds=int(delta))
         return False
 
     manifest = f"id:{data_id};request-id:{x_request_id};ts:{ts};"

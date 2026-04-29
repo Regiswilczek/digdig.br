@@ -74,6 +74,7 @@ class Settings(BaseSettings):
                 "supabase_service_role_key": self.supabase_service_role_key,
                 "anthropic_api_key": self.anthropic_api_key,
                 "webhook_secret": self.webhook_secret,
+                "mercadopago_webhook_secret": self.mercadopago_webhook_secret,
             }
             missing = [k for k, v in required.items() if not v]
             if missing:
