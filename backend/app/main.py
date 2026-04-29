@@ -33,7 +33,7 @@ def create_app() -> FastAPI:
         allow_origins=settings.allowed_origins_list,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
-        allow_headers=["Authorization", "Content-Type", "X-Admin-Secret"],
+        allow_headers=["Authorization", "Content-Type"],
     )
 
     @app.exception_handler(RequestValidationError)

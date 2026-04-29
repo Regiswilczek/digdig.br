@@ -10,8 +10,6 @@ services:
       interval: 2s
       timeout: 5s
       retries: 30
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -19,8 +17,12 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+    # Bind apenas em loopback do host (auditoria A-2). Acesso externo deve
+    # ser feito via nginx em office.digdig.com.br. Para reabilitar acesso
+    # direto pelo Docker host network (ex.: nginx em outro compose), unifique
+    # os stacks via rede externa compartilhada (M-10) antes.
     ports:
-      - "3100:3100"
+      - "127.0.0.1:3100:3100"
     environment:
       DATABASE_URL: postgres://paperclip:paperclip@db:5432/paperclip
       PORT: "3100"

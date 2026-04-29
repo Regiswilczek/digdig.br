@@ -1,5 +1,4 @@
 import uuid
-import hmac
 import os
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Request, Security
@@ -20,19 +19,44 @@ router = APIRouter(prefix="/pnl", tags=["admin"])
 STATUSES_ATIVOS = ("em_progresso", "pendente")
 
 
-def verify_admin_secret(request: Request) -> None:
-    secret = request.headers.get("X-Admin-Secret", "")
-    if not secret or not hmac.compare_digest(secret, settings.webhook_secret):
-        raise HTTPException(status_code=401, detail="Unauthorized")
+# ── Auth admin (JWT via Supabase session, valida email contra ADMIN_EMAILS) ──
+_bearer = HTTPBearer(auto_error=False)
+
+
+def _is_admin_email(email: str | None) -> bool:
+    if not email:
+        return False
+    return email.strip().lower() in settings.admin_emails_list
+
+
+async def require_admin(
+    creds: HTTPAuthorizationCredentials | None = Security(_bearer),
+) -> dict:
+    if not creds:
+        raise HTTPException(status_code=401, detail="Token necessário")
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{settings.supabase_url}/auth/v1/user",
+            headers={
+                "Authorization": f"Bearer {creds.credentials}",
+                "apikey": settings.supabase_service_role_key,
+            },
+            timeout=10,
+        )
+    if not resp.is_success:
+        raise HTTPException(status_code=401, detail="Token inválido")
+    user = resp.json()
+    if not _is_admin_email(user.get("email")):
+        raise HTTPException(status_code=403, detail="Acesso restrito ao administrador")
+    return user
 
 
 @router.post("/orgaos/{slug}/rodadas")
 async def iniciar_rodada(
     slug: str,
-    request: Request,
     db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
 ):
-    verify_admin_secret(request)
 
     result = await db.execute(select(Tenant).where(Tenant.slug == slug))
     tenant = result.scalar_one_or_none()
@@ -83,11 +107,9 @@ async def iniciar_rodada(
 @router.get("/rodadas/{rodada_id}")
 async def status_rodada(
     rodada_id: str,
-    request: Request,
     db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
 ):
-    verify_admin_secret(request)
-
     result = await db.execute(
         select(RodadaAnalise).where(RodadaAnalise.id == uuid.UUID(rodada_id))
     )
@@ -101,12 +123,10 @@ async def status_rodada(
 @router.get("/orgaos/{slug}/rodadas")
 async def listar_rodadas(
     slug: str,
-    request: Request,
     db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
 ):
     """Lista todas as rodadas de um órgão (mais recentes primeiro)."""
-    verify_admin_secret(request)
-
     tenant_result = await db.execute(select(Tenant).where(Tenant.slug == slug))
     tenant = tenant_result.scalar_one_or_none()
     if not tenant:
@@ -125,12 +145,10 @@ async def listar_rodadas(
 @router.post("/rodadas/{rodada_id}/cancelar")
 async def cancelar_rodada(
     rodada_id: str,
-    request: Request,
     db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
 ):
     """Cancela uma rodada ativa. Os workers vão parar na próxima verificação."""
-    verify_admin_secret(request)
-
     result = await db.execute(
         select(RodadaAnalise).where(RodadaAnalise.id == uuid.UUID(rodada_id))
     )
@@ -174,37 +192,7 @@ def _rodada_dict(rodada: RodadaAnalise) -> dict:
     }
 
 
-# ── Painel Administrativo (JWT via Supabase session) ─────────────────────────
-
-_bearer = HTTPBearer(auto_error=False)
-
-
-def _is_admin_email(email: str | None) -> bool:
-    if not email:
-        return False
-    return email.strip().lower() in settings.admin_emails_list
-
-
-async def require_admin(
-    creds: HTTPAuthorizationCredentials | None = Security(_bearer),
-) -> dict:
-    if not creds:
-        raise HTTPException(status_code=401, detail="Token necessário")
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            f"{settings.supabase_url}/auth/v1/user",
-            headers={
-                "Authorization": f"Bearer {creds.credentials}",
-                "apikey": settings.supabase_service_role_key,
-            },
-            timeout=10,
-        )
-    if not resp.is_success:
-        raise HTTPException(status_code=401, detail="Token inválido")
-    user = resp.json()
-    if not _is_admin_email(user.get("email")):
-        raise HTTPException(status_code=403, detail="Acesso restrito ao administrador")
-    return user
+# ── Painel Administrativo (rotas internas com require_admin) ─────────────────
 
 
 @router.get("/admin/stats")

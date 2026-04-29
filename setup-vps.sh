@@ -78,7 +78,8 @@ echo "▶ [5/6] Verificando .env..."
 if [ ! -f "$APP_DIR/backend/.env" ]; then
   if [ -f "$APP_DIR/backend/.env.example" ]; then
     cp "$APP_DIR/backend/.env.example" "$APP_DIR/backend/.env"
-    echo "  ⚠ .env criado a partir do .env.example"
+    chmod 600 "$APP_DIR/backend/.env"
+    echo "  ⚠ .env criado a partir do .env.example (permissão 600)"
     echo "  → EDITE antes de subir os serviços:"
     echo "     nano $APP_DIR/backend/.env"
   else
@@ -86,9 +87,12 @@ if [ ! -f "$APP_DIR/backend/.env" ]; then
     echo "  → Variáveis obrigatórias: DATABASE_URL, ANTHROPIC_API_KEY,"
     echo "     SUPABASE_URL, SUPABASE_SERVICE_KEY,"
     echo "     MP_ACCESS_TOKEN, MP_PUBLIC_KEY, SECRET_KEY"
+    echo "  → Após criar: chmod 600 $APP_DIR/backend/.env"
   fi
 else
-  echo "✓ .env já existe"
+  # Garante permissão segura mesmo se o .env já existia (auditoria C-1).
+  chmod 600 "$APP_DIR/backend/.env"
+  echo "✓ .env já existe (chmod 600 reaplicado)"
 fi
 
 # ── 6. Docker Compose up ──────────────────────────────────────────────────────

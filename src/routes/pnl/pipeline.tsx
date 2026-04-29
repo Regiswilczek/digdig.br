@@ -98,7 +98,6 @@ function PipelinePage() {
     const res = await fetch(`/pnl/rodadas/${rodada_id}/cancelar`, {
       method: "POST",
       headers: {
-        "X-Admin-Secret": "",
         Authorization: `Bearer ${session?.access_token}`,
       },
     });
