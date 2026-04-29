@@ -1,0 +1,62 @@
+# Segredos e ambiente
+.env
+.env.*
+!.env.example
+
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# Dependências e cache
+node_modules
+.npm
+.cache
+.pnpm-store
+
+# Builds locais (a imagem refaz o build)
+dist
+dist-vps
+.vite
+.next
+.turbo
+
+# Python (não usado no build do frontend, mas evita poluição)
+backend
+__pycache__
+*.pyc
+.venv
+venv
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Documentação não usada no build
+docs
+*.md
+!README.md
+
+# Testes locais
+coverage
+.nyc_output
+playwright-report
+test-results
+
+# Mirror legado e auditorias locais
+"CAU PR"
+SECURITY_AUDIT.md
+
+# Tools (Paperclip tem build próprio)
+tools
+
+# Arquivos do agente IA (instruções, planos)
+.claude
+agents

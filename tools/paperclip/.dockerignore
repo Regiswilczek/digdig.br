@@ -1,5 +1,14 @@
+# Segredos e ambiente
+.env
+.env.*
+!.env.example
+
+# VCS
 .git
 .github
+.gitignore
+
+# Estado runtime
 .paperclip
 .pnpm-store
 node_modules
@@ -7,4 +16,7 @@ node_modules
 coverage
 data
 tmp
+
+# Logs
 *.log
+pnpm-debug.log*

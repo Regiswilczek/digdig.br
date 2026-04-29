@@ -1,0 +1,43 @@
+# Segredos e ambiente
+.env
+.env.*
+!.env.example
+
+# VCS
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv
+venv
+env
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+
+# Dados locais
+*.db
+*.sqlite
+*.sqlite3
+data
+storage
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+
+# Logs
+*.log
+
+# Builds
+dist
+build
