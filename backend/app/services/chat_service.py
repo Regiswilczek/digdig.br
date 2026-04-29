@@ -240,6 +240,29 @@ async def stream_resposta(
     """Yield SSE chunks, save exchange to DB after completion."""
     inicio = time.monotonic()
 
+    # Cap de custo da sessão (auditoria A-9). Bloqueia ANTES de chamar a LLM.
+    cap_usd = Decimal(str(settings.chat_session_cost_limit_usd))
+    sessao_cost_r = await db.execute(
+        select(ChatSessao.custo_total_usd).where(ChatSessao.id == uuid.UUID(sessao_id))
+    )
+    custo_acumulado = sessao_cost_r.scalar_one_or_none() or Decimal("0")
+    if custo_acumulado >= cap_usd:
+        yield (
+            "data: "
+            + json.dumps(
+                {
+                    "erro": (
+                        f"Limite de custo da sessão atingido (USD {float(custo_acumulado):.4f} "
+                        f"de USD {float(cap_usd):.2f}). Inicie uma nova sessão para continuar."
+                    )
+                },
+                ensure_ascii=False,
+            )
+            + "\n\n"
+        )
+        yield f"data: {json.dumps({'fim': True})}\n\n"
+        return
+
     historico = await _get_historico_llm(sessao_id, db)
     contexto, ctx_stats = await _buscar_contexto(pergunta, tenant_id, db)
     system_prompt = await _build_system_prompt(tenant_id, db)

@@ -64,6 +64,10 @@ class Settings(BaseSettings):
         "www.caupr.gov.br,transparencia.caupr.gov.br,caupr.gov.br,www.caupr.org.br"
     )
 
+    # Cap de custo por sessão de chat em USD. Bloqueia novas perguntas
+    # quando atingido (auditoria A-9 — cost DoS).
+    chat_session_cost_limit_usd: float = 1.0
+
     @property
     def admin_emails_list(self) -> list[str]:
         return [e.strip().lower() for e in self.admin_emails.split(",") if e.strip()]
