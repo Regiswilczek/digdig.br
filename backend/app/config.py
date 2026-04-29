@@ -54,6 +54,14 @@ class Settings(BaseSettings):
     allowed_origins: str = "http://localhost:5173"
     webhook_secret: str = ""
 
+    # Lista de emails com privilégio admin (separados por vírgula).
+    # Default mantém compat com o email histórico hardcoded.
+    admin_emails: str = "regisalessander@gmail.com"
+
+    @property
+    def admin_emails_list(self) -> list[str]:
+        return [e.strip().lower() for e in self.admin_emails.split(",") if e.strip()]
+
     @property
     def allowed_origins_list(self) -> list[str]:
         origins = {o.strip() for o in self.allowed_origins.split(",") if o.strip()}

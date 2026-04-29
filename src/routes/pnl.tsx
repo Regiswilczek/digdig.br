@@ -7,7 +7,17 @@ export const Route = createFileRoute("/pnl")({
   component: PnlLayout,
 });
 
-const ADMIN_EMAIL = "regisalessander@gmail.com";
+// Lista de emails admin (lida em build time via VITE_ADMIN_EMAILS, fallback histórico).
+// O backend valida em runtime — o check do frontend é apenas UX.
+const ADMIN_EMAILS: string[] = (import.meta.env.VITE_ADMIN_EMAILS ?? "regisalessander@gmail.com")
+  .split(",")
+  .map((e: string) => e.trim().toLowerCase())
+  .filter(Boolean);
+
+function isAdmin(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.trim().toLowerCase());
+}
 
 const SYNE: React.CSSProperties = {
   fontFamily: "'Syne', system-ui, sans-serif",
@@ -18,7 +28,7 @@ const SYNE: React.CSSProperties = {
 function PnlLayout() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [magicSent, setMagicSent] = useState(false);
-  const [email, setEmail] = useState(ADMIN_EMAIL);
+  const [email, setEmail] = useState(ADMIN_EMAILS[0] ?? "");
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -27,7 +37,7 @@ function PnlLayout() {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
-      if (s && s.user.email === ADMIN_EMAIL) {
+      if (s && isAdmin(s.user.email)) {
         // redireciona para dashboard ao logar
         navigate({ to: "/pnl/dashboard" });
       }
@@ -117,7 +127,7 @@ function PnlLayout() {
   }
 
   // Logado mas não é admin
-  if (session.user.email !== ADMIN_EMAIL) {
+  if (!isAdmin(session.user.email)) {
     return (
       <div className="min-h-screen bg-[#07080f] flex items-center justify-center px-4 text-center">
         <div>

@@ -176,8 +176,13 @@ def _rodada_dict(rodada: RodadaAnalise) -> dict:
 
 # ── Painel Administrativo (JWT via Supabase session) ─────────────────────────
 
-ADMIN_EMAIL = "regisalessander@gmail.com"
 _bearer = HTTPBearer(auto_error=False)
+
+
+def _is_admin_email(email: str | None) -> bool:
+    if not email:
+        return False
+    return email.strip().lower() in settings.admin_emails_list
 
 
 async def require_admin(
@@ -197,7 +202,7 @@ async def require_admin(
     if not resp.is_success:
         raise HTTPException(status_code=401, detail="Token inválido")
     user = resp.json()
-    if user.get("email") != ADMIN_EMAIL:
+    if not _is_admin_email(user.get("email")):
         raise HTTPException(status_code=403, detail="Acesso restrito ao administrador")
     return user
 
@@ -483,7 +488,7 @@ async def send_magic_link_via_resend(request: Request):
     body = await request.json()
     email = (body.get("email") or "").strip().lower()
 
-    if email != ADMIN_EMAIL:
+    if not _is_admin_email(email):
         raise HTTPException(status_code=403, detail="Acesso restrito")
 
     async with httpx.AsyncClient() as client:
