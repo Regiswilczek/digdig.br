@@ -159,11 +159,11 @@ function AtoDetailPage() {
     );
   }
 
-  const haiku = ato.resultado_haiku;
+  const haiku = ato.resultado_piper ?? ato.resultado_haiku;
   const indicios: HaikuIndicio[] = haiku?.indicios ?? [];
   const pessoasHaiku: HaikuPessoa[] = haiku?.pessoas_extraidas ?? [];
 
-  const sonnet = ato.resultado_sonnet;
+  const sonnet = ato.resultado_bud ?? ato.resultado_sonnet;
   const sonnetAprofundada = sonnet?.analise_aprofundada as
     | Record<string, unknown>
     | undefined;
@@ -171,7 +171,7 @@ function AtoDetailPage() {
     | string
     | undefined;
 
-  // Ata plenária — dados extraídos diretamente do resultado_sonnet
+  // Ata plenária — dados extraídos diretamente do resultado_bud (fallback resultado_sonnet)
   type SonnetIrregularidade = { categoria: string; tipo: string; descricao: string; artigo_violado?: string; gravidade: string };
   type SonnetPessoa = { nome: string; cargo: string; tipo_aparicao: string };
   type PautaItem = { item: number; titulo: string; resultado: string; votos_favor?: number; votos_contra?: number; abstencoes?: number; unanime?: boolean; observacao?: string };

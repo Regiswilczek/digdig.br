@@ -57,6 +57,8 @@ export interface PainelAto {
   resumo_executivo: string | null;
   resultado_haiku: ResultadoHaiku | null;
   resultado_sonnet: Record<string, unknown> | null;
+  resultado_piper: ResultadoHaiku | null;
+  resultado_bud: Record<string, unknown> | null;
   recomendacao_campanha: string | null;
 }
 

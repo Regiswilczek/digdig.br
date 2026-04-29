@@ -100,6 +100,7 @@ async def list_atos(
                 "score_risco": analise.score_risco if analise else 0,
                 "resumo_executivo": analise.resumo_executivo if analise else None,
                 "resultado_sonnet": None,
+                "resultado_bud": None,
                 "recomendacao_campanha": None,
             }
         )
@@ -157,6 +158,8 @@ async def get_ato(
         "resumo_executivo": analise.resumo_executivo if analise else None,
         "resultado_haiku": analise.resultado_haiku if analise else None,
         "resultado_sonnet": analise.resultado_sonnet if analise else None,
+        "resultado_piper": analise.resultado_piper if analise else None,
+        "resultado_bud": analise.resultado_bud if analise else None,
         "recomendacao_campanha": analise.recomendacao_campanha if analise else None,
     }
 
