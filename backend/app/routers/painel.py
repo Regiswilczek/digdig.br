@@ -395,19 +395,19 @@ async def get_pipeline_status(
             "aguarda_piper": {
                 "total": piper_total,
                 "amostra": _serialize(piper_amostra),
-                "agente": "Piper (Gemini 2.5 Pro)",
+                "agente": "Piper",
                 "descricao": "Triagem inicial — todo ato com texto entra aqui",
             },
             "aguarda_bud": {
                 "total": bud_total,
                 "amostra": _serialize(bud_amostra),
-                "agente": "Bud (Claude Sonnet)",
+                "agente": "Bud",
                 "descricao": "Aprofundamento de críticos (vermelho ou laranja)",
             },
             "aguarda_new": {
                 "total": new_total,
                 "amostra": _serialize(new_amostra),
-                "agente": "New (Claude Opus)",
+                "agente": "New",
                 "descricao": "Revisão sistêmica de vermelhos confirmados pelo Bud",
             },
         },
