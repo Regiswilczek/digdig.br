@@ -343,6 +343,8 @@ async def get_pipeline_status(
             })
         return out
 
+    # Aguarda Piper = sem QUALQUER análise (não foi triado, nem foi para o
+    # Bud por rota direta — caso das atas plenárias com qualidade='boa').
     aguarda_piper_base = (
         select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao)
         .join(ConteudoAto, ConteudoAto.ato_id == Ato.id)
@@ -350,7 +352,11 @@ async def get_pipeline_status(
             Ato.tenant_id == tid,
             ConteudoAto.qualidade.in_(["boa", "parcial", "ruim"]),
             ~select(Analise.id).where(
-                Analise.ato_id == Ato.id, Analise.resultado_piper.isnot(None)
+                Analise.ato_id == Ato.id,
+                or_(
+                    Analise.resultado_piper.isnot(None),
+                    Analise.resultado_bud.isnot(None),
+                ),
             ).exists(),
         )
     )

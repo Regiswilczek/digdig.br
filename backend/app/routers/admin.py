@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Request, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func, text
+from sqlalchemy import select, update, func, text, or_
 from app.config import settings
 from app.database import get_db
 from app.models.ato import RodadaAnalise, Ato, ConteudoAto
@@ -502,6 +502,8 @@ async def pipeline_status(
 
     # ── Fila 1: Aguarda Piper (triagem) ─────────────────────────────────────
     # Ato com texto extraído (boa/parcial/ruim) que ainda não tem resultado_piper.
+    # Aguarda Piper = sem QUALQUER análise (não foi triado, nem foi para o
+    # Bud por rota direta — caso das atas plenárias com qualidade='boa').
     aguarda_piper_base = (
         select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao)
         .join(ConteudoAto, ConteudoAto.ato_id == Ato.id)
@@ -509,7 +511,11 @@ async def pipeline_status(
             Ato.tenant_id == tid,
             ConteudoAto.qualidade.in_(["boa", "parcial", "ruim"]),
             ~select(Analise.id).where(
-                Analise.ato_id == Ato.id, Analise.resultado_piper.isnot(None)
+                Analise.ato_id == Ato.id,
+                or_(
+                    Analise.resultado_piper.isnot(None),
+                    Analise.resultado_bud.isnot(None),
+                ),
             ).exists(),
         )
     )
