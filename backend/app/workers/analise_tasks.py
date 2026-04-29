@@ -60,7 +60,7 @@ async def _analisar_lote_piper(
                     update(RodadaAnalise)
                     .where(RodadaAnalise.id == rodada_id)
                     .values(
-                        atos_analisados_haiku=RodadaAnalise.atos_analisados_haiku + 1,
+                        atos_analisados_piper=RodadaAnalise.atos_analisados_piper + 1,
                         custo_total_usd=func.coalesce(RodadaAnalise.custo_total_usd, 0) + custo_ato,
                     )
                 )
@@ -134,7 +134,7 @@ async def _analisar_criticos_bud(rodada_id_str: str, tenant_id_str: str) -> dict
                 await db.execute(
                     update(RodadaAnalise)
                     .where(RodadaAnalise.id == rodada_id)
-                    .values(atos_analisados_sonnet=RodadaAnalise.atos_analisados_sonnet + 1)
+                    .values(atos_analisados_bud=RodadaAnalise.atos_analisados_bud + 1)
                 )
                 await db.commit()
                 results["ok"] += 1

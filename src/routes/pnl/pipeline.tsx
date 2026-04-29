@@ -18,8 +18,8 @@ interface Rodada {
   status: "pendente" | "em_progresso" | "concluida" | "cancelada";
   total_atos: number | null;
   atos_scrapeados: number | null;
-  atos_analisados_haiku: number | null;
-  atos_analisados_sonnet: number | null;
+  atos_analisados_piper: number | null;
+  atos_analisados_bud: number | null;
   custo_total_usd: number;
   criado_em: string | null;
   iniciado_em: string | null;
@@ -170,8 +170,8 @@ function RodadaCard({
 }) {
   const badge = STATUS_BADGE[r.status] ?? { label: r.status, color: "#6b7280" };
   const total = r.total_atos ?? 0;
-  const haiku = r.atos_analisados_haiku ?? 0;
-  const sonnet = r.atos_analisados_sonnet ?? 0;
+  const haiku = r.atos_analisados_piper ?? 0;
+  const sonnet = r.atos_analisados_bud ?? 0;
   const isActive = r.status === "em_progresso" || r.status === "pendente";
 
   return (

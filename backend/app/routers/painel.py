@@ -303,8 +303,8 @@ async def get_rodada_ativa(
             "id": str(rodada.id),
             "status": rodada.status,
             "total_atos": rodada.total_atos,
-            "atos_analisados_haiku": rodada.atos_analisados_haiku,
-            "atos_analisados_sonnet": rodada.atos_analisados_sonnet,
+            "atos_analisados_piper": rodada.atos_analisados_piper,
+            "atos_analisados_bud": rodada.atos_analisados_bud,
             "custo_total_usd": float(rodada.custo_total_usd),
             "iniciado_em": (
                 rodada.iniciado_em.isoformat() if rodada.iniciado_em else None

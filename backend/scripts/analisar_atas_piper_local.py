@@ -159,7 +159,7 @@ async def main(dry_run: bool, limit: int | None) -> None:
                     update(RodadaAnalise)
                     .where(RodadaAnalise.id == rodada_id)
                     .values(
-                        atos_analisados_haiku=RodadaAnalise.atos_analisados_haiku + 1,
+                        atos_analisados_piper=RodadaAnalise.atos_analisados_piper + 1,
                         custo_total_usd=func.coalesce(RodadaAnalise.custo_total_usd, 0) + custo_ato,
                     )
                 )
@@ -221,7 +221,7 @@ async def main(dry_run: bool, limit: int | None) -> None:
                         update(RodadaAnalise)
                         .where(RodadaAnalise.id == rodada_id)
                         .values(
-                            atos_analisados_haiku=RodadaAnalise.atos_analisados_haiku + 1,
+                            atos_analisados_piper=RodadaAnalise.atos_analisados_piper + 1,
                             custo_total_usd=func.coalesce(RodadaAnalise.custo_total_usd, 0) + custo_ato,
                         )
                     )

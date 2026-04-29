@@ -72,8 +72,8 @@ export interface PainelRodada {
   id: string;
   status: "pendente" | "em_progresso" | "concluida" | "cancelada";
   total_atos: number;
-  atos_analisados_haiku: number;
-  atos_analisados_sonnet: number;
+  atos_analisados_piper: number;
+  atos_analisados_bud: number;
   custo_total_usd: number;
   iniciado_em: string | null;
 }

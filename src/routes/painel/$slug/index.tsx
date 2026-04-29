@@ -976,8 +976,8 @@ function TabVisaoGeral({
                 </div>
                 <div style={{ height: 1, background: BORDER, marginBottom: 16 }} />
                 {([
-                  rodada ? { label: "Docs analisados pelo Piper", value: fmt(rodada.atos_analisados_haiku) } : null,
-                  rodada && rodada.atos_analisados_haiku > 0 ? { label: "Custo por documento", value: `$${(rodada.custo_total_usd / rodada.atos_analisados_haiku).toFixed(4)}` } : null,
+                  rodada ? { label: "Docs analisados pelo Piper", value: fmt(rodada.atos_analisados_piper) } : null,
+                  rodada && rodada.atos_analisados_piper > 0 ? { label: "Custo por documento", value: `$${(rodada.custo_total_usd / rodada.atos_analisados_piper).toFixed(4)}` } : null,
                   custoPorCritico ? { label: "Custo por achado crítico", value: `$${custoPorCritico}` } : null,
                   diasAtivos != null ? { label: "Dias de investigação", value: `${diasAtivos}d` } : null,
                   diasAtivos && custoTotal > 0 ? { label: "Custo por dia", value: `$${(custoTotal / diasAtivos).toFixed(2)}` } : null,
@@ -1793,7 +1793,7 @@ function TabPipeline({
 
   const pct =
     rodada && rodada.total_atos > 0
-      ? Math.round((rodada.atos_analisados_haiku / rodada.total_atos) * 100)
+      ? Math.round((rodada.atos_analisados_piper / rodada.total_atos) * 100)
       : null;
 
   const entrando = items.filter((i) => i.status === "entrando");
@@ -1822,8 +1822,8 @@ function TabPipeline({
           )}
           {rodada && (
             <>
-              <span>{rodada.atos_analisados_haiku} analisados</span>
-              <span>{rodada.total_atos - rodada.atos_analisados_haiku} restantes</span>
+              <span>{rodada.atos_analisados_piper} analisados</span>
+              <span>{rodada.total_atos - rodada.atos_analisados_piper} restantes</span>
               <span>${rodada.custo_total_usd.toFixed(2)} gasto</span>
             </>
           )}
@@ -3751,7 +3751,7 @@ function SlugDashboard() {
           <div className="flex items-center gap-3">
             {rodada && (
               <span className="tabular-nums">
-                {rodada.atos_analisados_haiku}/{rodada.total_atos}
+                {rodada.atos_analisados_piper}/{rodada.total_atos}
               </span>
             )}
             <span className="flex items-center gap-1.5">
