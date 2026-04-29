@@ -78,6 +78,30 @@ export interface PainelRodada {
   iniciado_em: string | null;
 }
 
+export interface FilaItem {
+  ato_id: string;
+  tipo: string;
+  numero: string;
+  data_publicacao: string | null;
+  nivel_alerta: "verde" | "amarelo" | "laranja" | "vermelho" | null;
+}
+
+export interface FilaInfo {
+  total: number;
+  amostra: FilaItem[];
+  agente: string;
+  descricao: string;
+}
+
+export interface PipelineStatus {
+  tenant: { id: string; slug: string; nome: string };
+  filas: {
+    aguarda_piper: FilaInfo;
+    aguarda_bud: FilaInfo;
+    aguarda_new: FilaInfo;
+  };
+}
+
 export async function fetchPainelAtos(
   slug: string,
   params: {

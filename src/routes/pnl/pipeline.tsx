@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "../../lib/supabase";
+import type { PipelineStatus, FilaInfo, FilaItem } from "../../lib/api-auth";
 
 export const Route = createFileRoute("/pnl/pipeline")({
   component: PipelinePage,
@@ -9,6 +10,13 @@ export const Route = createFileRoute("/pnl/pipeline")({
 const SYNE: React.CSSProperties = {
   fontFamily: "'Syne', system-ui, sans-serif",
   fontWeight: 800,
+};
+
+const NIVEL_COLOR: Record<string, string> = {
+  vermelho: "#ef4444",
+  laranja: "#f97316",
+  amarelo: "#eab308",
+  verde: "#22c55e",
 };
 
 interface Rodada {
@@ -26,6 +34,8 @@ interface Rodada {
   concluido_em: string | null;
   erro_mensagem: string | null;
 }
+
+const PIPELINE_SLUG = "cau-pr"; // primeiro tenant em produção
 
 async function authedFetch(path: string, options: RequestInit = {}) {
   const { data: { session } } = await supabase.auth.getSession();
@@ -70,9 +80,12 @@ function fmtDate(s: string | null) {
 
 function PipelinePage() {
   const [rodadas, setRodadas] = useState<Rodada[]>([]);
+  const [pipeline, setPipeline] = useState<PipelineStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [canceling, setCanceling] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [pulse, setPulse] = useState(false); // pisca quando realtime dispara
+  const debounceRef = useRef<number | null>(null);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -80,17 +93,58 @@ function PipelinePage() {
   }
 
   const load = useCallback(async () => {
-    const res = await authedFetch("/pnl/admin/rodadas");
-    if (res.ok) setRodadas(await res.json());
+    const [resR, resP] = await Promise.all([
+      authedFetch("/pnl/admin/rodadas"),
+      authedFetch(`/pnl/admin/pipeline-status/${PIPELINE_SLUG}`),
+    ]);
+    if (resR.ok) setRodadas(await resR.json());
+    if (resP.ok) setPipeline(await resP.json());
     setLoading(false);
   }, []);
 
+  // Debounced refetch para os eventos do realtime (várias inserts em rajada)
+  const scheduleRefetch = useCallback(() => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(() => {
+      load();
+      setPulse(true);
+      window.setTimeout(() => setPulse(false), 800);
+    }, 500);
+  }, [load]);
+
   useEffect(() => {
     load();
-    // Auto-refresh a cada 15s se houver rodadas ativas
+    // Polling de fallback (caso realtime caia)
     const interval = setInterval(load, 15000);
     return () => clearInterval(interval);
   }, [load]);
+
+  // Subscrição realtime — refetch quando uma analise é criada ou atualizada
+  useEffect(() => {
+    const ch = supabase
+      .channel("pipeline-status")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "analises" },
+        () => scheduleRefetch(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "analises" },
+        () => scheduleRefetch(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "rodadas_analise" },
+        () => scheduleRefetch(),
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ch);
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
+  }, [scheduleRefetch]);
 
   async function cancelar(rodada_id: string) {
     setCanceling(rodada_id);
@@ -116,19 +170,42 @@ function PipelinePage() {
         </div>
       )}
 
-      <div className="mb-6">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 mb-1" style={SYNE}>
-          Análise IA
-        </p>
-        <h1 className="text-white text-[1.6rem] uppercase tracking-tight" style={SYNE}>
-          Pipeline
-        </h1>
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 mb-1" style={SYNE}>
+            Análise IA
+          </p>
+          <h1 className="text-white text-[1.6rem] uppercase tracking-tight" style={SYNE}>
+            Pipeline
+          </h1>
+        </div>
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-white/40">
+          <span
+            className="inline-block w-1.5 h-1.5 rounded-full transition-colors"
+            style={{ background: pulse ? "#22c55e" : "#3b82f680" }}
+          />
+          <span>{pulse ? "atualizando" : "realtime · supabase"}</span>
+        </div>
       </div>
 
       {loading ? (
         <p className="text-white/30 text-[12px] uppercase tracking-[0.16em]">Carregando…</p>
       ) : (
         <>
+          {/* Filas — documentos esperando cada agente */}
+          {pipeline && (
+            <section className="mb-8">
+              <p className="text-[10px] uppercase tracking-[0.16em] text-white/40 mb-3" style={SYNE}>
+                Filas de análise
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <FilaCard fila={pipeline.filas.aguarda_piper} accent="#3b82f6" />
+                <FilaCard fila={pipeline.filas.aguarda_bud} accent="#8b5cf6" />
+                <FilaCard fila={pipeline.filas.aguarda_new} accent="#ec4899" />
+              </div>
+            </section>
+          )}
+
           {/* Rodadas ativas destacadas */}
           {ativas.length > 0 && (
             <section className="mb-8">
@@ -236,5 +313,84 @@ function RodadaCard({
         </p>
       )}
     </div>
+  );
+}
+
+// ── Componente: card de fila por agente ─────────────────────────────────
+function FilaCard({ fila, accent }: { fila: FilaInfo; accent: string }) {
+  const isEmpty = fila.total === 0;
+
+  return (
+    <div
+      className="border p-4 transition-colors"
+      style={{
+        background: "#0d0f1a",
+        borderColor: isEmpty ? "rgba(255,255,255,0.07)" : `${accent}40`,
+      }}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <p
+            className="text-[10px] uppercase tracking-[0.14em]"
+            style={{ color: isEmpty ? "rgba(255,255,255,0.30)" : accent, ...SYNE }}
+          >
+            {fila.agente}
+          </p>
+          <p className="text-white/40 text-[10px] mt-0.5">{fila.descricao}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-white text-[1.6rem] font-semibold leading-none" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+            {fila.total.toLocaleString("pt-BR")}
+          </p>
+          <p className="text-white/30 text-[9px] uppercase tracking-[0.12em] mt-1">
+            aguardando
+          </p>
+        </div>
+      </div>
+
+      {fila.amostra.length > 0 ? (
+        <ul className="space-y-1">
+          {fila.amostra.map((item) => (
+            <FilaRow key={item.ato_id} item={item} accent={accent} />
+          ))}
+        </ul>
+      ) : (
+        <p className="text-white/30 text-[11px] py-2">Nenhum documento na fila.</p>
+      )}
+
+      {fila.total > fila.amostra.length && (
+        <p className="text-white/30 text-[10px] mt-3">
+          + {(fila.total - fila.amostra.length).toLocaleString("pt-BR")} adicional(is)
+        </p>
+      )}
+    </div>
+  );
+}
+
+function FilaRow({ item, accent }: { item: FilaItem; accent: string }) {
+  const niv = item.nivel_alerta;
+  const tipoLabel = item.tipo.replace(/_/g, " ");
+  return (
+    <li className="flex items-center gap-2 text-[11px] text-white/70 py-0.5">
+      {niv ? (
+        <span
+          className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+          style={{ background: NIVEL_COLOR[niv] ?? accent }}
+          title={niv}
+        />
+      ) : (
+        <span
+          className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+          style={{ background: `${accent}60` }}
+        />
+      )}
+      <span className="text-white/40 w-20 shrink-0 truncate" title={tipoLabel}>{tipoLabel}</span>
+      <span className="text-white/80 flex-1 truncate" title={item.numero}>{item.numero}</span>
+      {item.data_publicacao && (
+        <span className="text-white/30 text-[10px] shrink-0">
+          {new Date(item.data_publicacao).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+        </span>
+      )}
+    </li>
   );
 }
