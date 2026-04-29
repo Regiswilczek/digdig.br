@@ -155,12 +155,12 @@ O Conselho de Arquitetura e Urbanismo do Paraná é o caso piloto, em análise a
 │   │   ├── database.py
 │   │   ├── models/                   ← 29 modelos SQLAlchemy
 │   │   ├── routers/                  ← endpoints FastAPI
-│   │   ├── services/                 ← haiku_service, sonnet_service, etc.
+│   │   ├── services/                 ← piper_service, bud_service, new_service, cvss_service, etc.
 │   │   └── workers/                  ← Celery tasks (analise, scraper, orquestrador)
 │   ├── migrations/                   ← Alembic migrations
 │   ├── scripts/
 │   │   ├── scrape_local.py           ← scraper local (IP brasileiro)
-│   │   ├── test_haiku.py             ← testa 1 ato antes de rodar lote
+│   │   ├── analisar_atas_piper_local.py ← análise Piper (texto + visão)
 │   │   └── relatorio_cobertura.py    ← relatório de cobertura por ano
 │   └── tests/
 │

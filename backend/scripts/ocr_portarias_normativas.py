@@ -205,7 +205,7 @@ async def main(dry_run: bool) -> None:
     print(f"Concluído: {ok} com OCR | {erro} erros")
     if ok:
         print("\nPróximo passo:")
-        print("  python scripts/analisar_portarias_normativas_haiku.py")
+        print("  python scripts/analisar_atas_piper_local.py")
     print(f"{'='*60}\n")
 
 

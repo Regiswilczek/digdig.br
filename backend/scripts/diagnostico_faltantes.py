@@ -190,7 +190,7 @@ async def main() -> None:
             print(f"     python scripts/scrape_local.py")
             passo += 1
         print(f"  4. Após extrair texto, rodar análise:")
-        print(f"     python scripts/analise_local.py")
+        print(f"     python scripts/analisar_atas_piper_local.py")
         print(f"     python scripts/analise_deliberacoes_local.py")
         print(f"{'='*65}\n")
 

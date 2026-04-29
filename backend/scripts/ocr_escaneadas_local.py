@@ -2,7 +2,7 @@
 """
 OCR dos PDFs escaneados usando PyMuPDF (renderiza páginas) + Claude Haiku (visão).
 Extrai o texto de cada página como imagem e salva em conteudo_ato.
-Após rodar este script, analise_local.py processa esses atos normalmente.
+Após rodar este script, analisar_atas_piper_local.py processa esses atos normalmente.
 
 Requisitos: pymupdf>=1.24.0, anthropic>=0.49.0, httpx (já instalados)
 
@@ -288,7 +288,7 @@ async def main(limit: int | None, dry_run: bool, tipo_filtro: str | None) -> Non
         print(f"{'='*65}")
         if ok > 0:
             print(f"\n✅ Pronto! Rode agora:")
-            print(f"   python scripts/analise_local.py")
+            print(f"   python scripts/analisar_atas_piper_local.py")
             print(f"   (irá analisar os {ok} atos que acabaram de receber texto)\n")
 
     finally:
