@@ -33,12 +33,6 @@ def analisar_lote_piper_task(self, ato_ids: list[str], rodada_id: str, tenant_id
         raise self.retry(exc=exc, countdown=5)
 
 
-# Mantém alias legado para não quebrar rodadas em curso
-@celery_app.task(bind=True, max_retries=3, queue="analise", name="analise.haiku_lote")
-def analisar_lote_haiku_task(self, ato_ids: list[str], rodada_id: str, tenant_id: str) -> dict:
-    return analisar_lote_piper_task(ato_ids, rodada_id, tenant_id)
-
-
 async def _analisar_lote_piper(
     ato_ids: list[str], rodada_id_str: str, tenant_id_str: str
 ) -> dict:
@@ -109,12 +103,6 @@ def analisar_criticos_bud_task(self, rodada_id: str, tenant_id: str) -> dict:
         raise self.retry(exc=exc, countdown=5)
 
 
-# Mantém alias legado
-@celery_app.task(bind=True, max_retries=3, queue="analise", name="analise.sonnet_criticos")
-def analisar_criticos_sonnet_task(self, rodada_id: str, tenant_id: str) -> dict:
-    return analisar_criticos_bud_task(rodada_id, tenant_id)
-
-
 async def _analisar_criticos_bud(rodada_id_str: str, tenant_id_str: str) -> dict:
     rodada_id = uuid.UUID(rodada_id_str)
     tenant_id = uuid.UUID(tenant_id_str)
@@ -128,7 +116,6 @@ async def _analisar_criticos_bud(rodada_id_str: str, tenant_id_str: str) -> dict
                 Analise.rodada_id == rodada_id,
                 Analise.nivel_alerta.in_(["vermelho", "laranja"]),
                 Analise.analisado_por_bud == False,
-                Analise.analisado_por_sonnet == False,  # garante compat com runs legados
             )
         )
         criticos = criticos_result.scalars().all()

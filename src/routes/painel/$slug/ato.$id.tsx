@@ -159,31 +159,31 @@ function AtoDetailPage() {
     );
   }
 
-  const haiku = ato.resultado_piper ?? ato.resultado_haiku;
-  const indicios: HaikuIndicio[] = haiku?.indicios ?? [];
-  const pessoasHaiku: HaikuPessoa[] = haiku?.pessoas_extraidas ?? [];
+  const piper = ato.resultado_piper;
+  const indicios: HaikuIndicio[] = piper?.indicios ?? [];
+  const pessoasHaiku: HaikuPessoa[] = piper?.pessoas_extraidas ?? [];
 
-  const sonnet = ato.resultado_bud ?? ato.resultado_sonnet;
-  const sonnetAprofundada = sonnet?.analise_aprofundada as
+  const bud = ato.resultado_bud;
+  const budAprofundada = bud?.analise_aprofundada as
     | Record<string, unknown>
     | undefined;
-  const narrativaCompleta = sonnetAprofundada?.narrativa_completa as
+  const narrativaCompleta = budAprofundada?.narrativa_completa as
     | string
     | undefined;
 
-  // Ata plenária — dados extraídos diretamente do resultado_bud (fallback resultado_sonnet)
+  // Ata plenária — dados extraídos diretamente do resultado_bud
   type SonnetIrregularidade = { categoria: string; tipo: string; descricao: string; artigo_violado?: string; gravidade: string };
   type SonnetPessoa = { nome: string; cargo: string; tipo_aparicao: string };
   type PautaItem = { item: number; titulo: string; resultado: string; votos_favor?: number; votos_contra?: number; abstencoes?: number; unanime?: boolean; observacao?: string };
-  const sonnetIrregularidades = (sonnet?.irregularidades ?? []) as SonnetIrregularidade[];
-  const sonnetPessoas = (sonnet?.pessoas_extraidas ?? []) as SonnetPessoa[];
-  const sonnetPresentes = (sonnet?.presentes ?? []) as string[];
-  const sonnetAusentes = (sonnet?.ausentes ?? []) as string[];
-  const sonnetPauta = (sonnet?.pauta ?? []) as PautaItem[];
-  const sonnetDeliberacoes = (sonnet?.deliberacoes_aprovadas ?? []) as string[];
-  const sonnetQuorumTotal = sonnet?.quorum_total as number | undefined;
-  const sonnetQuorumMinimo = sonnet?.quorum_legal_minimo as number | undefined;
-  const sonnetQuorumAtingido = sonnet?.quorum_atingido as boolean | undefined;
+  const sonnetIrregularidades = (bud?.irregularidades ?? []) as SonnetIrregularidade[];
+  const sonnetPessoas = (bud?.pessoas_extraidas ?? []) as SonnetPessoa[];
+  const sonnetPresentes = (bud?.presentes ?? []) as string[];
+  const sonnetAusentes = (bud?.ausentes ?? []) as string[];
+  const sonnetPauta = (bud?.pauta ?? []) as PautaItem[];
+  const sonnetDeliberacoes = (bud?.deliberacoes_aprovadas ?? []) as string[];
+  const sonnetQuorumTotal = bud?.quorum_total as number | undefined;
+  const sonnetQuorumMinimo = bud?.quorum_legal_minimo as number | undefined;
+  const sonnetQuorumAtingido = bud?.quorum_atingido as boolean | undefined;
 
   const tipoLabel =
     ato.tipo === "deliberacao"
@@ -440,8 +440,8 @@ function AtoDetailPage() {
           </>
         ) : (
           <>
-            {/* Indícios (Haiku) */}
-            {(indicios.length > 0 || haiku) && (
+            {/* Indícios (Piper) */}
+            {(indicios.length > 0 || piper) && (
               <Section eyebrow="02" title="Indícios detectados">
                 {indicios.length === 0 ? (
                   <p style={{ color: MUTED }}>

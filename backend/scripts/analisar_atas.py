@@ -164,14 +164,14 @@ async def main(dry_run: bool, limit: int | None) -> None:
               AND NOT EXISTS (
                   SELECT 1 FROM analises
                   WHERE ato_id = a.id
-                    AND analisado_por_sonnet = true
+                    AND analisado_por_bud = true
               )
             ORDER BY CAST(a.numero AS INTEGER) DESC
             """,
             TENANT_ID,
         )
 
-        print(f"Atas com texto sem análise Sonnet: {len(rows)}")
+        print(f"Atas com texto sem análise Bud: {len(rows)}")
 
         if not rows:
             print("Nada a analisar.")
@@ -247,17 +247,17 @@ async def main(dry_run: bool, limit: int | None) -> None:
                     INSERT INTO analises
                         (id, ato_id, tenant_id, rodada_id, status,
                          nivel_alerta, score_risco,
-                         analisado_por_haiku, analisado_por_sonnet,
-                         resultado_haiku, resultado_sonnet,
+                         analisado_por_bud,
+                         resultado_bud,
                          resumo_executivo, recomendacao_campanha,
-                         tokens_haiku, tokens_sonnet, custo_usd,
+                         tokens_bud, custo_usd,
                          criado_em, atualizado_em)
-                    VALUES ($1,$2,$3,NULL,'sonnet_completo',
+                    VALUES ($1,$2,$3,NULL,'bud_completo',
                             $4,$5,
-                            false,true,
-                            NULL,$6,
+                            true,
+                            $6,
                             $7,$8,
-                            0,$9,$10,
+                            $9,$10,
                             NOW(),NOW())
                     ON CONFLICT DO NOTHING
                     """,

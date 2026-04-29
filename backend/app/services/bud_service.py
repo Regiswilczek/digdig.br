@@ -1,7 +1,7 @@
 """
 bud_service.py — Bud: análise profunda via Claude Sonnet
 
-Substitui o sonnet_service como agente de análise profunda.
+Agente de análise profunda (substitui o legado sonnet_service).
 Recebe o contexto enriquecido (texto completo + análise do Piper + histórico de pessoas)
 e produz uma ficha de denúncia com indicíos legais/morais detalhados.
 Também executa revisão e refinamento das tags identificadas pelo Piper.
@@ -205,8 +205,7 @@ async def _montar_contexto_bud(
                 "periodo": f"{datas[-1]} a {datas[0]}" if len(datas) >= 2 else (datas[0] if datas else "N/A"),
             })
 
-    # Fonte de análise prévia: prefere resultado_piper, fallback resultado_haiku
-    analise_previa = analise.resultado_piper or analise.resultado_haiku or {}
+    analise_previa = analise.resultado_piper or {}
     tags_atuais = await buscar_tags_ativas(db, ato_id)
 
     # Atos relacionados: busca textos de atos referenciados no documento
@@ -310,7 +309,7 @@ async def analisar_ato_bud(
     analise.custo_usd = analise.custo_usd + Decimal(str(custo))
 
     # Irregularidades — só insere se ainda não foi feito (guard de retry)
-    if not analise.analisado_por_sonnet and not analise.analisado_por_bud:
+    if not analise.analisado_por_bud:
         for indicio in resultado.get("analise_aprofundada", {}).get("indicios_legais", []):
             db.add(Irregularidade(
                 id=uuid.uuid4(),
@@ -343,8 +342,6 @@ async def analisar_ato_bud(
         resultado.get("tags_revisadas", []),
         modelo="bud",
     )
-
-    analise.analisado_por_sonnet = True  # mantém compat com campo legado
 
     await db.commit()
     return analise

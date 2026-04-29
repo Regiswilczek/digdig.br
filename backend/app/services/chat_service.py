@@ -131,9 +131,8 @@ async def _buscar_contexto(
         parte = f"\n{ato.tipo.upper()} Nº {ato.numero} — {data_str}\nEmenta: {ementa}\nNível: {nivel} (score {score})"
         if analise and analise.resumo_executivo:
             parte += f"\nAnálise: {analise.resumo_executivo[:400]}"
-        resultado_triagem = analise.resultado_piper or analise.resultado_haiku if analise else None
-        if resultado_triagem:
-            indicios = resultado_triagem.get("indicios", [])[:3]
+        if analise and analise.resultado_piper:
+            indicios = (analise.resultado_piper or {}).get("indicios", [])[:3]
             if indicios:
                 parte += "\nIndícios:"
                 for ind in indicios:

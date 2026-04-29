@@ -139,8 +139,8 @@ async def _montar_contexto_new(
             if ap.pessoa_id in pessoas_by_id
         ]
 
-    analise_piper = analise.resultado_piper or analise.resultado_haiku or {}
-    analise_bud = analise.resultado_bud or analise.resultado_sonnet or {}
+    analise_piper = analise.resultado_piper or {}
+    analise_bud = analise.resultado_bud or {}
     tags_atuais = await buscar_tags_ativas(db, ato_id)
 
     return (
