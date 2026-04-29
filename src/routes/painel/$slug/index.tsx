@@ -1772,6 +1772,17 @@ const NIVEL_COLOR_PAINEL: Record<string, string> = {
   verde: "#15803d",
 };
 
+const MOTIVO_LABEL_PAINEL: Record<string, string> = {
+  sem_url: "sem PDF",
+  erro_download: "erro download",
+  pendente: "PDF pendente",
+};
+const MOTIVO_COLOR_PAINEL: Record<string, string> = {
+  sem_url: "#6b6b66",
+  erro_download: "#b91c1c",
+  pendente: "#a16207",
+};
+
 function PainelFilaCard({ fila, accent }: { fila: FilaInfo; accent: string }) {
   const isEmpty = fila.total === 0;
   return (
@@ -1821,16 +1832,30 @@ function PainelFilaCard({ fila, accent }: { fila: FilaInfo; accent: string }) {
 
 function PainelFilaRow({ item, accent }: { item: FilaItem; accent: string }) {
   const niv = item.nivel_alerta;
+  const motivo = item.motivo ?? null;
   const tipoLabel = item.tipo.replace(/_/g, " ");
+  const bulletColor = niv
+    ? (NIVEL_COLOR_PAINEL[niv] ?? accent)
+    : motivo
+      ? (MOTIVO_COLOR_PAINEL[motivo] ?? accent)
+      : accent + "60";
   return (
     <li className="flex items-center gap-2 text-[11px] py-0.5" style={{ color: INK, fontFamily: MONO }}>
       <span
         className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
-        style={{ background: niv ? (NIVEL_COLOR_PAINEL[niv] ?? accent) : accent + "60" }}
-        title={niv ?? undefined}
+        style={{ background: bulletColor }}
+        title={niv ?? motivo ?? undefined}
       />
       <span className="w-24 shrink-0 truncate" style={{ color: SUBTLE }} title={tipoLabel}>{tipoLabel}</span>
       <span className="flex-1 truncate" title={item.numero}>{item.numero}</span>
+      {motivo && (
+        <span
+          className="shrink-0 text-[9px] uppercase tracking-[0.1em]"
+          style={{ color: MOTIVO_COLOR_PAINEL[motivo] ?? SUBTLE }}
+        >
+          {MOTIVO_LABEL_PAINEL[motivo] ?? motivo}
+        </span>
+      )}
       {item.data_publicacao && (
         <span className="shrink-0 text-[10px]" style={{ color: SUBTLE }}>
           {new Date(item.data_publicacao).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
@@ -1966,10 +1991,11 @@ function TabPipeline({
               <span>{pulse ? "atualizando" : "realtime"}</span>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <PainelFilaCard fila={filas.filas.aguarda_piper} accent="#3b82f6" />
             <PainelFilaCard fila={filas.filas.aguarda_bud} accent="#8b5cf6" />
             <PainelFilaCard fila={filas.filas.aguarda_new} accent="#ec4899" />
+            <PainelFilaCard fila={filas.filas.sem_texto} accent="#9a978f" />
           </div>
         </div>
       )}

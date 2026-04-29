@@ -497,6 +497,27 @@ async def pipeline_status(
                 "numero": numero or "?",
                 "data_publicacao": data.isoformat() if data else None,
                 "nivel_alerta": nivel,
+                "motivo": None,
+            })
+        return out
+
+    def _serialize_sem_texto(rows) -> list[dict]:
+        out = []
+        for row in rows:
+            ato_id, tipo, numero, data, url_pdf, erro = row
+            if erro:
+                motivo = "erro_download"
+            elif not url_pdf:
+                motivo = "sem_url"
+            else:
+                motivo = "pendente"
+            out.append({
+                "ato_id": str(ato_id),
+                "tipo": tipo,
+                "numero": numero or "?",
+                "data_publicacao": data.isoformat() if data else None,
+                "nivel_alerta": None,
+                "motivo": motivo,
             })
         return out
 
@@ -557,6 +578,18 @@ async def pipeline_status(
         await db.execute(aguarda_new_base.order_by(Analise.criado_em.desc()).limit(10))
     ).all()
 
+    sem_texto_base = (
+        select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao, Ato.url_pdf, Ato.erro_download)
+        .where(
+            Ato.tenant_id == tid,
+            ~select(ConteudoAto.ato_id).where(ConteudoAto.ato_id == Ato.id).exists(),
+        )
+    )
+    sem_texto_total = (await db.execute(select(func.count()).select_from(sem_texto_base.subquery()))).scalar_one()
+    sem_texto_amostra = (
+        await db.execute(sem_texto_base.order_by(Ato.data_publicacao.desc().nullslast()).limit(10))
+    ).all()
+
     return {
         "tenant": {"id": str(tid), "slug": slug, "nome": tenant.nome_completo},
         "filas": {
@@ -577,6 +610,12 @@ async def pipeline_status(
                 "amostra": _serialize_ato_rows(new_amostra),
                 "agente": "New",
                 "descricao": "Revisão sistêmica de vermelhos confirmados pelo Bud",
+            },
+            "sem_texto": {
+                "total": sem_texto_total,
+                "amostra": _serialize_sem_texto(sem_texto_amostra),
+                "agente": "Sem texto",
+                "descricao": "Atos sem texto extraído — bloqueados antes do pipeline",
             },
         },
     }

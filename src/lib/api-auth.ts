@@ -84,6 +84,7 @@ export interface FilaItem {
   numero: string;
   data_publicacao: string | null;
   nivel_alerta: "verde" | "amarelo" | "laranja" | "vermelho" | null;
+  motivo?: "sem_url" | "erro_download" | "pendente" | null;
 }
 
 export interface FilaInfo {
@@ -99,6 +100,7 @@ export interface PipelineStatus {
     aguarda_piper: FilaInfo;
     aguarda_bud: FilaInfo;
     aguarda_new: FilaInfo;
+    sem_texto: FilaInfo;
   };
 }
 
