@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Analisa atas plenárias pendentes com Piper (Gemini Pro).
+Analisa atos pendentes com Piper (Gemini Pro).
 
-- qualidade='parcial' (12 atas, têm texto): análise de texto via analisar_ato_piper
-- qualidade='ruim'    (50 atas, sem texto): baixa PDF + visão via analisar_ato_piper_visao
+- qualidade='parcial' (têm texto): análise de texto via analisar_ato_piper
+- qualidade='ruim'    (sem texto): baixa PDF + visão via analisar_ato_piper_visao
 
 Uso:
     cd backend
-    python scripts/analisar_atas_piper_local.py --dry-run
-    python scripts/analisar_atas_piper_local.py --limit 5
-    python scripts/analisar_atas_piper_local.py
+    python scripts/analisar_atos_piper_local.py --tipo ata_plenaria --dry-run
+    python scripts/analisar_atos_piper_local.py --tipo portaria --limit 5
+    python scripts/analisar_atos_piper_local.py --tipo all   # todos os tipos
 """
 import argparse
 import asyncio
@@ -50,21 +50,24 @@ HEADERS = {
 NIVEL_EMOJI = {"verde": "🟢", "amarelo": "🟡", "laranja": "🟠", "vermelho": "🔴"}
 
 
-async def main(dry_run: bool, limit: int | None) -> None:
+async def main(dry_run: bool, limit: int | None, tipo: str) -> None:
     async with async_session_factory() as db:
 
-        # Atas com qualidade != 'boa' e sem Piper
+        # Atos com qualidade != 'boa' e sem Piper
+        filtros = [
+            Ato.tenant_id == TENANT_ID,
+            Ato.processado == False,
+            ConteudoAto.qualidade.in_(["parcial", "ruim"]),
+            Analise.resultado_piper == None,
+        ]
+        if tipo != "all":
+            filtros.append(Ato.tipo == tipo)
+
         atos_r = await db.execute(
             select(Ato, ConteudoAto)
             .join(ConteudoAto, ConteudoAto.ato_id == Ato.id)
             .outerjoin(Analise, Analise.ato_id == Ato.id)
-            .where(
-                Ato.tenant_id == TENANT_ID,
-                Ato.tipo == "ata_plenaria",
-                Ato.processado == False,
-                ConteudoAto.qualidade.in_(["parcial", "ruim"]),
-                Analise.resultado_piper == None,
-            )
+            .where(*filtros)
             .order_by(ConteudoAto.qualidade, Ato.data_publicacao.asc().nullslast())
         )
         pares = atos_r.all()
@@ -80,19 +83,20 @@ async def main(dry_run: bool, limit: int | None) -> None:
             parciais = [(a, c) for a, c in todos if c.qualidade == "parcial"]
             ruins    = [(a, c) for a, c in todos if c.qualidade == "ruim"]
 
+        rotulo = "TODOS OS TIPOS" if tipo == "all" else tipo.upper()
         print(f"\n{'='*65}")
-        print(f"  ANÁLISE PIPER — ATAS PLENÁRIAS CAU/PR")
+        print(f"  ANÁLISE PIPER — {rotulo} — CAU/PR")
         print(f"{'='*65}")
-        print(f"  Parcial (texto disponível): {len(parciais):3d} atas  → texto direto")
-        print(f"  Ruim   (PDF sem texto):     {len(ruins):3d} atas  → visão Gemini Pro")
+        print(f"  Parcial (texto disponível): {len(parciais):3d} atos  → texto direto")
+        print(f"  Ruim   (PDF sem texto):     {len(ruins):3d} atos  → visão Gemini Pro")
         if sem_url:
-            print(f"  Sem URL PDF:               {len(sem_url):3d} atas  → puladas")
+            print(f"  Sem URL PDF:               {len(sem_url):3d} atos  → pulados")
         custo_est = len(parciais) * 0.015 + len(ruins) * 0.06
         print(f"  Custo estimado total:       ~${custo_est:.2f}")
         print(f"{'='*65}\n")
 
         if not parciais and not ruins:
-            print("Nenhuma ata pendente. Tudo certo.")
+            print("Nenhum ato pendente. Tudo certo.")
             return
 
         if dry_run:
@@ -100,10 +104,10 @@ async def main(dry_run: bool, limit: int | None) -> None:
             print("\nParcial (texto):")
             for ato, ca in parciais:
                 chars = len(ca.texto_completo or "")
-                print(f"  Ata {str(ato.numero or '?'):>4s}  {str(ato.data_publicacao or '')[:10]}  {chars:,} chars")
+                print(f"  {ato.tipo:14s} {str(ato.numero or '?'):>6s}  {str(ato.data_publicacao or '')[:10]}  {chars:,} chars")
             print("\nRuim (visão):")
             for ato, ca in ruins:
-                print(f"  Ata {str(ato.numero or '?'):>4s}  {str(ato.data_publicacao or '')[:10]}  {ato.url_pdf or 'sem URL'}")
+                print(f"  {ato.tipo:14s} {str(ato.numero or '?'):>6s}  {str(ato.data_publicacao or '')[:10]}  {ato.url_pdf or 'sem URL'}")
             return
 
         try:
@@ -137,18 +141,18 @@ async def main(dry_run: bool, limit: int | None) -> None:
 
         # Extrai valores primitivos agora para não depender de lazy-load após rollback
         parciais_dados = [
-            (a.id, str(a.numero or "?"), str(a.data_publicacao or "")[:10])
+            (a.id, a.tipo, str(a.numero or "?"), str(a.data_publicacao or "")[:10])
             for a, _ in parciais
         ]
         ruins_dados = [
-            (a.id, str(a.numero or "?"), str(a.data_publicacao or "")[:10], a.url_pdf)
+            (a.id, a.tipo, str(a.numero or "?"), str(a.data_publicacao or "")[:10], a.url_pdf)
             for a, _ in ruins
         ]
 
         # ── Parciais (texto disponível) ────────────────────────────────────────
-        for ato_id, numero, data_str in parciais_dados:
+        for ato_id, ato_tipo, numero, data_str in parciais_dados:
             idx += 1
-            prefix = f"[{idx:3d}/{total}] Ata {numero:>4s} {data_str} [TEXTO]"
+            prefix = f"[{idx:3d}/{total}] {ato_tipo[:14]:14s} {numero:>6s} {data_str} [TEXTO]"
             print(prefix, end="  ", flush=True)
             try:
                 analise = await analisar_ato_piper(db, ato_id, rodada_id, system_prompt)
@@ -184,14 +188,14 @@ async def main(dry_run: bool, limit: int | None) -> None:
 
         # ── Ruim (visão via PDF) ───────────────────────────────────────────────
         async with httpx.AsyncClient(headers=HEADERS, follow_redirects=True, timeout=90) as http:
-            for ato_id, numero, data_str, url_pdf in ruins_dados:
+            for ato_id, ato_tipo, numero, data_str, url_pdf in ruins_dados:
                 if custo_sessao >= CUSTO_LIMITE:
                     print(f"\n⚠  Limite de ${CUSTO_LIMITE} atingido. Parando.")
                     parou_por_limite = True
                     break
 
                 idx += 1
-                prefix = f"[{idx:3d}/{total}] Ata {numero:>4s} {data_str} [VISÃO]"
+                prefix = f"[{idx:3d}/{total}] {ato_tipo[:14]:14s} {numero:>6s} {data_str} [VISÃO]"
                 print(prefix, end="  ", flush=True)
 
                 try:
@@ -263,7 +267,12 @@ async def main(dry_run: bool, limit: int | None) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--tipo",
+        default="ata_plenaria",
+        help="Tipo de ato (ata_plenaria, portaria, deliberacao, ...) ou 'all' para todos",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Lista sem processar")
-    parser.add_argument("--limit", type=int, default=None, help="Máximo de atas a processar")
+    parser.add_argument("--limit", type=int, default=None, help="Máximo de atos a processar")
     args = parser.parse_args()
-    asyncio.run(main(args.dry_run, args.limit))
+    asyncio.run(main(args.dry_run, args.limit, args.tipo))

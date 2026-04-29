@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 """
-Analisa as Atas das Reuniões Plenárias do CAU/PR com Sonnet.
+Analisa Atas Plenárias do CAU/PR com Bud (Claude Sonnet) — análise profunda.
 
-Itera sobre atas com texto extraído (qualidade='boa'), mais recentes primeiro,
-pulando as já analisadas. Envia o texto completo ao Sonnet e salva em `analises`.
+Itera sobre atas com texto extraído (qualidade='boa') que ainda não foram
+analisadas pelo Bud, mais recentes primeiro. Envia o texto completo ao
+Sonnet e salva em `analises`.
+
+O prompt e o schema JSON são específicos para ata plenária (quórum, pauta,
+presentes/ausentes, deliberações). Para portarias/deliberações use o pipeline
+padrão Piper→Bud via worker Celery.
 
 Uso (cd backend/):
-    python scripts/analisar_atas.py --dry-run     # mostra quais seriam analisadas
-    python scripts/analisar_atas.py --limit 2     # analisa só 2 (teste)
-    python scripts/analisar_atas.py               # roda tudo
+    python scripts/analisar_atos_bud_local.py --dry-run     # mostra quais seriam analisadas
+    python scripts/analisar_atos_bud_local.py --limit 2     # analisa só 2 (teste)
+    python scripts/analisar_atos_bud_local.py               # roda tudo
 """
 import argparse
 import asyncio
@@ -146,12 +151,12 @@ def _parse_json(raw: str) -> dict:
 
 async def main(dry_run: bool, limit: int | None) -> None:
     print(f"\n{'='*60}")
-    print("Analisador Sonnet — Atas das Reuniões Plenárias CAU/PR")
+    print("Analisador Bud (Claude Sonnet) — Atas Plenárias CAU/PR")
     print(f"{'='*60}\n")
 
     conn = await asyncpg.connect(ASYNCPG_URL, statement_cache_size=0)
     try:
-        # Atas com texto extraído, sem análise Sonnet, mais recentes primeiro
+        # Atas com texto extraído, sem análise Bud, mais recentes primeiro
         rows = await conn.fetch(
             """
             SELECT a.id, a.numero, a.data_publicacao, a.subtipo,
@@ -295,7 +300,7 @@ async def main(dry_run: bool, limit: int | None) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Analisa atas plenárias CAU/PR com Sonnet")
+    parser = argparse.ArgumentParser(description="Analisa atas plenárias CAU/PR com Bud (Claude Sonnet)")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--limit", type=int, default=None)
     args = parser.parse_args()

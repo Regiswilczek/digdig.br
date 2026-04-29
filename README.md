@@ -160,7 +160,7 @@ O Conselho de Arquitetura e Urbanismo do Paraná é o caso piloto, em análise a
 │   ├── migrations/                   ← Alembic migrations
 │   ├── scripts/
 │   │   ├── scrape_local.py           ← scraper local (IP brasileiro)
-│   │   ├── analisar_atas_piper_local.py ← análise Piper (texto + visão)
+│   │   ├── analisar_atos_piper_local.py ← análise Piper (texto + visão, --tipo)
 │   │   └── relatorio_cobertura.py    ← relatório de cobertura por ano
 │   └── tests/
 │
