@@ -304,6 +304,14 @@ function RodadaCard({
   canceling: string | null;
 }) {
   const [detalhesOpen, setDetalhesOpen] = useState(false);
+
+  // Detecta rodada presa: em_progresso há mais de 20 min com 0 atos analisados.
+  const isAtiva = r.status === "em_progresso" || r.status === "pendente";
+  const totalAnalisados = (r.atos_analisados_piper ?? 0) + (r.atos_analisados_bud ?? 0);
+  const tempoAtivaMin = r.iniciado_em
+    ? (Date.now() - new Date(r.iniciado_em).getTime()) / 60000
+    : 0;
+  const isTravada = isAtiva && totalAnalisados === 0 && tempoAtivaMin > 20;
   const badge = STATUS_BADGE[r.status] ?? { label: r.status, color: "#6b7280" };
   const total = r.total_atos ?? 0;
   const piperCount = r.atos_analisados_piper ?? 0;
@@ -383,9 +391,42 @@ function RodadaCard({
       </div>
 
       {r.erro_mensagem && (
-        <p className="mt-3 text-[11px] text-red-400/70 border-l-2 border-red-400/30 pl-3">
-          {r.erro_mensagem}
-        </p>
+        <div
+          className="mt-3 px-3 py-2 flex items-start gap-2"
+          style={{
+            background: "#450a0a",
+            border: "1px solid #dc2626",
+            borderRadius: 4,
+          }}
+        >
+          <span className="text-red-400 text-[14px] leading-none mt-0.5">✗</span>
+          <div className="flex-1">
+            <p className="text-[10px] uppercase tracking-[0.16em] text-red-400/80 mb-1" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+              Erro na rodada
+            </p>
+            <p className="text-[11px] text-red-300">{r.erro_mensagem}</p>
+          </div>
+        </div>
+      )}
+      {!r.erro_mensagem && isTravada && (
+        <div
+          className="mt-3 px-3 py-2 flex items-start gap-2"
+          style={{
+            background: "#451a03",
+            border: "1px solid #ea580c",
+            borderRadius: 4,
+          }}
+        >
+          <span className="text-orange-400 text-[14px] leading-none mt-0.5">⚠</span>
+          <div className="flex-1">
+            <p className="text-[10px] uppercase tracking-[0.16em] text-orange-400/80 mb-1" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+              Possivelmente travada
+            </p>
+            <p className="text-[11px] text-orange-300">
+              Rodada em progresso há {Math.round(tempoAtivaMin)} min sem progresso. Worker pode ter perdido a task — cancele e dispare novamente.
+            </p>
+          </div>
+        </div>
       )}
 
       {detalhesOpen && (
@@ -998,6 +1039,9 @@ function RodadaDetalhesModal({
             <ul className="divide-y divide-white/[0.04]">
               {atos.map((a) => {
                 const est = ESTADO_LABEL[a.estado] ?? ESTADO_LABEL.pendente;
+                const tempoLabel = a.atualizado_em
+                  ? new Date(a.atualizado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+                  : "—";
                 return (
                   <li key={a.ato_id} className="flex items-center gap-3 py-2 text-[11px]" style={{ fontFamily: "JetBrains Mono, monospace" }}>
                     <span
@@ -1007,6 +1051,7 @@ function RodadaDetalhesModal({
                         boxShadow: a.estado === "em_andamento" ? `0 0 0 3px ${est.color}30` : "none",
                       }}
                     />
+                    <span className="text-white/30 text-[10px] w-16 shrink-0 tabular-nums">{tempoLabel}</span>
                     <span className="text-white/40 w-28 shrink-0 truncate">{a.tipo.replace(/_/g, " ")}</span>
                     <span className="text-white flex-1 truncate">{a.numero}</span>
                     {a.nivel_alerta && (
