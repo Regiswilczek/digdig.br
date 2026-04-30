@@ -441,7 +441,7 @@ function SidebarContent({
           textTransform: "uppercase",
         }}
       >
-        <span>haiku 4.5 · sonnet 4.6</span>
+        <span>piper · bud</span>
         <span>{new Date().getFullYear()}</span>
       </div>
     </div>
