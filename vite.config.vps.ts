@@ -28,6 +28,8 @@ export default defineConfig({
       "/billing":  { target: BACKEND_URL, changeOrigin: true },
       "/webhooks": { target: BACKEND_URL, changeOrigin: true },
       "/admin":    { target: BACKEND_URL, changeOrigin: true },
+      "/me":       { target: BACKEND_URL, changeOrigin: true },
+      "/chat":     { target: BACKEND_URL, changeOrigin: true },
     },
   },
 });
