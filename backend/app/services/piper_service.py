@@ -466,7 +466,12 @@ async def analisar_ato_piper_visao(
         f"TIPO: {ato.tipo}\n"
         f"NÚMERO: {ato.numero}\n"
         f"DATA: {ato.data_publicacao or 'não informada'}\n"
-        f"EMENTA: {ato.ementa or 'não informada'}"
+        f"EMENTA: {ato.ementa or 'não informada'}\n\n"
+        f"OBRIGATÓRIO: além dos campos de análise do schema, inclua no JSON "
+        f'o campo "texto_completo_extraido" com a TRANSCRIÇÃO LITERAL e COMPLETA '
+        f"do conteúdo das imagens — todo o texto, na ordem em que aparece, sem "
+        f"omissões nem comentários. Esse texto será reusado como base para "
+        f"análise textual posterior por outros agentes."
     )
 
     content: list = image_blocks + [{"type": "text", "text": user_prompt_text}]
@@ -516,17 +521,42 @@ async def analisar_ato_piper_visao(
         db, ato, ato_id, rodada_id, resultado, input_tokens, output_tokens, cached_tokens, custo
     )
 
-    # Registra metadado de que o ato foi processado via visão
-    conteudo_existente = await db.execute(
+    # Persiste texto OCR-ed (transcrição literal pedida no user_prompt_text)
+    # para que Bud, chat RAG e busca por texto possam reusar sem nova chamada.
+    texto_ocr = resultado.get("texto_completo_extraido") or ""
+    if isinstance(texto_ocr, str):
+        texto_ocr = texto_ocr.strip()
+    else:
+        texto_ocr = ""
+    tem_texto_real = len(texto_ocr) >= 200  # threshold mínimo de validade
+
+    if tem_texto_real:
+        conteudo_payload = texto_ocr
+        qualidade_final = "digitalizado_ocr"
+    else:
+        conteudo_payload = f"[Documento digitalizado — {len(paginas)} página(s) analisadas via Piper Vision]"
+        qualidade_final = "digitalizado"
+
+    conteudo_existente = (await db.execute(
         select(ConteudoAto).where(ConteudoAto.ato_id == ato_id)
-    )
-    if not conteudo_existente.scalar_one_or_none():
+    )).scalar_one_or_none()
+
+    if conteudo_existente:
+        # Atualiza texto se Piper Vision conseguiu transcrever (vai destravar Bud).
+        if tem_texto_real:
+            conteudo_existente.texto_completo = conteudo_payload
+            conteudo_existente.metodo_extracao = "piper_visao_ocr"
+            conteudo_existente.qualidade = qualidade_final
+            conteudo_existente.tokens_estimados = max(
+                conteudo_existente.tokens_estimados or 0, len(texto_ocr) // 4
+            )
+    else:
         db.add(ConteudoAto(
             ato_id=ato_id,
-            texto_completo=f"[Documento digitalizado — {len(paginas)} página(s) analisadas via Piper Vision]",
-            metodo_extracao="piper_visao",
-            qualidade="digitalizado",
-            tokens_estimados=input_tokens,
+            texto_completo=conteudo_payload,
+            metodo_extracao="piper_visao_ocr" if tem_texto_real else "piper_visao",
+            qualidade=qualidade_final,
+            tokens_estimados=len(texto_ocr) // 4 if tem_texto_real else input_tokens,
         ))
 
     ato.pdf_baixado = True
