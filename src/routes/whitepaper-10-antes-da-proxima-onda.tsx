@@ -108,7 +108,7 @@ function Whitepaper10Page() {
           <span className="post-label">Organização · CVSS-A · Meta-Tags · Conexões · ATLAS</span>
           <h1>Antes da Próxima Onda</h1>
           <p className="byline">
-            <strong>Regis Wilczek + Dig Dig Bud (Claude Sonnet 4.6)</strong>
+            <strong>Regis Wilczek + Dig Dig Bud</strong>
             {" "}—{" "}Abril de 2026
           </p>
         </div>
@@ -266,11 +266,11 @@ function Whitepaper10Page() {
 
         <div className="signature">
           <div className="name">Regis Wilczek + Dig Dig Bud</div>
-          <div className="role">Fundador, Dig Dig · Claude Sonnet 4.6 · Curitiba, Abril de 2026</div>
+          <div className="role">Fundador, Dig Dig · Curitiba, Abril de 2026</div>
         </div>
 
         <p className="post-footer">
-          White Paper Nº 10 do projeto Dig Dig. Série de registro técnico sobre auditoria pública automatizada com IA. Este documento foi produzido colaborativamente entre o fundador do Dig Dig e o Dig Dig Bud (Claude Sonnet 4.6), com base nas decisões de produto, nas mudanças de arquitetura e nos primeiros testes do agente ATLAS realizados no sprint de abril de 2026. As análises e classificações são instrumentos de investigação — não conclusões jurídicas. Nenhuma afirmação de crime ou responsabilidade individual é feita ou insinuada neste documento.
+          White Paper Nº 10 do projeto Dig Dig. Série de registro técnico sobre auditoria pública automatizada com IA. Este documento foi produzido colaborativamente entre o fundador do Dig Dig e o Dig Dig Bud, com base nas decisões de produto, nas mudanças de arquitetura e nos primeiros testes do agente ATLAS realizados no sprint de abril de 2026. As análises e classificações são instrumentos de investigação — não conclusões jurídicas. Nenhuma afirmação de crime ou responsabilidade individual é feita ou insinuada neste documento.
         </p>
       </article>
 

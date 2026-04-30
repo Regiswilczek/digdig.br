@@ -275,13 +275,21 @@ def _normalizar_resultado(parsed: dict) -> dict:
     if idioma not in ("pt", "en", "mixed", None):
         idioma = None
 
+    # Defesa contra Gemini retornar strings maiores que o VARCHAR — observado
+    # em atos com nomes de processo/edital muito longos. Trunca silencioso.
+    def _clamp(v, n):
+        if v is None:
+            return None
+        s = str(v).strip()
+        return (s[:n] or None) if s else None
+
     return {
         "categoria": categoria,
-        "subcategoria": (parsed.get("subcategoria") or None) if categoria != "outros" else None,
+        "subcategoria": _clamp(parsed.get("subcategoria"), 120) if categoria != "outros" else None,
         "confianca_categoria": confianca,
         "densidade_textual": densidade,
         "idioma": idioma,
-        "numero_oficial": parsed.get("numero_oficial") or None,
+        "numero_oficial": _clamp(parsed.get("numero_oficial"), 100),
         "data_documento": _coerce_date(parsed.get("data_documento")),
         "data_documento_confianca": parsed.get("data_documento_confianca") if isinstance(parsed.get("data_documento_confianca"), bool) else None,
         "ano_referencia": _coerce_int(parsed.get("ano_referencia")),
