@@ -444,38 +444,19 @@ function RodadaCard({
 // ── Componente: card de fila por agente ─────────────────────────────────
 // Tipos do scraper (fonte) + categorias do ATLAS (organização). Backend
 // admin.py filtra por OR(Ato.tipo, Ato.tipo_atlas).
-const TIPOS_DISPARAVEIS = [
-  "all",
-  // Scraper tipos
-  "ata_plenaria",
-  "portaria",
-  "portaria_normativa",
-  "deliberacao",
-  "dispensa_eletronica",
-  "convenio",
-  "media_library",
-  "relatorio_parecer",
-  "auditoria_independente",
-  "contratacao_direta",
-  "contrato",
-  "relatorio_tcu",
-  // Categorias ATLAS
-  "licitacao",
-  "deliberacao_arquivo",
-  "portaria_arquivo",
-  "ata_pauta_comissao",
-  "financeiro_balanco",
-  "financeiro_orcamento",
-  "financeiro_demonstrativo",
-  "auditoria_externa",
-  "relatorio_gestao",
-  "processo_etico",
-  "recursos_humanos",
-  "juridico_parecer",
-  "aditivo_contratual",
-  "comunicacao_institucional",
-  "outros",
+const TIPOS_SCRAPER = [
+  "ata_plenaria", "portaria", "portaria_normativa", "deliberacao",
+  "dispensa_eletronica", "convenio", "media_library", "relatorio_parecer",
+  "auditoria_independente", "contratacao_direta", "contrato", "relatorio_tcu",
 ];
+const TIPOS_ATLAS = [
+  "licitacao", "deliberacao_arquivo", "portaria_arquivo", "ata_pauta_comissao",
+  "financeiro_balanco", "financeiro_orcamento", "financeiro_demonstrativo",
+  "auditoria_externa", "relatorio_gestao", "processo_etico", "recursos_humanos",
+  "juridico_parecer", "aditivo_contratual", "comunicacao_institucional", "outros",
+];
+// Lista plana usada como union em vários lugares
+const TIPOS_DISPARAVEIS = ["all", ...TIPOS_SCRAPER, ...TIPOS_ATLAS];
 
 function FilaCard({
   fila,
@@ -594,9 +575,17 @@ function FilaCard({
               style={{ fontFamily: "JetBrains Mono, monospace" }}
               disabled={disparando}
             >
-              {TIPOS_DISPARAVEIS.map((t) => (
-                <option key={t} value={t} style={{ background: "#0d0f1a" }}>{t}</option>
-              ))}
+              <option value="all" style={{ background: "#0d0f1a" }}>all</option>
+              <optgroup label="── Scraper (origem) ──" style={{ background: "#0d0f1a" }}>
+                {TIPOS_SCRAPER.map((t) => (
+                  <option key={t} value={t} style={{ background: "#0d0f1a" }}>{t}</option>
+                ))}
+              </optgroup>
+              <optgroup label="── ATLAS (organização) ──" style={{ background: "#0d0f1a" }}>
+                {TIPOS_ATLAS.map((t) => (
+                  <option key={t} value={t} style={{ background: "#0d0f1a" }}>{t}</option>
+                ))}
+              </optgroup>
             </select>
             <select
               value={limiteSel}
@@ -841,9 +830,17 @@ function FilaModal({
             className="text-[11px] bg-white/[0.04] border border-white/[0.08] text-white/80 px-2 py-1"
             style={{ fontFamily: "JetBrains Mono, monospace" }}
           >
-            {TIPOS_DISPARAVEIS.map((t) => (
-              <option key={t} value={t} style={{ background: "#0d0f1a" }}>{t}</option>
-            ))}
+            <option value="all" style={{ background: "#0d0f1a" }}>all</option>
+            <optgroup label="── Scraper (origem) ──" style={{ background: "#0d0f1a" }}>
+              {TIPOS_SCRAPER.map((t) => (
+                <option key={t} value={t} style={{ background: "#0d0f1a" }}>{t}</option>
+              ))}
+            </optgroup>
+            <optgroup label="── ATLAS (organização) ──" style={{ background: "#0d0f1a" }}>
+              {TIPOS_ATLAS.map((t) => (
+                <option key={t} value={t} style={{ background: "#0d0f1a" }}>{t}</option>
+              ))}
+            </optgroup>
           </select>
           <button
             onClick={selecionarTodosNaPagina}
@@ -887,6 +884,20 @@ function FilaModal({
                     <span className="text-white text-[12px] flex-1 truncate" style={{ fontFamily: "JetBrains Mono, monospace" }}>
                       {it.numero}
                     </span>
+                    {it.legado && (
+                      <span
+                        className="text-[9px] uppercase tracking-[0.12em] shrink-0 px-1.5 py-px rounded"
+                        style={{
+                          color: "#fbbf24",
+                          background: "rgba(251,191,36,0.10)",
+                          border: "1px solid rgba(251,191,36,0.35)",
+                          fontFamily: "JetBrains Mono, monospace",
+                        }}
+                        title="Já tem laudo do Haiku legado — esta rodada vai refazer com Bud"
+                      >
+                        ↻ refazer
+                      </span>
+                    )}
                     {it.nivel_alerta && (
                       <span className="text-[10px] uppercase tracking-wider" style={{ color: NIVEL_COLOR[it.nivel_alerta] ?? "#9ca3af" }}>
                         {it.nivel_alerta}
