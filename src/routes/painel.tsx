@@ -453,7 +453,7 @@ function SidebarContent({
         <Link
           to="/apoiar"
           onClick={onNavigate}
-          className="mt-3 flex items-center justify-center gap-1.5 h-8 text-[10px] uppercase tracking-[0.18em] transition-colors hover:opacity-90"
+          className="mt-3 flex items-center justify-center gap-1.5 h-8 text-[10px] uppercase tracking-[0.18em]"
           style={{
             fontFamily: MONO,
             color: "#fff",
@@ -461,8 +461,17 @@ function SidebarContent({
             borderRadius: RADIUS,
             fontWeight: 600,
             textDecoration: "none",
+            transition: "background-color 160ms ease, color 160ms ease",
           }}
           title={isFree ? "Apoiar o projeto ou virar assinante" : "Doar ao Dig Dig"}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#dc2626";
+            e.currentTarget.style.color = "#fff";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = INK;
+            e.currentTarget.style.color = "#fff";
+          }}
         >
           <Heart size={11} />
           {isFree ? "apoiar / assinar" : "doar"}
