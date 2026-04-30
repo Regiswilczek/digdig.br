@@ -302,10 +302,11 @@ function RodadaCard({
   onCancel: (id: string) => void;
   canceling: string | null;
 }) {
+  const [detalhesOpen, setDetalhesOpen] = useState(false);
   const badge = STATUS_BADGE[r.status] ?? { label: r.status, color: "#6b7280" };
   const total = r.total_atos ?? 0;
-  const haiku = r.atos_analisados_piper ?? 0;
-  const sonnet = r.atos_analisados_bud ?? 0;
+  const piperCount = r.atos_analisados_piper ?? 0;
+  const budCount = r.atos_analisados_bud ?? 0;
   const isActive = r.status === "em_progresso" || r.status === "pendente";
 
   return (
@@ -326,6 +327,13 @@ function RodadaCard({
           >
             {isActive && "● "}{badge.label}
           </span>
+          <button
+            onClick={() => setDetalhesOpen(true)}
+            className="text-[9px] uppercase tracking-[0.12em] text-blue-400/60 hover:text-blue-400 transition-colors"
+            style={{ fontFamily: "JetBrains Mono, monospace" }}
+          >
+            Ver detalhes
+          </button>
           {isActive && (
             <button
               onClick={() => onCancel(r.rodada_id)}
@@ -342,18 +350,18 @@ function RodadaCard({
         <div className="space-y-2 mb-4">
           <div>
             <div className="flex justify-between text-[10px] text-white/30 mb-1">
-              <span>Haiku</span>
-              <span>{haiku.toLocaleString("pt-BR")} / {total.toLocaleString("pt-BR")}</span>
+              <span>Piper</span>
+              <span>{piperCount.toLocaleString("pt-BR")} / {total.toLocaleString("pt-BR")}</span>
             </div>
-            <ProgressBar value={haiku} total={total} color="#3b82f6" />
+            <ProgressBar value={piperCount} total={total} color="#3b82f6" />
           </div>
-          {sonnet > 0 && (
+          {budCount > 0 && (
             <div>
               <div className="flex justify-between text-[10px] text-white/30 mb-1">
-                <span>Sonnet</span>
-                <span>{sonnet.toLocaleString("pt-BR")}</span>
+                <span>Bud</span>
+                <span>{budCount.toLocaleString("pt-BR")}</span>
               </div>
-              <ProgressBar value={sonnet} total={total} color="#8b5cf6" />
+              <ProgressBar value={budCount} total={total} color="#8b5cf6" />
             </div>
           )}
         </div>
@@ -369,6 +377,14 @@ function RodadaCard({
         <p className="mt-3 text-[11px] text-red-400/70 border-l-2 border-red-400/30 pl-3">
           {r.erro_mensagem}
         </p>
+      )}
+
+      {detalhesOpen && (
+        <RodadaDetalhesModal
+          rodadaId={r.rodada_id}
+          orgao={r.orgao}
+          onClose={() => setDetalhesOpen(false)}
+        />
       )}
     </div>
   );
@@ -836,6 +852,172 @@ function FilaModal({
           >
             {disparando ? "disparando..." : `Disparar ${selecionados.size > 0 ? selecionados.size : ""} selecionado(s)`}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Modal de detalhes de rodada (lista de atos + worker status) ───────────
+interface AtoDaRodada {
+  ato_id: string;
+  analise_id: string | null;
+  tipo: string;
+  numero: string;
+  data_publicacao: string | null;
+  status: string | null;
+  estado: "pendente" | "em_andamento" | "concluido_piper" | "concluido_bud";
+  nivel_alerta: string | null;
+  atualizado_em: string | null;
+}
+
+interface WorkerTask {
+  id: string;
+  name: string;
+  args_preview: string;
+  time_start: number | null;
+  worker_pid: number;
+}
+
+const ESTADO_LABEL: Record<string, { label: string; color: string }> = {
+  pendente: { label: "pendente", color: "#9ca3af" },
+  em_andamento: { label: "em andamento", color: "#16a34a" },
+  concluido_piper: { label: "piper ok", color: "#3b82f6" },
+  concluido_bud: { label: "bud ok", color: "#8b5cf6" },
+};
+
+function RodadaDetalhesModal({
+  rodadaId,
+  orgao,
+  onClose,
+}: {
+  rodadaId: string;
+  orgao: string;
+  onClose: () => void;
+}) {
+  const [atos, setAtos] = useState<AtoDaRodada[]>([]);
+  const [workers, setWorkers] = useState<{ worker: string; tasks_ativas: WorkerTask[] }[]>([]);
+  const [resumo, setResumo] = useState<{ total: number; piper: number; bud: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const [resA, resW] = await Promise.all([
+        authedFetch(`/pnl/admin/rodadas/${rodadaId}/atos`),
+        authedFetch(`/pnl/admin/worker-status`),
+      ]);
+      if (resA.ok) {
+        const d = await resA.json();
+        setAtos(d.atos || []);
+        setResumo({
+          total: d.total_atos || 0,
+          piper: d.atos_analisados_piper || 0,
+          bud: d.atos_analisados_bud || 0,
+        });
+      } else {
+        setErro(`Atos: HTTP ${resA.status}`);
+      }
+      if (resW.ok) {
+        const d = await resW.json();
+        setWorkers(d.workers || []);
+      }
+    } catch (e) {
+      setErro((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, [rodadaId]);
+
+  useEffect(() => {
+    load();
+    const t = setInterval(load, 4000); // tail vivo: poll de 4s
+    return () => clearInterval(t);
+  }, [load]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.75)" }}>
+      <div className="w-full max-w-4xl max-h-[85vh] flex flex-col border border-blue-400/30" style={{ background: "#0d0f1a" }}>
+        <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-blue-400" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+              Rodada · {orgao}
+            </p>
+            <p className="text-white text-[14px] mt-0.5" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+              {rodadaId.slice(0, 8)}…
+              {resumo && ` — Piper ${resumo.piper}/${resumo.total} · Bud ${resumo.bud}`}
+            </p>
+          </div>
+          <button onClick={onClose} className="text-white/40 hover:text-white text-[20px]">×</button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {/* Worker status */}
+          <div className="px-5 py-3 border-b border-white/[0.06]" style={{ background: "#0a1410" }}>
+            <p className="text-[10px] uppercase tracking-[0.16em] text-emerald-400 mb-2 flex items-center gap-2" style={SYNE}>
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Worker · tarefas ativas
+            </p>
+            {workers.length === 0 ? (
+              <p className="text-white/40 text-[11px]">Nenhuma tarefa ativa nos workers.</p>
+            ) : (
+              workers.flatMap((w) =>
+                w.tasks_ativas.length === 0 ? (
+                  <p key={w.worker} className="text-white/40 text-[11px]">{w.worker}: ocioso</p>
+                ) : (
+                  w.tasks_ativas.map((t) => (
+                    <div key={t.id} className="text-[11px] py-1" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                      <span className="text-emerald-400">▸</span>{" "}
+                      <span className="text-white">{t.name}</span>{" "}
+                      <span className="text-white/40">{t.args_preview}</span>
+                    </div>
+                  ))
+                )
+              )
+            )}
+          </div>
+
+          {/* Lista de atos */}
+          <div className="px-5 py-3">
+            <p className="text-[10px] uppercase tracking-[0.16em] text-white/40 mb-2" style={SYNE}>
+              Atos da rodada ({atos.length})
+            </p>
+            {loading && atos.length === 0 && (
+              <p className="text-white/40 text-[11px]">Carregando...</p>
+            )}
+            {erro && <p className="text-red-400 text-[11px]">{erro}</p>}
+            <ul className="divide-y divide-white/[0.04]">
+              {atos.map((a) => {
+                const est = ESTADO_LABEL[a.estado] ?? ESTADO_LABEL.pendente;
+                return (
+                  <li key={a.ato_id} className="flex items-center gap-3 py-2 text-[11px]" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                    <span
+                      className="inline-block w-2 h-2 rounded-full shrink-0"
+                      style={{
+                        background: est.color,
+                        boxShadow: a.estado === "em_andamento" ? `0 0 0 3px ${est.color}30` : "none",
+                      }}
+                    />
+                    <span className="text-white/40 w-28 shrink-0 truncate">{a.tipo.replace(/_/g, " ")}</span>
+                    <span className="text-white flex-1 truncate">{a.numero}</span>
+                    {a.nivel_alerta && (
+                      <span className="text-[10px] uppercase shrink-0" style={{ color: NIVEL_COLOR[a.nivel_alerta] ?? "#9ca3af" }}>
+                        {a.nivel_alerta}
+                      </span>
+                    )}
+                    <span className="text-[9px] uppercase tracking-wider w-24 text-right shrink-0" style={{ color: est.color }}>
+                      {est.label}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+
+        <div className="px-5 py-3 border-t border-white/[0.06] flex items-center justify-between text-[10px] text-white/30" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+          <span>● atualiza a cada 4s</span>
+          <span>{atos.length} atos · workers vivos: {workers.length}</span>
         </div>
       </div>
     </div>

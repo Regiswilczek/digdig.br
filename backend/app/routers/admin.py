@@ -686,6 +686,107 @@ async def admin_list_auth_users(
     ]
 
 
+@router.get("/admin/rodadas/{rodada_id}/atos")
+async def listar_atos_da_rodada(
+    rodada_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
+):
+    """Lista detalhada dos atos de uma rodada com status de cada análise."""
+    try:
+        rod_uuid = uuid.UUID(rodada_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="rodada_id inválido")
+
+    rod_r = await db.execute(select(RodadaAnalise).where(RodadaAnalise.id == rod_uuid))
+    rodada = rod_r.scalar_one_or_none()
+    if not rodada:
+        raise HTTPException(status_code=404, detail="Rodada não encontrada")
+
+    # Atos analisados nesta rodada (pelo Piper) — ou Bud lote (rodada nova
+    # não cobre as analises existentes; nesse caso o "match" não fecha).
+    rows = await db.execute(
+        select(
+            Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao,
+            Analise.id, Analise.status, Analise.nivel_alerta,
+            Analise.resultado_piper.isnot(None).label("tem_piper"),
+            Analise.resultado_bud.isnot(None).label("tem_bud"),
+            Analise.atualizado_em,
+        )
+        .join(Analise, Analise.ato_id == Ato.id)
+        .where(Analise.rodada_id == rod_uuid)
+        .order_by(Analise.atualizado_em.desc())
+    )
+
+    atos = []
+    for r in rows.all():
+        ato_id, tipo, numero, data, an_id, status, nivel, tem_piper, tem_bud, atual_em = r
+        # Estado derivado pra UI
+        if status and status.endswith("_em_andamento"):
+            estado = "em_andamento"
+        elif tem_bud:
+            estado = "concluido_bud"
+        elif tem_piper:
+            estado = "concluido_piper"
+        else:
+            estado = "pendente"
+        atos.append({
+            "ato_id": str(ato_id),
+            "analise_id": str(an_id) if an_id else None,
+            "tipo": tipo,
+            "numero": numero or "?",
+            "data_publicacao": data.isoformat() if data else None,
+            "status": status,
+            "estado": estado,
+            "nivel_alerta": nivel,
+            "atualizado_em": atual_em.isoformat() if atual_em else None,
+        })
+    return {
+        "rodada_id": str(rod_uuid),
+        "rodada_status": rodada.status,
+        "total_atos": rodada.total_atos,
+        "atos_analisados_piper": rodada.atos_analisados_piper,
+        "atos_analisados_bud": rodada.atos_analisados_bud,
+        "atos": atos,
+    }
+
+
+@router.get("/admin/worker-status")
+async def worker_status(_: dict = Depends(require_admin)):
+    """
+    Estado atual dos workers Celery: tasks ativas, nome, args, runtime.
+    Mais útil que log raw — mostra o que ESTÁ rodando agora.
+    """
+    try:
+        from app.workers.celery_app import celery_app
+        inspect = celery_app.control.inspect(timeout=2)
+        active = inspect.active() or {}
+        registered = inspect.registered() or {}
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Não consegui inspecionar worker: {type(exc).__name__}: {str(exc)[:120]}",
+        )
+
+    workers = []
+    for worker_name, tasks in active.items():
+        workers.append({
+            "worker": worker_name,
+            "tasks_ativas": [
+                {
+                    "id": t.get("id"),
+                    "name": t.get("name"),
+                    "args_preview": str(t.get("args", []))[:200],
+                    "time_start": t.get("time_start"),
+                    "worker_pid": t.get("worker_pid"),
+                }
+                for t in (tasks or [])
+            ],
+            "tasks_registradas": registered.get(worker_name, []),
+        })
+    return {"workers": workers, "total_workers": len(workers)}
+
+
 @router.get("/admin/rodadas")
 async def admin_all_rodadas(
     db: AsyncSession = Depends(get_db),

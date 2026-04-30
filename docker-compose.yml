@@ -54,7 +54,7 @@ services:
       celery -A app.workers.celery_app worker
         --loglevel=info
         --concurrency=2
-        --queues=ai,default
+        --queues=analise,ai,default,scraper
 
   # ── Celery Beat — Scheduler (monitoramento contínuo de novos atos) ─────────
   worker_beat:
