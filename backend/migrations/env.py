@@ -39,10 +39,21 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_async_migrations() -> None:
+    # Supabase configura statement_timeout curto na role padrão e (atrás do
+    # pooler em transaction mode) `SET LOCAL` muitas vezes não sobrescreve.
+    # Migrations precisam tempo livre — DDL como ADD COLUMN espera lock e
+    # estoura. server_settings vai direto no STARTUP do asyncpg, antes do
+    # pooler interferir.
     connectable = create_async_engine(
         settings.database_url,
         poolclass=pool.NullPool,
-        connect_args={"statement_cache_size": 0},
+        connect_args={
+            "statement_cache_size": 0,
+            "server_settings": {
+                "statement_timeout": "0",
+                "lock_timeout": "60000",  # 60s para esperar ACCESS EXCLUSIVE
+            },
+        },
     )
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

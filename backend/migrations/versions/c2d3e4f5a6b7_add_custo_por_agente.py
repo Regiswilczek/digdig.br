@@ -24,6 +24,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Supabase impõe statement_timeout curto na role de migração; ADD COLUMN
+    # NULL é metadata-only (rápido), mas se algum worker estiver com transação
+    # aberta em analises o ALTER fica esperando o ACCESS EXCLUSIVE lock e
+    # estoura. Subimos os timeouts só pra esta transação.
+    op.execute("SET LOCAL lock_timeout = '5min'")
+    op.execute("SET LOCAL statement_timeout = '6min'")
     op.add_column("analises", sa.Column("custo_piper_usd", sa.Numeric(10, 6), nullable=True))
     op.add_column("analises", sa.Column("custo_bud_usd", sa.Numeric(10, 6), nullable=True))
     op.add_column("analises", sa.Column("custo_new_usd", sa.Numeric(10, 6), nullable=True))
