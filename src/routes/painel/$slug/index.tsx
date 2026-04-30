@@ -800,11 +800,16 @@ function TabVisaoGeral({
 
   const dist = stats?.distribuicao;
   const totalComNivel = dist ? dist.verde + dist.amarelo + dist.laranja + dist.vermelho : 0;
+  // Total de docs no corpus (todos os tipos)
   const totalDocs = (stats?.total_atos ?? 0)
     + (finStats?.diarias.total ?? 0)
     + (finStats?.passagens.total ?? 0);
-  const pctAnalisados = totalDocs > 0
-    ? Math.round(((stats?.total_analisados ?? 0) / totalDocs) * 100)
+  // Denominador da meta: desconta os atos sem texto extraído
+  // (não podem entrar no pipeline IA — bloqueados por sem_url/erro_download/pendente)
+  const totalSemTexto = stats?.total_sem_texto ?? 0;
+  const totalAuditavel = Math.max(0, totalDocs - totalSemTexto);
+  const pctAnalisados = totalAuditavel > 0
+    ? Math.round(((stats?.total_analisados ?? 0) / totalAuditavel) * 100)
     : 0;
   const isSuccess = pctAnalisados >= 90;
   const isLive = recentCount24h > 0 || rodada?.status === "em_progresso";
@@ -913,7 +918,10 @@ function TabVisaoGeral({
                       {isSuccess ? "✓ meta atingida" : `faltam ${90 - pctAnalisados}pp`}
                     </p>
                     <p style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>
-                      {fmt(stats?.total_analisados)} de {fmt(totalDocs)} documentos
+                      {fmt(stats?.total_analisados)} de {fmt(totalAuditavel)} auditáveis
+                      {totalSemTexto > 0 && (
+                        <span style={{ color: SUBTLE }}> · {fmt(totalSemTexto)} sem texto</span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -1091,7 +1099,7 @@ function TabVisaoGeral({
               {fmt(stats?.total_analisados)}
             </span>
             <span style={{ fontFamily: MONO, fontSize: 12, color: SUBTLE, paddingBottom: 7 }}>
-              / {fmt(totalDocs)}
+              / {fmt(totalAuditavel)}
             </span>
           </div>
           <p style={{ fontSize: 11.5, color: cardHover === "cobertura" ? INK : MUTED, lineHeight: 1.65, transition: "color 0.15s" }}>
@@ -2837,8 +2845,10 @@ function TabRelatorio({
   const totalDocs = (stats?.total_atos ?? 0)
     + (finStats?.diarias.total ?? 0)
     + (finStats?.passagens.total ?? 0);
-  const pct = totalDocs > 0
-    ? Math.round(((stats?.total_analisados ?? 0) / totalDocs) * 100)
+  const totalSemTexto = stats?.total_sem_texto ?? 0;
+  const totalAuditavel = Math.max(0, totalDocs - totalSemTexto);
+  const pct = totalAuditavel > 0
+    ? Math.round(((stats?.total_analisados ?? 0) / totalAuditavel) * 100)
     : 0;
   const concluido = pct >= 100;
 

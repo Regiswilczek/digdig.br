@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, case, cast, Date as SADate, text
 from app.database import get_db
 from app.models.tenant import Tenant
-from app.models.ato import Ato
+from app.models.ato import Ato, ConteudoAto
 from app.models.analise import Analise
 from app.models.dados_financeiros import Diaria
 from app.models.tag import AtoTag
@@ -76,11 +76,23 @@ async def get_stats(slug: str, db: AsyncSession = Depends(get_db)):
     total_analisados = sum(por_tipo_analise.values())
     total_criticos = distribuicao.get("vermelho", 0) + distribuicao.get("laranja", 0)
 
+    # Atos sem texto extraído — não podem entrar no pipeline IA, descontam da meta.
+    sem_texto_r = await db.execute(
+        select(func.count())
+        .select_from(Ato)
+        .where(
+            Ato.tenant_id == tenant.id,
+            ~select(ConteudoAto.ato_id).where(ConteudoAto.ato_id == Ato.id).exists(),
+        )
+    )
+    total_sem_texto = sem_texto_r.scalar_one()
+
     return {
         "tenant": {"slug": tenant.slug, "nome": tenant.nome},
         "total_atos": total_atos,
         "total_analisados": total_analisados,
         "total_criticos": total_criticos,
+        "total_sem_texto": total_sem_texto,
         "distribuicao": {
             "verde": distribuicao.get("verde", 0),
             "amarelo": distribuicao.get("amarelo", 0),

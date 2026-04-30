@@ -140,6 +140,7 @@ export interface PublicStats {
   total_atos: number;
   total_analisados: number;
   total_criticos: number;
+  total_sem_texto: number;
   distribuicao: { verde: number; amarelo: number; laranja: number; vermelho: number };
   por_tipo: Record<string, { total: number; analisados: number }>;
 }
