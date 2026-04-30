@@ -185,6 +185,15 @@ function AtoDetailPage() {
   const sonnetQuorumMinimo = bud?.quorum_legal_minimo as number | undefined;
   const sonnetQuorumAtingido = bud?.quorum_atingido as boolean | undefined;
 
+  // Detecta se a ata tem dados do Bud (rota especial). Caso contrário, cai no
+  // branch genérico do Piper para não mostrar a página vazia.
+  const hasAtaSpecificData =
+    sonnetPresentes.length > 0 ||
+    sonnetPauta.length > 0 ||
+    sonnetIrregularidades.length > 0 ||
+    sonnetPessoas.length > 0 ||
+    sonnetQuorumTotal != null;
+
   const tipoLabel =
     ato.tipo === "deliberacao"
       ? "Deliberação"
@@ -288,7 +297,7 @@ function AtoDetailPage() {
           </Section>
         )}
 
-        {ato.tipo === "ata_plenaria" ? (
+        {ato.tipo === "ata_plenaria" && hasAtaSpecificData ? (
           <>
             {/* Quórum e presença */}
             <Section eyebrow="02" title="Quórum e presença">
