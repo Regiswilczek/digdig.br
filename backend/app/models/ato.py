@@ -20,6 +20,10 @@ class Ato(Base):
     # principalmente útil pra docs vindos de `tipo='media_library'`). Materializado
     # a partir de classificacao_atlas.categoria.
     tipo_atlas: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    # Sistema de origem do ato — 'web' (scrape direto), 'implanta' (API conselhos),
+    # 'doe-pr' (Diário Oficial PR), 'transparencia-pr' etc. Distingue fontes
+    # quando o mesmo tenant tem múltiplos pipelines de ingestão.
+    fonte_sistema: Mapped[str] = mapped_column(String(50), nullable=False, default="web")
     titulo: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     data_publicacao: Mapped[date | None] = mapped_column(Date, nullable=True)
     ementa: Mapped[str | None] = mapped_column(Text, nullable=True)

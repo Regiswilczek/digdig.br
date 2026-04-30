@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Whitepaper10AntesDaProximaOndaRouteImport } from './routes/whitepaper-10-antes-da-proxima-onda'
 import { Route as Whitepaper09DadosOQueFazerRouteImport } from './routes/whitepaper-09-dados-o-que-fazer'
 import { Route as Whitepaper08TresDiasRouteImport } from './routes/whitepaper-08-tres-dias'
 import { Route as Whitepaper07PreAuditoriaIntegradaRouteImport } from './routes/whitepaper-07-pre-auditoria-integrada'
@@ -41,11 +42,19 @@ import { Route as PnlUsuariosRouteImport } from './routes/pnl/usuarios'
 import { Route as PnlPipelineRouteImport } from './routes/pnl/pipeline'
 import { Route as PnlFinanceiroRouteImport } from './routes/pnl/financeiro'
 import { Route as PnlDashboardRouteImport } from './routes/pnl/dashboard'
+import { Route as PainelContaRouteImport } from './routes/painel/conta'
 import { Route as PainelChatRouteImport } from './routes/painel/chat'
 import { Route as PainelSlugRouteImport } from './routes/painel/$slug'
 import { Route as PainelSlugIndexRouteImport } from './routes/painel/$slug/index'
+import { Route as PainelSlugConexRouteImport } from './routes/painel/$slug/conex'
 import { Route as PainelSlugAtoIdRouteImport } from './routes/painel/$slug/ato.$id'
 
+const Whitepaper10AntesDaProximaOndaRoute =
+  Whitepaper10AntesDaProximaOndaRouteImport.update({
+    id: '/whitepaper-10-antes-da-proxima-onda',
+    path: '/whitepaper-10-antes-da-proxima-onda',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const Whitepaper09DadosOQueFazerRoute =
   Whitepaper09DadosOQueFazerRouteImport.update({
     id: '/whitepaper-09-dados-o-que-fazer',
@@ -214,6 +223,11 @@ const PnlDashboardRoute = PnlDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => PnlRoute,
 } as any)
+const PainelContaRoute = PainelContaRouteImport.update({
+  id: '/conta',
+  path: '/conta',
+  getParentRoute: () => PainelRoute,
+} as any)
 const PainelChatRoute = PainelChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -227,6 +241,11 @@ const PainelSlugRoute = PainelSlugRouteImport.update({
 const PainelSlugIndexRoute = PainelSlugIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => PainelSlugRoute,
+} as any)
+const PainelSlugConexRoute = PainelSlugConexRouteImport.update({
+  id: '/conex',
+  path: '/conex',
   getParentRoute: () => PainelSlugRoute,
 } as any)
 const PainelSlugAtoIdRoute = PainelSlugAtoIdRouteImport.update({
@@ -262,14 +281,17 @@ export interface FileRoutesByFullPath {
   '/whitepaper-07-pre-auditoria-integrada': typeof Whitepaper07PreAuditoriaIntegradaRoute
   '/whitepaper-08-tres-dias': typeof Whitepaper08TresDiasRoute
   '/whitepaper-09-dados-o-que-fazer': typeof Whitepaper09DadosOQueFazerRoute
+  '/whitepaper-10-antes-da-proxima-onda': typeof Whitepaper10AntesDaProximaOndaRoute
   '/painel/$slug': typeof PainelSlugRouteWithChildren
   '/painel/chat': typeof PainelChatRoute
+  '/painel/conta': typeof PainelContaRoute
   '/pnl/dashboard': typeof PnlDashboardRoute
   '/pnl/financeiro': typeof PnlFinanceiroRoute
   '/pnl/pipeline': typeof PnlPipelineRoute
   '/pnl/usuarios': typeof PnlUsuariosRoute
   '/painel/': typeof PainelIndexRoute
   '/pnl/': typeof PnlIndexRoute
+  '/painel/$slug/conex': typeof PainelSlugConexRoute
   '/painel/$slug/': typeof PainelSlugIndexRoute
   '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
@@ -298,13 +320,16 @@ export interface FileRoutesByTo {
   '/whitepaper-07-pre-auditoria-integrada': typeof Whitepaper07PreAuditoriaIntegradaRoute
   '/whitepaper-08-tres-dias': typeof Whitepaper08TresDiasRoute
   '/whitepaper-09-dados-o-que-fazer': typeof Whitepaper09DadosOQueFazerRoute
+  '/whitepaper-10-antes-da-proxima-onda': typeof Whitepaper10AntesDaProximaOndaRoute
   '/painel/chat': typeof PainelChatRoute
+  '/painel/conta': typeof PainelContaRoute
   '/pnl/dashboard': typeof PnlDashboardRoute
   '/pnl/financeiro': typeof PnlFinanceiroRoute
   '/pnl/pipeline': typeof PnlPipelineRoute
   '/pnl/usuarios': typeof PnlUsuariosRoute
   '/painel': typeof PainelIndexRoute
   '/pnl': typeof PnlIndexRoute
+  '/painel/$slug/conex': typeof PainelSlugConexRoute
   '/painel/$slug': typeof PainelSlugIndexRoute
   '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
@@ -336,14 +361,17 @@ export interface FileRoutesById {
   '/whitepaper-07-pre-auditoria-integrada': typeof Whitepaper07PreAuditoriaIntegradaRoute
   '/whitepaper-08-tres-dias': typeof Whitepaper08TresDiasRoute
   '/whitepaper-09-dados-o-que-fazer': typeof Whitepaper09DadosOQueFazerRoute
+  '/whitepaper-10-antes-da-proxima-onda': typeof Whitepaper10AntesDaProximaOndaRoute
   '/painel/$slug': typeof PainelSlugRouteWithChildren
   '/painel/chat': typeof PainelChatRoute
+  '/painel/conta': typeof PainelContaRoute
   '/pnl/dashboard': typeof PnlDashboardRoute
   '/pnl/financeiro': typeof PnlFinanceiroRoute
   '/pnl/pipeline': typeof PnlPipelineRoute
   '/pnl/usuarios': typeof PnlUsuariosRoute
   '/painel/': typeof PainelIndexRoute
   '/pnl/': typeof PnlIndexRoute
+  '/painel/$slug/conex': typeof PainelSlugConexRoute
   '/painel/$slug/': typeof PainelSlugIndexRoute
   '/painel/$slug/ato/$id': typeof PainelSlugAtoIdRoute
 }
@@ -376,14 +404,17 @@ export interface FileRouteTypes {
     | '/whitepaper-07-pre-auditoria-integrada'
     | '/whitepaper-08-tres-dias'
     | '/whitepaper-09-dados-o-que-fazer'
+    | '/whitepaper-10-antes-da-proxima-onda'
     | '/painel/$slug'
     | '/painel/chat'
+    | '/painel/conta'
     | '/pnl/dashboard'
     | '/pnl/financeiro'
     | '/pnl/pipeline'
     | '/pnl/usuarios'
     | '/painel/'
     | '/pnl/'
+    | '/painel/$slug/conex'
     | '/painel/$slug/'
     | '/painel/$slug/ato/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -412,13 +443,16 @@ export interface FileRouteTypes {
     | '/whitepaper-07-pre-auditoria-integrada'
     | '/whitepaper-08-tres-dias'
     | '/whitepaper-09-dados-o-que-fazer'
+    | '/whitepaper-10-antes-da-proxima-onda'
     | '/painel/chat'
+    | '/painel/conta'
     | '/pnl/dashboard'
     | '/pnl/financeiro'
     | '/pnl/pipeline'
     | '/pnl/usuarios'
     | '/painel'
     | '/pnl'
+    | '/painel/$slug/conex'
     | '/painel/$slug'
     | '/painel/$slug/ato/$id'
   id:
@@ -449,14 +483,17 @@ export interface FileRouteTypes {
     | '/whitepaper-07-pre-auditoria-integrada'
     | '/whitepaper-08-tres-dias'
     | '/whitepaper-09-dados-o-que-fazer'
+    | '/whitepaper-10-antes-da-proxima-onda'
     | '/painel/$slug'
     | '/painel/chat'
+    | '/painel/conta'
     | '/pnl/dashboard'
     | '/pnl/financeiro'
     | '/pnl/pipeline'
     | '/pnl/usuarios'
     | '/painel/'
     | '/pnl/'
+    | '/painel/$slug/conex'
     | '/painel/$slug/'
     | '/painel/$slug/ato/$id'
   fileRoutesById: FileRoutesById
@@ -488,10 +525,18 @@ export interface RootRouteChildren {
   Whitepaper07PreAuditoriaIntegradaRoute: typeof Whitepaper07PreAuditoriaIntegradaRoute
   Whitepaper08TresDiasRoute: typeof Whitepaper08TresDiasRoute
   Whitepaper09DadosOQueFazerRoute: typeof Whitepaper09DadosOQueFazerRoute
+  Whitepaper10AntesDaProximaOndaRoute: typeof Whitepaper10AntesDaProximaOndaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/whitepaper-10-antes-da-proxima-onda': {
+      id: '/whitepaper-10-antes-da-proxima-onda'
+      path: '/whitepaper-10-antes-da-proxima-onda'
+      fullPath: '/whitepaper-10-antes-da-proxima-onda'
+      preLoaderRoute: typeof Whitepaper10AntesDaProximaOndaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/whitepaper-09-dados-o-que-fazer': {
       id: '/whitepaper-09-dados-o-que-fazer'
       path: '/whitepaper-09-dados-o-que-fazer'
@@ -716,6 +761,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PnlDashboardRouteImport
       parentRoute: typeof PnlRoute
     }
+    '/painel/conta': {
+      id: '/painel/conta'
+      path: '/conta'
+      fullPath: '/painel/conta'
+      preLoaderRoute: typeof PainelContaRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/painel/chat': {
       id: '/painel/chat'
       path: '/chat'
@@ -737,6 +789,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelSlugIndexRouteImport
       parentRoute: typeof PainelSlugRoute
     }
+    '/painel/$slug/conex': {
+      id: '/painel/$slug/conex'
+      path: '/conex'
+      fullPath: '/painel/$slug/conex'
+      preLoaderRoute: typeof PainelSlugConexRouteImport
+      parentRoute: typeof PainelSlugRoute
+    }
     '/painel/$slug/ato/$id': {
       id: '/painel/$slug/ato/$id'
       path: '/ato/$id'
@@ -748,11 +807,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface PainelSlugRouteChildren {
+  PainelSlugConexRoute: typeof PainelSlugConexRoute
   PainelSlugIndexRoute: typeof PainelSlugIndexRoute
   PainelSlugAtoIdRoute: typeof PainelSlugAtoIdRoute
 }
 
 const PainelSlugRouteChildren: PainelSlugRouteChildren = {
+  PainelSlugConexRoute: PainelSlugConexRoute,
   PainelSlugIndexRoute: PainelSlugIndexRoute,
   PainelSlugAtoIdRoute: PainelSlugAtoIdRoute,
 }
@@ -764,12 +825,14 @@ const PainelSlugRouteWithChildren = PainelSlugRoute._addFileChildren(
 interface PainelRouteChildren {
   PainelSlugRoute: typeof PainelSlugRouteWithChildren
   PainelChatRoute: typeof PainelChatRoute
+  PainelContaRoute: typeof PainelContaRoute
   PainelIndexRoute: typeof PainelIndexRoute
 }
 
 const PainelRouteChildren: PainelRouteChildren = {
   PainelSlugRoute: PainelSlugRouteWithChildren,
   PainelChatRoute: PainelChatRoute,
+  PainelContaRoute: PainelContaRoute,
   PainelIndexRoute: PainelIndexRoute,
 }
 
@@ -825,6 +888,7 @@ const rootRouteChildren: RootRouteChildren = {
     Whitepaper07PreAuditoriaIntegradaRoute,
   Whitepaper08TresDiasRoute: Whitepaper08TresDiasRoute,
   Whitepaper09DadosOQueFazerRoute: Whitepaper09DadosOQueFazerRoute,
+  Whitepaper10AntesDaProximaOndaRoute: Whitepaper10AntesDaProximaOndaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

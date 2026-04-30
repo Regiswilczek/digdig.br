@@ -30,7 +30,7 @@ from app.models.classificacao_atlas import ClassificacaoAtlas
 from app.models.tenant import Tenant
 from app.services.atlas_service import (
     _montar_input_atlas, _parse_atlas_response, _normalizar_resultado,
-    _get_client, ATLAS_SYSTEM_PROMPT, ATLAS_PROMPT_VERSION, PRECO_ATLAS,
+    _get_client, montar_prompt_atlas, ATLAS_PROMPT_VERSION, PRECO_ATLAS,
 )
 from app.config import settings
 
@@ -76,6 +76,10 @@ async def main(por_tipo: int):
         amostra = await coletar_amostra(db, por_tipo)
         print(f"Amostra coletada: {len(amostra)} atos\n")
 
+        # Resolve prompt do ATLAS pra esse tenant (taxonomia filtrada por tipo_orgao)
+        tenant_full = (await db.execute(select(Tenant).where(Tenant.slug == TENANT_SLUG))).scalar_one()
+        atlas_prompt = await montar_prompt_atlas(db, tenant_full.tipo_orgao)
+
         client = _get_client()
         custo_total = 0.0
         por_categoria: dict[str, int] = {}
@@ -104,7 +108,7 @@ async def main(por_tipo: int):
             fake.tenant_id = None
 
             user_prompt = _montar_input_atlas(fake, conteudo)
-            chars_input = len(ATLAS_SYSTEM_PROMPT) + len(user_prompt)
+            chars_input = len(atlas_prompt) + len(user_prompt)
 
             print(f"[{i:2d}/{len(amostra)}] {tipo:14s} {str(numero)[:14]:14s} {str(data)[:10]:10s} qual={qual:7s} {toks or 0:>6}t  ", end="", flush=True)
 
@@ -115,7 +119,7 @@ async def main(por_tipo: int):
                     max_tokens=3000,
                     response_format={"type": "json_object"},
                     messages=[
-                        {"role": "system", "content": ATLAS_SYSTEM_PROMPT},
+                        {"role": "system", "content": atlas_prompt},
                         {"role": "user", "content": user_prompt},
                     ],
                 )

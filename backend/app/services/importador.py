@@ -36,7 +36,27 @@ def normalizar_tipo(fonte_tipo: str, subtipo: Optional[str]) -> str:
     return fonte_tipo.lower().strip()
 
 
-async def importar_atos_cau_pr(db: AsyncSession) -> dict:
+async def importar_atos(db: AsyncSession, tenant_slug: str) -> dict:
+    """
+    Dispatcher genérico de importação de atos por tenant.
+
+    Olha `tenant.scraper_config["fonte_principal"]` (ou cai no slug) pra
+    decidir qual implementação usar. Hoje só CAU/PR tem implementação ativa
+    (`_importar_atos_caupr_legacy`); GOV-PR e outros virão na Fase 1+.
+
+    Tenants sem fonte conhecida retornam `{"importados": 0, "existentes": 0}`
+    (não falha — só não importa nada). O orquestrador segue pro Piper
+    com os atos que já estão no banco via outros caminhos (scrape direto).
+    """
+    if tenant_slug == "cau-pr":
+        return await _importar_atos_caupr_legacy(db)
+    # Fallback no-op: outros tenants não têm fonte de import legacy.
+    # Atos chegam pelos scrapers locais que já gravam direto no banco.
+    return {"importados": 0, "existentes": 0}
+
+
+async def _importar_atos_caupr_legacy(db: AsyncSession) -> dict:
+    """Importação legada do CAU/PR — lê os JSONs em extracted/."""
     result = await db.execute(select(Tenant).where(Tenant.slug == "cau-pr"))
     tenant = result.scalar_one_or_none()
     if tenant is None:

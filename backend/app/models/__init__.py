@@ -14,6 +14,7 @@ from app.models.preferencia_alerta import PreferenciaAlerta
 from app.models.log import LogSessao, LogAtividade, LogErroUsuario, LogAcessoNegado
 from app.models.tag import AtoTag, TagHistorico
 from app.models.classificacao_atlas import ClassificacaoAtlas
+from app.models.atlas_categoria import AtlasCategoriaTipoOrgao
 from app.models.favorito import AtoFavorito
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     "ApiKey", "PreferenciaAlerta",
     "LogSessao", "LogAtividade", "LogErroUsuario", "LogAcessoNegado",
     "AtoTag", "TagHistorico", "ClassificacaoAtlas", "AtoFavorito",
+    "AtlasCategoriaTipoOrgao",
 ]

@@ -59,11 +59,7 @@ A conclusão jurídica pertence ao leitor, ao advogado, ao promotor.
 - EVITE: "é corrupto", "cometeu crime", "é ilegal", "é nepotismo" (como afirmação definitiva)
 - A força investigativa está em apresentar TODOS os indícios de forma tão clara e fundamentada que o leitor chegue à conclusão por si mesmo — não em rotular.
 
-MINDSET DE AUDITORIA (COMO VOCÊ DEVE PENSAR):
-1. Omissões são evidências: O que NÃO está escrito (falta de dotação orçamentária, falta de motivação clara, falta de prazo) é tão importante quanto o que está escrito.
-2. Princípios Constitucionais (LIMPE): Avalie sempre Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência (Art. 37 da CF). Um ato pode ser formalmente legal e ainda violar esses princípios.
-3. Linguagem de Camuflagem: Desconfie de expressões como "necessidade imperiosa", "reestruturação estratégica" ou "interesse público" usadas sem base técnica objetiva.
-4. Ato legalmente correto pode ser moralmente errado: Verifique nepotismo, perseguição política e concentração de poder mesmo quando o ato cumpre os ritos formais.
+{mindset_auditoria}
 
 ═══════════════════════════════════════════════
 BASE LEGAL E REGULATÓRIA — {nome_orgao}
@@ -81,7 +77,7 @@ NÍVEIS DE ALERTA (CALIBRAÇÃO RIGOROSA):
 
 CRITÉRIOS DE ANÁLISE OBRIGATÓRIOS:
 
-1. LEGAL: Violações diretas ao Regimento Interno e à Lei 12.378/2010
+1. LEGAL: Violações diretas ao Regimento Interno e à legislação aplicável carregada em "BASE LEGAL E REGULATÓRIA" / "LEIS E NORMAS APLICÁVEIS" acima
    - Autoridade incompetente para o ato
    - Violação de quórum, prazos excedidos, composição irregular de comissão
    - Ausência de dotação orçamentária em atos que geram despesa
@@ -276,6 +272,15 @@ def _garantir_campos_piper(result: dict) -> None:
 
 # ─── System prompt builder ────────────────────────────────────────────────────
 
+# Mindset default usado quando o tenant não tem mindset_auditoria_md preenchido —
+# mantém o comportamento histórico do projeto pré multi-tenancy.
+_MINDSET_DEFAULT = """MINDSET DE AUDITORIA (COMO VOCÊ DEVE PENSAR):
+1. Omissões são evidências: O que NÃO está escrito (falta de dotação orçamentária, falta de motivação clara, falta de prazo) é tão importante quanto o que está escrito.
+2. Princípios Constitucionais (LIMPE): Avalie sempre Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência (Art. 37 da CF). Um ato pode ser formalmente legal e ainda violar esses princípios.
+3. Linguagem de Camuflagem: Desconfie de expressões usadas sem base técnica objetiva.
+4. Ato legalmente correto pode ser moralmente errado: Verifique padrões de favorecimento, perseguição e concentração de poder mesmo quando o ato cumpre os ritos formais."""
+
+
 async def montar_system_prompt(db: AsyncSession, tenant_id: uuid.UUID) -> str:
     tenant_result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
     tenant = tenant_result.scalar_one()
@@ -287,7 +292,7 @@ async def montar_system_prompt(db: AsyncSession, tenant_id: uuid.UUID) -> str:
     )
     kb_docs = kb_result.scalars().all()
 
-    regimento = "Regimento não cadastrado — analise com base na Lei 12.378/2010."
+    regimento = "Regimento não cadastrado — analise com base nos princípios gerais do direito administrativo brasileiro (CF Art. 37 e legislação correlata)."
     docs_extras: list[str] = []
 
     for doc in kb_docs:
@@ -299,11 +304,14 @@ async def montar_system_prompt(db: AsyncSession, tenant_id: uuid.UUID) -> str:
     regras_especificas = (
         "\n\n".join(docs_extras)
         if docs_extras
-        else "Sem documentos adicionais cadastrados (lei federal, resoluções CAU/BR)."
+        else "Sem documentos adicionais cadastrados na Knowledge Base deste órgão."
     )
+
+    mindset = (tenant.mindset_auditoria_md or _MINDSET_DEFAULT).strip()
 
     return SYSTEM_PROMPT_TEMPLATE.format(
         nome_orgao=tenant.nome_completo,
+        mindset_auditoria=mindset,
         regimento=regimento,
         regras_especificas=regras_especificas,
     )

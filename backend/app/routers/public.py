@@ -28,6 +28,43 @@ router = APIRouter(prefix="/public", tags=["public"])
 NIVEIS_ORDEM = ["vermelho", "laranja", "amarelo", "verde"]
 
 
+@router.get("/tenants")
+async def listar_tenants(db: AsyncSession = Depends(get_db)):
+    """
+    Lista órgãos cadastrados — usado pela sidebar do painel pra renderizar
+    dinamicamente os tenants (em vez do array hardcoded em painel.tsx).
+
+    Ordem: status `active` primeiro, depois `coming_soon`/etc, alfabético dentro.
+    """
+    rows = (await db.execute(
+        select(
+            Tenant.slug, Tenant.nome, Tenant.nome_completo, Tenant.descricao_curta,
+            Tenant.tipo_orgao, Tenant.estado, Tenant.status, Tenant.cor_tema,
+            Tenant.logo_url, Tenant.total_atos,
+        ).order_by(
+            # active primeiro (boolean order: TRUE = 1, então DESC)
+            (Tenant.status == "active").desc(),
+            Tenant.nome.asc(),
+        )
+    )).all()
+    return [
+        {
+            "slug": r.slug,
+            "nome": r.nome,
+            "nome_completo": r.nome_completo,
+            "descricao_curta": r.descricao_curta,
+            "tipo_orgao": r.tipo_orgao,
+            "estado": r.estado,
+            "status": r.status,
+            "cor_tema": r.cor_tema,
+            "logo_url": r.logo_url,
+            "total_atos": r.total_atos or 0,
+            "ativo": r.status == "active",
+        }
+        for r in rows
+    ]
+
+
 @router.get("/orgaos/{slug}/stats")
 async def get_stats(slug: str, db: AsyncSession = Depends(get_db)):
     tenant_r = await db.execute(select(Tenant).where(Tenant.slug == slug))

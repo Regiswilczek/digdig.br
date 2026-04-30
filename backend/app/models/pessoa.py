@@ -16,6 +16,9 @@ class Pessoa(Base):
     nome_normalizado: Mapped[str] = mapped_column(String(500), nullable=False)
     variantes_nome: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True)
     cargo_mais_recente: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Preparação Fase 3 (cross-tenant). Quando preenchido, permite identificar a
+    # mesma pessoa em órgãos diferentes via tabela pessoa_canonica (futura).
+    cpf_normalizado: Mapped[str | None] = mapped_column(String(11), nullable=True)
     tipo: Mapped[str] = mapped_column(String(50), default="pessoa_fisica")
     total_aparicoes: Mapped[int] = mapped_column(Integer, default=0)
     primeiro_ato_data: Mapped[date | None] = mapped_column(Date, nullable=True)

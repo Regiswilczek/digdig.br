@@ -16,12 +16,17 @@ class Tenant(Base, TimestampMixin):
     nome: Mapped[str] = mapped_column(String(255), nullable=False)
     nome_completo: Mapped[str] = mapped_column(String(500), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text, nullable=True)
+    descricao_curta: Mapped[str | None] = mapped_column(String(200), nullable=True)
     logo_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     site_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    cor_tema: Mapped[str | None] = mapped_column(String(7), nullable=True)
     estado: Mapped[str | None] = mapped_column(CHAR(2), nullable=True)
     tipo_orgao: Mapped[str | None] = mapped_column(String(100), nullable=True)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="coming_soon")
     scraper_config: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    # Mindset de auditoria — prosa específica do tipo de órgão. Injetado no
+    # SYSTEM_PROMPT_TEMPLATE via {mindset_auditoria}. Saiu de hardcode no piper.
+    mindset_auditoria_md: Mapped[str | None] = mapped_column(Text, nullable=True)
     ultima_analise: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     total_atos: Mapped[int] = mapped_column(Integer, default=0)
 

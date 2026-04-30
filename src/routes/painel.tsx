@@ -93,12 +93,35 @@ function SidebarContent({
   const planoLabel = userPlano ?? "—";
   const isFree = !userPlano || userPlano.toLowerCase() === "gratuito";
   const { stats: pipelineStats, finStats: pipelineFinStats } = useOrgao("cau-pr");
-  const orgaos = [
+
+  // Sidebar dinâmica — busca tenants do backend, com fallback hardcoded
+  // pro caso da API estar fora ou ainda não ter o endpoint deployado.
+  const FALLBACK_ORGAOS = [
     { nome: "CAU/PR", slug: "cau-pr", ativo: true, n: 1 },
-    { nome: "Pref. de Curitiba", slug: null, ativo: false, n: 2 },
-    { nome: "CRM/PR", slug: null, ativo: false, n: 3 },
-    { nome: "Câmara de Curitiba", slug: null, ativo: false, n: 4 },
+    { nome: "Pref. de Curitiba", slug: null as string | null, ativo: false, n: 2 },
+    { nome: "CRM/PR", slug: null as string | null, ativo: false, n: 3 },
+    { nome: "Câmara de Curitiba", slug: null as string | null, ativo: false, n: 4 },
   ];
+  const [orgaos, setOrgaos] = useState(FALLBACK_ORGAOS);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { API_URL } = await import("@/lib/api");
+        const r = await fetch(`${API_URL}/public/tenants`);
+        if (!r.ok) return;
+        const lista = await r.json() as { slug: string; nome: string; ativo: boolean; status: string }[];
+        if (cancelled || !Array.isArray(lista) || lista.length === 0) return;
+        setOrgaos(lista.map((t, i) => ({
+          nome: t.nome,
+          slug: t.ativo ? t.slug : null,
+          ativo: t.ativo,
+          n: i + 1,
+        })));
+      } catch { /* fallback silencioso */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Build version string com timestamp atual estável (build-time-ish)
   const version = "v0.4.0";

@@ -6,7 +6,7 @@ from app.workers.celery_app import celery_app
 from app.database import async_session_factory
 from app.models.ato import Ato, RodadaAnalise
 from app.models.tenant import Tenant
-from app.services.importador import importar_atos_cau_pr
+from app.services.importador import importar_atos
 from app.workers.scraper_tasks import scrape_lote_async
 from app.workers.analise_tasks import _analisar_lote_piper, _analisar_criticos_bud
 
@@ -30,11 +30,10 @@ async def _iniciar_rodada(rodada_id_str: str, tenant_slug: str) -> dict:
         await db.commit()
 
         try:
-            # Step 1: Import acts from JSONs (CAU/PR only for now)
-            if tenant_slug == "cau-pr":
-                import_result = await importar_atos_cau_pr(db)
-            else:
-                import_result = {"importados": 0, "existentes": 0}
+            # Step 1: Import acts via dispatcher.
+            # Hoje só CAU/PR tem implementação ativa (legado JSON);
+            # outros tenants são no-op e dependem dos scrapers locais.
+            import_result = await importar_atos(db, tenant_slug)
 
             # Step 2: Get all acts without extracted text
             tenant_result = await db.execute(

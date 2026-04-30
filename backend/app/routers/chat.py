@@ -14,11 +14,15 @@ from app.services import chat_service
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-_CAU_PR_SLUG = "cau-pr"
+# TODO Fase 1+: tornar chat multi-tenant. Hoje todos os endpoints usam
+# este tenant default; quando GOV-PR for implantado, os endpoints precisam
+# aceitar `?slug=...` ou path param e propagar pra `chat_service`.
+_TENANT_DEFAULT_SLUG = "cau-pr"
 
 
-async def _get_tenant(db: AsyncSession) -> Tenant:
-    r = await db.execute(select(Tenant).where(Tenant.slug == _CAU_PR_SLUG))
+async def _get_tenant(db: AsyncSession, slug: str | None = None) -> Tenant:
+    target = slug or _TENANT_DEFAULT_SLUG
+    r = await db.execute(select(Tenant).where(Tenant.slug == target))
     t = r.scalar_one_or_none()
     if not t:
         raise HTTPException(404, "Órgão não encontrado")
