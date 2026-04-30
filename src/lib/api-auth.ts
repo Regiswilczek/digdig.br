@@ -43,6 +43,17 @@ export interface ResultadoHaiku {
   motivo_aprofundamento: string | null;
 }
 
+export interface AtoTagPainel {
+  codigo: string;
+  nome: string;
+  categoria: string;
+  categoria_nome: string;
+  gravidade: "baixa" | "media" | "alta" | "critica";
+  atribuido_por: "piper" | "bud" | "new";
+  revisado_por: string | null;
+  justificativa: string | null;
+}
+
 export interface PainelAto {
   id: string;
   numero: string;
@@ -58,6 +69,15 @@ export interface PainelAto {
   resultado_piper: ResultadoHaiku | null;
   resultado_bud: Record<string, unknown> | null;
   recomendacao_campanha: string | null;
+  cvss_score: number | null;
+  cvss_vector: string | null;
+  cvss_fi: string | null;
+  cvss_li: string | null;
+  cvss_ri: string | null;
+  cvss_av: string | null;
+  cvss_ac: string | null;
+  cvss_pr: string | null;
+  tags: AtoTagPainel[];
 }
 
 export interface PainelAtosResponse {

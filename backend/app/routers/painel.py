@@ -141,6 +141,27 @@ async def get_ato(
 
     ato, analise = row
 
+    # Tags ativas do ato
+    tags_payload: list[dict] = []
+    if analise:
+        from app.models.tag import AtoTag
+        tags_r = await db.execute(
+            select(AtoTag)
+            .where(AtoTag.ato_id == ato.id, AtoTag.ativa == True)  # noqa: E712
+            .order_by(AtoTag.criado_em.asc())
+        )
+        for t in tags_r.scalars().all():
+            tags_payload.append({
+                "codigo": t.codigo,
+                "nome": t.nome,
+                "categoria": t.categoria,
+                "categoria_nome": t.categoria_nome,
+                "gravidade": t.gravidade,
+                "atribuido_por": t.atribuido_por,
+                "revisado_por": t.revisado_por,
+                "justificativa": t.justificativa,
+            })
+
     return {
         "id": str(ato.id),
         "numero": ato.numero,
@@ -158,6 +179,17 @@ async def get_ato(
         "resultado_piper": analise.resultado_piper if analise else None,
         "resultado_bud": analise.resultado_bud if analise else None,
         "recomendacao_campanha": analise.recomendacao_campanha if analise else None,
+        # Métricas de auditoria (CVSS-A)
+        "cvss_score": float(analise.cvss_score) if analise and analise.cvss_score else None,
+        "cvss_vector": analise.cvss_vector if analise else None,
+        "cvss_fi": analise.cvss_fi if analise else None,
+        "cvss_li": analise.cvss_li if analise else None,
+        "cvss_ri": analise.cvss_ri if analise else None,
+        "cvss_av": analise.cvss_av if analise else None,
+        "cvss_ac": analise.cvss_ac if analise else None,
+        "cvss_pr": analise.cvss_pr if analise else None,
+        # Tags
+        "tags": tags_payload,
     }
 
 

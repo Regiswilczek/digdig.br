@@ -571,8 +571,78 @@ function AtoDetailPage() {
           </Section>
         )}
 
+        {/* Tags identificadas */}
+        {ato.tags && ato.tags.length > 0 && (
+          <Section eyebrow="06" title="Tags identificadas">
+            <ul className="flex flex-wrap gap-2">
+              {ato.tags.map((tag) => {
+                const g = GRAVIDADE_BG[tag.gravidade] ?? { bg: PAPER, fg: MUTED, border: BORDER };
+                return (
+                  <li
+                    key={tag.codigo}
+                    className="inline-flex items-center gap-2 px-3 py-1.5"
+                    style={{
+                      background: g.bg,
+                      color: g.fg,
+                      border: `1px solid ${g.border}`,
+                      borderRadius: 2,
+                    }}
+                    title={tag.justificativa ?? undefined}
+                  >
+                    <span className="text-[11px] font-semibold" style={{ fontFamily: MONO }}>{tag.nome}</span>
+                    <span className="text-[9px] uppercase tracking-wider opacity-70" style={{ fontFamily: MONO }}>
+                      {tag.gravidade} · {tag.atribuido_por}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="text-[11px] mt-3" style={{ color: SUBTLE }}>
+              Passe o mouse sobre a tag para ver a justificativa textual.
+            </p>
+          </Section>
+        )}
+
+        {/* Métricas de auditoria — CVSS-A */}
+        {ato.cvss_score != null && (
+          <Section eyebrow="07" title="Métricas de auditoria">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+              <div style={{ border: `1px solid ${BORDER}`, padding: 16 }}>
+                <p className="text-[10px] uppercase tracking-[0.18em]" style={{ color: SUBTLE, fontFamily: MONO }}>CVSS-A score</p>
+                <p className="text-[34px] font-semibold leading-none mt-2" style={{ fontFamily: MONO, color: ato.nivel_alerta ? (NIVEL_COLOR[ato.nivel_alerta] ?? INK) : INK }}>
+                  {ato.cvss_score.toFixed(1)}
+                </p>
+                <p className="text-[10px] uppercase tracking-[0.16em] mt-1" style={{ color: MUTED, fontFamily: MONO }}>
+                  {ato.cvss_score >= 8 ? "vermelho (8.0–10.0)" : ato.cvss_score >= 6 ? "laranja (6.0–7.9)" : ato.cvss_score >= 3 ? "amarelo (3.0–5.9)" : "verde (0.0–2.9)"}
+                </p>
+              </div>
+              {ato.cvss_vector && (
+                <div className="md:col-span-2" style={{ border: `1px solid ${BORDER}`, padding: 16 }}>
+                  <p className="text-[10px] uppercase tracking-[0.18em] mb-2" style={{ color: SUBTLE, fontFamily: MONO }}>Vetor</p>
+                  <p className="text-[12px] break-all" style={{ fontFamily: MONO, color: INK }}>{ato.cvss_vector}</p>
+                </div>
+              )}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {[
+                { label: "Forma de irregularidade (FI)", value: ato.cvss_fi },
+                { label: "Lei violada (LI)", value: ato.cvss_li },
+                { label: "Repercussão / impacto (RI)", value: ato.cvss_ri },
+                { label: "Autoridade vetorial (AV)", value: ato.cvss_av },
+                { label: "Acesso / contexto (AC)", value: ato.cvss_ac },
+                { label: "Posição na hierarquia (PR)", value: ato.cvss_pr },
+              ].filter((c) => c.value).map((c) => (
+                <div key={c.label} style={{ borderBottom: `1px solid ${BORDER}`, paddingBottom: 8 }}>
+                  <p className="text-[10px] uppercase tracking-[0.14em]" style={{ color: SUBTLE, fontFamily: MONO }}>{c.label}</p>
+                  <p className="text-[13px] mt-1" style={{ color: INK, fontFamily: MONO }}>{c.value}</p>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
         {/* Links */}
-        <Section eyebrow="06" title="Fontes">
+        <Section eyebrow="08" title="Fontes">
           <div className="flex flex-wrap gap-3">
             {ato.url_pdf && (
               <a
