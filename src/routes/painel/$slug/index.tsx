@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import {
   fetchPainelAtos,
@@ -22,7 +22,22 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ExternalLink, FileText, Search, Activity, ArrowDownToLine } from "lucide-react";
 
+type DashboardSearch = {
+  tab?: "visao-geral" | "relatorio" | "denuncias" | "pipeline" | "dados";
+  // sub-aba de DADOS — preserva categoria selecionada ao voltar do detalhe do ato
+  sub?: string;
+};
+
 export const Route = createFileRoute("/painel/$slug/")({
+  validateSearch: (s: Record<string, unknown>): DashboardSearch => {
+    const tab = s.tab as DashboardSearch["tab"] | undefined;
+    return {
+      tab: ["visao-geral", "relatorio", "denuncias", "pipeline", "dados"].includes(tab as string)
+        ? tab
+        : undefined,
+      sub: typeof s.sub === "string" ? s.sub : undefined,
+    };
+  },
   component: SlugDashboard,
 });
 
@@ -3906,7 +3921,16 @@ const DADOS_TIPOS = [
 ] as const;
 
 function TabDados({ slug }: { slug: string }) {
-  const [tipo, setTipo] = useState<string>("ata_plenaria");
+  const navigate = useNavigate({ from: Route.fullPath });
+  const search = useSearch({ from: Route.fullPath }) as DashboardSearch;
+  const tipo = search.sub ?? "deliberacao_arquivo";
+  const setTipo = (v: string) => {
+    navigate({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      search: ((s: any) => ({ ...s, sub: v === "deliberacao_arquivo" ? undefined : v })) as any,
+      replace: true,
+    });
+  };
   const ACCENT = "#16a34a";
 
   const tipoAtivo = DADOS_TIPOS.find((t) => t.value === tipo);
@@ -4089,6 +4113,9 @@ function TabDados({ slug }: { slug: string }) {
 // ── Main Dashboard ──────────────────────────────────────────────────────
 function SlugDashboard() {
   const { slug } = Route.useParams();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const search = useSearch({ from: Route.fullPath }) as DashboardSearch;
+  const tabAtiva = search.tab ?? "visao-geral";
   const { stats, rodada, atividade, crescimento, finStats } = useOrgao(slug);
   const [recentAnalyses, setRecentAnalyses] = useState<AnaliseRecente[] | null>(null);
 
@@ -4231,7 +4258,17 @@ function SlugDashboard() {
 
         {/* ── Tabs ───────────────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto">
-          <Tabs defaultValue="visao-geral" className="h-full">
+          <Tabs
+            value={tabAtiva}
+            onValueChange={(v) =>
+              navigate({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                search: ((s: any) => ({ ...s, tab: v === "visao-geral" ? undefined : v })) as any,
+                replace: true,
+              })
+            }
+            className="h-full"
+          >
             <TabsList
               className="px-4 sm:px-6 md:px-10 pt-0 pb-0 bg-transparent rounded-none h-auto gap-0 w-full justify-start overflow-x-auto flex-nowrap"
               style={{ borderBottom: `1px solid ${BORDER}` }}
