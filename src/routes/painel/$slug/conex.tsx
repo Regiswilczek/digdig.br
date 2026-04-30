@@ -432,18 +432,20 @@ function ConexPage() {
   useEffect(() => {
     let alive = true;
     dispatch({ type: "loading", on: true });
-    // Busca top pessoas + lista de tags para o combobox (sem botar tags no canvas)
-    Promise.all([
-      fetchGrafoRaiz(slug, { limit: 18, icp_min: 0, incluir_tags_top: 0 }),
-      fetchGrafoRaiz(slug, { limit: 0, icp_min: 0, incluir_tags_top: 30 }),
-    ])
-      .then(([pessoasData, tagsData]) => {
+    // Uma chamada: pega pessoas (vão pro canvas) + lista de tags (só pro combobox)
+    fetchGrafoRaiz(slug, { limit: 18, icp_min: 0, incluir_tags_top: 30 })
+      .then((data) => {
         if (!alive) return;
-        dispatch({ type: "merge", data: pessoasData });
-        dispatch({ type: "loading", on: false });
+        // Salva tags pro combobox antes de remover do payload
         setTagsDisponiveis(
-          tagsData.nodes_tags.map((t) => ({ codigo: t.codigo, nome: t.nome }))
+          data.nodes_tags.map((t) => ({ codigo: t.codigo, nome: t.nome }))
         );
+        // Merge só pessoas no canvas — descarta tags pra não poluir o estado inicial
+        dispatch({
+          type: "merge",
+          data: { ...data, nodes_tags: [] },
+        });
+        dispatch({ type: "loading", on: false });
       })
       .catch((err) => {
         if (!alive) return;
