@@ -282,6 +282,12 @@ async def analisar_ato_bud(
     contexto = await _montar_contexto_bud(db, ato_id, analise)
     system_prompt = system_prompt_base + BUD_EXTRA
 
+    # Marca analise como "em andamento" antes da chamada — dispara realtime
+    # para o painel mostrar "Bud trabalhando agora" enquanto a chamada roda.
+    analise.status = "bud_em_andamento"
+    await db.commit()
+    await db.refresh(analise)
+
     response = await client.messages.create(
         model=settings.claude_sonnet_model,
         max_tokens=6000,

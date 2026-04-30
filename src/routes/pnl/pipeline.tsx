@@ -192,6 +192,38 @@ function PipelinePage() {
         <p className="text-white/30 text-[12px] uppercase tracking-[0.16em]">Carregando…</p>
       ) : (
         <>
+          {/* Em processamento agora — agentes trabalhando ao vivo */}
+          {pipeline && pipeline.em_processamento.length > 0 && (
+            <section className="mb-6">
+              <p className="text-[10px] uppercase tracking-[0.16em] text-emerald-400 mb-3 flex items-center gap-2" style={SYNE}>
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Em processamento agora ({pipeline.em_processamento.length})
+              </p>
+              <div className="border border-emerald-400/30 p-4" style={{ background: "#0a1410" }}>
+                <ul className="space-y-2">
+                  {pipeline.em_processamento.map((item) => {
+                    const accent = item.agente === "bud" ? "#8b5cf6" : item.agente === "new" ? "#ec4899" : "#3b82f6";
+                    return (
+                      <li key={item.ato_id} className="flex items-center gap-3 text-[12px]">
+                        <span className="inline-block w-2 h-2 rounded-full animate-pulse" style={{ background: accent }} />
+                        <span className="text-[10px] uppercase tracking-wider w-12 shrink-0" style={{ color: accent, fontFamily: "JetBrains Mono, monospace" }}>
+                          {item.agente}
+                        </span>
+                        <span className="text-white/40 w-24 shrink-0 truncate">{item.tipo.replace(/_/g, " ")}</span>
+                        <span className="text-white flex-1 truncate">{item.numero}</span>
+                        {item.nivel_alerta && (
+                          <span className="text-[10px] uppercase tracking-wider" style={{ color: NIVEL_COLOR[item.nivel_alerta] ?? "#9ca3af" }}>
+                            {item.nivel_alerta}
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </section>
+          )}
+
           {/* Filas — documentos esperando cada agente */}
           {pipeline && (
             <section className="mb-8">

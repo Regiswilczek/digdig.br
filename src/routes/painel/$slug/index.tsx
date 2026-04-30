@@ -1984,6 +1984,40 @@ function TabPipeline({
         <Progress value={pct} className="h-1" style={{ background: PAPER }} />
       )}
 
+      {/* Em processamento agora */}
+      {filas && filas.em_processamento.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="inline-block w-2 h-2 rounded-full animate-pulse" style={{ background: "#16a34a" }} />
+            <span className="text-[10px] uppercase tracking-[0.18em] font-semibold" style={{ color: "#15803d", fontFamily: MONO }}>
+              Em processamento agora ({filas.em_processamento.length})
+            </span>
+          </div>
+          <div style={{ border: `1px solid #bbf7d0`, background: "#f0fdf4", padding: 16 }}>
+            <ul className="space-y-2">
+              {filas.em_processamento.map((item) => {
+                const accent = item.agente === "bud" ? "#8b5cf6" : item.agente === "new" ? "#ec4899" : "#3b82f6";
+                return (
+                  <li key={item.ato_id} className="flex items-center gap-3 text-[12px]" style={{ color: INK, fontFamily: MONO }}>
+                    <span className="inline-block w-2 h-2 rounded-full animate-pulse shrink-0" style={{ background: accent }} />
+                    <span className="text-[10px] uppercase tracking-wider w-12 shrink-0" style={{ color: accent }}>
+                      {item.agente}
+                    </span>
+                    <span className="w-28 shrink-0 truncate" style={{ color: SUBTLE }}>{item.tipo.replace(/_/g, " ")}</span>
+                    <span className="flex-1 truncate">{item.numero}</span>
+                    {item.nivel_alerta && (
+                      <span className="text-[10px] uppercase tracking-wider" style={{ color: NIVEL_COLOR_PAINEL[item.nivel_alerta] ?? SUBTLE }}>
+                        {item.nivel_alerta}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {/* Filas de análise em tempo real */}
       {filas && (
         <div>

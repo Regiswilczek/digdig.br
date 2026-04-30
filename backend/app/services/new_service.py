@@ -179,6 +179,12 @@ async def analisar_ato_new(
     contexto = await _montar_contexto_new(db, ato_id, analise)
     system_prompt = system_prompt_base + NEW_EXTRA
 
+    # Marca analise como "em andamento" antes da chamada — dispara realtime
+    # para o painel mostrar "New trabalhando agora" enquanto a chamada roda.
+    analise.status = "new_em_andamento"
+    await db.commit()
+    await db.refresh(analise)
+
     response = await client.messages.create(
         model=settings.claude_opus_model,
         max_tokens=6000,

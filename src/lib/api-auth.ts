@@ -114,8 +114,18 @@ export interface FilaInfo {
   descricao: string;
 }
 
+export interface EmProcessamentoItem {
+  ato_id: string;
+  tipo: string;
+  numero: string;
+  data_publicacao: string | null;
+  nivel_alerta: "verde" | "amarelo" | "laranja" | "vermelho" | null;
+  agente: "piper" | "bud" | "new";
+}
+
 export interface PipelineStatus {
   tenant: { id: string; slug: string; nome: string };
+  em_processamento: EmProcessamentoItem[];
   filas: {
     aguarda_piper: FilaInfo;
     aguarda_bud: FilaInfo;

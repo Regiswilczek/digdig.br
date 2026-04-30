@@ -448,6 +448,38 @@ async def get_pipeline_status(
         await db.execute(aguarda_new_base.order_by(Analise.criado_em.desc()).limit(10))
     ).all()
 
+    # Em processamento agora (status = *_em_andamento)
+    em_proc_base = (
+        select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao, Analise.nivel_alerta, Analise.status)
+        .join(Analise, Analise.ato_id == Ato.id)
+        .where(
+            Ato.tenant_id == tid,
+            Analise.status.in_(["bud_em_andamento", "new_em_andamento", "piper_em_andamento"]),
+        )
+        .order_by(Analise.atualizado_em.desc())
+        .limit(10)
+    )
+    em_proc_rows = (await db.execute(em_proc_base)).all()
+
+    def _serialize_em_proc(rows) -> list[dict]:
+        out = []
+        for row in rows:
+            ato_id, tipo, numero, data, nivel, status = row
+            agente = (
+                "bud" if status == "bud_em_andamento"
+                else "new" if status == "new_em_andamento"
+                else "piper"
+            )
+            out.append({
+                "ato_id": str(ato_id),
+                "tipo": tipo,
+                "numero": numero or "?",
+                "data_publicacao": data.isoformat() if data else None,
+                "nivel_alerta": nivel,
+                "agente": agente,
+            })
+        return out
+
     # Fila 4: Sem texto extraído (bloqueados antes do Piper)
     sem_texto_base = (
         select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao, Ato.url_pdf, Ato.erro_download)
@@ -463,6 +495,7 @@ async def get_pipeline_status(
 
     return {
         "tenant": {"id": str(tid), "slug": slug, "nome": tenant.nome_completo},
+        "em_processamento": _serialize_em_proc(em_proc_rows),
         "filas": {
             "aguarda_piper": {
                 "total": piper_total,
