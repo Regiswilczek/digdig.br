@@ -213,7 +213,10 @@ async def listar_fila(
             ).exists(),
         ]
         if tipo and tipo != "all":
-            filtros.append(Ato.tipo == tipo)
+            # Filtra por tipo do scraper OU por categoria ATLAS — assim o mesmo
+            # dropdown atende tipos legados (portaria, deliberacao) e categorias
+            # novas (licitacao, financeiro_balanco etc).
+            filtros.append(or_(Ato.tipo == tipo, Ato.tipo_atlas == tipo))
 
         base = (
             select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao)
@@ -245,7 +248,7 @@ async def listar_fila(
             Analise.status != "bud_em_andamento",
         ]
         if tipo and tipo != "all":
-            filtros.append(Ato.tipo == tipo)
+            filtros.append(or_(Ato.tipo == tipo, Ato.tipo_atlas == tipo))
 
         base = (
             select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao, Analise.nivel_alerta)
@@ -334,7 +337,7 @@ async def disparar_lote(
             ).exists(),
         ]
         if tipo != "all":
-            filtros.append(Ato.tipo == tipo)
+            filtros.append(or_(Ato.tipo == tipo, Ato.tipo_atlas == tipo))
         atos_r = await db.execute(
             select(Ato.id)
             .join(ConteudoAto, ConteudoAto.ato_id == Ato.id)
@@ -352,7 +355,7 @@ async def disparar_lote(
             Analise.status != "bud_em_andamento",
         ]
         if tipo != "all":
-            filtros.append(Ato.tipo == tipo)
+            filtros.append(or_(Ato.tipo == tipo, Ato.tipo_atlas == tipo))
         atos_r = await db.execute(
             select(Ato.id)
             .join(Analise, Analise.ato_id == Ato.id)

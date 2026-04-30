@@ -1422,9 +1422,11 @@ function TabVisaoGeral({
 function TabAtos({
   slug,
   tipo,
+  tipoAtlas,
 }: {
   slug: string;
   tipo: string;
+  tipoAtlas?: string;
 }) {
   const [atos, setAtos] = useState<PainelAto[]>([]);
   const [total, setTotal] = useState(0);
@@ -1438,7 +1440,8 @@ function TabAtos({
   useEffect(() => {
     setLoading(true);
     fetchPainelAtos(slug, {
-      tipo,
+      tipo: tipo || undefined,
+      tipoAtlas: tipoAtlas || undefined,
       nivel: nivel || undefined,
       ano: ano ? Number(ano) : undefined,
       busca: busca || undefined,
@@ -1451,7 +1454,7 @@ function TabAtos({
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [slug, tipo, nivel, ano, busca, page]);
+  }, [slug, tipo, tipoAtlas, nivel, ano, busca, page]);
 
   const anos = Array.from({ length: 7 }, (_, i) => 2020 + i);
 
@@ -3864,6 +3867,8 @@ function TabFinanceiro({ slug, tipo }: { slug: string; tipo: "diarias" | "passag
 }
 
 // ── Tab: Dados (submenu interno) ─────────────────────────────────────────
+// `grupo: "atlas"` → filtra por tipo_atlas (categoria ATLAS).
+// `grupo: "docs"` → filtra por tipo (vem do scraper).
 const DADOS_TIPOS = [
   { value: "ata_plenaria",         label: "Atas Plenárias",     grupo: "docs" },
   { value: "portaria",             label: "Portarias",           grupo: "docs" },
@@ -3879,6 +3884,20 @@ const DADOS_TIPOS = [
   { value: "pendentes",            label: "Pendentes",           grupo: "docs" },
   { value: "diarias",             label: "Diárias",              grupo: "financeiro" },
   { value: "passagens",            label: "Passagens Aéreas",    grupo: "financeiro" },
+  // Categorias ATLAS — filtram via tipo_atlas, organizando o que veio do
+  // scraper como `media_library` (e similares) em grupos finais.
+  { value: "licitacao",                  label: "Licitações",            grupo: "atlas" },
+  { value: "financeiro_balanco",         label: "Balanços Financeiros",   grupo: "atlas" },
+  { value: "financeiro_orcamento",       label: "Orçamentos",             grupo: "atlas" },
+  { value: "financeiro_demonstrativo",   label: "Demonstrativos",         grupo: "atlas" },
+  { value: "ata_pauta_comissao",         label: "Atas/Pautas Comissão",   grupo: "atlas" },
+  { value: "recursos_humanos",           label: "Recursos Humanos",       grupo: "atlas" },
+  { value: "auditoria_externa",          label: "Auditorias Externas",    grupo: "atlas" },
+  { value: "relatorio_gestao",           label: "Relatórios de Gestão",   grupo: "atlas" },
+  { value: "processo_etico",             label: "Processos Éticos",       grupo: "atlas" },
+  { value: "juridico_parecer",           label: "Pareceres Jurídicos",    grupo: "atlas" },
+  { value: "aditivo_contratual",         label: "Aditivos Contratuais",   grupo: "atlas" },
+  { value: "comunicacao_institucional",  label: "Comunicação Inst.",      grupo: "atlas" },
 ] as const;
 
 function TabDados({ slug }: { slug: string }) {
@@ -4010,6 +4029,43 @@ function TabDados({ slug }: { slug: string }) {
             );
           })}
         </div>
+
+        {/* Grupo atlas — categorias descobertas pela classificação automática */}
+        <p style={{ fontFamily: MONO, fontSize: 8.5, color: "#16a34a", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
+          Categorias ATLAS · organização automática
+        </p>
+        <div
+          className="grid gap-[1px] mb-2"
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+            background: "#bbf7d0",
+            border: `1px solid #bbf7d0`,
+          }}
+        >
+          {DADOS_TIPOS.filter((t) => t.grupo === "atlas").map((t) => {
+            const ativo = tipo === t.value;
+            return (
+              <button
+                key={t.value}
+                onClick={() => setTipo(t.value)}
+                className="text-left transition-colors"
+                style={{
+                  fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.1em", textTransform: "uppercase",
+                  padding: "10px 12px",
+                  background: ativo ? "#15803d" : "#f0fdf4",
+                  color: ativo ? "#fff" : "#15803d",
+                  fontWeight: ativo ? 600 : 500,
+                  cursor: "pointer", border: "none",
+                  borderLeft: ativo ? `2px solid #4ade80` : "2px solid transparent",
+                }}
+                onMouseEnter={(e) => { if (!ativo) e.currentTarget.style.background = "#dcfce7"; }}
+                onMouseLeave={(e) => { if (!ativo) e.currentTarget.style.background = "#f0fdf4"; }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Conteúdo */}
@@ -4017,9 +4073,13 @@ function TabDados({ slug }: { slug: string }) {
         <TabPendentes slug={slug} />
       ) : tipo === "diarias" || tipo === "passagens" ? (
         <TabFinanceiro slug={slug} tipo={tipo} />
-      ) : (
-        <TabAtos slug={slug} tipo={tipo} />
-      )}
+      ) : (() => {
+        const grupo = DADOS_TIPOS.find((t) => t.value === tipo)?.grupo;
+        if (grupo === "atlas") {
+          return <TabAtos slug={slug} tipo="" tipoAtlas={tipo} />;
+        }
+        return <TabAtos slug={slug} tipo={tipo} />;
+      })()}
     </div>
   );
 }

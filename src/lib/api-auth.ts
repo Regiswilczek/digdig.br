@@ -150,6 +150,7 @@ export async function fetchPainelAtos(
   slug: string,
   params: {
     tipo?: string;
+    tipoAtlas?: string;
     nivel?: string;
     ano?: number;
     busca?: string;
@@ -158,6 +159,7 @@ export async function fetchPainelAtos(
 ): Promise<PainelAtosResponse> {
   const q = new URLSearchParams();
   if (params.tipo) q.set("tipo", params.tipo);
+  if (params.tipoAtlas) q.set("tipo_atlas", params.tipoAtlas);
   if (params.nivel) q.set("nivel", params.nivel);
   if (params.ano) q.set("ano", String(params.ano));
   if (params.busca) q.set("busca", params.busca);

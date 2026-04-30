@@ -442,8 +442,11 @@ function RodadaCard({
 }
 
 // ── Componente: card de fila por agente ─────────────────────────────────
+// Tipos do scraper (fonte) + categorias do ATLAS (organização). Backend
+// admin.py filtra por OR(Ato.tipo, Ato.tipo_atlas).
 const TIPOS_DISPARAVEIS = [
   "all",
+  // Scraper tipos
   "ata_plenaria",
   "portaria",
   "portaria_normativa",
@@ -453,6 +456,25 @@ const TIPOS_DISPARAVEIS = [
   "media_library",
   "relatorio_parecer",
   "auditoria_independente",
+  "contratacao_direta",
+  "contrato",
+  "relatorio_tcu",
+  // Categorias ATLAS
+  "licitacao",
+  "deliberacao_arquivo",
+  "portaria_arquivo",
+  "ata_pauta_comissao",
+  "financeiro_balanco",
+  "financeiro_orcamento",
+  "financeiro_demonstrativo",
+  "auditoria_externa",
+  "relatorio_gestao",
+  "processo_etico",
+  "recursos_humanos",
+  "juridico_parecer",
+  "aditivo_contratual",
+  "comunicacao_institucional",
+  "outros",
 ];
 
 function FilaCard({
