@@ -651,16 +651,29 @@ function AtoDetailPage() {
         )}
 
         {/* Métricas de auditoria — CVSS-A */}
-        {ato.cvss_score != null && (
+        {ato.cvss_score != null && (() => {
+          // Faixa CVSS é a fonte da verdade — número e label usam a mesma cor.
+          const cvssNivel =
+            ato.cvss_score! >= 8 ? "vermelho"
+            : ato.cvss_score! >= 6 ? "laranja"
+            : ato.cvss_score! >= 3 ? "amarelo"
+            : "verde";
+          const cvssColor = NIVEL_COLOR[cvssNivel];
+          const cvssLabel =
+            cvssNivel === "vermelho" ? "vermelho (8.0–10.0)"
+            : cvssNivel === "laranja" ? "laranja (6.0–7.9)"
+            : cvssNivel === "amarelo" ? "amarelo (3.0–5.9)"
+            : "verde (0.0–2.9)";
+          return (
           <Section eyebrow="07" title="Métricas de auditoria">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
               <div style={{ border: `1px solid ${BORDER}`, padding: 16 }}>
                 <p className="text-[10px] uppercase tracking-[0.18em]" style={{ color: SUBTLE, fontFamily: MONO }}>CVSS-A score</p>
-                <p className="text-[34px] font-semibold leading-none mt-2" style={{ fontFamily: MONO, color: ato.nivel_alerta ? (NIVEL_COLOR[ato.nivel_alerta] ?? INK) : INK }}>
-                  {ato.cvss_score.toFixed(1)}
+                <p className="text-[34px] font-semibold leading-none mt-2" style={{ fontFamily: MONO, color: cvssColor }}>
+                  {ato.cvss_score!.toFixed(1)}
                 </p>
-                <p className="text-[10px] uppercase tracking-[0.16em] mt-1" style={{ color: MUTED, fontFamily: MONO }}>
-                  {ato.cvss_score >= 8 ? "vermelho (8.0–10.0)" : ato.cvss_score >= 6 ? "laranja (6.0–7.9)" : ato.cvss_score >= 3 ? "amarelo (3.0–5.9)" : "verde (0.0–2.9)"}
+                <p className="text-[10px] uppercase tracking-[0.16em] mt-1" style={{ color: cvssColor, fontFamily: MONO }}>
+                  {cvssLabel}
                 </p>
               </div>
               {ato.cvss_vector && (
@@ -686,7 +699,8 @@ function AtoDetailPage() {
               ))}
             </div>
           </Section>
-        )}
+          );
+        })()}
 
         {/* Links */}
         <Section eyebrow="08" title="Fontes">
