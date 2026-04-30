@@ -312,10 +312,15 @@ function SidebarContent({
           </div>
           {(() => {
             const analisados = pipelineStats?.total_analisados ?? null;
-            const total = pipelineStats
+            // Total auditável: desconta os atos sem texto extraído — mesma lógica da Visão Geral.
+            // (sem_url / erro_download / pendente não podem entrar no pipeline IA.)
+            const totalDocs = pipelineStats
               ? (pipelineStats.total_atos
                   + (pipelineFinStats?.diarias.total ?? 0)
                   + (pipelineFinStats?.passagens.total ?? 0))
+              : null;
+            const total = totalDocs != null
+              ? Math.max(0, totalDocs - (pipelineStats?.total_sem_texto ?? 0))
               : null;
             const pct = analisados != null && total ? Math.round((analisados / total) * 1000) / 10 : null;
             return (
