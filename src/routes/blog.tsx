@@ -34,6 +34,16 @@ export const Route = createFileRoute("/blog")({
 // Add new entries here (newest first) whenever a new white paper is published.
 const PAPERS = [
   {
+    numero: "10",
+    slug: "/whitepaper-10-antes-da-proxima-onda",
+    titulo: "Antes da Próxima Onda",
+    subtitulo: "Um mês polindo a espinha dorsal — CVSS-A, meta-tags, conexões, ATLAS",
+    resumo:
+      "O sprint que ninguém vê: scoring de irregularidades inspirado em CVSS (cyber segurança) com seis dimensões reproduzíveis, meta-tags que nomeiam padrões em vez de eventos, painel de conexões virando ferramenta de pesquisa, painel da conta com favoritos, e o quarto agente — ATLAS — rodando agora pra organizar 3.392 documentos antes do Piper.",
+    data: "Abril 2026",
+    tags: ["CVSS-A", "ATLAS", "Meta-Tags", "Conexões", "Quatro Agentes"],
+  },
+  {
     numero: "09",
     slug: "/whitepaper-09-dados-o-que-fazer",
     titulo: "Dados: O Que Fazer Com Eles",
