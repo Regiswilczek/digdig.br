@@ -14,6 +14,7 @@ from app.models.preferencia_alerta import PreferenciaAlerta
 from app.models.log import LogSessao, LogAtividade, LogErroUsuario, LogAcessoNegado
 from app.models.tag import AtoTag, TagHistorico
 from app.models.classificacao_atlas import ClassificacaoAtlas
+from app.models.favorito import AtoFavorito
 
 __all__ = [
     "Base", "Plano", "User", "Assinatura", "Tenant", "UserTenantAcesso",
@@ -23,5 +24,5 @@ __all__ = [
     "Relatorio", "CampanhaPatrocinio", "DoacaoPatrocinio", "VotoPatrocinio",
     "ApiKey", "PreferenciaAlerta",
     "LogSessao", "LogAtividade", "LogErroUsuario", "LogAcessoNegado",
-    "AtoTag", "TagHistorico", "ClassificacaoAtlas",
+    "AtoTag", "TagHistorico", "ClassificacaoAtlas", "AtoFavorito",
 ]

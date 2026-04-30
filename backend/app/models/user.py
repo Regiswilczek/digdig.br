@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Boolean, ForeignKey, DateTime, func
+from sqlalchemy import String, Boolean, ForeignKey, DateTime, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import Base, TimestampMixin
@@ -12,6 +12,7 @@ class User(Base, TimestampMixin):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     nome: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     plano_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("planos.id"), nullable=False
     )
@@ -23,6 +24,9 @@ class User(Base, TimestampMixin):
     assinaturas: Mapped[list["Assinatura"]] = relationship(back_populates="user")
     acessos_tenant: Mapped[list["UserTenantAcesso"]] = relationship(back_populates="user")
     api_keys: Mapped[list["ApiKey"]] = relationship(back_populates="user")
+    favoritos: Mapped[list["AtoFavorito"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Assinatura(Base):

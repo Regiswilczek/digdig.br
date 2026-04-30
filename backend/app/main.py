@@ -11,6 +11,7 @@ from app.routers.public import router as public_router
 from app.routers.painel import router as painel_router
 from app.routers.billing import router as billing_router
 from app.routers.chat import router as chat_router
+from app.routers.conta import router as conta_router
 
 
 def create_app() -> FastAPI:
@@ -51,6 +52,7 @@ def create_app() -> FastAPI:
     app.include_router(painel_router)
     app.include_router(billing_router)
     app.include_router(chat_router)
+    app.include_router(conta_router)
 
     return app
 
