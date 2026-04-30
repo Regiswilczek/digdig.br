@@ -105,7 +105,7 @@ Responda em JSON com esta estrutura:
 }}"""
 
 
-BUD_PROMPT_ATA_PLENARIA = """Você é um especialista em direito administrativo e transparência pública, com foco em fiscalização de conselhos profissionais federais brasileiros (Lei 12.378/2010 — CAU).
+BUD_PROMPT_ATA_PLENARIA = f"""Você é um especialista em direito administrativo e transparência pública, com foco em fiscalização de conselhos profissionais federais brasileiros (Lei 12.378/2010 — CAU).
 
 Analise a ata de reunião plenária fornecida e extraia um JSON estruturado completo.
 
@@ -119,9 +119,19 @@ FOCO DA ANÁLISE:
 
 Use linguagem de INDÍCIO, nunca de conclusão jurídica definitiva.
 
+REVISÃO DE TAGS DO PIPER:
+O Piper já identificou tags iniciais (recebidas no contexto). Sua missão é auditar:
+- Confirme (ação "confirmada") tags com base real no texto da ata
+- Remova (ação "removida") tags que são falsos positivos sem evidência concreta
+- Adicione (ação "adicionada") tags que o Piper não viu — em atas, isso é frequente: nepotismo em nomeações plenárias, falsa_urgencia em itens incluídos extra-pauta, blindagem_pares em aprovações unânimes de processos contra colegas, opacidade_deliberada em deliberações sem motivação explícita
+- Eleve (ação "elevada") ou rebaixe (ação "rebaixada") gravidade quando o contexto da ata mudar a leitura
+
+TAGS DISPONÍVEIS:
+{LISTA_TAGS_PROMPT}
+
 Responda APENAS com JSON válido, sem texto antes ou depois:
 
-{
+{{
   "reuniao_numero": "string",
   "reuniao_data": "YYYY-MM-DD ou null",
   "tipo_reuniao": "ordinaria|extraordinaria",
@@ -131,7 +141,7 @@ Responda APENAS com JSON válido, sem texto antes ou depois:
   "presentes": ["Nome (Cargo)"],
   "ausentes": ["Nome (Cargo)"],
   "pauta": [
-    {
+    {{
       "item": 1,
       "titulo": "string",
       "resultado": "aprovado|rejeitado|retirado|adiado|informativo",
@@ -141,26 +151,29 @@ Responda APENAS com JSON válido, sem texto antes ou depois:
       "unanime": true,
       "pessoas_envolvidas": ["string"],
       "observacao": "string ou null"
-    }
+    }}
   ],
   "deliberacoes_aprovadas": ["ex: DPOPR 0094-01/2019"],
   "pessoas_extraidas": [
-    {"nome": "string", "cargo": "string", "tipo_aparicao": "preside|vota|nomeado|contratado|citado"}
+    {{"nome": "string", "cargo": "string", "tipo_aparicao": "preside|vota|nomeado|contratado|citado"}}
   ],
   "nivel_alerta": "verde|amarelo|laranja|vermelho",
   "score_risco": 0,
   "resumo_executivo": "2-3 frases sobre o que aconteceu nesta reunião e os principais pontos de atenção.",
   "irregularidades": [
-    {
+    {{
       "categoria": "processual|legal|moral",
       "tipo": "string",
       "descricao": "string",
       "artigo_violado": "string ou null",
       "gravidade": "baixa|media|alta|critica"
-    }
+    }}
+  ],
+  "tags_revisadas": [
+    {{"codigo": "<codigo_exato>", "acao": "confirmada|adicionada|removida|elevada|rebaixada", "gravidade": "baixa|media|alta|critica", "justificativa": "Por que a tag foi alterada ou confirmada (citar trecho da ata ou ausência relevante)"}}
   ],
   "recomendacao_campanha": "string ou null"
-}
+}}
 
 CRITÉRIOS DE ALERTA:
 - verde: reunião normal, sem irregularidades relevantes
@@ -192,6 +205,7 @@ def _parse_bud_ata_response(raw_text: str) -> dict:
         "presentes": [], "ausentes": [], "pauta": [],
         "deliberacoes_aprovadas": [], "pessoas_extraidas": [],
         "irregularidades": [],
+        "tags_revisadas": [],
         "parse_error": True,
     }
 
@@ -402,7 +416,7 @@ async def analisar_ato_bud(
 
     response = await client.messages.create(
         model=settings.claude_sonnet_model,
-        max_tokens=16000 if is_ata else 6000,  # ata precisa de espaço pra pauta+presentes
+        max_tokens=32000 if is_ata else 8000,  # ata: pauta+presentes+tags_revisadas; folga 4x
         system=[
             {
                 "type": "text",

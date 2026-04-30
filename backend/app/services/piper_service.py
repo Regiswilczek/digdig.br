@@ -251,7 +251,7 @@ def parse_piper_response(raw_text: str) -> dict:
         "referencias_atos": _extrair_objetos_de_array(raw_text, "referencias_atos"),
         "requer_aprofundamento": False,
         "motivo_aprofundamento": None,
-        "tags_identificadas": [],
+        "tags_identificadas": _extrair_objetos_de_array(raw_text, "tags_identificadas"),
         "parse_error": True,
         "tokens_truncado": True,
     }
@@ -369,7 +369,7 @@ async def analisar_ato_piper(
 
     response = await client.chat.completions.create(
         model=settings.gemini_pro_model,
-        max_tokens=16000,  # atas plenárias produzem JSON ~6-7k tokens; 16k dá folga
+        max_tokens=24000,  # atas plenárias produzem JSON ~5-7k tokens; 24k = ~3x folga
         messages=[
             {"role": "system", "content": full_system},
             {"role": "user", "content": user_prompt},
@@ -492,7 +492,7 @@ async def analisar_ato_piper_visao(
 
     response = await client.chat.completions.create(
         model=settings.gemini_pro_model,
-        max_tokens=16000,  # atas plenárias produzem JSON ~6-7k tokens; 16k dá folga
+        max_tokens=48000,  # OCR + análise: transcrição de atas longas (15-20p) chega a ~18k tokens
         messages=[
             {"role": "system", "content": full_system},
             {"role": "user", "content": content},

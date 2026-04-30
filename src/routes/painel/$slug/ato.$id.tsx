@@ -195,6 +195,15 @@ function AtoDetailPage() {
     sonnetPessoas.length > 0 ||
     sonnetQuorumTotal != null;
 
+  // Numeração das seções finais — branch ata-específico usa 01-06, então
+  // Recomendação/Tags/CVSS/Histórico/Fontes começam em 07. No branch genérico,
+  // o último item específico é "04 Análise aprofundada" e a sequência segue em 05.
+  const eyeRecomendacao = hasAtaSpecificData ? "07" : "05";
+  const eyeTags = hasAtaSpecificData ? "08" : "06";
+  const eyeCvss = hasAtaSpecificData ? "09" : "07";
+  const eyeHistorico = hasAtaSpecificData ? "10" : "08";
+  const eyeFontes = hasAtaSpecificData ? "11" : "09";
+
   const tipoLabel =
     ato.tipo === "deliberacao"
       ? "Deliberação"
@@ -566,7 +575,7 @@ function AtoDetailPage() {
         )}
 
         {/* Recomendação */}
-        <Section eyebrow="05" title="Recomendação">
+        <Section eyebrow={eyeRecomendacao} title="Recomendação">
           {ato.recomendacao_campanha ? (
             <p className="whitespace-pre-wrap">{ato.recomendacao_campanha}</p>
           ) : (
@@ -577,7 +586,7 @@ function AtoDetailPage() {
         </Section>
 
         {/* Tags identificadas */}
-        <Section eyebrow="06" title="Tags identificadas">
+        <Section eyebrow={eyeTags} title="Tags identificadas">
           {!ato.tags || ato.tags.length === 0 ? (
             <p style={{ color: MUTED }}>
               Nenhuma tag de irregularidade identificada para este ato.
@@ -675,7 +684,7 @@ function AtoDetailPage() {
             : cvssNivel === "amarelo" ? "amarelo (3.0–5.9)"
             : "verde (0.0–2.9)";
           return (
-          <Section eyebrow="07" title="Métricas de auditoria">
+          <Section eyebrow={eyeCvss} title="Métricas de auditoria">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
               <div style={{ border: `1px solid ${BORDER}`, padding: 16 }}>
                 <p className="text-[10px] uppercase tracking-[0.18em]" style={{ color: SUBTLE, fontFamily: MONO }}>CVSS-A score</p>
@@ -714,7 +723,7 @@ function AtoDetailPage() {
 
         {/* Histórico de auditoria */}
         {ato.auditoria && ato.auditoria.agentes.length > 0 && (
-          <Section eyebrow="08" title="Histórico de auditoria">
+          <Section eyebrow={eyeHistorico} title="Histórico de auditoria">
             <ul className="space-y-3">
               {ato.auditoria.agentes.map((agente) => {
                 const cor = agente === "piper" ? "#1e40af"
@@ -754,7 +763,7 @@ function AtoDetailPage() {
         )}
 
         {/* Links */}
-        <Section eyebrow="09" title="Fontes">
+        <Section eyebrow={eyeFontes} title="Fontes">
           <div className="flex flex-wrap gap-3">
             {ato.url_pdf && (
               <a
