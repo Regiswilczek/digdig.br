@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Request, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func, text, or_
+from sqlalchemy import select, update, func, text, or_, case
 from app.config import settings
 from app.database import get_db
 from app.models.ato import RodadaAnalise, Ato, ConteudoAto
@@ -472,6 +472,179 @@ async def admin_stats(
         "analises_total": analises_total.scalar_one(),
         "custo_total_usd": float(custo.scalar_one() or 0),
         "rodadas_ativas": rodadas_ativas.scalar_one(),
+    }
+
+
+@router.get("/admin/financeiro/breakdown")
+async def admin_financeiro_breakdown(
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
+):
+    """Breakdown do gasto da plataforma por agente, tipo de documento e tempo.
+
+    custo_<agente>_usd vem direto da tabela analises (gravado em runtime para
+    rodadas pós-30/04/2026 e backfilled por scripts/backfill_custo_por_agente.py
+    para registros anteriores).
+    """
+    # ── Totais por agente ──
+    qtd_piper = func.coalesce(func.sum(case((Analise.analisado_por_piper.is_(True), 1), else_=0)), 0)
+    qtd_bud = func.coalesce(func.sum(case((Analise.analisado_por_bud.is_(True), 1), else_=0)), 0)
+    qtd_new = func.coalesce(func.sum(case((Analise.analisado_por_new.is_(True), 1), else_=0)), 0)
+    agentes_r = await db.execute(
+        select(
+            func.coalesce(func.sum(Analise.custo_piper_usd), 0),
+            func.coalesce(func.sum(Analise.custo_bud_usd), 0),
+            func.coalesce(func.sum(Analise.custo_new_usd), 0),
+            func.coalesce(func.sum(Analise.custo_usd), 0),
+            qtd_piper,
+            qtd_bud,
+            qtd_new,
+        )
+    )
+    p_total, b_total, n_total, custo_total, p_qtd, b_qtd, n_qtd = agentes_r.one()
+    p_qtd, b_qtd, n_qtd = int(p_qtd), int(b_qtd), int(n_qtd)
+
+    # ── Custo médio por documento, por agente ──
+    p_total_f = float(p_total or 0)
+    b_total_f = float(b_total or 0)
+    n_total_f = float(n_total or 0)
+    custo_total_f = float(custo_total or 0)
+    media_piper = p_total_f / p_qtd if p_qtd else 0.0
+    media_bud = b_total_f / b_qtd if b_qtd else 0.0
+    media_new = n_total_f / n_qtd if n_qtd else 0.0
+
+    # ── Por tipo de documento (portaria, deliberacao, ata_plenaria, ...) ──
+    tipos_r = await db.execute(
+        select(
+            Ato.tipo,
+            func.count(Analise.id),
+            func.coalesce(func.sum(Analise.custo_usd), 0),
+            func.coalesce(func.sum(Analise.custo_piper_usd), 0),
+            func.coalesce(func.sum(Analise.custo_bud_usd), 0),
+            func.coalesce(func.sum(Analise.custo_new_usd), 0),
+        )
+        .join(Ato, Ato.id == Analise.ato_id)
+        .group_by(Ato.tipo)
+        .order_by(func.coalesce(func.sum(Analise.custo_usd), 0).desc())
+    )
+    por_tipo = []
+    for tipo, qtd, total, p, b, n in tipos_r.all():
+        total_f = float(total or 0)
+        por_tipo.append({
+            "tipo": tipo,
+            "documentos": qtd,
+            "custo_total_usd": total_f,
+            "custo_medio_usd": (total_f / qtd) if qtd else 0.0,
+            "custo_piper_usd": float(p or 0),
+            "custo_bud_usd": float(b or 0),
+            "custo_new_usd": float(n or 0),
+        })
+
+    # ── Custo por dia (últimos 30 dias) ──
+    serie_r = await db.execute(
+        text(
+            """
+            SELECT date_trunc('day', criado_em) AS dia,
+                   COUNT(*) AS analises,
+                   COALESCE(SUM(custo_usd), 0) AS custo,
+                   COALESCE(SUM(custo_piper_usd), 0) AS p,
+                   COALESCE(SUM(custo_bud_usd), 0) AS b,
+                   COALESCE(SUM(custo_new_usd), 0) AS n
+            FROM analises
+            WHERE criado_em >= NOW() - INTERVAL '30 days'
+            GROUP BY dia
+            ORDER BY dia ASC
+            """
+        )
+    )
+    serie = [
+        {
+            "dia": row[0].date().isoformat() if row[0] else None,
+            "analises": row[1],
+            "custo_total_usd": float(row[2] or 0),
+            "custo_piper_usd": float(row[3] or 0),
+            "custo_bud_usd": float(row[4] or 0),
+            "custo_new_usd": float(row[5] or 0),
+        }
+        for row in serie_r.all()
+    ]
+
+    # ── Última rodada concluída ou em progresso ──
+    ultima_r = await db.execute(
+        select(
+            RodadaAnalise.id,
+            RodadaAnalise.criado_em,
+            RodadaAnalise.status,
+            RodadaAnalise.custo_total_usd,
+        )
+        .order_by(RodadaAnalise.criado_em.desc())
+        .limit(1)
+    )
+    ultima_row = ultima_r.first()
+    ultima_rodada = None
+    if ultima_row:
+        rod_id, rod_criado, rod_status, rod_custo = ultima_row
+        # Detalhes de custo por agente da última rodada
+        rod_breakdown_r = await db.execute(
+            select(
+                func.count(Analise.id),
+                func.coalesce(func.sum(Analise.custo_piper_usd), 0),
+                func.coalesce(func.sum(Analise.custo_bud_usd), 0),
+                func.coalesce(func.sum(Analise.custo_new_usd), 0),
+            ).where(Analise.rodada_id == rod_id)
+        )
+        rod_qtd, rod_p, rod_b, rod_n = rod_breakdown_r.one()
+        ultima_rodada = {
+            "id": str(rod_id),
+            "criado_em": rod_criado.isoformat() if rod_criado else None,
+            "status": rod_status,
+            "custo_total_usd": float(rod_custo or 0),
+            "documentos": rod_qtd,
+            "custo_piper_usd": float(rod_p or 0),
+            "custo_bud_usd": float(rod_b or 0),
+            "custo_new_usd": float(rod_n or 0),
+        }
+
+    # ── Distribuição percentual ──
+    soma_agentes = p_total_f + b_total_f + n_total_f
+    distribuicao = {
+        "piper_pct": (p_total_f / soma_agentes * 100) if soma_agentes else 0.0,
+        "bud_pct": (b_total_f / soma_agentes * 100) if soma_agentes else 0.0,
+        "new_pct": (n_total_f / soma_agentes * 100) if soma_agentes else 0.0,
+    }
+
+    return {
+        "total": {
+            "custo_usd": custo_total_f,
+            "custo_por_agente_usd": p_total_f + b_total_f + n_total_f,
+        },
+        "por_agente": {
+            "piper": {
+                "custo_usd": p_total_f,
+                "documentos": p_qtd,
+                "custo_medio_usd": media_piper,
+                "modelo": "Gemini 2.5 Pro",
+                "papel": "Triagem inicial — primeira leitura",
+            },
+            "bud": {
+                "custo_usd": b_total_f,
+                "documentos": b_qtd,
+                "custo_medio_usd": media_bud,
+                "modelo": "Claude Sonnet 4.6",
+                "papel": "Aprofundamento — investigação cruzada",
+            },
+            "new": {
+                "custo_usd": n_total_f,
+                "documentos": n_qtd,
+                "custo_medio_usd": media_new,
+                "modelo": "Claude Opus 4.7",
+                "papel": "Revisão sistêmica — padrões no corpus",
+            },
+        },
+        "distribuicao": distribuicao,
+        "por_tipo_documento": por_tipo,
+        "serie_diaria": serie,
+        "ultima_rodada": ultima_rodada,
     }
 
 

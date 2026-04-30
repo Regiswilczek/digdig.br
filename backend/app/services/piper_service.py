@@ -615,6 +615,7 @@ async def _salvar_resultado_piper(
     analise.tokens_piper = input_tokens + output_tokens
     analise.tokens_piper_cached = cached_tokens
     analise.custo_usd = Decimal(str(custo))
+    analise.custo_piper_usd = Decimal(str(custo))
 
     # CVSS-A — cálculo determinístico a partir das variáveis extraídas pelo Piper
     cvss_score, cvss_vector = calcular_cvss_a(

@@ -218,7 +218,9 @@ async def analisar_ato_new(
     analise.analisado_por_new = True
     analise.resultado_new = resultado
     analise.tokens_new = response.usage.input_tokens + response.usage.output_tokens
-    analise.custo_usd = analise.custo_usd + Decimal(str(custo))
+    custo_new_dec = Decimal(str(custo))
+    analise.custo_usd = analise.custo_usd + custo_new_dec
+    analise.custo_new_usd = (analise.custo_new_usd or Decimal("0")) + custo_new_dec
 
     # Revisão final de tags pelo New
     await revisar_tags_bud_new(

@@ -550,7 +550,9 @@ async def analisar_ato_bud(
     analise.analisado_por_bud = True
     analise.resultado_bud = resultado
     analise.tokens_bud = response.usage.input_tokens + response.usage.output_tokens
-    analise.custo_usd = analise.custo_usd + Decimal(str(custo))
+    custo_bud_dec = Decimal(str(custo))
+    analise.custo_usd = analise.custo_usd + custo_bud_dec
+    analise.custo_bud_usd = (analise.custo_bud_usd or Decimal("0")) + custo_bud_dec
 
     # Irregularidades — só insere se ainda não foi feito (guard de retry).
     # Para atas, vem em resultado.irregularidades[]; para outros, em

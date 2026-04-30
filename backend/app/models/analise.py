@@ -32,6 +32,12 @@ class Analise(Base):
     tokens_bud: Mapped[int] = mapped_column(Integer, default=0)
     tokens_new: Mapped[int] = mapped_column(Integer, default=0)
     custo_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal("0"))
+    # Breakdown de custo por agente — NULL em registros pré-2026-04-30; backfill
+    # estima a partir de tokens_*. Soma de custo_piper+bud+new pode divergir de
+    # custo_usd em alguns centavos por arredondamento, é esperado.
+    custo_piper_usd: Mapped[Decimal | None] = mapped_column(Numeric(10, 6), nullable=True)
+    custo_bud_usd: Mapped[Decimal | None] = mapped_column(Numeric(10, 6), nullable=True)
+    custo_new_usd: Mapped[Decimal | None] = mapped_column(Numeric(10, 6), nullable=True)
 
     # CVSS-A — calculado deterministicamente pelo backend após extração do Piper
     cvss_score: Mapped[Decimal | None] = mapped_column(Numeric(3, 1), nullable=True)

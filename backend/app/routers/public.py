@@ -528,9 +528,31 @@ async def get_financeiro_stats(slug: str, db: AsyncSession = Depends(get_db)):
     )
     total_passagens = passagens_r.scalar_one()
 
+    valor_passagens_r = await db.execute(
+        select(func.coalesce(func.sum(Diaria.valor_total), 0)).where(
+            Diaria.tenant_id == tenant.id, _PASSAGEM_COND
+        )
+    )
+    valor_passagens = float(valor_passagens_r.scalar_one() or 0)
+
+    valor_diarias_r = await db.execute(
+        select(func.coalesce(func.sum(Diaria.valor_total), 0)).where(
+            Diaria.tenant_id == tenant.id, ~_PASSAGEM_COND
+        )
+    )
+    valor_diarias = float(valor_diarias_r.scalar_one() or 0)
+
     return {
-        "diarias": {"total": total - total_passagens, "analisados": 0},
-        "passagens": {"total": total_passagens, "analisados": 0},
+        "diarias": {
+            "total": total - total_passagens,
+            "valor_total": valor_diarias,
+            "analisados": 0,
+        },
+        "passagens": {
+            "total": total_passagens,
+            "valor_total": valor_passagens,
+            "analisados": 0,
+        },
     }
 
 
