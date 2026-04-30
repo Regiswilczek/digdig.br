@@ -4044,27 +4044,48 @@ function SlugDashboard() {
                 {nomeOrgao}
               </h1>
             </div>
-            {isLive && (
-              <span
-                className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] font-semibold px-2.5 py-1.5"
+            <div className="flex items-center gap-2">
+              <Link
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                to={"/painel/$slug/conex" as any}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                params={{ slug } as any}
+                className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] font-semibold px-2.5 py-1.5 hover:bg-[#f0fdf4] transition-colors"
                 style={{
-                  color: ACCENT,
-                  background: "#f0fdf4",
-                  border: `1px solid ${ACCENT}40`,
+                  color: INK,
+                  background: "#fff",
+                  border: `1px solid ${BORDER}`,
                   fontFamily: MONO,
                   borderRadius: 2,
+                  textDecoration: "none",
                 }}
+                title="Visualizar rede de relações entre pessoas, atos e tags"
               >
+                <span style={{ color: ACCENT }}>◇</span>
+                conexões
+              </Link>
+              {isLive && (
                 <span
-                  className="h-1.5 w-1.5 rounded-full animate-pulse"
+                  className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] font-semibold px-2.5 py-1.5"
                   style={{
-                    background: ACCENT,
-                    boxShadow: `0 0 8px ${ACCENT}`,
+                    color: ACCENT,
+                    background: "#f0fdf4",
+                    border: `1px solid ${ACCENT}40`,
+                    fontFamily: MONO,
+                    borderRadius: 2,
                   }}
-                />
-                pipeline · live
-              </span>
-            )}
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full animate-pulse"
+                    style={{
+                      background: ACCENT,
+                      boxShadow: `0 0 8px ${ACCENT}`,
+                    }}
+                  />
+                  pipeline · live
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

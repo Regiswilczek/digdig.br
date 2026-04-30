@@ -226,3 +226,166 @@ export async function fetchPendentes(
   if (!r.ok) throw new Error("Falha ao buscar pendentes");
   return r.json();
 }
+
+// ─── Grafo de relações (estilo Arkham) ─────────────────────────────────────
+
+export type CorCategoria = "cinza" | "amarelo" | "laranja" | "vermelho";
+export type Gravidade = "baixa" | "media" | "alta" | "critica";
+export type NivelAlertaStr = "verde" | "amarelo" | "laranja" | "vermelho";
+
+export interface GrafoNodePessoa {
+  id: string;
+  tipo: "pessoa";
+  nome: string;
+  cargo: string | null;
+  icp: number | null;
+  total_aparicoes: number;
+  suspeito: boolean;
+  primeiro_ato: string | null;
+  ultimo_ato: string | null;
+  cor_categoria: CorCategoria;
+}
+
+export interface GrafoNodeAto {
+  id: string;
+  tipo: "ato";
+  numero: string;
+  ato_tipo: string;
+  data_publicacao: string | null;
+  nivel_alerta: NivelAlertaStr | null;
+  pessoas_count: number;
+  tags_count: number;
+}
+
+export interface GrafoNodeTag {
+  codigo: string;
+  tipo: "tag";
+  nome: string;
+  categoria: string;
+  categoria_nome: string;
+  gravidade_predominante: Gravidade;
+  atos_count: number;
+  cor_categoria: CorCategoria;
+}
+
+export type GrafoNode = GrafoNodePessoa | GrafoNodeAto | GrafoNodeTag;
+
+export interface GrafoEdgePP {
+  source: string;
+  target: string;
+  kind: "co_aparicao";
+  peso: number;
+  atos_em_comum: number;
+  tags_compartilhadas: string[];
+  gravidade_max: Gravidade | null;
+}
+
+export interface GrafoEdgePA {
+  source: string;
+  target: string;
+  kind: "aparicao";
+  tipo_aparicao: string;
+  cargo: string | null;
+}
+
+export interface GrafoEdgeAT {
+  source: string;
+  target: string;
+  kind: "atribuicao_tag";
+  gravidade: Gravidade;
+  atribuido_por: string;
+}
+
+export type GrafoEdge = GrafoEdgePP | GrafoEdgePA | GrafoEdgeAT;
+
+export interface GrafoResponse {
+  nodes_pessoas: GrafoNodePessoa[];
+  nodes_atos: GrafoNodeAto[];
+  nodes_tags: GrafoNodeTag[];
+  edges_pessoa_pessoa: GrafoEdgePP[];
+  edges_pessoa_ato: GrafoEdgePA[];
+  edges_ato_tag: GrafoEdgeAT[];
+  root_id: string | null;
+}
+
+export interface AtoComumItem {
+  ato_id: string;
+  tipo: string;
+  numero: string;
+  data_publicacao: string | null;
+  ementa: string | null;
+  nivel_alerta: NivelAlertaStr | null;
+  tipo_aparicao_a: string;
+  cargo_a: string | null;
+  tipo_aparicao_b: string;
+  cargo_b: string | null;
+  tags: { codigo: string; nome: string; gravidade: Gravidade }[];
+}
+
+export interface AtosComunsResponse {
+  pessoa_a_id: string;
+  pessoa_b_id: string;
+  atos: AtoComumItem[];
+}
+
+export async function fetchGrafoRaiz(
+  slug: string,
+  params: { limit?: number; icp_min?: number; incluir_tags_top?: number } = {}
+): Promise<GrafoResponse> {
+  const q = new URLSearchParams();
+  if (params.limit !== undefined) q.set("limit", String(params.limit));
+  if (params.icp_min !== undefined) q.set("icp_min", String(params.icp_min));
+  if (params.incluir_tags_top !== undefined)
+    q.set("incluir_tags_top", String(params.incluir_tags_top));
+  const r = await fetchAuthed(`/painel/orgaos/${slug}/grafo/raiz?${q}`);
+  if (!r.ok) throw new Error("Falha ao buscar grafo raiz");
+  return r.json();
+}
+
+export async function fetchGrafoExpandirPessoa(
+  slug: string,
+  pessoa_id: string,
+  params: {
+    limit_vizinhos?: number;
+    peso_min?: number;
+    incluir_atos?: boolean;
+    incluir_tags?: boolean;
+    limit_atos?: number;
+  } = {}
+): Promise<GrafoResponse> {
+  const q = new URLSearchParams();
+  if (params.limit_vizinhos !== undefined) q.set("limit_vizinhos", String(params.limit_vizinhos));
+  if (params.peso_min !== undefined) q.set("peso_min", String(params.peso_min));
+  if (params.incluir_atos !== undefined) q.set("incluir_atos", String(params.incluir_atos));
+  if (params.incluir_tags !== undefined) q.set("incluir_tags", String(params.incluir_tags));
+  if (params.limit_atos !== undefined) q.set("limit_atos", String(params.limit_atos));
+  const r = await fetchAuthed(`/painel/orgaos/${slug}/grafo/pessoa/${pessoa_id}?${q}`);
+  if (!r.ok) throw new Error("Falha ao expandir pessoa");
+  return r.json();
+}
+
+export async function fetchGrafoExpandirTag(
+  slug: string,
+  codigo: string,
+  params: { limit_atos?: number; incluir_pessoas?: boolean } = {}
+): Promise<GrafoResponse> {
+  const q = new URLSearchParams();
+  if (params.limit_atos !== undefined) q.set("limit_atos", String(params.limit_atos));
+  if (params.incluir_pessoas !== undefined)
+    q.set("incluir_pessoas", String(params.incluir_pessoas));
+  const r = await fetchAuthed(`/painel/orgaos/${slug}/grafo/tag/${codigo}?${q}`);
+  if (!r.ok) throw new Error("Falha ao expandir tag");
+  return r.json();
+}
+
+export async function fetchAtosComunsPessoas(
+  slug: string,
+  pessoa_a_id: string,
+  pessoa_b_id: string
+): Promise<AtosComunsResponse> {
+  const r = await fetchAuthed(
+    `/painel/orgaos/${slug}/grafo/atos-comuns/${pessoa_a_id}/${pessoa_b_id}`
+  );
+  if (!r.ok) throw new Error("Falha ao buscar atos comuns");
+  return r.json();
+}
