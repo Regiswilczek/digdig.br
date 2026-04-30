@@ -3878,29 +3878,31 @@ function TabFinanceiro({ slug, tipo }: { slug: string; tipo: "diarias" | "passag
 // `grupo: "especial"` → tab dedicado (Pendentes)
 // `grupo: "financeiro"` → fonte de dados separada (Diárias, Passagens)
 const DADOS_TIPOS = [
-  // Categorias ATLAS — ordenadas por volume típico
-  { value: "licitacao",                  label: "Licitações",            grupo: "atlas" },
+  // Documentos principais — atos administrativos investigáveis
   { value: "deliberacao_arquivo",        label: "Deliberações",          grupo: "atlas" },
   { value: "portaria_arquivo",           label: "Portarias",             grupo: "atlas" },
   { value: "ata_plenaria",               label: "Atas Plenárias",        grupo: "atlas" },
   { value: "contrato",                   label: "Contratos",             grupo: "atlas" },
-  { value: "aditivo_contratual",         label: "Aditivos",              grupo: "atlas" },
-  { value: "financeiro_balanco",         label: "Balanços",              grupo: "atlas" },
-  { value: "financeiro_orcamento",       label: "Orçamentos",            grupo: "atlas" },
-  { value: "financeiro_demonstrativo",   label: "Demonstrativos",        grupo: "atlas" },
   { value: "ata_pauta_comissao",         label: "Atas de Comissão",      grupo: "atlas" },
   { value: "recursos_humanos",           label: "Recursos Humanos",      grupo: "atlas" },
-  { value: "auditoria_externa",          label: "Auditorias Externas",   grupo: "atlas" },
-  { value: "relatorio_gestao",           label: "Relatórios de Gestão",  grupo: "atlas" },
   { value: "processo_etico",             label: "Processos Éticos",      grupo: "atlas" },
   { value: "juridico_parecer",           label: "Pareceres Jurídicos",   grupo: "atlas" },
   { value: "comunicacao_institucional",  label: "Comunicação",           grupo: "atlas" },
   { value: "outros",                     label: "Outros",                grupo: "atlas" },
-  // Especial — atos sem texto extraído (não passaram pelo ATLAS)
+
+  // Especial — fluxo lateral (sem texto, escrutínio externo, prestação de contas)
   { value: "pendentes",                  label: "Pendentes",             grupo: "especial" },
-  // Financeiro — fonte de dados separada
+  { value: "auditoria_externa",          label: "Auditorias Externas",   grupo: "especial" },
+  { value: "relatorio_gestao",           label: "Relatórios de Gestão",  grupo: "especial" },
+
+  // Financeiro — origem/destino de dinheiro (atos contratuais + dados de despesa)
   { value: "diarias",                    label: "Diárias",               grupo: "financeiro" },
   { value: "passagens",                  label: "Passagens Aéreas",      grupo: "financeiro" },
+  { value: "licitacao",                  label: "Licitações",            grupo: "financeiro" },
+  { value: "aditivo_contratual",         label: "Aditivos",              grupo: "financeiro" },
+  { value: "financeiro_balanco",         label: "Balanços",              grupo: "financeiro" },
+  { value: "financeiro_orcamento",       label: "Orçamentos",            grupo: "financeiro" },
+  { value: "financeiro_demonstrativo",   label: "Demonstrativos",        grupo: "financeiro" },
 ] as const;
 
 function TabDados({ slug }: { slug: string }) {
@@ -3955,10 +3957,10 @@ function TabDados({ slug }: { slug: string }) {
         </span>
       </div>
 
-      {/* Grid principal — categorias ATLAS (organização canônica) */}
+      {/* Grid principal — atos administrativos investigáveis */}
       <div className="mb-2">
         <p style={{ fontFamily: MONO, fontSize: 8.5, color: SUBTLE, letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
-          Documentos · organizados pelo ATLAS
+          Documentos
         </p>
         <div
           className="grid gap-[1px] mb-4"
@@ -4071,18 +4073,15 @@ function TabDados({ slug }: { slug: string }) {
         </div>
       </div>
 
-      {/* Conteúdo */}
+      {/* Conteúdo — value decide o renderer (grupo é só visual) */}
       {tipo === "pendentes" ? (
         <TabPendentes slug={slug} />
       ) : tipo === "diarias" || tipo === "passagens" ? (
         <TabFinanceiro slug={slug} tipo={tipo} />
-      ) : (() => {
-        const grupo = DADOS_TIPOS.find((t) => t.value === tipo)?.grupo;
-        if (grupo === "atlas") {
-          return <TabAtos slug={slug} tipo="" tipoAtlas={tipo} />;
-        }
-        return <TabAtos slug={slug} tipo={tipo} />;
-      })()}
+      ) : (
+        // Todos os outros são categorias ATLAS — filtra por tipo_atlas
+        <TabAtos slug={slug} tipo="" tipoAtlas={tipo} />
+      )}
     </div>
   );
 }
