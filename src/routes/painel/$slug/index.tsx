@@ -21,7 +21,6 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ExternalLink, FileText, Search, Activity, ArrowDownToLine } from "lucide-react";
-import { SplineEmbed } from "@/components/SplineEmbed";
 
 export const Route = createFileRoute("/painel/$slug/")({
   component: SlugDashboard,

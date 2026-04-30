@@ -17,7 +17,7 @@ interface SplineEmbedProps {
  * Uses an iframe so we don't ship the runtime bundle.
  */
 export function SplineEmbed({
-  src = "https://my.spline.design/particles-f6xFiWCaq16O5rpaA7nIxf2O/",
+  src = "https://my.spline.design/circleparticle-2mOq8ZvTFErySjAW1QrVZhd6/",
   width = "100%",
   height = 280,
   className,
