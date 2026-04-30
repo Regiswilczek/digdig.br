@@ -506,27 +506,41 @@ async def analisar_ato_bud(
 
     # Marca analise como "em andamento" antes da chamada — dispara realtime
     # para o painel mostrar "Bud trabalhando agora" enquanto a chamada roda.
+    # Salva status anterior pra reverter caso algo abaixo falhe e o ato não
+    # fique preso em 'bud_em_andamento' indefinidamente.
+    status_anterior = analise.status or "piper_completo"
     analise.status = "bud_em_andamento"
     await db.commit()
     await db.refresh(analise)
 
-    response = await client.messages.create(
-        model=settings.claude_sonnet_model,
-        max_tokens=32000 if is_ata else 8000,  # ata: pauta+presentes+tags_revisadas; folga 4x
-        system=[
-            {
-                "type": "text",
-                "text": system_prompt,
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        messages=[{"role": "user", "content": contexto}],
-    )
+    try:
+        response = await client.messages.create(
+            model=settings.claude_sonnet_model,
+            max_tokens=32000 if is_ata else 8000,  # ata: pauta+presentes+tags_revisadas; folga 4x
+            system=[
+                {
+                    "type": "text",
+                    "text": system_prompt,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            messages=[{"role": "user", "content": contexto}],
+        )
+    except Exception:
+        # Reverte status pra o ato voltar pra fila e o usuário poder retentar.
+        analise.status = status_anterior
+        await db.commit()
+        raise
 
-    if is_ata:
-        resultado = _parse_bud_ata_response(response.content[0].text)
-    else:
-        resultado = _parse_bud_response(response.content[0].text)
+    try:
+        if is_ata:
+            resultado = _parse_bud_ata_response(response.content[0].text)
+        else:
+            resultado = _parse_bud_response(response.content[0].text)
+    except Exception:
+        analise.status = status_anterior
+        await db.commit()
+        raise
 
     custo = (
         response.usage.input_tokens * PRECOS_BUD["input"]
