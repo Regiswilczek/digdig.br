@@ -221,9 +221,9 @@ interface FGLink extends LinkObject {
 // depende do zoom (globalScale). Cards são fixos no mundo pra layout previsível.
 
 function cardDimensions(n: AnyNode): { w: number; h: number } {
-  if (n.tipo === "pessoa") return { w: 130, h: 36 };
-  if (n.tipo === "ato") return { w: 100, h: 30 };
-  return { w: 124, h: 30 }; // tag
+  if (n.tipo === "pessoa") return { w: 188, h: 48 };
+  if (n.tipo === "ato") return { w: 132, h: 40 };
+  return { w: 158, h: 40 }; // tag
 }
 
 function iniciaisDe(nome: string): string {
@@ -342,6 +342,7 @@ function drawCardPessoa(
   const cor = corPorCategoria(p.cor_categoria);
   const left = x - w / 2;
   const top = y - h / 2;
+  const padX = 10;
 
   // Card body
   drawRoundedRect(ctx, left, top, w, h, r);
@@ -351,50 +352,66 @@ function drawCardPessoa(
   ctx.strokeStyle = isSelected || isHovered ? INK : BORDER;
   ctx.stroke();
 
-  // Avatar circle (esquerda)
-  const avSize = 22;
-  const avX = left + 6 + avSize / 2;
+  // Avatar circle (esquerda) — maior pra acompanhar card maior
+  const avSize = 30;
+  const avX = left + padX + avSize / 2;
   const avY = y;
   ctx.fillStyle = cor;
   ctx.beginPath();
   ctx.arc(avX, avY, avSize / 2, 0, 2 * Math.PI);
   ctx.fill();
 
-  // Iniciais
+  // Iniciais brancas
   ctx.fillStyle = "#ffffff";
-  ctx.font = "700 10.5px Inter Tight, system-ui, sans-serif";
+  ctx.font = "700 12px Inter Tight, system-ui, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(iniciaisDe(p.nome), avX, avY + 0.5);
 
-  // Nome (truncado)
-  const textX = avX + avSize / 2 + 6;
+  // Conteúdo de texto à direita do avatar, com 3 linhas claramente separadas
+  const textX = avX + avSize / 2 + 10;
+  const textRight = left + w - padX;
+  // Reserva 56px no canto direito pro badge ICP — cargo trunca antes disso
+  const cargoMaxRight = textRight - 60;
+
+  // Linha 1: NOME (top)
   ctx.fillStyle = INK;
-  ctx.font = "600 10px JetBrains Mono, monospace";
+  ctx.font = "600 11.5px JetBrains Mono, monospace";
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.fillText(nomeCurto(p.nome), textX, y - 6);
+  ctx.fillText(nomeCurto(p.nome), textX, y - 8);
 
-  // Cargo + ICP (linha de baixo)
+  // Linha 2: cargo (esq) + ICP (dir) — não competem mais por espaço
   ctx.fillStyle = MUTED;
-  ctx.font = "9px JetBrains Mono, monospace";
-  const cargoText = p.cargo ? p.cargo.slice(0, 14) : "—";
-  const icpText = p.icp != null ? `ICP ${p.icp.toFixed(1)}` : "ICP —";
-  ctx.fillText(cargoText, textX, y + 7);
+  ctx.font = "9.5px JetBrains Mono, monospace";
+  const cargoText = p.cargo ? p.cargo : "—";
+  // Trunca cargo até caber na largura disponível
+  const maxCargoWidth = cargoMaxRight - textX;
+  let cargoFinal = cargoText;
+  while (cargoFinal.length > 0 && ctx.measureText(cargoFinal).width > maxCargoWidth) {
+    cargoFinal = cargoFinal.slice(0, -1);
+  }
+  if (cargoFinal !== cargoText && cargoFinal.length > 0) {
+    cargoFinal = cargoFinal.slice(0, -1) + "…";
+  }
+  ctx.fillText(cargoFinal, textX, y + 9);
 
-  // ICP no canto direito (badge)
-  const badgeX = left + w - 4;
+  // ICP badge no canto direito (mesma linha do cargo)
   ctx.fillStyle = cor;
-  ctx.font = "700 9.5px JetBrains Mono, monospace";
+  ctx.font = "700 10.5px JetBrains Mono, monospace";
   ctx.textAlign = "right";
-  ctx.fillText(icpText, badgeX, y + 7);
+  const icpText = p.icp != null ? `ICP ${p.icp.toFixed(1)}` : "ICP —";
+  ctx.fillText(icpText, textRight, y + 9);
 
-  // Indicador "suspeito"
+  // Indicador "suspeito" — círculo vermelho pequeno no canto superior direito
   if (p.suspeito) {
     ctx.fillStyle = COR_ALERTA.vermelho;
     ctx.beginPath();
-    ctx.arc(left + w - 5, top + 5, 3, 0, 2 * Math.PI);
+    ctx.arc(left + w - 7, top + 7, 3.5, 0, 2 * Math.PI);
     ctx.fill();
+    ctx.lineWidth = 1 / scale;
+    ctx.strokeStyle = "#fff";
+    ctx.stroke();
   }
 }
 
@@ -409,6 +426,7 @@ function drawCardAto(
   const cor = corPorNivel(a.nivel_alerta);
   const left = x - w / 2;
   const top = y - h / 2;
+  const padX = 10;
 
   // Card body
   drawRoundedRect(ctx, left, top, w, h, r);
@@ -418,32 +436,36 @@ function drawCardAto(
   ctx.strokeStyle = isSelected || isHovered ? INK : BORDER;
   ctx.stroke();
 
-  // Faixa esquerda colorida (indica nível de alerta)
+  // Faixa esquerda colorida (largura = 5 / scale, padding considerado)
   ctx.fillStyle = cor;
-  drawRoundedRect(ctx, left, top, 4, h, r);
+  drawRoundedRect(ctx, left, top, 5, h, r);
   ctx.fill();
 
-  // Tipo + número
+  // Tipo + número (linha 1)
   ctx.fillStyle = INK;
-  ctx.font = "700 9.5px JetBrains Mono, monospace";
+  ctx.font = "700 11px JetBrains Mono, monospace";
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  const tipo = (a.ato_tipo || "").slice(0, 3).toUpperCase();
-  ctx.fillText(`${tipo} ${a.numero}`, left + 9, y - 5);
+  const tipo = (a.ato_tipo || "").slice(0, 4).toUpperCase();
+  ctx.fillText(`${tipo} ${a.numero}`, left + padX + 4, y - 7);
 
-  // Data + tags count
+  // Linha 2: data (esq) + tags count (dir)
   ctx.fillStyle = MUTED;
-  ctx.font = "8.5px JetBrains Mono, monospace";
+  ctx.font = "9.5px JetBrains Mono, monospace";
   const dataStr = a.data_publicacao
     ? a.data_publicacao.split("-").reverse().slice(0, 3).join("/").slice(0, 10)
-    : "—";
-  ctx.fillText(dataStr, left + 9, y + 7);
+    : "data ?";
+  ctx.fillText(dataStr, left + padX + 4, y + 9);
 
   if (a.tags_count > 0) {
     ctx.fillStyle = cor;
-    ctx.font = "700 8.5px JetBrains Mono, monospace";
+    ctx.font = "700 9.5px JetBrains Mono, monospace";
     ctx.textAlign = "right";
-    ctx.fillText(`${a.tags_count} tag${a.tags_count !== 1 ? "s" : ""}`, left + w - 5, y + 7);
+    ctx.fillText(
+      `${a.tags_count} tag${a.tags_count !== 1 ? "s" : ""}`,
+      left + w - padX,
+      y + 9,
+    );
   }
 }
 
@@ -458,8 +480,9 @@ function drawCardTag(
   const cor = corPorCategoria(t.cor_categoria);
   const left = x - w / 2;
   const top = y - h / 2;
+  const padX = 10;
 
-  // Card body com fundo levemente tingido pela cor da gravidade
+  // Card body
   drawRoundedRect(ctx, left, top, w, h, r);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
@@ -467,9 +490,9 @@ function drawCardTag(
   ctx.strokeStyle = isSelected || isHovered ? INK : cor;
   ctx.stroke();
 
-  // Triângulo de gravidade na esquerda
-  const triSize = 10;
-  const triX = left + 8;
+  // Triângulo de gravidade
+  const triSize = 12;
+  const triX = left + padX + triSize / 2;
   const triY = y;
   ctx.fillStyle = cor;
   ctx.beginPath();
@@ -479,23 +502,29 @@ function drawCardTag(
   ctx.closePath();
   ctx.fill();
 
-  // Nome
+  const textX = triX + triSize / 2 + 8;
+  const textRight = left + w - padX;
+
+  // Nome (linha 1)
   ctx.fillStyle = INK;
-  ctx.font = "700 9.5px JetBrains Mono, monospace";
+  ctx.font = "700 10.5px JetBrains Mono, monospace";
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
   const nm = t.nome.length > 18 ? t.nome.slice(0, 16) + "…" : t.nome;
-  ctx.fillText(nm.toUpperCase(), triX + 10, y - 5);
+  ctx.fillText(nm.toUpperCase(), textX, y - 7);
 
-  // Atos count + gravidade
+  // Linha 2: atos count (esq) + gravidade abrev (dir)
   ctx.fillStyle = MUTED;
-  ctx.font = "8.5px JetBrains Mono, monospace";
-  ctx.fillText(`${t.atos_count} atos`, triX + 10, y + 7);
+  ctx.font = "9.5px JetBrains Mono, monospace";
+  ctx.fillText(`${t.atos_count} atos`, textX, y + 9);
 
   ctx.fillStyle = cor;
-  ctx.font = "700 8.5px JetBrains Mono, monospace";
+  ctx.font = "700 9.5px JetBrains Mono, monospace";
   ctx.textAlign = "right";
-  ctx.fillText(t.gravidade_predominante.slice(0, 4), left + w - 5, y + 7);
+  // Capitaliza primeira letra da gravidade
+  const grav = t.gravidade_predominante;
+  const gravLabel = grav.charAt(0).toUpperCase() + grav.slice(1);
+  ctx.fillText(gravLabel, textRight, y + 9);
 }
 
 function drawLink(
@@ -730,23 +759,23 @@ function ConexPage() {
         out.push(make(central, 0, 0, true));
       }
 
-      // Vizinhos em órbita radial — limita raio pra caber bem no viewport.
+      // Vizinhos em órbita radial — cards de 188px largos, espaço por nó ≈ 240px
       const vizinhos = pessoas.filter((p) => p._key !== state.focoKey);
-      const rViz = Math.max(180, Math.min(280, vizinhos.length * 22));
+      const rViz = Math.max(220, Math.min(360, vizinhos.length * 30));
       vizinhos.forEach((p, i) => {
         const angle = (i / Math.max(1, vizinhos.length)) * 2 * Math.PI - Math.PI / 2;
         out.push(make(p, Math.cos(angle) * rViz, Math.sin(angle) * rViz, true));
       });
 
       // Atos em órbita externa
-      const rAtos = rViz + 170;
+      const rAtos = rViz + 200;
       atos.forEach((a, i) => {
         const angle = ((i + 0.5) / Math.max(1, atos.length)) * 2 * Math.PI - Math.PI / 2;
         out.push(make(a, Math.cos(angle) * rAtos, Math.sin(angle) * rAtos, true));
       });
 
       // Tags ainda mais externas
-      const rTags = rAtos + 150;
+      const rTags = rAtos + 180;
       tags
         .filter((t) => t._key !== state.focoKey)
         .forEach((t, i) => {
@@ -759,13 +788,13 @@ function ConexPage() {
       const n = pessoas.length;
       // Adaptativo: 1 linha pra ≤6, 2 linhas pra ≤12, 3 linhas pra ≤24, 4 linhas+
       const cols =
-        n <= 6 ? Math.min(n, 6)
-        : n <= 12 ? 6
-        : n <= 24 ? 6
+        n <= 5 ? Math.min(n, 5)
+        : n <= 10 ? 5
+        : n <= 18 ? 6
         : Math.ceil(Math.sqrt(n * 1.8));
       const rows = Math.max(1, Math.ceil(n / cols));
-      const dx = 165;
-      const dy = 64;
+      const dx = 210; // card pessoa (188) + gap 22
+      const dy = 76;  // card pessoa (48) + gap 28
       const startX = -((cols - 1) * dx) / 2;
       const startY = -((rows - 1) * dy) / 2;
       pessoas.forEach((p, i) => {
