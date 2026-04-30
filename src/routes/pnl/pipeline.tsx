@@ -83,13 +83,15 @@ function PipelinePage() {
   const [pipeline, setPipeline] = useState<PipelineStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [canceling, setCanceling] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; tipo: "ok" | "erro" | "info" } | null>(null);
   const [pulse, setPulse] = useState(false); // pisca quando realtime dispara
   const debounceRef = useRef<number | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
 
-  function showToast(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
+  function showToast(msg: string, tipo: "ok" | "erro" | "info" = "info") {
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    setToast({ msg, tipo });
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 6000);
   }
 
   const load = useCallback(async () => {
@@ -156,8 +158,8 @@ function PipelinePage() {
       },
     });
     setCanceling(null);
-    if (res.ok) { showToast("Rodada cancelada"); load(); }
-    else showToast("Erro ao cancelar");
+    if (res.ok) { showToast("Rodada cancelada", "ok"); load(); }
+    else showToast("Erro ao cancelar", "erro");
   }
 
   const ativas = rodadas.filter((r) => r.status === "em_progresso" || r.status === "pendente");
@@ -165,8 +167,31 @@ function PipelinePage() {
   return (
     <div className="p-8">
       {toast && (
-        <div className="fixed top-4 right-4 z-50 border border-white/10 px-4 py-3 text-[12px] text-white" style={{ background: "#0d0f1a" }}>
-          {toast}
+        <div
+          className="fixed top-6 right-6 z-50 px-5 py-4 text-[13px] font-medium shadow-2xl flex items-start gap-3 max-w-md animate-in slide-in-from-top-4"
+          style={{
+            background: toast.tipo === "ok" ? "#052e16" : toast.tipo === "erro" ? "#450a0a" : "#0d0f1a",
+            border: `1px solid ${toast.tipo === "ok" ? "#16a34a" : toast.tipo === "erro" ? "#dc2626" : "rgba(255,255,255,0.15)"}`,
+            color: toast.tipo === "ok" ? "#86efac" : toast.tipo === "erro" ? "#fca5a5" : "#ffffff",
+            borderRadius: 4,
+          }}
+        >
+          <span className="text-[18px] leading-none mt-0.5">
+            {toast.tipo === "ok" ? "✓" : toast.tipo === "erro" ? "✗" : "ℹ"}
+          </span>
+          <div className="flex-1">
+            <p className="text-[10px] uppercase tracking-[0.16em] opacity-70 mb-1" style={SYNE}>
+              {toast.tipo === "ok" ? "Sucesso" : toast.tipo === "erro" ? "Erro" : "Aviso"}
+            </p>
+            <p>{toast.msg}</p>
+          </div>
+          <button
+            onClick={() => setToast(null)}
+            className="text-[16px] leading-none opacity-50 hover:opacity-100 transition-opacity"
+            aria-label="Fechar"
+          >
+            ×
+          </button>
         </div>
       )}
 
@@ -372,13 +397,14 @@ function FilaCard({
   fila: FilaInfo;
   accent: string;
   agente?: "piper" | "bud" | null;
-  onDisparado?: (msg: string) => void;
+  onDisparado?: (msg: string, tipo?: "ok" | "erro" | "info") => void;
 }) {
   const isEmpty = fila.total === 0;
   const [tipoSel, setTipoSel] = useState("all");
   const [limiteSel, setLimiteSel] = useState(5);
   const [disparando, setDisparando] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [ultimoResultado, setUltimoResultado] = useState<{ msg: string; tipo: "ok" | "erro" } | null>(null);
 
   // Filtra a amostra do card pela tipo selecionado (visualmente)
   const amostraFiltrada = tipoSel === "all"
@@ -388,6 +414,8 @@ function FilaCard({
   async function disparar() {
     if (!agente) return;
     setDisparando(true);
+    setUltimoResultado(null);
+    onDisparado?.(`Disparando ${limiteSel} ato(s) ${tipoSel} para ${agente}...`, "info");
     try {
       const res = await authedFetch("/pnl/admin/disparar-lote", {
         method: "POST",
@@ -395,15 +423,29 @@ function FilaCard({
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        onDisparado?.(`${data.atos ?? 0} ato(s) ${tipoSel} disparado(s) para ${agente}`);
+        const n = data.atos ?? 0;
+        if (n === 0) {
+          const msg = `Fila vazia para ${tipoSel} — nenhum ato disparado.`;
+          onDisparado?.(msg, "info");
+          setUltimoResultado({ msg, tipo: "erro" });
+        } else {
+          const msg = `${n} ato(s) ${tipoSel === "all" ? "" : tipoSel + " "}disparado(s) para ${agente.toUpperCase()}. Rodada ${data.rodada_id?.slice(0, 8)}…`;
+          onDisparado?.(msg, "ok");
+          setUltimoResultado({ msg: `✓ ${n} disparados para ${agente}`, tipo: "ok" });
+        }
       } else {
-        const detail = typeof data.detail === "string" ? data.detail : data?.detail?.mensagem || "Erro";
-        onDisparado?.(`Erro: ${detail}`);
+        const detail = typeof data.detail === "string" ? data.detail : data?.detail?.mensagem || `HTTP ${res.status}`;
+        onDisparado?.(`Erro ao disparar: ${detail}`, "erro");
+        setUltimoResultado({ msg: `Erro: ${detail}`.slice(0, 80), tipo: "erro" });
       }
     } catch (err) {
-      onDisparado?.(`Erro: ${(err as Error).message}`);
+      const msg = `Erro de rede: ${(err as Error).message}`;
+      onDisparado?.(msg, "erro");
+      setUltimoResultado({ msg, tipo: "erro" });
     } finally {
       setDisparando(false);
+      // mantém o resultado inline visível por 8s
+      setTimeout(() => setUltimoResultado(null), 8000);
     }
   }
 
@@ -482,7 +524,7 @@ function FilaCard({
               type="button"
               onClick={disparar}
               disabled={disparando}
-              className="text-[10px] uppercase tracking-[0.14em] px-3 py-1 transition-colors disabled:opacity-40"
+              className="text-[10px] uppercase tracking-[0.14em] px-3 py-1 transition-colors disabled:opacity-40 inline-flex items-center gap-1.5"
               style={{
                 color: accent,
                 border: `1px solid ${accent}60`,
@@ -490,9 +532,27 @@ function FilaCard({
                 fontFamily: "JetBrains Mono, monospace",
               }}
             >
-              {disparando ? "..." : "Disparar"}
+              {disparando ? (
+                <>
+                  <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: accent }} />
+                  Enviando...
+                </>
+              ) : (
+                "Disparar"
+              )}
             </button>
           </div>
+          {ultimoResultado && (
+            <p
+              className="text-[10px] uppercase tracking-[0.12em]"
+              style={{
+                color: ultimoResultado.tipo === "ok" ? "#86efac" : "#fca5a5",
+                fontFamily: "JetBrains Mono, monospace",
+              }}
+            >
+              {ultimoResultado.msg}
+            </p>
+          )}
           <button
             type="button"
             onClick={() => setModalOpen(true)}
@@ -585,7 +645,7 @@ function FilaModal({
   accent: string;
   tipoInicial: string;
   onClose: () => void;
-  onDisparado: (msg: string) => void;
+  onDisparado: (msg: string, tipo?: "ok" | "erro" | "info") => void;
 }) {
   const [tipo, setTipo] = useState(tipoInicial);
   const [data, setData] = useState<FilaListResponse | null>(null);
@@ -630,6 +690,7 @@ function FilaModal({
   async function disparar() {
     if (selecionados.size === 0) return;
     setDisparando(true);
+    onDisparado(`Disparando ${selecionados.size} ato(s) selecionado(s) para ${agente}...`, "info");
     try {
       const res = await authedFetch("/pnl/admin/disparar-lote", {
         method: "POST",
@@ -641,13 +702,14 @@ function FilaModal({
       });
       const d = await res.json().catch(() => ({}));
       if (res.ok) {
-        onDisparado(`${d.atos ?? selecionados.size} ato(s) disparado(s) para ${agente}`);
+        const n = d.atos ?? selecionados.size;
+        onDisparado(`${n} ato(s) disparado(s) para ${agente.toUpperCase()}. Rodada ${d.rodada_id?.slice(0, 8)}…`, "ok");
       } else {
-        const detail = typeof d.detail === "string" ? d.detail : d?.detail?.mensagem || "Erro";
-        onDisparado(`Erro: ${detail}`);
+        const detail = typeof d.detail === "string" ? d.detail : d?.detail?.mensagem || `HTTP ${res.status}`;
+        onDisparado(`Erro ao disparar: ${detail}`, "erro");
       }
     } catch (err) {
-      onDisparado(`Erro: ${(err as Error).message}`);
+      onDisparado(`Erro de rede: ${(err as Error).message}`, "erro");
     } finally {
       setDisparando(false);
     }
