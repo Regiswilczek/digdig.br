@@ -37,9 +37,12 @@ VOCÊ NÃO PODE:
 - Opinar sobre política partidária ou recomendar candidatos
 - Revelar dados pessoais de usuários da plataforma
 
-COMO CITAR:
-Sempre que mencionar um ato, cite: Tipo + Número + Data
-Exemplo: "conforme Portaria 678 de 02/04/2026"
+COMO CITAR (OBRIGATÓRIO):
+Sempre que mencionar um ato, formate a citação como link markdown:
+  [TIPO Nº (dd/mm/aaaa)](/painel/{slug}/ato/<id>)
+O <id> está no campo "id:" de cada bloco do contexto. Exemplo correto:
+  [PORTARIA 384 (10/10/2022)](/painel/cau-pr/ato/6391ed49-d420-405b-8287-6bb039cbb871)
+Nunca cite um ato sem o link. Nunca invente IDs — só use os IDs presentes no contexto.
 
 LINGUAGEM:
 - Formal mas acessível, sem jargão jurídico desnecessário
@@ -190,7 +193,7 @@ async def _buscar_pessoas(
 
             # aparições detalhadas
             q2 = sql_text("""
-                SELECT a.tipo, a.numero, a.data_publicacao, ap.tipo_aparicao, ap.cargo
+                SELECT a.id, a.tipo, a.numero, a.data_publicacao, ap.tipo_aparicao, ap.cargo
                 FROM aparicoes_pessoa ap
                 JOIN atos a ON a.id = ap.ato_id
                 WHERE ap.pessoa_id = :pid
@@ -202,9 +205,12 @@ async def _buscar_pessoas(
             if aps:
                 bloco += "\n  Aparições:"
                 for ap in aps:
-                    tipo, num, dt, tipo_ap, cargo_ap = ap
+                    ato_id, tipo, num, dt, tipo_ap, cargo_ap = ap
                     dt_s = dt.strftime("%d/%m/%Y") if dt else "s/d"
-                    bloco += f"\n   - {tipo.upper()} {num} ({dt_s}) — {tipo_ap}: {cargo_ap or '-'}"
+                    bloco += (
+                        f"\n   - id:{ato_id} | {tipo.upper()} {num} ({dt_s}) — "
+                        f"{tipo_ap}: {cargo_ap or '-'}"
+                    )
             blocos.append(bloco)
 
     if not blocos:
@@ -264,7 +270,7 @@ async def _buscar_em_textos_completos(
         params[f"t{i}"] = r"\y" + re.escape(t) + r"\y"
 
     q = sql_text(f"""
-        SELECT a.tipo, a.numero, a.data_publicacao, c.texto_completo
+        SELECT a.id, a.tipo, a.numero, a.data_publicacao, c.texto_completo
         FROM atos a
         JOIN conteudo_ato c ON c.ato_id = a.id
         WHERE a.tenant_id = :tid
@@ -279,7 +285,7 @@ async def _buscar_em_textos_completos(
 
     blocos: list[str] = []
     for row in rows:
-        tipo, num, dt, texto = row
+        ato_id, tipo, num, dt, texto = row
         dt_s = dt.strftime("%d/%m/%Y") if dt else "s/d"
         snippet = ""
         for t in bons:
@@ -288,7 +294,9 @@ async def _buscar_em_textos_completos(
                 break
         if not snippet:
             continue
-        blocos.append(f"{tipo.upper()} {num} ({dt_s}):\n  {snippet}")
+        blocos.append(
+            f"id:{ato_id} | {tipo.upper()} {num} ({dt_s}):\n  {snippet}"
+        )
 
     if not blocos:
         return ""
@@ -383,7 +391,10 @@ async def _buscar_contexto(
             score = analise.score_risco if analise else 0
             data_str = ato.data_publicacao.strftime("%d/%m/%Y") if ato.data_publicacao else "s/d"
             ementa = (ato.ementa or "")[:280]
-            parte = f"\n{ato.tipo.upper()} Nº {ato.numero} — {data_str}\nEmenta: {ementa}\nNível: {nivel} (score {score})"
+            parte = (
+                f"\nid:{ato.id} | {ato.tipo.upper()} Nº {ato.numero} — {data_str}"
+                f"\nEmenta: {ementa}\nNível: {nivel} (score {score})"
+            )
             if analise and analise.resumo_executivo:
                 parte += f"\nAnálise: {analise.resumo_executivo[:400]}"
             if analise and analise.resultado_piper:
@@ -411,6 +422,7 @@ async def _build_system_prompt(tenant_id: uuid.UUID, db: AsyncSession) -> str:
     tenant_r = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
     tenant = tenant_r.scalar_one_or_none()
     nome = tenant.nome if tenant else "CAU/PR"
+    slug = tenant.slug if tenant else "cau-pr"
 
     total_r = await db.execute(
         select(func.count()).select_from(Ato).where(Ato.tenant_id == tenant_id)
@@ -426,6 +438,7 @@ async def _build_system_prompt(tenant_id: uuid.UUID, db: AsyncSession) -> str:
 
     return _SYSTEM_PROMPT.format(
         nome_orgao=nome,
+        slug=slug,
         total_atos=total,
         vermelho=dist.get("vermelho", 0),
         laranja=dist.get("laranja", 0),

@@ -371,13 +371,32 @@ const mdComponents: import("react-markdown").Components = {
   hr: () => (
     <hr style={{ border: "none", borderTop: `1px solid ${BORDER}`, margin: "1em 0" }} />
   ),
-  // Links
-  a: ({ href, children }) => (
-    <a href={href} target="_blank" rel="noopener noreferrer"
-      style={{ color: "#0a5c36", textDecoration: "underline", textUnderlineOffset: 2 }}>
-      {children}
-    </a>
-  ),
+  // Links — internos viram <Link> do TanStack Router (navegação SPA);
+  // externos abrem em nova aba.
+  a: ({ href, children }) => {
+    if (href && href.startsWith("/")) {
+      return (
+        <Link
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          to={href as any}
+          style={{
+            color: "#0a5c36",
+            textDecoration: "underline",
+            textUnderlineOffset: 2,
+            fontWeight: 500,
+          }}
+        >
+          {children}
+        </Link>
+      );
+    }
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer"
+        style={{ color: "#0a5c36", textDecoration: "underline", textUnderlineOffset: 2 }}>
+        {children}
+      </a>
+    );
+  },
   // Tabelas
   table: ({ children }) => (
     <div style={{ overflowX: "auto", margin: "0.75em 0" }}>
@@ -652,7 +671,7 @@ function ChatPage() {
           <div className="flex items-center gap-3">
             <span>~/chat</span>
             <span style={{ color: "#d8d5cd" }}>│</span>
-            <span>model · gpt-4o-mini</span>
+            <span>model · piper-lite</span>
             <span style={{ color: "#d8d5cd" }}>│</span>
             <span>rag · {SLUG}</span>
           </div>
@@ -785,7 +804,7 @@ function ChatPage() {
               </button>
             </div>
             <div className="mt-2 flex items-center justify-between text-[9px] uppercase tracking-[0.22em] px-1" style={{ color: SUBTLE, fontFamily: MONO }}>
-              <span>gpt-4o-mini · ctx via rag</span>
+              <span>piper-lite · ctx via rag</span>
               <span className="hidden sm:inline">↵ enviar</span>
             </div>
           </div>
