@@ -1,5 +1,7 @@
 import uuid
 import asyncio
+import logging
+import traceback
 from decimal import Decimal
 from anthropic import RateLimitError as AnthropicRateLimitError, APIError as AnthropicAPIError
 from openai import RateLimitError as OpenAIRateLimitError, APIError as OpenAIAPIError
@@ -17,6 +19,8 @@ from app.services.piper_service import (
 from app.services.bud_service import analisar_ato_bud
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 CUSTO_LIMITE_USD = Decimal("5.00")
 
@@ -244,8 +248,13 @@ async def _analisar_lote_bud(
                     break
             except (AnthropicRateLimitError, AnthropicAPIError):
                 raise
-            except Exception:
+            except Exception as exc:
                 results["erro"] += 1
+                # Loga o erro completo pra diagnosticar — antes ficava silencioso
+                logger.error(
+                    "bud_lote: ato_id=%s rodada_original=%s falhou: %s\n%s",
+                    ato_id, rodada_original, exc, traceback.format_exc(),
+                )
                 await db.rollback()
                 continue
 

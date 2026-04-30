@@ -514,9 +514,14 @@ async def analisar_ato_bud(
     await db.refresh(analise)
 
     try:
-        response = await client.messages.create(
+        # max_tokens=32000 (atas) excede o limite de 10 min do SDK síncrono;
+        # Anthropic SDK exige streaming pra operações longas. Usamos
+        # `messages.stream` em ambos os casos pra simplicidade — a API de
+        # response final é equivalente.
+        max_tokens = 32000 if is_ata else 8000
+        async with client.messages.stream(
             model=settings.claude_sonnet_model,
-            max_tokens=32000 if is_ata else 8000,  # ata: pauta+presentes+tags_revisadas; folga 4x
+            max_tokens=max_tokens,
             system=[
                 {
                     "type": "text",
@@ -525,7 +530,8 @@ async def analisar_ato_bud(
                 }
             ],
             messages=[{"role": "user", "content": contexto}],
-        )
+        ) as stream:
+            response = await stream.get_final_message()
     except Exception:
         # Reverte status pra o ato voltar pra fila e o usuário poder retentar.
         analise.status = status_anterior
