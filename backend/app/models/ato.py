@@ -16,6 +16,10 @@ class Ato(Base):
     numero: Mapped[str] = mapped_column(String(100), nullable=False)
     tipo: Mapped[str] = mapped_column(String(100), nullable=False)
     subtipo: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # tipo_atlas — categoria sugerida pelo agente ATLAS (mais específica que `tipo`,
+    # principalmente útil pra docs vindos de `tipo='media_library'`). Materializado
+    # a partir de classificacao_atlas.categoria.
+    tipo_atlas: Mapped[str | None] = mapped_column(String(40), nullable=True)
     titulo: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     data_publicacao: Mapped[date | None] = mapped_column(Date, nullable=True)
     ementa: Mapped[str | None] = mapped_column(Text, nullable=True)

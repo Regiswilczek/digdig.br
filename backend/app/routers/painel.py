@@ -31,6 +31,7 @@ def _latest_analise_subq(tenant_id):
 async def list_atos(
     slug: str,
     tipo: str | None = Query(None),
+    tipo_atlas: str | None = Query(None),
     nivel: str | None = Query(None),
     ano: int | None = Query(None),
     busca: str | None = Query(None),
@@ -57,6 +58,8 @@ async def list_atos(
 
     if tipo:
         q = q.where(Ato.tipo == tipo)
+    if tipo_atlas:
+        q = q.where(Ato.tipo_atlas == tipo_atlas)
     if nivel:
         q = q.where(Analise.nivel_alerta == nivel)
     if ano:

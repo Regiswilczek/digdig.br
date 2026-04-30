@@ -87,6 +87,24 @@ async def get_stats(slug: str, db: AsyncSession = Depends(get_db)):
     )
     total_sem_texto = sem_texto_r.scalar_one()
 
+    # Distribuição pela categoria do ATLAS (mais granular que `tipo` — quebra
+    # `media_library` em licitação, contrato, financeiro_balanco etc).
+    # Só conta atos que ATLAS já classificou; os outros vão pra "nao_classificado".
+    atlas_total_r = await db.execute(
+        select(Ato.tipo_atlas, func.count().label("total"))
+        .where(Ato.tenant_id == tenant.id, Ato.tipo_atlas.isnot(None))
+        .group_by(Ato.tipo_atlas)
+    )
+    por_categoria_atlas_total = {r.tipo_atlas: r.total for r in atlas_total_r}
+
+    atlas_analise_r = await db.execute(
+        select(Ato.tipo_atlas, func.count(Analise.ato_id.distinct()).label("com_analise"))
+        .join(Analise, Analise.ato_id == Ato.id)
+        .where(Ato.tenant_id == tenant.id, Ato.tipo_atlas.isnot(None))
+        .group_by(Ato.tipo_atlas)
+    )
+    por_categoria_atlas_analise = {r.tipo_atlas: r.com_analise for r in atlas_analise_r.all()}
+
     return {
         "tenant": {"slug": tenant.slug, "nome": tenant.nome},
         "total_atos": total_atos,
@@ -105,6 +123,13 @@ async def get_stats(slug: str, db: AsyncSession = Depends(get_db)):
                 "analisados": por_tipo_analise.get(tipo, 0),
             }
             for tipo, total in sorted(por_tipo_total.items(), key=lambda x: -x[1])
+        },
+        "por_categoria_atlas": {
+            cat: {
+                "total": total,
+                "analisados": por_categoria_atlas_analise.get(cat, 0),
+            }
+            for cat, total in sorted(por_categoria_atlas_total.items(), key=lambda x: -x[1])
         },
     }
 

@@ -149,6 +149,7 @@ export interface PublicStats {
   total_sem_texto: number;
   distribuicao: { verde: number; amarelo: number; laranja: number; vermelho: number };
   por_tipo: Record<string, { total: number; analisados: number }>;
+  por_categoria_atlas?: Record<string, { total: number; analisados: number }>;
 }
 
 export interface AtoTag {

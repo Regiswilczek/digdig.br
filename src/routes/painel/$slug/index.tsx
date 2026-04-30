@@ -776,7 +776,72 @@ const TIPO_DISPLAY: Record<string, string> = {
   auditoria_independente: "Auditorias",
   licitacao: "Licitações",
   ata_registro_preco: "Ata Reg. Preço",
+  // ── Categorias ATLAS (descobertas pela classificação automática) ──
+  deliberacao_arquivo: "Deliberações (arquivo)",
+  portaria_arquivo: "Portarias (arquivo)",
+  ata_pauta_comissao: "Atas/Pautas Comissão",
+  financeiro_balanco: "Balanços Financeiros",
+  financeiro_orcamento: "Orçamentos",
+  financeiro_demonstrativo: "Demonstrativos",
+  auditoria_externa: "Auditorias Externas",
+  relatorio_gestao: "Relatórios de Gestão",
+  processo_etico: "Processos Éticos",
+  recursos_humanos: "Recursos Humanos",
+  juridico_parecer: "Pareceres Jurídicos",
+  aditivo_contratual: "Aditivos Contratuais",
+  comunicacao_institucional: "Comunicação Inst.",
+  placa_certidao: "Placas/Certidões",
+  outros: "Outros",
 };
+
+// Cor única e legível pra cada categoria ATLAS — pelo hash do nome.
+const ATLAS_COLORS = [
+  "#3366cc", "#c05000", "#6600cc", "#15803d", "#a16207",
+  "#b91c1c", "#0e7490", "#9333ea", "#0891b2", "#65a30d",
+  "#ea580c", "#9a3412", "#1d4ed8", "#7c3aed", "#0369a1",
+];
+function colorForCat(cat: string): string {
+  let h = 0;
+  for (let i = 0; i < cat.length; i++) h = (h * 31 + cat.charCodeAt(i)) >>> 0;
+  return ATLAS_COLORS[h % ATLAS_COLORS.length];
+}
+
+function CoverageByAtlas({ stats }: { stats: PublicStats }) {
+  if (!stats.por_categoria_atlas) return null;
+  const rows = Object.entries(stats.por_categoria_atlas)
+    .map(([cat, { total, analisados }]) => ({
+      cat,
+      label: TIPO_DISPLAY[cat] ?? cat,
+      total,
+      analisados,
+    }));
+  if (rows.length === 0) return null;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {rows.map((r) => {
+        const pct = r.total > 0 ? (r.analisados / r.total) * 100 : 0;
+        const color = colorForCat(r.cat);
+        return (
+          <div key={r.cat}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 7, height: 7, background: color, borderRadius: 1, flexShrink: 0 }} />
+                <span style={{ fontSize: 11.5, color: INK, fontFamily: MONO }}>{r.label}</span>
+              </div>
+              <span style={{ fontSize: 10, color: MUTED, fontFamily: MONO }}>
+                {fmt(r.analisados)} / {fmt(r.total)} · {pct.toFixed(0)}%
+              </span>
+            </div>
+            <div style={{ height: 4, background: BORDER, borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 2 }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function CoverageByType({ stats }: { stats: PublicStats }) {
   const rows = Object.entries(stats.por_tipo).map(([tipo, { total, analisados }]) => ({
@@ -3023,6 +3088,20 @@ function TabRelatorio({
             <div style={{ marginTop: 12 }}>
               <p style={{ fontSize: 11, color: MUTED, marginBottom: 10 }}>Cobertura por tipo de documento:</p>
               <CoverageByType stats={stats} />
+            </div>
+          )}
+          {stats?.por_categoria_atlas
+            && Object.keys(stats.por_categoria_atlas).length > 0 && (
+            <div style={{ marginTop: 24 }}>
+              <p style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>
+                Categorias detectadas pelo ATLAS (organização automática):
+              </p>
+              <p style={{ fontSize: 10, color: SUBTLE, marginBottom: 10 }}>
+                Subdivide a massa do Portal da Transparência em categorias finais —
+                licitações, contratos, balanços, processos éticos etc. — independente
+                do tipo do scraper.
+              </p>
+              <CoverageByAtlas stats={stats} />
             </div>
           )}
           <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, marginTop: 14 }}>
