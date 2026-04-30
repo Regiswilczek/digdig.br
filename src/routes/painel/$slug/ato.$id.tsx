@@ -113,6 +113,7 @@ function AtoDetailPage() {
   const [ato, setAto] = useState<PainelAto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tagAtiva, setTagAtiva] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -577,29 +578,75 @@ function AtoDetailPage() {
             <ul className="flex flex-wrap gap-2">
               {ato.tags.map((tag) => {
                 const g = GRAVIDADE_BG[tag.gravidade] ?? { bg: PAPER, fg: MUTED, border: BORDER };
+                const isActive = tagAtiva === tag.codigo;
                 return (
-                  <li
-                    key={tag.codigo}
-                    className="inline-flex items-center gap-2 px-3 py-1.5"
-                    style={{
-                      background: g.bg,
-                      color: g.fg,
-                      border: `1px solid ${g.border}`,
-                      borderRadius: 2,
-                    }}
-                    title={tag.justificativa ?? undefined}
-                  >
-                    <span className="text-[11px] font-semibold" style={{ fontFamily: MONO }}>{tag.nome}</span>
-                    <span className="text-[9px] uppercase tracking-wider opacity-70" style={{ fontFamily: MONO }}>
-                      {tag.gravidade} · {tag.atribuido_por}
-                    </span>
+                  <li key={tag.codigo}>
+                    <button
+                      type="button"
+                      onClick={() => setTagAtiva(isActive ? null : tag.codigo)}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 cursor-pointer transition-all"
+                      style={{
+                        background: g.bg,
+                        color: g.fg,
+                        border: `1px solid ${isActive ? g.fg : g.border}`,
+                        borderRadius: 2,
+                        boxShadow: isActive ? `0 0 0 2px ${g.bg}` : "none",
+                        outline: "none",
+                      }}
+                    >
+                      <span className="text-[11px] font-semibold" style={{ fontFamily: MONO }}>{tag.nome}</span>
+                      <span className="text-[9px] uppercase tracking-wider opacity-70" style={{ fontFamily: MONO }}>
+                        {tag.gravidade} · {tag.atribuido_por}
+                      </span>
+                    </button>
                   </li>
                 );
               })}
             </ul>
-            <p className="text-[11px] mt-3" style={{ color: SUBTLE }}>
-              Passe o mouse sobre a tag para ver a justificativa textual.
-            </p>
+            {(() => {
+              const tagSel = ato.tags?.find((t) => t.codigo === tagAtiva);
+              if (!tagSel) {
+                return (
+                  <p className="text-[11px] mt-3" style={{ color: SUBTLE }}>
+                    Clique em uma tag para ver a justificativa textual.
+                  </p>
+                );
+              }
+              const g = GRAVIDADE_BG[tagSel.gravidade] ?? { bg: PAPER, fg: MUTED, border: BORDER };
+              return (
+                <div
+                  className="mt-4 p-4"
+                  style={{
+                    background: g.bg,
+                    border: `1px solid ${g.border}`,
+                    borderRadius: 2,
+                  }}
+                >
+                  <div className="flex items-center gap-3 flex-wrap mb-2">
+                    <span className="text-[14px] font-semibold" style={{ color: g.fg }}>{tagSel.nome}</span>
+                    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5" style={{ background: g.fg, color: g.bg, fontFamily: MONO, borderRadius: 2 }}>
+                      {tagSel.gravidade}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-wider" style={{ color: SUBTLE, fontFamily: MONO }}>
+                      {tagSel.categoria_nome}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-wider ml-auto" style={{ color: SUBTLE, fontFamily: MONO }}>
+                      atribuído por {tagSel.atribuido_por}
+                      {tagSel.revisado_por && ` · revisado por ${tagSel.revisado_por}`}
+                    </span>
+                  </div>
+                  {tagSel.justificativa ? (
+                    <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: INK }}>
+                      {tagSel.justificativa}
+                    </p>
+                  ) : (
+                    <p className="text-[12px] italic" style={{ color: MUTED }}>
+                      Sem justificativa textual registrada.
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
           </Section>
         )}
 
