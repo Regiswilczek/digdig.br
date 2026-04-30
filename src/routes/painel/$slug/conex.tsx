@@ -224,12 +224,12 @@ interface FGLink extends LinkObject {
 function radiusFor(n: AnyNode): number {
   if (n.tipo === "pessoa") {
     const icp = n.icp || 0;
-    return Math.min(28, Math.max(4, 4 + Math.sqrt(icp) * 3));
+    return Math.min(32, Math.max(7, 7 + Math.sqrt(icp) * 3.5));
   }
   if (n.tipo === "ato") {
-    return Math.min(14, Math.max(3, 3 + Math.log2((n.pessoas_count || 1) + 1) * 2));
+    return Math.min(16, Math.max(5, 5 + Math.log2((n.pessoas_count || 1) + 1) * 2));
   }
-  return Math.min(16, Math.max(4, 4 + Math.log2((n.atos_count || 1) + 1) * 2));
+  return Math.min(20, Math.max(8, 8 + Math.log2((n.atos_count || 1) + 1) * 2.2));
 }
 
 function drawNode(
@@ -237,12 +237,31 @@ function drawNode(
   ctx: CanvasRenderingContext2D,
   globalScale: number,
   selectedKey: string | null,
+  hoveredKey: string | null,
+  highlightedKeys: Set<string>,
 ) {
   const r = radiusFor(node.raw);
   const x = node.x ?? 0;
   const y = node.y ?? 0;
   const isSelected = node._key === selectedKey;
+  const isHovered = node._key === hoveredKey;
+  const isHighlighted = highlightedKeys.has(node._key);
+  const dimmed = highlightedKeys.size > 0 && !isHighlighted && !isSelected && !isHovered;
+  const alpha = dimmed ? 0.25 : 1;
 
+  // Glow do hover/selection — desenhado primeiro (debaixo)
+  if (isSelected || isHovered) {
+    ctx.save();
+    ctx.globalAlpha = isSelected ? 0.35 : 0.2;
+    ctx.fillStyle = ACCENT;
+    ctx.beginPath();
+    ctx.arc(x, y, r + 7, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
   ctx.beginPath();
 
   if (node.tipo === "pessoa") {
@@ -250,15 +269,15 @@ function drawNode(
     ctx.fillStyle = cor;
     ctx.arc(x, y, r, 0, 2 * Math.PI);
     ctx.fill();
-    ctx.lineWidth = 1 / globalScale;
-    ctx.strokeStyle = BORDER;
+    ctx.lineWidth = 1.5 / globalScale;
+    ctx.strokeStyle = "#fff";
     ctx.stroke();
   } else if (node.tipo === "ato") {
     const cor = corPorNivel((node.raw as GrafoNodeAto).nivel_alerta);
     ctx.fillStyle = cor;
     ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    ctx.lineWidth = 1 / globalScale;
-    ctx.strokeStyle = BORDER;
+    ctx.lineWidth = 1.5 / globalScale;
+    ctx.strokeStyle = "#fff";
     ctx.strokeRect(x - r, y - r, r * 2, r * 2);
   } else {
     // triângulo
@@ -269,43 +288,67 @@ function drawNode(
     ctx.lineTo(x + r, y + r * 0.85);
     ctx.closePath();
     ctx.fill();
-    ctx.lineWidth = 1 / globalScale;
-    ctx.strokeStyle = BORDER;
+    ctx.lineWidth = 1.5 / globalScale;
+    ctx.strokeStyle = "#fff";
     ctx.stroke();
   }
+  ctx.restore();
 
-  // Anel de seleção
+  // Anel de seleção (desenhado por cima da forma)
   if (isSelected) {
     ctx.beginPath();
     ctx.arc(x, y, r + 4, 0, 2 * Math.PI);
-    ctx.lineWidth = 2 / globalScale;
+    ctx.lineWidth = 2.5 / globalScale;
+    ctx.strokeStyle = ACCENT;
+    ctx.stroke();
+  } else if (isHovered) {
+    ctx.beginPath();
+    ctx.arc(x, y, r + 3, 0, 2 * Math.PI);
+    ctx.lineWidth = 1.5 / globalScale;
     ctx.strokeStyle = ACCENT;
     ctx.stroke();
   }
 
-  // Label
-  const showLabel = (() => {
-    if (node._key === selectedKey) return true;
-    if (node.tipo === "pessoa") return ((node.raw as GrafoNodePessoa).icp || 0) >= 5;
-    if (node.tipo === "tag") return true;
-    return false;
-  })();
-  if (showLabel && globalScale > 0.6) {
-    ctx.font = `${Math.max(9, 11 / globalScale)}px JetBrains Mono, monospace`;
-    ctx.fillStyle = MUTED;
+  // Label — só se selecionado, hovered, ou nó importante
+  const importante =
+    (node.tipo === "pessoa" && ((node.raw as GrafoNodePessoa).icp || 0) >= 8) ||
+    node.tipo === "tag";
+  const showLabel = !dimmed && (isSelected || isHovered || importante) && globalScale > 0.5;
+
+  if (showLabel) {
+    const fontSize = Math.max(10, 11 / globalScale);
+    ctx.font = `${fontSize}px JetBrains Mono, monospace`;
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
+
     let label = "";
     if (node.tipo === "pessoa") {
       const nm = (node.raw as GrafoNodePessoa).nome;
-      label = nm.length > 28 ? nm.slice(0, 26) + "…" : nm;
+      label = nm.length > 26 ? nm.slice(0, 24) + "…" : nm;
     } else if (node.tipo === "ato") {
       const a = node.raw as GrafoNodeAto;
       label = `${a.ato_tipo.toUpperCase()} ${a.numero}`;
     } else {
       label = (node.raw as GrafoNodeTag).nome.toUpperCase();
     }
-    ctx.fillText(label, x, y + r + 3);
+
+    // Pill de fundo branco para legibilidade sobre os outros nós
+    const labelY = y + r + 4;
+    const padX = 4 / globalScale;
+    const padY = 2 / globalScale;
+    const textWidth = ctx.measureText(label).width;
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+    ctx.fillRect(
+      x - textWidth / 2 - padX,
+      labelY - padY,
+      textWidth + padX * 2,
+      fontSize + padY * 2,
+    );
+    ctx.restore();
+
+    ctx.fillStyle = isSelected || isHovered ? INK : MUTED;
+    ctx.fillText(label, x, labelY);
   }
 }
 
@@ -314,43 +357,54 @@ function drawLink(
   ctx: CanvasRenderingContext2D,
   globalScale: number,
   selectedKey: string | null,
+  hoveredKey: string | null,
+  highlightedEdgeKeys: Set<string>,
 ) {
   const a = link.source as FGNode;
   const b = link.target as FGNode;
   if (typeof a !== "object" || typeof b !== "object") return;
   const ax = a.x ?? 0, ay = a.y ?? 0, bx = b.x ?? 0, by = b.y ?? 0;
-  const conectaSel =
-    selectedKey != null && (a._key === selectedKey || b._key === selectedKey);
+  const conectaFocus =
+    (selectedKey != null && (a._key === selectedKey || b._key === selectedKey)) ||
+    (hoveredKey != null && (a._key === hoveredKey || b._key === hoveredKey));
+  const isHighlighted = highlightedEdgeKeys.has(link._key);
+  const dimmed = (selectedKey || hoveredKey) && !conectaFocus && !isHighlighted;
 
+  ctx.save();
+  ctx.globalAlpha = dimmed ? 0.15 : 1;
   ctx.beginPath();
   ctx.setLineDash([]);
 
   if (link.kind === "co_aparicao") {
     const e = link.raw as GrafoEdgePP;
-    const w = Math.min(4, Math.max(0.5, Math.log2((e.atos_em_comum || 1) + 1)));
-    ctx.lineWidth = w / globalScale;
+    const w = Math.min(4.5, Math.max(0.6, Math.log2((e.atos_em_comum || 1) + 1)));
+    ctx.lineWidth = (conectaFocus ? w + 0.8 : w) / globalScale;
     let cor = BORDER;
     if (e.gravidade_max === "critica") cor = COR_ALERTA.vermelho;
     else if (e.gravidade_max === "alta") cor = COR_ALERTA.laranja;
     else if (e.gravidade_max === "media") cor = COR_ALERTA.amarelo;
-    ctx.strokeStyle = conectaSel ? cor : cor + (e.gravidade_max ? "B0" : "70");
+    else cor = "#bdbab0";
+    ctx.strokeStyle = cor;
   } else if (link.kind === "aparicao") {
     const e = link.raw as GrafoEdgePA;
-    ctx.setLineDash([2, 2]);
-    ctx.lineWidth = 1 / globalScale;
-    const cor = (e.tipo_aparicao === "processado" || e.tipo_aparicao === "exonerado")
-      ? COR_ALERTA.laranja : SUBTLE;
-    ctx.strokeStyle = conectaSel ? cor : cor + "80";
+    ctx.setLineDash([3, 3]);
+    ctx.lineWidth = (conectaFocus ? 1.6 : 1.0) / globalScale;
+    const cor =
+      e.tipo_aparicao === "processado" || e.tipo_aparicao === "exonerado"
+        ? COR_ALERTA.laranja
+        : SUBTLE;
+    ctx.strokeStyle = cor;
   } else {
     // atribuicao_tag
-    ctx.lineWidth = 0.5 / globalScale;
-    ctx.strokeStyle = conectaSel ? INK : BORDER + "60";
+    ctx.lineWidth = (conectaFocus ? 1.0 : 0.6) / globalScale;
+    ctx.strokeStyle = conectaFocus ? INK : "#cbc6b8";
   }
 
   ctx.moveTo(ax, ay);
   ctx.lineTo(bx, by);
   ctx.stroke();
   ctx.setLineDash([]);
+  ctx.restore();
 }
 
 // ─── Componente principal ────────────────────────────────────────────────
@@ -361,6 +415,7 @@ function ConexPage() {
   const fgRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
   // Painéis laterais
   const [atosComuns, setAtosComuns] = useState<{
@@ -373,17 +428,21 @@ function ConexPage() {
   // Tags disponíveis (combobox de filtro)
   const [tagsDisponiveis, setTagsDisponiveis] = useState<{ codigo: string; nome: string }[]>([]);
 
-  // Carrega raiz
+  // Carrega raiz — só pessoas no canvas; tags ficam no combobox de filtro
   useEffect(() => {
     let alive = true;
     dispatch({ type: "loading", on: true });
-    fetchGrafoRaiz(slug, { limit: 15, icp_min: 0, incluir_tags_top: 12 })
-      .then((data) => {
+    // Busca top pessoas + lista de tags para o combobox (sem botar tags no canvas)
+    Promise.all([
+      fetchGrafoRaiz(slug, { limit: 18, icp_min: 0, incluir_tags_top: 0 }),
+      fetchGrafoRaiz(slug, { limit: 0, icp_min: 0, incluir_tags_top: 30 }),
+    ])
+      .then(([pessoasData, tagsData]) => {
         if (!alive) return;
-        dispatch({ type: "merge", data });
+        dispatch({ type: "merge", data: pessoasData });
         dispatch({ type: "loading", on: false });
         setTagsDisponiveis(
-          data.nodes_tags.map((t) => ({ codigo: t.codigo, nome: t.nome }))
+          tagsData.nodes_tags.map((t) => ({ codigo: t.codigo, nome: t.nome }))
         );
       })
       .catch((err) => {
@@ -392,6 +451,36 @@ function ConexPage() {
       });
     return () => { alive = false; };
   }, [slug]);
+
+  // Auto-zoom-to-fit quando dados mudam
+  useEffect(() => {
+    if (!fgRef.current || state.nodes.size === 0) return;
+    const t = setTimeout(() => {
+      try {
+        fgRef.current.zoomToFit(400, 80);
+      } catch {
+        /* fg ainda não pronto */
+      }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [state.nodes.size]);
+
+  // Tuning das forças d3 — repulsão maior + link distance maior pra evitar overlap
+  useEffect(() => {
+    if (!fgRef.current) return;
+    const t = setTimeout(() => {
+      try {
+        const charge = fgRef.current.d3Force?.("charge");
+        if (charge && typeof charge.strength === "function") charge.strength(-180);
+        const link = fgRef.current.d3Force?.("link");
+        if (link && typeof link.distance === "function") link.distance(70);
+        fgRef.current.d3ReheatSimulation?.();
+      } catch {
+        /* fg ainda não pronto */
+      }
+    }, 200);
+    return () => clearTimeout(t);
+  }, [state.nodes.size]);
 
   // Resize observer
   useEffect(() => {
@@ -460,6 +549,24 @@ function ConexPage() {
     if (s.kind === "edge_pp") return null;
     return `${s.kind}:${s.id}`;
   }, [state.selected]);
+
+  // Conjunto de nós/arestas conectados ao selecionado/hover (para destacar e dimar o resto)
+  const { highlightedNodes, highlightedEdges } = useMemo(() => {
+    const focusKey = selectedKey ?? hoveredKey;
+    if (!focusKey) return { highlightedNodes: new Set<string>(), highlightedEdges: new Set<string>() };
+    const nodes = new Set<string>([focusKey]);
+    const edges = new Set<string>();
+    fgLinks.forEach((l) => {
+      const s = (l.source as FGNode)._key ?? (l.source as unknown as string);
+      const t = (l.target as FGNode)._key ?? (l.target as unknown as string);
+      if (s === focusKey || t === focusKey) {
+        edges.add(l._key);
+        nodes.add(s);
+        nodes.add(t);
+      }
+    });
+    return { highlightedNodes: nodes, highlightedEdges: edges };
+  }, [selectedKey, hoveredKey, fgLinks]);
 
   // Handlers
   const handleNodeClick = useCallback(async (node: FGNode) => {
@@ -817,34 +924,97 @@ function ConexPage() {
       {/* Body */}
       <div className="flex-1 flex min-h-0">
         {/* Canvas */}
-        <div ref={containerRef} className="flex-1 relative" style={{ background: PAPER }}>
+        <div
+          ref={containerRef}
+          className="flex-1 relative"
+          style={{
+            // Vinheta sutil — papel com leve gradiente radial
+            background: `radial-gradient(ellipse at center, ${PAPER} 0%, #f3f0e7 100%)`,
+          }}
+        >
           <ForceGraph2D
             ref={fgRef}
             width={size.w}
             height={size.h}
             graphData={{ nodes: fgNodes, links: fgLinks }}
-            backgroundColor={PAPER}
+            backgroundColor="rgba(0,0,0,0)"
             nodeRelSize={1}
-            cooldownTicks={120}
+            cooldownTicks={150}
+            warmupTicks={40}
+            d3AlphaDecay={0.02}
+            d3VelocityDecay={0.35}
+            linkDirectionalParticles={0}
             nodeCanvasObject={(node: any, ctx, globalScale) =>
-              drawNode(node as FGNode, ctx, globalScale, selectedKey)
+              drawNode(
+                node as FGNode,
+                ctx,
+                globalScale,
+                selectedKey,
+                hoveredKey,
+                highlightedNodes,
+              )
             }
             nodePointerAreaPaint={(node: any, color, ctx) => {
               const r = radiusFor((node as FGNode).raw);
               const x = node.x ?? 0, y = node.y ?? 0;
               ctx.fillStyle = color;
               ctx.beginPath();
-              ctx.arc(x, y, r + 4, 0, 2 * Math.PI);
+              ctx.arc(x, y, r + 5, 0, 2 * Math.PI);
               ctx.fill();
             }}
             linkCanvasObjectMode={() => "replace"}
             linkCanvasObject={(link: any, ctx, globalScale) =>
-              drawLink(link as FGLink, ctx, globalScale, selectedKey)
+              drawLink(
+                link as FGLink,
+                ctx,
+                globalScale,
+                selectedKey,
+                hoveredKey,
+                highlightedEdges,
+              )
             }
             onNodeClick={handleNodeClick as any}
             onLinkClick={handleLinkClick as any}
-            d3VelocityDecay={0.3}
+            onNodeHover={(node: any) => {
+              setHoveredKey((node as FGNode | null)?._key ?? null);
+              if (containerRef.current) {
+                containerRef.current.style.cursor = node ? "pointer" : "grab";
+              }
+            }}
+            onLinkHover={(link: any) => {
+              if (containerRef.current && !state.selected.kind) {
+                containerRef.current.style.cursor = link ? "pointer" : "grab";
+              }
+            }}
           />
+
+          {/* Empty-state: pessoas no canvas mas ainda sem expansão (0 arestas) */}
+          {fgNodes.length > 0 && fgLinks.length === 0 && !state.loading && (
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                textAlign: "center",
+                background: "rgba(255,255,255,0.85)",
+                border: `1px dashed ${BORDER}`,
+                borderRadius: 3,
+                padding: "12px 16px",
+                fontFamily: MONO,
+              }}
+            >
+              <p className="text-[10.5px] uppercase tracking-[0.2em]" style={{ color: SUBTLE }}>
+                ▮ início da investigação
+              </p>
+              <p className="text-[12px] mt-2" style={{ color: INK }}>
+                Clique numa pessoa para expandir conexões
+              </p>
+              <p className="text-[10px] mt-1" style={{ color: MUTED }}>
+                ou use o filtro de tag para drill-down por padrão
+              </p>
+            </div>
+          )}
 
           {state.error && (
             <div
