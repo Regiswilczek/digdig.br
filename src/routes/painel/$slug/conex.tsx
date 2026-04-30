@@ -57,10 +57,14 @@ interface SelState {
   pessoa_b_id?: string;
 }
 
+type ModoCanvas = "raiz" | "foco_pessoa" | "foco_tag";
+
 interface State {
   nodes: Map<string, AnyNode>;
   edges: Map<string, AnyEdge>;
-  expanded: Set<string>; // ids de pessoas/tags já expandidas
+  modo: ModoCanvas;
+  focoKey: string | null; // chave do nó central no modo foco_*
+  navStack: { modo: ModoCanvas; focoKey: string | null; label: string }[]; // breadcrumbs
   loading: boolean;
   error: string | null;
   selected: SelState;
@@ -69,14 +73,15 @@ interface State {
     suspeitos_only: boolean;
     mostrar_atos: boolean;
     mostrar_tags: boolean;
-    tag_filter: string | null; // codigo da tag em modo drill-down
   };
 }
 
 const initialState: State = {
   nodes: new Map(),
   edges: new Map(),
-  expanded: new Set(),
+  modo: "raiz",
+  focoKey: null,
+  navStack: [],
   loading: false,
   error: null,
   selected: { kind: null, id: null },
@@ -85,18 +90,22 @@ const initialState: State = {
     suspeitos_only: false,
     mostrar_atos: true,
     mostrar_tags: true,
-    tag_filter: null,
   },
 };
 
 type Action =
   | { type: "loading"; on: boolean }
   | { type: "error"; msg: string | null }
-  | { type: "merge"; data: GrafoResponse; expanded_id?: string }
-  | { type: "replace"; data: GrafoResponse; expanded_id?: string }
+  | {
+      type: "set_canvas";
+      data: GrafoResponse;
+      modo: ModoCanvas;
+      focoKey: string | null;
+      pushStack?: { label: string };
+    }
+  | { type: "voltar"; targetIndex?: number }
   | { type: "select"; sel: SelState }
-  | { type: "set_filter"; patch: Partial<State["filtros"]> }
-  | { type: "reset" };
+  | { type: "set_filter"; patch: Partial<State["filtros"]> };
 
 function nodeKey(n: { tipo: string; id?: string; codigo?: string }): string {
   if (n.tipo === "tag") return `tag:${n.codigo}`;
@@ -112,74 +121,37 @@ function edgeKey(e: { source: string; target: string; kind: string }): string {
   return `${e.kind}:${e.source}:${e.target}`;
 }
 
-function mergeData(state: State, data: GrafoResponse, expanded_id?: string): State {
-  const nodes = new Map(state.nodes);
-  const edges = new Map(state.edges);
-
+function buildCanvas(data: GrafoResponse): {
+  nodes: Map<string, AnyNode>;
+  edges: Map<string, AnyEdge>;
+} {
+  const nodes = new Map<string, AnyNode>();
+  const edges = new Map<string, AnyEdge>();
   for (const p of data.nodes_pessoas) {
     const k = nodeKey({ tipo: "pessoa", id: p.id });
-    if (!nodes.has(k)) nodes.set(k, { ...p, _key: k });
+    nodes.set(k, { ...p, _key: k });
   }
   for (const a of data.nodes_atos) {
     const k = nodeKey({ tipo: "ato", id: a.id });
-    if (!nodes.has(k)) nodes.set(k, { ...a, _key: k });
+    nodes.set(k, { ...a, _key: k });
   }
   for (const t of data.nodes_tags) {
     const k = nodeKey({ tipo: "tag", codigo: t.codigo });
-    if (!nodes.has(k)) nodes.set(k, { ...t, _key: k });
+    nodes.set(k, { ...t, _key: k });
   }
   for (const e of data.edges_pessoa_pessoa) {
     const k = edgeKey(e);
-    if (!edges.has(k)) edges.set(k, { ...e, _key: k });
+    edges.set(k, { ...e, _key: k });
   }
   for (const e of data.edges_pessoa_ato) {
     const k = edgeKey(e);
-    if (!edges.has(k)) edges.set(k, { ...e, _key: k });
+    edges.set(k, { ...e, _key: k });
   }
   for (const e of data.edges_ato_tag) {
     const k = edgeKey(e);
-    if (!edges.has(k)) edges.set(k, { ...e, _key: k });
+    edges.set(k, { ...e, _key: k });
   }
-
-  // Cap de performance — descarta nós não-expandidos com menor grau
-  if (nodes.size > NODE_CAP) {
-    const grau = new Map<string, number>();
-    edges.forEach((e) => {
-      const sk = e.kind === "atribuicao_tag"
-        ? `tag:${e.target}`
-        : `${(nodes.get(`pessoa:${e.source}`) ? "pessoa" : nodes.get(`ato:${e.source}`) ? "ato" : "tag")}:${e.source}`;
-      const tk = e.kind === "atribuicao_tag"
-        ? `ato:${e.source}`
-        : `${(nodes.get(`pessoa:${e.target}`) ? "pessoa" : nodes.get(`ato:${e.target}`) ? "ato" : "tag")}:${e.target}`;
-      grau.set(sk, (grau.get(sk) || 0) + 1);
-      grau.set(tk, (grau.get(tk) || 0) + 1);
-    });
-
-    const removiveis: string[] = [];
-    nodes.forEach((n, k) => {
-      if (!state.expanded.has(k)) removiveis.push(k);
-    });
-    removiveis.sort((a, b) => (grau.get(a) || 0) - (grau.get(b) || 0));
-    for (const k of removiveis) {
-      if (nodes.size <= NODE_CAP) break;
-      nodes.delete(k);
-    }
-    // Limpa edges órfãs
-    edges.forEach((e, k) => {
-      const sk = e.kind === "atribuicao_tag"
-        ? `tag:${e.target}` : null;
-      const tk = e.kind === "atribuicao_tag"
-        ? `ato:${e.source}` : null;
-      const hasS = sk ? nodes.has(sk) : true;
-      const hasT = tk ? nodes.has(tk) : true;
-      if (!hasS || !hasT) edges.delete(k);
-    });
-  }
-
-  const expanded = new Set(state.expanded);
-  if (expanded_id) expanded.add(expanded_id);
-
-  return { ...state, nodes, edges, expanded };
+  return { nodes, edges };
 }
 
 function reducer(state: State, action: Action): State {
@@ -188,22 +160,45 @@ function reducer(state: State, action: Action): State {
       return { ...state, loading: action.on };
     case "error":
       return { ...state, error: action.msg, loading: false };
-    case "merge":
-      return mergeData(state, action.data, action.expanded_id);
-    case "replace": {
-      const fresh = mergeData(
-        { ...state, nodes: new Map(), edges: new Map(), expanded: new Set() },
-        action.data,
-        action.expanded_id,
-      );
-      return { ...fresh, selected: { kind: null, id: null } };
+    case "set_canvas": {
+      // Substitui completamente o canvas — sem merge, sem nós órfãos.
+      const { nodes, edges } = buildCanvas(action.data);
+      const stack = action.pushStack
+        ? [
+            ...state.navStack,
+            { modo: action.modo, focoKey: action.focoKey, label: action.pushStack.label },
+          ]
+        : state.navStack;
+      return {
+        ...state,
+        nodes,
+        edges,
+        modo: action.modo,
+        focoKey: action.focoKey,
+        navStack: stack,
+        selected:
+          action.focoKey && action.modo === "foco_pessoa"
+            ? { kind: "pessoa", id: action.focoKey.replace(/^pessoa:/, "") }
+            : action.focoKey && action.modo === "foco_tag"
+            ? { kind: "tag", id: action.focoKey.replace(/^tag:/, "") }
+            : { kind: null, id: null },
+        loading: false,
+      };
+    }
+    case "voltar": {
+      // targetIndex = -1 (raiz) ou índice no navStack
+      const idx = action.targetIndex ?? state.navStack.length - 2;
+      const newStack = idx < 0 ? [] : state.navStack.slice(0, idx + 1);
+      return {
+        ...state,
+        navStack: newStack,
+        selected: { kind: null, id: null },
+      };
     }
     case "select":
       return { ...state, selected: action.sel };
     case "set_filter":
       return { ...state, filtros: { ...state.filtros, ...action.patch } };
-    case "reset":
-      return { ...initialState };
   }
 }
 
@@ -488,61 +483,65 @@ function ConexPage() {
   // Tags disponíveis (combobox de filtro)
   const [tagsDisponiveis, setTagsDisponiveis] = useState<{ codigo: string; nome: string }[]>([]);
 
-  // Carrega raiz — só pessoas no canvas; tags ficam no combobox de filtro
-  useEffect(() => {
-    let alive = true;
+  // Carrega raiz: top concentradores (sem tags soltas no canvas)
+  const carregarRaiz = useCallback(async () => {
     dispatch({ type: "loading", on: true });
-    // Uma chamada: pega pessoas (vão pro canvas) + lista de tags (só pro combobox)
-    fetchGrafoRaiz(slug, { limit: 18, icp_min: 0, incluir_tags_top: 30 })
-      .then((data) => {
-        if (!alive) return;
-        // Salva tags pro combobox antes de remover do payload
-        setTagsDisponiveis(
-          data.nodes_tags.map((t) => ({ codigo: t.codigo, nome: t.nome }))
-        );
-        // Merge só pessoas no canvas — descarta tags pra não poluir o estado inicial
-        dispatch({
-          type: "merge",
-          data: { ...data, nodes_tags: [] },
-        });
-        dispatch({ type: "loading", on: false });
-      })
-      .catch((err) => {
-        if (!alive) return;
-        dispatch({ type: "error", msg: err.message ?? "Erro ao carregar grafo" });
+    try {
+      const data = await fetchGrafoRaiz(slug, {
+        limit: 18,
+        icp_min: 0,
+        incluir_tags_top: 30,
       });
-    return () => { alive = false; };
+      setTagsDisponiveis(data.nodes_tags.map((t) => ({ codigo: t.codigo, nome: t.nome })));
+      dispatch({
+        type: "set_canvas",
+        data: { ...data, nodes_tags: [] }, // pessoas só
+        modo: "raiz",
+        focoKey: null,
+      });
+    } catch (err: any) {
+      dispatch({ type: "error", msg: err.message ?? "Erro ao carregar grafo" });
+    }
   }, [slug]);
 
-  // Auto-zoom-to-fit quando dados mudam
+  useEffect(() => {
+    carregarRaiz();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+
+  // Auto-zoom-to-fit UMA VEZ por troca de modo/foco — não mexe enquanto user
+  // navega no zoom/pan. Dispara somente quando muda o `focoKey` ou `modo`.
   useEffect(() => {
     if (!fgRef.current || state.nodes.size === 0) return;
     const t = setTimeout(() => {
       try {
-        fgRef.current.zoomToFit(400, 80);
+        fgRef.current.zoomToFit(500, 100);
       } catch {
         /* fg ainda não pronto */
       }
-    }, 600);
+    }, 700);
     return () => clearTimeout(t);
-  }, [state.nodes.size]);
+  }, [state.modo, state.focoKey]);
 
-  // Tuning das forças d3 — repulsão maior + link distance maior pra evitar overlap
+  // Tuning das forças d3 — uma vez por troca de modo/foco apenas.
   useEffect(() => {
     if (!fgRef.current) return;
     const t = setTimeout(() => {
       try {
         const charge = fgRef.current.d3Force?.("charge");
-        if (charge && typeof charge.strength === "function") charge.strength(-180);
+        if (charge && typeof charge.strength === "function") charge.strength(-260);
         const link = fgRef.current.d3Force?.("link");
-        if (link && typeof link.distance === "function") link.distance(70);
-        fgRef.current.d3ReheatSimulation?.();
+        if (link && typeof link.distance === "function") link.distance(85);
+        const center = fgRef.current.d3Force?.("center");
+        if (center) {
+          // Centro suave — não força exato no (0,0)
+        }
       } catch {
         /* fg ainda não pronto */
       }
-    }, 200);
+    }, 100);
     return () => clearTimeout(t);
-  }, [state.nodes.size]);
+  }, [state.modo, state.focoKey]);
 
   // Resize observer + mousemove pra rastrear posição do tooltip
   useEffect(() => {
@@ -566,11 +565,24 @@ function ConexPage() {
     };
   }, []);
 
-  // Filtra nós/edges client-side
+  // Filtra nós/edges client-side. No modo foco, posiciona radialmente:
+  // - nó central (focoKey) fixo em (0, 0)
+  // - pessoas vizinhas em órbita interna (raio 200)
+  // - atos em órbita média (raio 360)
+  // - tags em órbita externa (raio 480)
+  // No modo raiz, deixa o force layout posicionar livremente.
+  const fgNodesRef = useRef<Map<string, FGNode>>(new Map());
   const fgNodes: FGNode[] = useMemo(() => {
     const out: FGNode[] = [];
+    const cache = fgNodesRef.current;
+    const newCache = new Map<string, FGNode>();
+
+    // Coleta arrays separados por tipo para o layout radial
+    const pessoas: AnyNode[] = [];
+    const atos: AnyNode[] = [];
+    const tags: AnyNode[] = [];
+
     state.nodes.forEach((n) => {
-      // Filtros client-side
       if (n.tipo === "pessoa") {
         const p = n as GrafoNodePessoa & { _key: string };
         if (state.filtros.suspeitos_only && !p.suspeito) return;
@@ -578,15 +590,78 @@ function ConexPage() {
       }
       if (n.tipo === "ato" && !state.filtros.mostrar_atos) return;
       if (n.tipo === "tag" && !state.filtros.mostrar_tags) return;
-      out.push({
+      if (n.tipo === "pessoa") pessoas.push(n);
+      else if (n.tipo === "ato") atos.push(n);
+      else tags.push(n);
+    });
+
+    const isFoco = state.modo === "foco_pessoa" || state.modo === "foco_tag";
+
+    const make = (n: AnyNode, x?: number, y?: number, fixed = false): FGNode => {
+      const existing = cache.get(n._key);
+      const node: FGNode = existing ?? {
         id: n._key,
         _key: n._key,
         tipo: n.tipo,
         raw: n,
+        x,
+        y,
+      };
+      // Atualiza dados (sempre) mas preserva posição da simulação se já tinha
+      node.raw = n;
+      if (fixed) {
+        node.fx = x;
+        node.fy = y;
+      } else if (existing && existing.x !== undefined) {
+        // mantém posição atual
+      } else if (x !== undefined) {
+        node.x = x;
+        node.y = y;
+      }
+      newCache.set(n._key, node);
+      return node;
+    };
+
+    if (isFoco) {
+      // Central
+      const central = pessoas.find((p) => p._key === state.focoKey)
+        ?? tags.find((t) => t._key === state.focoKey);
+      if (central) {
+        out.push(make(central, 0, 0, true));
+      }
+      // Pessoas vizinhas em círculo
+      const vizinhos = pessoas.filter((p) => p._key !== state.focoKey);
+      vizinhos.forEach((p, i) => {
+        const angle = (i / Math.max(1, vizinhos.length)) * 2 * Math.PI;
+        out.push(make(p, Math.cos(angle) * 220, Math.sin(angle) * 220));
       });
-    });
+      // Atos em órbita média (offset angular para não colidir)
+      atos.forEach((a, i) => {
+        const angle = ((i + 0.5) / Math.max(1, atos.length)) * 2 * Math.PI;
+        out.push(make(a, Math.cos(angle) * 380, Math.sin(angle) * 380));
+      });
+      // Tags em órbita externa
+      tags
+        .filter((t) => t._key !== state.focoKey)
+        .forEach((t, i) => {
+          const angle = ((i + 0.25) / Math.max(1, tags.length)) * 2 * Math.PI;
+          out.push(make(t, Math.cos(angle) * 540, Math.sin(angle) * 540));
+        });
+    } else {
+      // Modo raiz: pessoas em uma "constelação" — distribuídas uniformemente
+      // ao redor do centro, raio depende da quantidade.
+      const r = 220 + pessoas.length * 8;
+      pessoas.forEach((p, i) => {
+        const angle = (i / Math.max(1, pessoas.length)) * 2 * Math.PI;
+        out.push(make(p, Math.cos(angle) * r, Math.sin(angle) * r));
+      });
+      atos.forEach((a) => out.push(make(a)));
+      tags.forEach((t) => out.push(make(t)));
+    }
+
+    fgNodesRef.current = newCache;
     return out;
-  }, [state.nodes, state.filtros]);
+  }, [state.nodes, state.filtros, state.modo, state.focoKey]);
 
   const fgLinks: FGLink[] = useMemo(() => {
     const ids = new Set(fgNodes.map((n) => n._key));
@@ -622,13 +697,10 @@ function ConexPage() {
     return `${s.kind}:${s.id}`;
   }, [state.selected]);
 
-  // Estado inicial = nenhuma aresta no canvas (apenas top pessoas).
-  // Ativa renderização "avatar gigante com iniciais + nome" pra evitar
-  // a sensação de "página vazia com pontos espalhados".
-  const isRootView = useMemo(() => {
-    // Considera root se temos pessoas mas zero arestas
-    return state.edges.size === 0 && state.nodes.size > 0;
-  }, [state.edges.size, state.nodes.size]);
+  // Estado raiz = canvas dos top concentradores (sem foco em ninguém).
+  // Ativa renderização "avatar gigante com iniciais + nome" pra que os
+  // top N fiquem identificáveis à primeira vista.
+  const isRootView = state.modo === "raiz";
 
   // Conjunto de nós/arestas conectados ao selecionado/hover (para destacar e dimar o resto)
   const { highlightedNodes, highlightedEdges } = useMemo(() => {
@@ -649,48 +721,76 @@ function ConexPage() {
   }, [selectedKey, hoveredKey, fgLinks]);
 
   // Handlers
-  const handleNodeClick = useCallback(async (node: FGNode) => {
-    if (node.tipo === "pessoa") {
-      const p = node.raw as GrafoNodePessoa;
-      dispatch({ type: "select", sel: { kind: "pessoa", id: p.id } });
-      // Expande se ainda não foi expandida
-      if (!state.expanded.has(node._key)) {
-        try {
-          dispatch({ type: "loading", on: true });
-          const data = await fetchGrafoExpandirPessoa(slug, p.id, {
-            limit_vizinhos: 12,
-            peso_min: 2,
-            incluir_atos: state.filtros.mostrar_atos,
-            incluir_tags: state.filtros.mostrar_tags,
-            limit_atos: 5,
-          });
-          dispatch({ type: "merge", data, expanded_id: node._key });
-          dispatch({ type: "loading", on: false });
-        } catch (err: any) {
-          dispatch({ type: "error", msg: err.message });
-        }
+  // Clicar numa pessoa: substitui o canvas pelo ego-graph dela.
+  const focarPessoa = useCallback(
+    async (pessoa_id: string, label: string) => {
+      setTooltip(null);
+      setHoveredKey(null);
+      setAtosComuns(null);
+      dispatch({ type: "loading", on: true });
+      try {
+        const data = await fetchGrafoExpandirPessoa(slug, pessoa_id, {
+          limit_vizinhos: 12,
+          peso_min: 2,
+          incluir_atos: state.filtros.mostrar_atos,
+          incluir_tags: state.filtros.mostrar_tags,
+          limit_atos: 5,
+        });
+        dispatch({
+          type: "set_canvas",
+          data,
+          modo: "foco_pessoa",
+          focoKey: `pessoa:${pessoa_id}`,
+          pushStack: { label },
+        });
+      } catch (err: any) {
+        dispatch({ type: "error", msg: err.message });
       }
-    } else if (node.tipo === "ato") {
-      const a = node.raw as GrafoNodeAto;
-      dispatch({ type: "select", sel: { kind: "ato", id: a.id } });
-    } else {
-      const t = node.raw as GrafoNodeTag;
-      dispatch({ type: "select", sel: { kind: "tag", id: t.codigo } });
-      if (!state.expanded.has(node._key)) {
-        try {
-          dispatch({ type: "loading", on: true });
-          const data = await fetchGrafoExpandirTag(slug, t.codigo, {
-            limit_atos: 12,
-            incluir_pessoas: true,
-          });
-          dispatch({ type: "merge", data, expanded_id: node._key });
-          dispatch({ type: "loading", on: false });
-        } catch (err: any) {
-          dispatch({ type: "error", msg: err.message });
-        }
+    },
+    [slug, state.filtros],
+  );
+
+  const focarTag = useCallback(
+    async (codigo: string, label: string) => {
+      setTooltip(null);
+      setHoveredKey(null);
+      setAtosComuns(null);
+      dispatch({ type: "loading", on: true });
+      try {
+        const data = await fetchGrafoExpandirTag(slug, codigo, {
+          limit_atos: 20,
+          incluir_pessoas: true,
+        });
+        dispatch({
+          type: "set_canvas",
+          data,
+          modo: "foco_tag",
+          focoKey: `tag:${codigo}`,
+          pushStack: { label },
+        });
+      } catch (err: any) {
+        dispatch({ type: "error", msg: err.message });
       }
-    }
-  }, [slug, state.expanded, state.filtros]);
+    },
+    [slug],
+  );
+
+  const handleNodeClick = useCallback(
+    async (node: FGNode) => {
+      if (node.tipo === "pessoa") {
+        const p = node.raw as GrafoNodePessoa;
+        await focarPessoa(p.id, p.nome);
+      } else if (node.tipo === "ato") {
+        const a = node.raw as GrafoNodeAto;
+        // Apenas seleciona — abre painel lateral pra ver tags + link pra ficha
+        dispatch({ type: "select", sel: { kind: "ato", id: a.id } });
+      } else {
+        const t = node.raw as GrafoNodeTag;
+        await focarTag(t.codigo, t.nome);
+      }
+    },
+    [focarPessoa, focarTag],
+  );
 
   const handleLinkClick = useCallback(async (link: FGLink) => {
     if (link.kind === "co_aparicao") {
@@ -715,32 +815,40 @@ function ConexPage() {
     }
   }, [slug, state.nodes]);
 
-  const handleFiltrarPorTag = useCallback(async (codigo: string) => {
-    dispatch({ type: "loading", on: true });
-    dispatch({ type: "set_filter", patch: { tag_filter: codigo } });
-    try {
-      const data = await fetchGrafoExpandirTag(slug, codigo, {
-        limit_atos: 20,
-        incluir_pessoas: true,
-      });
-      dispatch({ type: "replace", data, expanded_id: `tag:${codigo}` });
-      dispatch({ type: "loading", on: false });
-    } catch (err: any) {
-      dispatch({ type: "error", msg: err.message });
-    }
-  }, [slug]);
+  const handleFiltrarPorTag = useCallback(
+    async (codigo: string) => {
+      const tag = tagsDisponiveis.find((t) => t.codigo === codigo);
+      await focarTag(codigo, tag?.nome ?? codigo);
+    },
+    [focarTag, tagsDisponiveis],
+  );
 
-  const handleLimparFiltroTag = useCallback(async () => {
-    dispatch({ type: "loading", on: true });
-    dispatch({ type: "set_filter", patch: { tag_filter: null } });
-    try {
-      const data = await fetchGrafoRaiz(slug, { limit: 15, icp_min: 0, incluir_tags_top: 12 });
-      dispatch({ type: "replace", data });
-      dispatch({ type: "loading", on: false });
-    } catch (err: any) {
-      dispatch({ type: "error", msg: err.message });
-    }
-  }, [slug]);
+  const voltarRaiz = useCallback(async () => {
+    setTooltip(null);
+    setHoveredKey(null);
+    setAtosComuns(null);
+    await carregarRaiz();
+  }, [carregarRaiz]);
+
+  // Voltar a um item específico do breadcrumb (refetch do foco daquele nível)
+  const voltarPara = useCallback(
+    async (index: number) => {
+      setTooltip(null);
+      setHoveredKey(null);
+      setAtosComuns(null);
+      const target = state.navStack[index];
+      if (!target) return voltarRaiz();
+      // Trim stack até o índice e re-foca naquele item
+      // Para simplificar: removemos do stack e re-empurramos via focar*
+      dispatch({ type: "voltar", targetIndex: index - 1 });
+      if (target.modo === "foco_pessoa" && target.focoKey) {
+        await focarPessoa(target.focoKey.replace(/^pessoa:/, ""), target.label);
+      } else if (target.modo === "foco_tag" && target.focoKey) {
+        await focarTag(target.focoKey.replace(/^tag:/, ""), target.label);
+      }
+    },
+    [state.navStack, voltarRaiz, focarPessoa, focarTag],
+  );
 
   // Painel lateral selecionado
   const painelLateral = useMemo(() => {
@@ -791,7 +899,8 @@ function ConexPage() {
           atos={atos}
           slug={slug}
           onExpandirVizinho={(id) => {
-            handleNodeClick({ _key: `pessoa:${id}`, id: `pessoa:${id}`, tipo: "pessoa", raw: state.nodes.get(`pessoa:${id}`)! } as FGNode);
+            const v = state.nodes.get(`pessoa:${id}`) as GrafoNodePessoa | undefined;
+            if (v) focarPessoa(id, v.nome);
           }}
           onClicarAto={(ato) => dispatch({ type: "select", sel: { kind: "ato", id: ato.id } })}
         />
@@ -850,7 +959,8 @@ function ConexPage() {
           pessoasDaTag={pessoasDaTag}
           slug={slug}
           onClicarPessoa={(id) => {
-            handleNodeClick({ _key: `pessoa:${id}`, id: `pessoa:${id}`, tipo: "pessoa", raw: state.nodes.get(`pessoa:${id}`)! } as FGNode);
+            const v = state.nodes.get(`pessoa:${id}`) as GrafoNodePessoa | undefined;
+            if (v) focarPessoa(id, v.nome);
           }}
           onClicarAto={(ato) => dispatch({ type: "select", sel: { kind: "ato", id: ato.id } })}
         />
@@ -858,7 +968,7 @@ function ConexPage() {
     }
 
     return null;
-  }, [state.selected, state.nodes, state.edges, atosComuns, slug, handleNodeClick]);
+  }, [state.selected, state.nodes, state.edges, atosComuns, slug, focarPessoa]);
 
   return (
     <div className="flex flex-col h-screen w-full" style={{ background: "#fff" }}>
@@ -867,7 +977,7 @@ function ConexPage() {
         className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 h-12"
         style={{ background: "#fff", borderBottom: `1px solid ${BORDER}` }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Link
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             to={"/painel/$slug" as any}
@@ -879,14 +989,50 @@ function ConexPage() {
             <ArrowLeft size={11} /> Painel
           </Link>
           <span style={{ color: BORDER }}>│</span>
-          <h1
-            className="text-[14px] font-medium"
-            style={{ fontFamily: TIGHT, letterSpacing: "-0.01em" }}
+          <button
+            onClick={voltarRaiz}
+            disabled={state.modo === "raiz"}
+            className="text-[14px] font-medium hover:text-[#16a34a] transition-colors"
+            style={{
+              fontFamily: TIGHT,
+              letterSpacing: "-0.01em",
+              color: state.modo === "raiz" ? INK : MUTED,
+              cursor: state.modo === "raiz" ? "default" : "pointer",
+              background: "transparent",
+              border: "none",
+              padding: 0,
+            }}
+            title="Voltar à visão de top concentradores"
           >
-            Conexões / Rede de relações
-          </h1>
+            Conexões
+          </button>
+          {state.navStack.length > 0 && (
+            <>
+              {state.navStack.map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span style={{ color: SUBTLE, fontFamily: MONO }}>›</span>
+                  <button
+                    onClick={() => voltarPara(i)}
+                    className="text-[12.5px] hover:text-[#0a0a0a] transition-colors"
+                    style={{
+                      fontFamily: TIGHT,
+                      color: i === state.navStack.length - 1 ? INK : MUTED,
+                      cursor: i === state.navStack.length - 1 ? "default" : "pointer",
+                      background: "transparent",
+                      border: "none",
+                      padding: 0,
+                      letterSpacing: "-0.01em",
+                    }}
+                    disabled={i === state.navStack.length - 1}
+                  >
+                    {item.label.length > 32 ? item.label.slice(0, 30) + "…" : item.label}
+                  </button>
+                </div>
+              ))}
+            </>
+          )}
           <span
-            className="text-[9px] uppercase tracking-[0.22em] tabular-nums hidden md:inline"
+            className="text-[9px] uppercase tracking-[0.22em] tabular-nums hidden md:inline ml-2"
             style={{ color: SUBTLE, fontFamily: MONO }}
           >
             {state.nodes.size} nós · {state.edges.size} arestas
@@ -957,13 +1103,13 @@ function ConexPage() {
           Mostrar tags
         </label>
 
-        {/* Filtro por tag */}
+        {/* Filtro por tag (drill-down) */}
         <div className="flex items-center gap-1.5">
           <select
-            value={state.filtros.tag_filter ?? ""}
+            value={state.modo === "foco_tag" && state.focoKey ? state.focoKey.replace(/^tag:/, "") : ""}
             onChange={(e) => {
               const v = e.target.value;
-              if (v === "") handleLimparFiltroTag();
+              if (v === "") voltarRaiz();
               else handleFiltrarPorTag(v);
             }}
             className="text-[10px] px-2 py-1"
@@ -975,16 +1121,16 @@ function ConexPage() {
               color: INK,
             }}
           >
-            <option value="">— todas as tags —</option>
+            <option value="">— escolher tag para drill-down —</option>
             {tagsDisponiveis.map((t) => (
               <option key={t.codigo} value={t.codigo}>
                 {t.nome}
               </option>
             ))}
           </select>
-          {state.filtros.tag_filter && (
+          {state.modo !== "raiz" && (
             <button
-              onClick={handleLimparFiltroTag}
+              onClick={voltarRaiz}
               className="text-[9px] uppercase tracking-wider px-1.5 py-1 hover:bg-white"
               style={{ color: MUTED, fontFamily: MONO }}
             >
