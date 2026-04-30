@@ -2,11 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
   fetchPainelAto,
+  fetchAuthed,
   type PainelAto,
   type HaikuIndicio,
   type HaikuPessoa,
 } from "../../../lib/api-auth";
-import { ExternalLink, ArrowLeft } from "lucide-react";
+import { ExternalLink, ArrowLeft, Star } from "lucide-react";
 
 export const Route = createFileRoute("/painel/$slug/ato/$id")({
   component: AtoDetailPage,
@@ -114,6 +115,8 @@ function AtoDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tagAtiva, setTagAtiva] = useState<string | null>(null);
+  const [favoritado, setFavoritado] = useState(false);
+  const [favTogglando, setFavTogglando] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -132,11 +135,40 @@ function AtoDetailPage() {
         if (!cancelled) setLoading(false);
       }
     }
+    async function loadFav() {
+      try {
+        const r = await fetchAuthed("/me/favoritos");
+        if (r.ok) {
+          const lista: { ato_id: string }[] = await r.json();
+          if (!cancelled) setFavoritado(lista.some((f) => f.ato_id === id));
+        }
+      } catch {/* silencioso — usuário pode não estar logado */}
+    }
     load();
+    loadFav();
     return () => {
       cancelled = true;
     };
   }, [slug, id]);
+
+  async function toggleFavorito() {
+    if (favTogglando) return;
+    setFavTogglando(true);
+    try {
+      if (favoritado) {
+        const r = await fetchAuthed(`/me/favoritos/${id}`, { method: "DELETE" });
+        if (r.ok) setFavoritado(false);
+      } else {
+        const r = await fetchAuthed(`/me/favoritos/${id}`, {
+          method: "POST",
+          body: JSON.stringify({ nota: null }),
+        });
+        if (r.ok) setFavoritado(true);
+      }
+    } finally {
+      setFavTogglando(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -267,6 +299,29 @@ function AtoDetailPage() {
                   {ato.ementa}
                 </p>
               )}
+              <button
+                onClick={toggleFavorito}
+                disabled={favTogglando}
+                className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 transition-colors hover:bg-[#faf8f3]"
+                style={{
+                  border: `1px solid ${favoritado ? "#facc15" : BORDER}`,
+                  background: favoritado ? "#fffbeb" : "#fff",
+                  color: favoritado ? "#854d0e" : INK,
+                  fontFamily: MONO,
+                  fontSize: 11,
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
+                  cursor: favTogglando ? "wait" : "pointer",
+                }}
+                title={favoritado ? "Remover dos favoritos" : "Salvar nos favoritos"}
+              >
+                <Star
+                  size={13}
+                  fill={favoritado ? "#facc15" : "none"}
+                  stroke={favoritado ? "#a16207" : "currentColor"}
+                />
+                {favoritado ? "favoritado" : "favoritar"}
+              </button>
             </div>
             {ato.nivel_alerta && (
               <div

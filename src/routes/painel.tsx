@@ -72,18 +72,22 @@ function CornerMarks({ color = HAIRLINE, size = 6 }: { color?: string; size?: nu
 
 function SidebarContent({
   userEmail,
+  userNome,
+  userAvatar,
   excavOpen,
   setExcavOpen,
   onSignOut,
   onNavigate,
 }: {
   userEmail: string;
+  userNome: string | null;
+  userAvatar: string | null;
   excavOpen: boolean;
   setExcavOpen: (v: boolean) => void;
   onSignOut: () => void;
   onNavigate?: () => void;
 }) {
-  const initial = (userEmail?.[0] ?? "•").toUpperCase();
+  const initial = ((userNome ?? userEmail)?.[0] ?? "•").toUpperCase();
   const { stats: pipelineStats, finStats: pipelineFinStats } = useOrgao("cau-pr");
   const orgaos = [
     { nome: "CAU/PR", slug: "cau-pr", ativo: true, n: 1 },
@@ -372,32 +376,47 @@ function SidebarContent({
         style={{ borderTop: `1px solid ${BORDER}` }}
       >
         <div className="flex items-center gap-2.5">
-          <span
-            className="flex items-center justify-center w-7 h-7 text-white text-[11px] font-semibold flex-shrink-0"
-            style={{
-              background: INK,
-              fontFamily: MONO,
-              borderRadius: RADIUS,
-            }}
+          <Link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            to={"/painel/conta" as any}
+            onClick={onNavigate}
+            title="Minha conta"
+            className="flex items-center gap-2.5 flex-1 min-w-0 transition-opacity hover:opacity-80"
           >
-            {initial}
-          </span>
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-[11px] font-medium truncate leading-tight"
-              style={{ color: INK, fontFamily: TIGHT }}
-            >
-              {userEmail || "—"}
-            </p>
-            <Link
-              to="/precos"
-              onClick={onNavigate}
-              className="text-[8.5px] uppercase tracking-[0.18em] mt-0.5 inline-block hover:text-[#0a0a0a] transition-colors"
-              style={{ color: MUTED_SOFT, fontFamily: MONO }}
-            >
-              plano · cidadão →
-            </Link>
-          </div>
+            {userAvatar ? (
+              <img
+                src={userAvatar}
+                alt="avatar"
+                className="w-7 h-7 object-cover flex-shrink-0"
+                style={{ borderRadius: RADIUS, border: `1px solid ${HAIRLINE}` }}
+              />
+            ) : (
+              <span
+                className="flex items-center justify-center w-7 h-7 text-white text-[11px] font-semibold flex-shrink-0"
+                style={{
+                  background: INK,
+                  fontFamily: MONO,
+                  borderRadius: RADIUS,
+                }}
+              >
+                {initial}
+              </span>
+            )}
+            <div className="flex-1 min-w-0">
+              <p
+                className="text-[11px] font-medium truncate leading-tight"
+                style={{ color: INK, fontFamily: TIGHT }}
+              >
+                {userNome || userEmail || "—"}
+              </p>
+              <p
+                className="text-[8.5px] uppercase tracking-[0.18em] mt-0.5"
+                style={{ color: MUTED_SOFT, fontFamily: MONO }}
+              >
+                minha conta →
+              </p>
+            </div>
+          </Link>
           <button
             onClick={onSignOut}
             title="Encerrar sessão"
@@ -492,19 +511,31 @@ function NavItem({
 function PainelLayout() {
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState("");
+  const [userNome, setUserNome] = useState<string | null>(null);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [excavOpen, setExcavOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) {
         navigate({ to: "/entrar" });
         return;
       }
       setUserEmail(session.user.email ?? "");
+      // Busca perfil pra ter nome e avatar (se /me falhar, fallback no email)
+      try {
+        const { fetchAuthed } = await import("../lib/api-auth");
+        const r = await fetchAuthed("/me");
+        if (r.ok) {
+          const p = await r.json();
+          setUserNome(p.nome ?? null);
+          setUserAvatar(p.avatar_url ?? null);
+        }
+      } catch {/* silencioso */}
     });
-  }, [navigate]);
+  }, [navigate, pathname]);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -545,6 +576,8 @@ function PainelLayout() {
           <SheetContent side="left" className="p-0 w-[280px] max-w-[85vw]">
             <SidebarContent
               userEmail={userEmail}
+              userNome={userNome}
+              userAvatar={userAvatar}
               excavOpen={excavOpen}
               setExcavOpen={setExcavOpen}
               onSignOut={handleSignOut}
@@ -595,6 +628,8 @@ function PainelLayout() {
       >
         <SidebarContent
           userEmail={userEmail}
+          userNome={userNome}
+          userAvatar={userAvatar}
           excavOpen={excavOpen}
           setExcavOpen={setExcavOpen}
           onSignOut={handleSignOut}
