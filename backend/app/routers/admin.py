@@ -176,6 +176,128 @@ async def cancelar_rodada(
     }
 
 
+@router.post("/admin/disparar-lote")
+async def disparar_lote(
+    body: dict,
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
+):
+    """
+    Dispara worker Celery para processar um lote da fila do agente escolhido.
+
+    Body: {"agente": "piper"|"bud", "tipo": "ata_plenaria"|"all"|..., "limite": 5, "slug": "cau-pr"}
+    """
+    agente = (body.get("agente") or "").lower()
+    tipo = body.get("tipo") or "all"
+    limite = int(body.get("limite") or 5)
+    slug = body.get("slug") or "cau-pr"
+
+    if agente not in ("piper", "bud"):
+        raise HTTPException(status_code=400, detail="agente deve ser 'piper' ou 'bud'")
+    if limite < 1 or limite > 200:
+        raise HTTPException(status_code=400, detail="limite deve estar entre 1 e 200")
+
+    tenant_r = await db.execute(select(Tenant).where(Tenant.slug == slug))
+    tenant = tenant_r.scalar_one_or_none()
+    if not tenant:
+        raise HTTPException(status_code=404, detail=f"Tenant '{slug}' não encontrado")
+
+    from sqlalchemy import or_ as sql_or
+
+    if agente == "piper":
+        # Atos da fila aguarda_piper (sem qualquer análise prévia)
+        filtros = [
+            Ato.tenant_id == tenant.id,
+            ConteudoAto.qualidade.in_(["boa", "parcial", "ruim"]),
+            ~select(Analise.id).where(
+                Analise.ato_id == Ato.id,
+                sql_or(
+                    Analise.resultado_piper.isnot(None),
+                    Analise.resultado_bud.isnot(None),
+                ),
+            ).exists(),
+        ]
+        if tipo != "all":
+            filtros.append(Ato.tipo == tipo)
+        atos_r = await db.execute(
+            select(Ato.id)
+            .join(ConteudoAto, ConteudoAto.ato_id == Ato.id)
+            .where(*filtros)
+            .order_by(Ato.data_publicacao.desc().nullslast())
+            .limit(limite)
+        )
+        ato_ids = [str(row[0]) for row in atos_r.all()]
+    else:  # bud
+        filtros = [
+            Ato.tenant_id == tenant.id,
+            Analise.resultado_piper.isnot(None),
+            Analise.nivel_alerta.in_(["vermelho", "laranja"]),
+            Analise.resultado_bud.is_(None),
+            Analise.status != "bud_em_andamento",
+        ]
+        if tipo != "all":
+            filtros.append(Ato.tipo == tipo)
+        atos_r = await db.execute(
+            select(Ato.id)
+            .join(Analise, Analise.ato_id == Ato.id)
+            .where(*filtros)
+            .order_by(Analise.criado_em.desc())
+            .limit(limite)
+        )
+        ato_ids = [str(row[0]) for row in atos_r.all()]
+
+    if not ato_ids:
+        return {"rodada_id": None, "atos": 0, "mensagem": "Fila vazia para o filtro escolhido."}
+
+    # Garantir que não há rodada ativa (a constraint do banco também protege)
+    ativa_r = await db.execute(
+        select(RodadaAnalise).where(
+            RodadaAnalise.tenant_id == tenant.id,
+            RodadaAnalise.status.in_(STATUSES_ATIVOS),
+        )
+    )
+    ativa = ativa_r.scalar_one_or_none()
+    if ativa:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "erro": "rodada_ja_ativa",
+                "mensagem": f"Já existe rodada {ativa.status} (id={ativa.id}). Cancele antes de disparar nova.",
+                "rodada_id": str(ativa.id),
+            },
+        )
+
+    rodada = RodadaAnalise(
+        id=uuid.uuid4(),
+        tenant_id=tenant.id,
+        status="em_progresso",
+        total_atos=len(ato_ids),
+        criado_em=datetime.now(timezone.utc),
+        iniciado_em=datetime.now(timezone.utc),
+    )
+    db.add(rodada)
+    await db.commit()
+
+    # Dispatch Celery
+    if agente == "piper":
+        from app.workers.analise_tasks import analisar_lote_piper_task
+        analisar_lote_piper_task.delay(ato_ids, str(rodada.id), str(tenant.id))
+    else:
+        # Para Bud, precisamos popular rodada_id nas analises existentes pra
+        # que analisar_criticos_bud_task as pegue. Reusa a rodada original
+        # do ato — não dá pra trocar. Em vez disso, dispatcha lote bud direto.
+        from app.workers.analise_tasks import analisar_lote_bud_task
+        analisar_lote_bud_task.delay(ato_ids, str(rodada.id), str(tenant.id))
+
+    return {
+        "rodada_id": str(rodada.id),
+        "atos": len(ato_ids),
+        "agente": agente,
+        "tipo": tipo,
+        "mensagem": f"Rodada {rodada.id} iniciada com {len(ato_ids)} {tipo}(s) para {agente}.",
+    }
+
+
 def _rodada_dict(rodada: RodadaAnalise) -> dict:
     return {
         "rodada_id": str(rodada.id),

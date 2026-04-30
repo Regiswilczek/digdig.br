@@ -231,8 +231,8 @@ function PipelinePage() {
                 Filas de análise
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                <FilaCard fila={pipeline.filas.aguarda_piper} accent="#3b82f6" />
-                <FilaCard fila={pipeline.filas.aguarda_bud} accent="#8b5cf6" />
+                <FilaCard fila={pipeline.filas.aguarda_piper} accent="#3b82f6" agente="piper" onDisparado={showToast} />
+                <FilaCard fila={pipeline.filas.aguarda_bud} accent="#8b5cf6" agente="bud" onDisparado={showToast} />
                 <FilaCard fila={pipeline.filas.aguarda_new} accent="#ec4899" />
                 <FilaCard fila={pipeline.filas.sem_texto} accent="#6b7280" />
               </div>
@@ -350,8 +350,56 @@ function RodadaCard({
 }
 
 // ── Componente: card de fila por agente ─────────────────────────────────
-function FilaCard({ fila, accent }: { fila: FilaInfo; accent: string }) {
+const TIPOS_DISPARAVEIS = [
+  "all",
+  "ata_plenaria",
+  "portaria",
+  "portaria_normativa",
+  "deliberacao",
+  "dispensa_eletronica",
+  "convenio",
+  "media_library",
+  "relatorio_parecer",
+  "auditoria_independente",
+];
+
+function FilaCard({
+  fila,
+  accent,
+  agente,
+  onDisparado,
+}: {
+  fila: FilaInfo;
+  accent: string;
+  agente?: "piper" | "bud" | null;
+  onDisparado?: (msg: string) => void;
+}) {
   const isEmpty = fila.total === 0;
+  const [tipoSel, setTipoSel] = useState("all");
+  const [limiteSel, setLimiteSel] = useState(5);
+  const [disparando, setDisparando] = useState(false);
+
+  async function disparar() {
+    if (!agente) return;
+    setDisparando(true);
+    try {
+      const res = await authedFetch("/pnl/admin/disparar-lote", {
+        method: "POST",
+        body: JSON.stringify({ agente, tipo: tipoSel, limite: limiteSel, slug: PIPELINE_SLUG }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        onDisparado?.(`${data.atos ?? 0} ato(s) ${tipoSel} disparado(s) para ${agente}`);
+      } else {
+        const detail = typeof data.detail === "string" ? data.detail : data?.detail?.mensagem || "Erro";
+        onDisparado?.(`Erro: ${detail}`);
+      }
+    } catch (err) {
+      onDisparado?.(`Erro: ${(err as Error).message}`);
+    } finally {
+      setDisparando(false);
+    }
+  }
 
   return (
     <div
@@ -395,6 +443,47 @@ function FilaCard({ fila, accent }: { fila: FilaInfo; accent: string }) {
         <p className="text-white/30 text-[10px] mt-3">
           + {(fila.total - fila.amostra.length).toLocaleString("pt-BR")} adicional(is)
         </p>
+      )}
+
+      {agente && fila.total > 0 && (
+        <div className="mt-4 pt-3 border-t border-white/[0.05] flex items-center gap-2 flex-wrap">
+          <select
+            value={tipoSel}
+            onChange={(e) => setTipoSel(e.target.value)}
+            className="text-[10px] bg-white/[0.04] border border-white/[0.08] text-white/80 px-2 py-1"
+            style={{ fontFamily: "JetBrains Mono, monospace" }}
+            disabled={disparando}
+          >
+            {TIPOS_DISPARAVEIS.map((t) => (
+              <option key={t} value={t} style={{ background: "#0d0f1a" }}>{t}</option>
+            ))}
+          </select>
+          <select
+            value={limiteSel}
+            onChange={(e) => setLimiteSel(parseInt(e.target.value))}
+            className="text-[10px] bg-white/[0.04] border border-white/[0.08] text-white/80 px-2 py-1"
+            style={{ fontFamily: "JetBrains Mono, monospace" }}
+            disabled={disparando}
+          >
+            {[5, 10, 25, 50, 100].map((n) => (
+              <option key={n} value={n} style={{ background: "#0d0f1a" }}>{n}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={disparar}
+            disabled={disparando}
+            className="text-[10px] uppercase tracking-[0.14em] px-3 py-1 transition-colors disabled:opacity-40"
+            style={{
+              color: accent,
+              border: `1px solid ${accent}60`,
+              background: `${accent}15`,
+              fontFamily: "JetBrains Mono, monospace",
+            }}
+          >
+            {disparando ? "..." : "Disparar"}
+          </button>
+        </div>
       )}
     </div>
   );
