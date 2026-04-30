@@ -509,33 +509,36 @@ function ConexPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
-  // Auto-zoom-to-fit UMA VEZ por troca de modo/foco — não mexe enquanto user
-  // navega no zoom/pan. Dispara somente quando muda o `focoKey` ou `modo`.
+  // Auto-zoom-to-fit ao trocar de modo/foco. Dispara várias vezes em
+  // intervalos curtos pra apanhar o canvas após o paint inicial — uma única
+  // chamada pode ser cedo demais e o canvas ficar desenquadrado.
   useEffect(() => {
     if (!fgRef.current || state.nodes.size === 0) return;
-    const t = setTimeout(() => {
-      try {
-        fgRef.current.zoomToFit(500, 100);
-      } catch {
-        /* fg ainda não pronto */
-      }
-    }, 700);
-    return () => clearTimeout(t);
-  }, [state.modo, state.focoKey]);
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    [80, 250, 500, 900].forEach((delay) => {
+      timeouts.push(
+        setTimeout(() => {
+          try {
+            fgRef.current?.zoomToFit?.(300, 110);
+          } catch {
+            /* fg ainda não pronto */
+          }
+        }, delay),
+      );
+    });
+    return () => timeouts.forEach(clearTimeout);
+  }, [state.modo, state.focoKey, size.w, size.h]);
 
-  // Tuning das forças d3 — uma vez por troca de modo/foco apenas.
+  // Tuning das forças d3 — drasticamente reduzidas porque os nós ficam
+  // fixos via fx/fy, só queremos as forças trabalhando em casos novos.
   useEffect(() => {
     if (!fgRef.current) return;
     const t = setTimeout(() => {
       try {
         const charge = fgRef.current.d3Force?.("charge");
-        if (charge && typeof charge.strength === "function") charge.strength(-260);
+        if (charge && typeof charge.strength === "function") charge.strength(-30);
         const link = fgRef.current.d3Force?.("link");
-        if (link && typeof link.distance === "function") link.distance(85);
-        const center = fgRef.current.d3Force?.("center");
-        if (center) {
-          // Centro suave — não força exato no (0,0)
-        }
+        if (link && typeof link.distance === "function") link.distance(80);
       } catch {
         /* fg ainda não pronto */
       }
@@ -623,38 +626,39 @@ function ConexPage() {
     };
 
     if (isFoco) {
-      // Central
+      // Central — fixo
       const central = pessoas.find((p) => p._key === state.focoKey)
         ?? tags.find((t) => t._key === state.focoKey);
       if (central) {
         out.push(make(central, 0, 0, true));
       }
-      // Pessoas vizinhas em círculo
+      // Pessoas vizinhas em círculo — fixas (sem força)
       const vizinhos = pessoas.filter((p) => p._key !== state.focoKey);
       vizinhos.forEach((p, i) => {
         const angle = (i / Math.max(1, vizinhos.length)) * 2 * Math.PI;
-        out.push(make(p, Math.cos(angle) * 220, Math.sin(angle) * 220));
+        out.push(make(p, Math.cos(angle) * 240, Math.sin(angle) * 240, true));
       });
-      // Atos em órbita média (offset angular para não colidir)
+      // Atos em órbita média — fixos
       atos.forEach((a, i) => {
         const angle = ((i + 0.5) / Math.max(1, atos.length)) * 2 * Math.PI;
-        out.push(make(a, Math.cos(angle) * 380, Math.sin(angle) * 380));
+        out.push(make(a, Math.cos(angle) * 400, Math.sin(angle) * 400, true));
       });
-      // Tags em órbita externa
+      // Tags em órbita externa — fixas
       tags
         .filter((t) => t._key !== state.focoKey)
         .forEach((t, i) => {
           const angle = ((i + 0.25) / Math.max(1, tags.length)) * 2 * Math.PI;
-          out.push(make(t, Math.cos(angle) * 540, Math.sin(angle) * 540));
+          out.push(make(t, Math.cos(angle) * 560, Math.sin(angle) * 560, true));
         });
     } else {
-      // Modo raiz: pessoas em uma "constelação" — distribuídas uniformemente
-      // ao redor do centro, raio depende da quantidade.
-      const r = 220 + pessoas.length * 8;
+      // Modo raiz: pessoas em constelação fixa (sem força layout dispersando).
+      // Raio cresce com quantidade pra não colidir.
+      const r = 260 + Math.max(0, pessoas.length - 12) * 18;
       pessoas.forEach((p, i) => {
-        const angle = (i / Math.max(1, pessoas.length)) * 2 * Math.PI;
-        out.push(make(p, Math.cos(angle) * r, Math.sin(angle) * r));
+        const angle = (i / Math.max(1, pessoas.length)) * 2 * Math.PI - Math.PI / 2;
+        out.push(make(p, Math.cos(angle) * r, Math.sin(angle) * r, true));
       });
+      // Sem atos/tags no canvas raiz mas mantém fallback
       atos.forEach((a) => out.push(make(a)));
       tags.forEach((t) => out.push(make(t)));
     }
@@ -701,6 +705,14 @@ function ConexPage() {
   // Ativa renderização "avatar gigante com iniciais + nome" pra que os
   // top N fiquem identificáveis à primeira vista.
   const isRootView = state.modo === "raiz";
+
+  // Memoiza objeto graphData — caso contrário, criar um literal `{ nodes, links }`
+  // a cada render fazia a ForceGraph reiniciar a simulação a cada hover/state change,
+  // causando o bug de "expansão infinita" ao mover o mouse.
+  const graphData = useMemo(
+    () => ({ nodes: fgNodes, links: fgLinks }),
+    [fgNodes, fgLinks],
+  );
 
   // Conjunto de nós/arestas conectados ao selecionado/hover (para destacar e dimar o resto)
   const { highlightedNodes, highlightedEdges } = useMemo(() => {
@@ -1162,13 +1174,16 @@ function ConexPage() {
             ref={fgRef}
             width={size.w}
             height={size.h}
-            graphData={{ nodes: fgNodes, links: fgLinks }}
+            graphData={graphData}
             backgroundColor="rgba(0,0,0,0)"
             nodeRelSize={1}
-            cooldownTicks={150}
-            warmupTicks={40}
-            d3AlphaDecay={0.02}
-            d3VelocityDecay={0.35}
+            cooldownTicks={0}
+            warmupTicks={0}
+            enableZoomInteraction={true}
+            enablePanInteraction={true}
+            enableNodeDrag={false}
+            d3AlphaDecay={0.5}
+            d3VelocityDecay={0.9}
             linkDirectionalParticles={0}
             nodeCanvasObject={(node: any, ctx, globalScale) =>
               drawNode(
