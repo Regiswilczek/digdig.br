@@ -81,6 +81,16 @@ CATEGORIA_DESCRICAO: dict[str, str] = {
     "comunicacao_institucional": "cartilhas, certificados, comunicados públicos",
     "placa_certidao": "placas, banners, docs administrativos sem conteúdo investigável",
     "outros": "catch-all — explique em motivo no campo dados_extras",
+
+    # ── Categorias Executivo estadual (GOV-PR e similares) ─────────────
+    "lei_estadual": "leis estaduais aprovadas pela Assembleia Legislativa e sancionadas pelo Governador",
+    "decreto_executivo": "decretos do Governador — atos administrativos vinculantes",
+    "decreto_calamidade": "decretos de calamidade pública, emergência, situações excepcionais com flexibilização",
+    "parecer_pge": "pareceres da Procuradoria Geral do Estado (PGE)",
+    "convenio_estadual": "convênios firmados pelo Executivo com OSC, municípios, União, outros entes",
+    "mensagem_governamental": "mensagens do Governador à Assembleia (LDO, LOA, vetos, exposições)",
+    "nomeacao_comissionado": "atos de nomeação/exoneração para cargos comissionados (CC e DAS)",
+    "gratificacao": "concessão de gratificações funcionais, adicionais, vantagens",
 }
 
 ATLAS_SYSTEM_PROMPT_TEMPLATE = """Você é o ATLAS — agente de organização estrutural de documentos administrativos públicos brasileiros.
