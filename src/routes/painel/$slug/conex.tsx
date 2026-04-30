@@ -216,18 +216,14 @@ interface FGLink extends LinkObject {
   raw: AnyEdge;
 }
 
-function radiusFor(n: AnyNode, isRootView: boolean = false): number {
-  if (n.tipo === "pessoa") {
-    const icp = n.icp || 0;
-    // Estado inicial (poucos nós, nenhuma aresta): pessoas viram avatares grandes.
-    const min = isRootView ? 22 : 10;
-    const max = isRootView ? 38 : 32;
-    return Math.min(max, Math.max(min, min + Math.sqrt(icp) * 3));
-  }
-  if (n.tipo === "ato") {
-    return Math.min(16, Math.max(6, 6 + Math.log2((n.pessoas_count || 1) + 1) * 2));
-  }
-  return Math.min(22, Math.max(10, 10 + Math.log2((n.atos_count || 1) + 1) * 2.2));
+// ─── Tamanhos dos mini-cards (em pixels do canvas) ───────────────────────
+// Cards são desenhados em coordenadas do mundo; seu tamanho aparente na tela
+// depende do zoom (globalScale). Cards são fixos no mundo pra layout previsível.
+
+function cardDimensions(n: AnyNode): { w: number; h: number } {
+  if (n.tipo === "pessoa") return { w: 130, h: 36 };
+  if (n.tipo === "ato") return { w: 100, h: 30 };
+  return { w: 124, h: 30 }; // tag
 }
 
 function iniciaisDe(nome: string): string {
@@ -241,6 +237,39 @@ function iniciaisDe(nome: string): string {
   return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
 }
 
+function nomeCurto(nome: string): string {
+  const partes = nome
+    .replace(/\b(de|da|do|das|dos|e|von|van|del)\b/gi, "")
+    .trim()
+    .split(/\s+/)
+    .filter((p) => p.length >= 2);
+  const nm = partes.length >= 2
+    ? `${partes[0]} ${partes[partes.length - 1]}`
+    : nome;
+  return nm.length > 18 ? nm.slice(0, 16) + "…" : nm;
+}
+
+function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
 function drawNode(
   node: FGNode,
   ctx: CanvasRenderingContext2D,
@@ -250,155 +279,223 @@ function drawNode(
   highlightedKeys: Set<string>,
   isRootView: boolean = false,
 ) {
-  const r = radiusFor(node.raw, isRootView);
+  void isRootView; // mantido pra futura customização
   const x = node.x ?? 0;
   const y = node.y ?? 0;
   const isSelected = node._key === selectedKey;
   const isHovered = node._key === hoveredKey;
   const isHighlighted = highlightedKeys.has(node._key);
   const dimmed = highlightedKeys.size > 0 && !isHighlighted && !isSelected && !isHovered;
-  const alpha = dimmed ? 0.25 : 1;
+  const alpha = dimmed ? 0.3 : 1;
 
-  // Glow do hover/selection — desenhado primeiro (debaixo)
+  // Fallback: muito zoom-out → desenha como ponto colorido (legibilidade > info)
+  if (globalScale < 0.35) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    let cor: string = COR_ALERTA.cinza;
+    if (node.tipo === "pessoa") cor = corPorCategoria((node.raw as GrafoNodePessoa).cor_categoria);
+    else if (node.tipo === "ato") cor = corPorNivel((node.raw as GrafoNodeAto).nivel_alerta);
+    else cor = corPorCategoria((node.raw as GrafoNodeTag).cor_categoria);
+    ctx.fillStyle = cor;
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
+
+  const { w, h } = cardDimensions(node.raw);
+  const cornerR = 4;
+
+  // Glow no hover/seleção (atrás do card)
   if (isSelected || isHovered) {
     ctx.save();
-    ctx.globalAlpha = isSelected ? 0.35 : 0.2;
+    ctx.globalAlpha = isSelected ? 0.18 : 0.1;
     ctx.fillStyle = ACCENT;
-    ctx.beginPath();
-    ctx.arc(x, y, r + 7, 0, 2 * Math.PI);
+    drawRoundedRect(ctx, x - w / 2 - 8, y - h / 2 - 8, w + 16, h + 16, cornerR + 4);
     ctx.fill();
     ctx.restore();
   }
 
   ctx.save();
   ctx.globalAlpha = alpha;
-  ctx.beginPath();
 
   if (node.tipo === "pessoa") {
-    const p = node.raw as GrafoNodePessoa;
-    const cor = corPorCategoria(p.cor_categoria);
-    ctx.fillStyle = cor;
-    ctx.arc(x, y, r, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.lineWidth = 1.5 / globalScale;
-    ctx.strokeStyle = "#fff";
-    ctx.stroke();
-
-    // Iniciais brancas dentro do círculo (só se grande o bastante)
-    if (r >= 14) {
-      const inits = iniciaisDe(p.nome);
-      ctx.fillStyle = "#fff";
-      const fontSize = r * 0.78;
-      ctx.font = `600 ${fontSize}px Inter Tight, system-ui, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(inits, x, y + 0.5);
-    }
+    drawCardPessoa(node.raw as GrafoNodePessoa, x, y, w, h, cornerR, ctx, globalScale, isSelected, isHovered);
   } else if (node.tipo === "ato") {
-    const cor = corPorNivel((node.raw as GrafoNodeAto).nivel_alerta);
-    ctx.fillStyle = cor;
-    ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    ctx.lineWidth = 1.5 / globalScale;
-    ctx.strokeStyle = "#fff";
-    ctx.strokeRect(x - r, y - r, r * 2, r * 2);
+    drawCardAto(node.raw as GrafoNodeAto, x, y, w, h, cornerR, ctx, globalScale, isSelected, isHovered);
   } else {
-    // triângulo
-    const cor = corPorCategoria((node.raw as GrafoNodeTag).cor_categoria);
-    ctx.fillStyle = cor;
-    ctx.moveTo(x, y - r);
-    ctx.lineTo(x - r, y + r * 0.85);
-    ctx.lineTo(x + r, y + r * 0.85);
-    ctx.closePath();
-    ctx.fill();
-    ctx.lineWidth = 1.5 / globalScale;
-    ctx.strokeStyle = "#fff";
-    ctx.stroke();
+    drawCardTag(node.raw as GrafoNodeTag, x, y, w, h, cornerR, ctx, globalScale, isSelected, isHovered);
   }
+
   ctx.restore();
+}
 
-  // Anel de seleção (desenhado por cima da forma)
-  if (isSelected) {
+function drawCardPessoa(
+  p: GrafoNodePessoa,
+  x: number, y: number, w: number, h: number, r: number,
+  ctx: CanvasRenderingContext2D,
+  scale: number,
+  isSelected: boolean,
+  isHovered: boolean,
+) {
+  const cor = corPorCategoria(p.cor_categoria);
+  const left = x - w / 2;
+  const top = y - h / 2;
+
+  // Card body
+  drawRoundedRect(ctx, left, top, w, h, r);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  ctx.lineWidth = (isSelected ? 2.5 : isHovered ? 2 : 1) / scale;
+  ctx.strokeStyle = isSelected || isHovered ? INK : BORDER;
+  ctx.stroke();
+
+  // Avatar circle (esquerda)
+  const avSize = 22;
+  const avX = left + 6 + avSize / 2;
+  const avY = y;
+  ctx.fillStyle = cor;
+  ctx.beginPath();
+  ctx.arc(avX, avY, avSize / 2, 0, 2 * Math.PI);
+  ctx.fill();
+
+  // Iniciais
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "700 10.5px Inter Tight, system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(iniciaisDe(p.nome), avX, avY + 0.5);
+
+  // Nome (truncado)
+  const textX = avX + avSize / 2 + 6;
+  ctx.fillStyle = INK;
+  ctx.font = "600 10px JetBrains Mono, monospace";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.fillText(nomeCurto(p.nome), textX, y - 6);
+
+  // Cargo + ICP (linha de baixo)
+  ctx.fillStyle = MUTED;
+  ctx.font = "9px JetBrains Mono, monospace";
+  const cargoText = p.cargo ? p.cargo.slice(0, 14) : "—";
+  const icpText = p.icp != null ? `ICP ${p.icp.toFixed(1)}` : "ICP —";
+  ctx.fillText(cargoText, textX, y + 7);
+
+  // ICP no canto direito (badge)
+  const badgeX = left + w - 4;
+  ctx.fillStyle = cor;
+  ctx.font = "700 9.5px JetBrains Mono, monospace";
+  ctx.textAlign = "right";
+  ctx.fillText(icpText, badgeX, y + 7);
+
+  // Indicador "suspeito"
+  if (p.suspeito) {
+    ctx.fillStyle = COR_ALERTA.vermelho;
     ctx.beginPath();
-    ctx.arc(x, y, r + 4, 0, 2 * Math.PI);
-    ctx.lineWidth = 2.5 / globalScale;
-    ctx.strokeStyle = ACCENT;
-    ctx.stroke();
-  } else if (isHovered) {
-    ctx.beginPath();
-    ctx.arc(x, y, r + 3, 0, 2 * Math.PI);
-    ctx.lineWidth = 1.5 / globalScale;
-    ctx.strokeStyle = ACCENT;
-    ctx.stroke();
-  }
-
-  // Label — sempre visível no estado inicial (poucos nós, nenhuma aresta);
-  // depois só pra selecionados/hovered/importantes pra evitar poluição.
-  const importante =
-    (node.tipo === "pessoa" && ((node.raw as GrafoNodePessoa).icp || 0) >= 8) ||
-    node.tipo === "tag";
-  const showLabel =
-    !dimmed &&
-    (isRootView || isSelected || isHovered || importante) &&
-    globalScale > 0.4;
-
-  if (showLabel) {
-    const fontSize = Math.max(10, 11 / globalScale);
-    ctx.font = `${fontSize}px JetBrains Mono, monospace`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "top";
-
-    let label = "";
-    if (node.tipo === "pessoa") {
-      const p = node.raw as GrafoNodePessoa;
-      // Pessoa: 2 primeiros nomes só (mais legível e cabe na pill)
-      const partes = p.nome
-        .replace(/\b(de|da|do|das|dos|e|von|van|del)\b/gi, "")
-        .trim()
-        .split(/\s+/)
-        .filter((s) => s.length >= 2);
-      const nm =
-        partes.length >= 2 ? `${partes[0]} ${partes[partes.length - 1]}` : p.nome;
-      label = nm.length > 24 ? nm.slice(0, 22) + "…" : nm;
-    } else if (node.tipo === "ato") {
-      const a = node.raw as GrafoNodeAto;
-      label = `${a.ato_tipo.toUpperCase()} ${a.numero}`;
-    } else {
-      label = (node.raw as GrafoNodeTag).nome.toUpperCase();
-    }
-
-    // Pill de fundo branco para legibilidade sobre os outros nós
-    const labelY = y + r + 5;
-    const padX = 5 / globalScale;
-    const padY = 2.5 / globalScale;
-    const textWidth = ctx.measureText(label).width;
-    ctx.save();
-    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
-    ctx.strokeStyle = isSelected || isHovered ? INK : "rgba(0,0,0,0.08)";
-    ctx.lineWidth = 0.5 / globalScale;
-    const pillW = textWidth + padX * 2;
-    const pillH = fontSize + padY * 2;
-    const pillX = x - pillW / 2;
-    const pillY = labelY - padY;
-    // borda arredondada
-    const radius = pillH / 2;
-    ctx.beginPath();
-    ctx.moveTo(pillX + radius, pillY);
-    ctx.lineTo(pillX + pillW - radius, pillY);
-    ctx.arcTo(pillX + pillW, pillY, pillX + pillW, pillY + radius, radius);
-    ctx.lineTo(pillX + pillW, pillY + pillH - radius);
-    ctx.arcTo(pillX + pillW, pillY + pillH, pillX + pillW - radius, pillY + pillH, radius);
-    ctx.lineTo(pillX + radius, pillY + pillH);
-    ctx.arcTo(pillX, pillY + pillH, pillX, pillY + pillH - radius, radius);
-    ctx.lineTo(pillX, pillY + radius);
-    ctx.arcTo(pillX, pillY, pillX + radius, pillY, radius);
-    ctx.closePath();
+    ctx.arc(left + w - 5, top + 5, 3, 0, 2 * Math.PI);
     ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.fillStyle = isSelected || isHovered ? INK : MUTED;
-    ctx.fillText(label, x, labelY);
   }
+}
+
+function drawCardAto(
+  a: GrafoNodeAto,
+  x: number, y: number, w: number, h: number, r: number,
+  ctx: CanvasRenderingContext2D,
+  scale: number,
+  isSelected: boolean,
+  isHovered: boolean,
+) {
+  const cor = corPorNivel(a.nivel_alerta);
+  const left = x - w / 2;
+  const top = y - h / 2;
+
+  // Card body
+  drawRoundedRect(ctx, left, top, w, h, r);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  ctx.lineWidth = (isSelected ? 2.5 : isHovered ? 2 : 1) / scale;
+  ctx.strokeStyle = isSelected || isHovered ? INK : BORDER;
+  ctx.stroke();
+
+  // Faixa esquerda colorida (indica nível de alerta)
+  ctx.fillStyle = cor;
+  drawRoundedRect(ctx, left, top, 4, h, r);
+  ctx.fill();
+
+  // Tipo + número
+  ctx.fillStyle = INK;
+  ctx.font = "700 9.5px JetBrains Mono, monospace";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  const tipo = (a.ato_tipo || "").slice(0, 3).toUpperCase();
+  ctx.fillText(`${tipo} ${a.numero}`, left + 9, y - 5);
+
+  // Data + tags count
+  ctx.fillStyle = MUTED;
+  ctx.font = "8.5px JetBrains Mono, monospace";
+  const dataStr = a.data_publicacao
+    ? a.data_publicacao.split("-").reverse().slice(0, 3).join("/").slice(0, 10)
+    : "—";
+  ctx.fillText(dataStr, left + 9, y + 7);
+
+  if (a.tags_count > 0) {
+    ctx.fillStyle = cor;
+    ctx.font = "700 8.5px JetBrains Mono, monospace";
+    ctx.textAlign = "right";
+    ctx.fillText(`${a.tags_count} tag${a.tags_count !== 1 ? "s" : ""}`, left + w - 5, y + 7);
+  }
+}
+
+function drawCardTag(
+  t: GrafoNodeTag,
+  x: number, y: number, w: number, h: number, r: number,
+  ctx: CanvasRenderingContext2D,
+  scale: number,
+  isSelected: boolean,
+  isHovered: boolean,
+) {
+  const cor = corPorCategoria(t.cor_categoria);
+  const left = x - w / 2;
+  const top = y - h / 2;
+
+  // Card body com fundo levemente tingido pela cor da gravidade
+  drawRoundedRect(ctx, left, top, w, h, r);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  ctx.lineWidth = (isSelected ? 2.5 : isHovered ? 2 : 1) / scale;
+  ctx.strokeStyle = isSelected || isHovered ? INK : cor;
+  ctx.stroke();
+
+  // Triângulo de gravidade na esquerda
+  const triSize = 10;
+  const triX = left + 8;
+  const triY = y;
+  ctx.fillStyle = cor;
+  ctx.beginPath();
+  ctx.moveTo(triX, triY - triSize / 2);
+  ctx.lineTo(triX - triSize / 2, triY + triSize / 2);
+  ctx.lineTo(triX + triSize / 2, triY + triSize / 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // Nome
+  ctx.fillStyle = INK;
+  ctx.font = "700 9.5px JetBrains Mono, monospace";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  const nm = t.nome.length > 18 ? t.nome.slice(0, 16) + "…" : t.nome;
+  ctx.fillText(nm.toUpperCase(), triX + 10, y - 5);
+
+  // Atos count + gravidade
+  ctx.fillStyle = MUTED;
+  ctx.font = "8.5px JetBrains Mono, monospace";
+  ctx.fillText(`${t.atos_count} atos`, triX + 10, y + 7);
+
+  ctx.fillStyle = cor;
+  ctx.font = "700 8.5px JetBrains Mono, monospace";
+  ctx.textAlign = "right";
+  ctx.fillText(t.gravidade_predominante.slice(0, 4), left + w - 5, y + 7);
 }
 
 function drawLink(
@@ -632,28 +729,32 @@ function ConexPage() {
       if (central) {
         out.push(make(central, 0, 0, true));
       }
-      // Pessoas vizinhas em círculo — fixas (sem força)
+      // Pessoas vizinhas em círculo. Raio escalado pra acomodar cards de 130px
+      // (perímetro mínimo = N × ~150px, então r = (N × 150) / (2π) = N × 24).
       const vizinhos = pessoas.filter((p) => p._key !== state.focoKey);
+      const rViz = Math.max(220, vizinhos.length * 26);
       vizinhos.forEach((p, i) => {
-        const angle = (i / Math.max(1, vizinhos.length)) * 2 * Math.PI;
-        out.push(make(p, Math.cos(angle) * 240, Math.sin(angle) * 240, true));
+        const angle = (i / Math.max(1, vizinhos.length)) * 2 * Math.PI - Math.PI / 2;
+        out.push(make(p, Math.cos(angle) * rViz, Math.sin(angle) * rViz, true));
       });
-      // Atos em órbita média — fixos
+      // Atos em órbita média.
+      const rAtos = rViz + 220;
       atos.forEach((a, i) => {
-        const angle = ((i + 0.5) / Math.max(1, atos.length)) * 2 * Math.PI;
-        out.push(make(a, Math.cos(angle) * 400, Math.sin(angle) * 400, true));
+        const angle = ((i + 0.5) / Math.max(1, atos.length)) * 2 * Math.PI - Math.PI / 2;
+        out.push(make(a, Math.cos(angle) * rAtos, Math.sin(angle) * rAtos, true));
       });
-      // Tags em órbita externa — fixas
+      // Tags em órbita externa.
+      const rTags = rAtos + 200;
       tags
         .filter((t) => t._key !== state.focoKey)
         .forEach((t, i) => {
-          const angle = ((i + 0.25) / Math.max(1, tags.length)) * 2 * Math.PI;
-          out.push(make(t, Math.cos(angle) * 560, Math.sin(angle) * 560, true));
+          const angle = ((i + 0.25) / Math.max(1, tags.length)) * 2 * Math.PI - Math.PI / 2;
+          out.push(make(t, Math.cos(angle) * rTags, Math.sin(angle) * rTags, true));
         });
     } else {
-      // Modo raiz: pessoas em constelação fixa (sem força layout dispersando).
-      // Raio cresce com quantidade pra não colidir.
-      const r = 260 + Math.max(0, pessoas.length - 12) * 18;
+      // Modo raiz: cards de pessoa de 130px → perímetro mínimo 18 × 150 = 2700,
+      // raio mínimo = 2700/(2π) ≈ 430. Damos folga.
+      const r = Math.max(380, pessoas.length * 28);
       pessoas.forEach((p, i) => {
         const angle = (i / Math.max(1, pessoas.length)) * 2 * Math.PI - Math.PI / 2;
         out.push(make(p, Math.cos(angle) * r, Math.sin(angle) * r, true));
@@ -1197,12 +1298,10 @@ function ConexPage() {
               )
             }
             nodePointerAreaPaint={(node: any, color, ctx) => {
-              const r = radiusFor((node as FGNode).raw, isRootView);
+              const { w, h } = cardDimensions((node as FGNode).raw);
               const x = node.x ?? 0, y = node.y ?? 0;
               ctx.fillStyle = color;
-              ctx.beginPath();
-              ctx.arc(x, y, r + 5, 0, 2 * Math.PI);
-              ctx.fill();
+              ctx.fillRect(x - w / 2 - 2, y - h / 2 - 2, w + 4, h + 4);
             }}
             linkCanvasObjectMode={() => "replace"}
             linkCanvasObject={(link: any, ctx, globalScale) =>
