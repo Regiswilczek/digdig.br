@@ -364,7 +364,7 @@ async def analisar_ato_piper(
 
     response = await client.chat.completions.create(
         model=settings.gemini_pro_model,
-        max_tokens=4000,
+        max_tokens=16000,  # atas plenárias produzem JSON ~6-7k tokens; 16k dá folga
         messages=[
             {"role": "system", "content": full_system},
             {"role": "user", "content": user_prompt},
@@ -482,7 +482,7 @@ async def analisar_ato_piper_visao(
 
     response = await client.chat.completions.create(
         model=settings.gemini_pro_model,
-        max_tokens=4000,
+        max_tokens=16000,  # atas plenárias produzem JSON ~6-7k tokens; 16k dá folga
         messages=[
             {"role": "system", "content": full_system},
             {"role": "user", "content": content},
