@@ -38,6 +38,9 @@ class Ato(Base):
     conteudo: Mapped["ConteudoAto | None"] = relationship(back_populates="ato", uselist=False)
     analises: Mapped[list["Analise"]] = relationship(back_populates="ato")
     aparicoes: Mapped[list["AparicaoPessoa"]] = relationship(back_populates="ato")
+    classificacao_atlas: Mapped["ClassificacaoAtlas | None"] = relationship(
+        back_populates="ato", uselist=False, foreign_keys="ClassificacaoAtlas.ato_id",
+    )
 
 
 class ConteudoAto(Base):
