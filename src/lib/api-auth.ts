@@ -47,7 +47,8 @@ export interface AtoAuditoria {
   criado_em: string | null;
   atualizado_em: string | null;
   status: string | null;
-  agentes: ("piper" | "bud" | "new")[];
+  agentes: ("haiku_legado" | "piper" | "bud" | "new")[];
+  legado: boolean;
   tokens_piper: number;
   tokens_bud: number;
   tokens_new: number;
@@ -117,6 +118,9 @@ export interface FilaItem {
   data_publicacao: string | null;
   nivel_alerta: "verde" | "amarelo" | "laranja" | "vermelho" | null;
   motivo?: "sem_url" | "erro_download" | "pendente" | null;
+  // true se a primeira análise foi feita pelo Haiku legado
+  // (tokens_piper == 0). Significa: já tem laudo, vai ser refeito.
+  legado?: boolean;
 }
 
 export interface FilaInfo {

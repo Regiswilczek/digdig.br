@@ -251,7 +251,10 @@ async def listar_fila(
             filtros.append(or_(Ato.tipo == tipo, Ato.tipo_atlas == tipo))
 
         base = (
-            select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao, Analise.nivel_alerta)
+            select(
+                Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao,
+                Analise.nivel_alerta, Analise.tokens_piper,
+            )
             .join(Analise, Analise.ato_id == Ato.id)
             .where(*filtros)
         )
@@ -268,6 +271,9 @@ async def listar_fila(
                 "numero": r[2] or "?",
                 "data_publicacao": r[3].isoformat() if r[3] else None,
                 "nivel_alerta": r[4],
+                # Heurística: análise legada (Haiku, anterior ao Piper) registra
+                # tokens_piper=0. Análise nova do Piper sempre incrementa tokens.
+                "legado": (r[5] or 0) == 0,
             }
             for r in rows
         ]

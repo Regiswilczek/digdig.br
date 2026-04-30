@@ -698,6 +698,19 @@ function FilaRow({ item, accent }: { item: FilaItem; accent: string }) {
       />
       <span className="text-white/40 w-20 shrink-0 truncate" title={tipoLabel}>{tipoLabel}</span>
       <span className="text-white/80 flex-1 truncate" title={item.numero}>{item.numero}</span>
+      {item.legado && (
+        <span
+          className="text-[8.5px] uppercase tracking-[0.12em] shrink-0 px-1 py-px rounded"
+          style={{
+            color: "#fbbf24",
+            background: "rgba(251,191,36,0.10)",
+            border: "1px solid rgba(251,191,36,0.35)",
+          }}
+          title="Já tem laudo do Haiku legado — esta rodada vai refazer com Piper/Bud"
+        >
+          ↻ refazer
+        </span>
+      )}
       {motivo && (
         <span
           className="text-[9px] uppercase tracking-[0.1em] shrink-0"

@@ -200,11 +200,20 @@ async def get_ato(
             "status": analise.status if analise else None,
             "agentes": [
                 a for a in [
+                    # Heurística: resultado_piper preenchido mas tokens_piper=0
+                    # = laudo legado feito pelo Haiku antes do Piper existir.
+                    "haiku_legado" if analise and analise.resultado_piper and (analise.tokens_piper or 0) == 0 else None,
                     "piper" if analise and (analise.tokens_piper or 0) > 0 else None,
                     "bud" if analise and (analise.tokens_bud or 0) > 0 else None,
                     "new" if analise and (analise.tokens_new or 0) > 0 else None,
                 ] if a
             ],
+            # true → laudo já existe mas é antigo, vai ser refeito pelo Bud
+            "legado": bool(
+                analise and analise.resultado_piper
+                and (analise.tokens_piper or 0) == 0
+                and not analise.resultado_bud
+            ) if analise else False,
             "tokens_piper": analise.tokens_piper if analise else 0,
             "tokens_bud": analise.tokens_bud if analise else 0,
             "tokens_new": analise.tokens_new if analise else 0,
@@ -386,12 +395,16 @@ async def get_pipeline_status(
         for row in rows:
             ato_id, tipo, numero, data = row[0], row[1], row[2], row[3]
             nivel = row[4] if len(row) > 4 else None
+            # tokens_piper presente na linha → distingue laudo legado (Haiku) vs Piper.
+            tokens_piper = row[5] if len(row) > 5 else None
+            legado = tokens_piper is not None and (tokens_piper or 0) == 0
             out.append({
                 "ato_id": str(ato_id),
                 "tipo": tipo,
                 "numero": numero or "?",
                 "data_publicacao": data.isoformat() if data else None,
                 "nivel_alerta": nivel,
+                "legado": legado if tokens_piper is not None else None,
                 "motivo": None,
             })
         return out
@@ -439,7 +452,10 @@ async def get_pipeline_status(
     ).all()
 
     aguarda_bud_base = (
-        select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao, Analise.nivel_alerta)
+        select(
+            Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao,
+            Analise.nivel_alerta, Analise.tokens_piper,
+        )
         .join(Analise, Analise.ato_id == Ato.id)
         .where(
             Ato.tenant_id == tid,
@@ -450,7 +466,7 @@ async def get_pipeline_status(
     )
     bud_total = (await db.execute(select(func.count()).select_from(aguarda_bud_base.subquery()))).scalar_one()
     bud_amostra = (
-        await db.execute(aguarda_bud_base.order_by(Analise.criado_em.desc()).limit(10))
+        await db.execute(aguarda_bud_base.order_by(Analise.criado_em.desc()).limit(20))
     ).all()
 
     aguarda_new_base = (

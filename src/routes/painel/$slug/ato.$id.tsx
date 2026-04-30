@@ -779,28 +779,49 @@ function AtoDetailPage() {
         {/* Histórico de auditoria */}
         {ato.auditoria && ato.auditoria.agentes.length > 0 && (
           <Section eyebrow={eyeHistorico} title="Histórico de auditoria">
+            {ato.auditoria.legado && (
+              <div
+                className="px-4 py-3 mb-3 flex items-start gap-3"
+                style={{
+                  background: "#fffbeb",
+                  border: "1px solid #fde68a",
+                  borderRadius: 2,
+                }}
+              >
+                <span style={{ fontSize: 16, lineHeight: 1 }}>↻</span>
+                <div className="text-[12.5px]" style={{ color: "#854d0e", fontFamily: TIGHT, lineHeight: 1.5 }}>
+                  <strong>Análise legada — aguarda reprocessamento.</strong> Este laudo
+                  foi gerado por uma versão antiga do pipeline (Haiku 4.5) e está na
+                  fila do Bud para uma análise mais profunda. O score e o nível atuais
+                  podem mudar quando a re-análise concluir.
+                </div>
+              </div>
+            )}
             <ul className="space-y-3">
               {ato.auditoria.agentes.map((agente) => {
-                const cor = agente === "piper" ? "#1e40af"
+                const cor = agente === "haiku_legado" ? "#a16207"
+                  : agente === "piper" ? "#1e40af"
                   : agente === "bud" ? "#6b21a8"
                   : "#9f1239";
-                const bg = agente === "piper" ? "#dbeafe"
+                const bg = agente === "haiku_legado" ? "#fef3c7"
+                  : agente === "piper" ? "#dbeafe"
                   : agente === "bud" ? "#ede9fe"
                   : "#fce7f3";
-                // Aproxima timestamp: piper = criado_em; bud/new = atualizado_em
-                const ts = agente === "piper"
+                const ts = agente === "piper" || agente === "haiku_legado"
                   ? ato.auditoria!.criado_em
                   : ato.auditoria!.atualizado_em;
-                const label = agente === "piper" ? "Triagem inicial"
+                const label = agente === "haiku_legado" ? "Triagem legada (Haiku 4.5)"
+                  : agente === "piper" ? "Triagem inicial"
                   : agente === "bud" ? "Aprofundamento"
                   : "Revisão sistêmica";
+                const display = agente === "haiku_legado" ? "haiku" : agente;
                 return (
                   <li key={agente} className="flex items-center gap-3" style={{ borderLeft: `2px solid ${cor}`, paddingLeft: 12 }}>
                     <span
                       className="text-[10px] uppercase tracking-[0.16em] font-semibold px-2 py-0.5 shrink-0"
                       style={{ background: bg, color: cor, borderRadius: 2, fontFamily: MONO }}
                     >
-                      {agente}
+                      {display}
                     </span>
                     <p className="text-[13px] flex-1" style={{ color: INK }}>
                       <span className="font-medium">{label}</span>
