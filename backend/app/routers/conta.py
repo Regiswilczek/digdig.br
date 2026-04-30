@@ -167,8 +167,11 @@ async def _upload_avatar_supabase(user_id: str, content: bytes, content_type: st
     # Path segue convenção das policies RLS: avatars/{user_id}/avatar.{ext}
     object_path = f"{user_id}/avatar.{ext}"
     url = f"{settings.supabase_url}/storage/v1/object/avatars/{object_path}"
+    # Supabase Secret Key (sb_secret_*) precisa ser passada também no header
+    # apikey, não só no Authorization. Sem o apikey o Storage devolve 400.
     headers = {
         "Authorization": f"Bearer {settings.supabase_service_role_key}",
+        "apikey": settings.supabase_service_role_key,
         "Content-Type": content_type,
         # Substitui se já existe (idempotente)
         "x-upsert": "true",
