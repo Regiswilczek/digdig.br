@@ -723,28 +723,30 @@ function ConexPage() {
     };
 
     if (isFoco) {
-      // Central — fixo
+      // Central — fixo no (0, 0)
       const central = pessoas.find((p) => p._key === state.focoKey)
         ?? tags.find((t) => t._key === state.focoKey);
       if (central) {
         out.push(make(central, 0, 0, true));
       }
-      // Pessoas vizinhas em círculo. Raio escalado pra acomodar cards de 130px
-      // (perímetro mínimo = N × ~150px, então r = (N × 150) / (2π) = N × 24).
+
+      // Vizinhos em órbita radial — limita raio pra caber bem no viewport.
       const vizinhos = pessoas.filter((p) => p._key !== state.focoKey);
-      const rViz = Math.max(220, vizinhos.length * 26);
+      const rViz = Math.max(180, Math.min(280, vizinhos.length * 22));
       vizinhos.forEach((p, i) => {
         const angle = (i / Math.max(1, vizinhos.length)) * 2 * Math.PI - Math.PI / 2;
         out.push(make(p, Math.cos(angle) * rViz, Math.sin(angle) * rViz, true));
       });
-      // Atos em órbita média.
-      const rAtos = rViz + 220;
+
+      // Atos em órbita externa
+      const rAtos = rViz + 170;
       atos.forEach((a, i) => {
         const angle = ((i + 0.5) / Math.max(1, atos.length)) * 2 * Math.PI - Math.PI / 2;
         out.push(make(a, Math.cos(angle) * rAtos, Math.sin(angle) * rAtos, true));
       });
-      // Tags em órbita externa.
-      const rTags = rAtos + 200;
+
+      // Tags ainda mais externas
+      const rTags = rAtos + 150;
       tags
         .filter((t) => t._key !== state.focoKey)
         .forEach((t, i) => {
@@ -752,16 +754,40 @@ function ConexPage() {
           out.push(make(t, Math.cos(angle) * rTags, Math.sin(angle) * rTags, true));
         });
     } else {
-      // Modo raiz: cards de pessoa de 130px → perímetro mínimo 18 × 150 = 2700,
-      // raio mínimo = 2700/(2π) ≈ 430. Damos folga.
-      const r = Math.max(380, pessoas.length * 28);
+      // Modo raiz: GRID em vez de círculo. Aproveita melhor o viewport
+      // (que é mais largo que alto) e evita cards cortados nas bordas.
+      const n = pessoas.length;
+      // Adaptativo: 1 linha pra ≤6, 2 linhas pra ≤12, 3 linhas pra ≤24, 4 linhas+
+      const cols =
+        n <= 6 ? Math.min(n, 6)
+        : n <= 12 ? 6
+        : n <= 24 ? 6
+        : Math.ceil(Math.sqrt(n * 1.8));
+      const rows = Math.max(1, Math.ceil(n / cols));
+      const dx = 165;
+      const dy = 64;
+      const startX = -((cols - 1) * dx) / 2;
+      const startY = -((rows - 1) * dy) / 2;
       pessoas.forEach((p, i) => {
-        const angle = (i / Math.max(1, pessoas.length)) * 2 * Math.PI - Math.PI / 2;
-        out.push(make(p, Math.cos(angle) * r, Math.sin(angle) * r, true));
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        // Última linha incompleta: centraliza horizontalmente os restantes
+        const lastRow = rows - 1;
+        const itemsLastRow = n - lastRow * cols;
+        const rowOffset = row === lastRow && itemsLastRow < cols
+          ? ((cols - itemsLastRow) * dx) / 2
+          : 0;
+        out.push(make(p, startX + col * dx + rowOffset, startY + row * dy, true));
       });
-      // Sem atos/tags no canvas raiz mas mantém fallback
-      atos.forEach((a) => out.push(make(a)));
-      tags.forEach((t) => out.push(make(t)));
+      // Sem atos/tags no canvas raiz, mas se vierem fica fallback radial externo
+      atos.forEach((a, i) => {
+        const angle = (i / Math.max(1, atos.length)) * 2 * Math.PI;
+        out.push(make(a, Math.cos(angle) * 500, Math.sin(angle) * 500, true));
+      });
+      tags.forEach((t, i) => {
+        const angle = (i / Math.max(1, tags.length)) * 2 * Math.PI;
+        out.push(make(t, Math.cos(angle) * 600, Math.sin(angle) * 600, true));
+      });
     }
 
     fgNodesRef.current = newCache;
