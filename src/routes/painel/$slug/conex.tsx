@@ -591,6 +591,11 @@ function ConexPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const [loadingNode, setLoadingNode] = useState<{
+    key: string;
+    label: string;
+    tipo: "pessoa" | "tag";
+  } | null>(null);
   const [tooltip, setTooltip] = useState<{
     x: number;
     y: number;
@@ -693,6 +698,12 @@ function ConexPage() {
       el.removeEventListener("mousemove", onMove);
     };
   }, []);
+
+  // Cursor wait quando está carregando — feedback visual de "estou trabalhando"
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.style.cursor = loadingNode ? "wait" : "grab";
+  }, [loadingNode]);
 
   // Filtra nós/edges client-side. No modo foco, posiciona radialmente:
   // - nó central (focoKey) fixo em (0, 0)
@@ -892,9 +903,15 @@ function ConexPage() {
   // Clicar numa pessoa: substitui o canvas pelo ego-graph dela.
   const focarPessoa = useCallback(
     async (pessoa_id: string, label: string) => {
+      // Bloqueia duplo-click enquanto outro fetch está em andamento
+      if (loadingNode) return;
       setTooltip(null);
       setHoveredKey(null);
       setAtosComuns(null);
+      // Feedback imediato — seleciona e mostra loading antes do fetch
+      const key = `pessoa:${pessoa_id}`;
+      setLoadingNode({ key, label, tipo: "pessoa" });
+      dispatch({ type: "select", sel: { kind: "pessoa", id: pessoa_id } });
       dispatch({ type: "loading", on: true });
       try {
         const data = await fetchGrafoExpandirPessoa(slug, pessoa_id, {
@@ -908,21 +925,27 @@ function ConexPage() {
           type: "set_canvas",
           data,
           modo: "foco_pessoa",
-          focoKey: `pessoa:${pessoa_id}`,
+          focoKey: key,
           pushStack: { label },
         });
       } catch (err: any) {
         dispatch({ type: "error", msg: err.message });
+      } finally {
+        setLoadingNode(null);
       }
     },
-    [slug, state.filtros],
+    [slug, state.filtros, loadingNode],
   );
 
   const focarTag = useCallback(
     async (codigo: string, label: string) => {
+      if (loadingNode) return;
       setTooltip(null);
       setHoveredKey(null);
       setAtosComuns(null);
+      const key = `tag:${codigo}`;
+      setLoadingNode({ key, label, tipo: "tag" });
+      dispatch({ type: "select", sel: { kind: "tag", id: codigo } });
       dispatch({ type: "loading", on: true });
       try {
         const data = await fetchGrafoExpandirTag(slug, codigo, {
@@ -933,14 +956,16 @@ function ConexPage() {
           type: "set_canvas",
           data,
           modo: "foco_tag",
-          focoKey: `tag:${codigo}`,
+          focoKey: key,
           pushStack: { label },
         });
       } catch (err: any) {
         dispatch({ type: "error", msg: err.message });
+      } finally {
+        setLoadingNode(null);
       }
     },
-    [slug],
+    [slug, loadingNode],
   );
 
   const handleNodeClick = useCallback(
@@ -1494,9 +1519,55 @@ function ConexPage() {
             </div>
           )}
 
+          {/* Banner de LOADING destacado — aparece quando o usuário clicou
+              num nó e estamos buscando dados. Substitui o empty-state. */}
+          {loadingNode && (
+            <div
+              className="absolute pointer-events-none flex items-center gap-3 px-5 py-2.5"
+              style={{
+                top: 14,
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "#fff",
+                border: `1.5px solid ${ACCENT}`,
+                borderRadius: 999,
+                fontFamily: MONO,
+                boxShadow: `0 4px 16px rgba(22, 163, 74, 0.18)`,
+                zIndex: 5,
+              }}
+            >
+              <span
+                className="inline-block animate-spin"
+                style={{
+                  width: 11,
+                  height: 11,
+                  border: `1.5px solid ${BORDER}`,
+                  borderTopColor: ACCENT,
+                  borderRadius: 999,
+                }}
+              />
+              <span
+                className="text-[9.5px] uppercase tracking-[0.22em]"
+                style={{ color: ACCENT }}
+              >
+                {loadingNode.tipo === "pessoa" ? "expandindo" : "drill-down"}
+              </span>
+              <span style={{ color: BORDER }}>│</span>
+              <span
+                className="text-[11px] font-medium"
+                style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.01em" }}
+              >
+                {loadingNode.label.length > 38
+                  ? loadingNode.label.slice(0, 36) + "…"
+                  : loadingNode.label}
+              </span>
+            </div>
+          )}
+
           {/* Empty-state: pessoas no canvas mas ainda sem expansão (0 arestas).
-              Posicionado no topo central pra não cobrir os avatares. */}
-          {fgNodes.length > 0 && fgLinks.length === 0 && !state.loading && (
+              Posicionado no topo central pra não cobrir os avatares.
+              Esconde quando há loading em curso (banner toma o lugar). */}
+          {fgNodes.length > 0 && fgLinks.length === 0 && !state.loading && !loadingNode && (
             <div
               className="absolute pointer-events-none flex items-center gap-3 px-4 py-2"
               style={{
