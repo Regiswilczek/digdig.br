@@ -1222,3 +1222,26 @@ async def send_magic_link_via_resend(request: Request):
     })
 
     return {"ok": True}
+
+
+# ─── Grafo de relações ────────────────────────────────────────────────────────
+
+@router.post("/admin/orgaos/{slug}/relacoes/recalcular", status_code=200)
+async def recalcular_relacoes_pessoas(
+    slug: str,
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
+):
+    """
+    Recalcula a tabela `relacoes_pessoas` para o tenant a partir de
+    aparicoes_pessoa (pares de pessoas que aparecem nos mesmos atos).
+    Idempotente — pode ser chamado quantas vezes forem necessárias.
+    """
+    from app.services.relacoes_service import recalcular_relacoes
+
+    result = await db.execute(select(Tenant).where(Tenant.slug == slug))
+    tenant = result.scalar_one_or_none()
+    if not tenant:
+        raise HTTPException(status_code=404, detail=f"Órgão '{slug}' não encontrado")
+
+    return await recalcular_relacoes(db, tenant.id)

@@ -584,3 +584,577 @@ async def get_metricas_icp(
 
     resultado["cache"] = False
     return resultado
+
+
+# ─── Grafo de relações (estilo Arkham) ────────────────────────────────────────
+
+def _icp_para_cor(icp, suspeito: bool) -> str:
+    """Mapeia ICP individual para cor da paleta de alerta. icp pode ser float|None|Decimal."""
+    if suspeito:
+        return "vermelho"
+    if icp is None:
+        return "cinza"
+    icp_f = float(icp)
+    if icp_f >= 30:
+        return "vermelho"
+    if icp_f >= 15:
+        return "laranja"
+    if icp_f >= 5:
+        return "amarelo"
+    return "cinza"
+
+
+def _gravidade_para_cor(g: str | None) -> str:
+    if g == "critica":
+        return "vermelho"
+    if g == "alta":
+        return "laranja"
+    if g == "media":
+        return "amarelo"
+    return "cinza"
+
+
+_GRAVIDADE_RANK = {"baixa": 1, "media": 2, "alta": 3, "critica": 4}
+
+
+@router.get("/orgaos/{slug}/grafo/raiz")
+async def grafo_raiz(
+    slug: str,
+    limit: int = Query(15, ge=1, le=50),
+    icp_min: float = Query(0, ge=0, le=100),
+    incluir_tags_top: int = Query(10, ge=0, le=30),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Entry-point do grafo. Retorna top N pessoas por ICP e top M tags
+    mais atribuídas. Sem edges — UI usa para popular o canvas inicial.
+    """
+    tenant = await _get_tenant(slug, db)
+
+    pessoas_r = await db.execute(text("""
+        SELECT id, nome_normalizado, cargo_mais_recente, icp_individual,
+               total_aparicoes, eh_suspeito, primeiro_ato_data, ultimo_ato_data
+        FROM pessoas
+        WHERE tenant_id = :tid AND COALESCE(icp_individual, 0) >= :icp_min
+        ORDER BY icp_individual DESC NULLS LAST, total_aparicoes DESC
+        LIMIT :lim
+    """), {"tid": str(tenant.id), "icp_min": icp_min, "lim": limit})
+    pessoas_rows = pessoas_r.fetchall()
+
+    nodes_pessoas = [
+        {
+            "id": str(r.id),
+            "tipo": "pessoa",
+            "nome": r.nome_normalizado,
+            "cargo": r.cargo_mais_recente,
+            "icp": float(r.icp_individual) if r.icp_individual is not None else None,
+            "total_aparicoes": r.total_aparicoes or 0,
+            "suspeito": bool(r.eh_suspeito),
+            "primeiro_ato": r.primeiro_ato_data.isoformat() if r.primeiro_ato_data else None,
+            "ultimo_ato": r.ultimo_ato_data.isoformat() if r.ultimo_ato_data else None,
+            "cor_categoria": _icp_para_cor(r.icp_individual, bool(r.eh_suspeito)),
+        }
+        for r in pessoas_rows
+    ]
+
+    nodes_tags = []
+    if incluir_tags_top > 0:
+        tags_r = await db.execute(text("""
+            SELECT codigo,
+                   MIN(nome) AS nome,
+                   MIN(categoria) AS categoria,
+                   MIN(categoria_nome) AS categoria_nome,
+                   COUNT(DISTINCT ato_id) AS atos_count,
+                   MODE() WITHIN GROUP (ORDER BY gravidade) AS gravidade_predominante
+            FROM ato_tags
+            WHERE tenant_id = :tid AND ativa = TRUE
+            GROUP BY codigo
+            ORDER BY atos_count DESC
+            LIMIT :lim
+        """), {"tid": str(tenant.id), "lim": incluir_tags_top})
+        nodes_tags = [
+            {
+                "codigo": r.codigo,
+                "tipo": "tag",
+                "nome": r.nome,
+                "categoria": r.categoria,
+                "categoria_nome": r.categoria_nome,
+                "gravidade_predominante": r.gravidade_predominante or "baixa",
+                "atos_count": int(r.atos_count or 0),
+                "cor_categoria": _gravidade_para_cor(r.gravidade_predominante),
+            }
+            for r in tags_r.fetchall()
+        ]
+
+    return {
+        "nodes_pessoas": nodes_pessoas,
+        "nodes_atos": [],
+        "nodes_tags": nodes_tags,
+        "edges_pessoa_pessoa": [],
+        "edges_pessoa_ato": [],
+        "edges_ato_tag": [],
+        "root_id": None,
+    }
+
+
+@router.get("/orgaos/{slug}/grafo/pessoa/{pessoa_id}")
+async def grafo_expandir_pessoa(
+    slug: str,
+    pessoa_id: str,
+    limit_vizinhos: int = Query(12, ge=1, le=50),
+    peso_min: float = Query(2, ge=1, le=50),
+    incluir_atos: bool = Query(True),
+    incluir_tags: bool = Query(True),
+    limit_atos: int = Query(5, ge=1, le=15),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Expande uma pessoa: retorna a pessoa + vizinhos diretos via relacoes_pessoas.
+    - edges_pessoa_pessoa: com tags_compartilhadas e gravidade_max calculadas.
+    - se incluir_atos: top N atos da pessoa central + edges pessoa↔ato.
+    - se incluir_tags: tags ativas dos atos retornados + edges_ato_tag.
+    """
+    tenant = await _get_tenant(slug, db)
+
+    # 1. Pessoa central + vizinhos via relacoes_pessoas
+    pessoas_r = await db.execute(text("""
+        WITH base AS (
+            SELECT id FROM pessoas
+            WHERE id = :pid AND tenant_id = :tid
+        ),
+        vizinhos AS (
+            SELECT
+                CASE
+                    WHEN rp.pessoa_a_id = :pid THEN rp.pessoa_b_id
+                    ELSE rp.pessoa_a_id
+                END AS pessoa_id,
+                rp.peso, rp.atos_em_comum
+            FROM relacoes_pessoas rp
+            WHERE rp.tenant_id = :tid
+              AND (rp.pessoa_a_id = :pid OR rp.pessoa_b_id = :pid)
+              AND rp.atos_em_comum >= :peso_min
+            ORDER BY rp.peso DESC
+            LIMIT :lim_v
+        )
+        SELECT p.id, p.nome_normalizado, p.cargo_mais_recente, p.icp_individual,
+               p.total_aparicoes, p.eh_suspeito, p.primeiro_ato_data, p.ultimo_ato_data,
+               CASE WHEN p.id = :pid THEN TRUE ELSE FALSE END AS is_root
+        FROM pessoas p
+        WHERE p.tenant_id = :tid AND (
+            p.id = :pid OR p.id IN (SELECT pessoa_id FROM vizinhos)
+        )
+    """), {"pid": pessoa_id, "tid": str(tenant.id), "peso_min": peso_min, "lim_v": limit_vizinhos})
+    pessoas_rows = pessoas_r.fetchall()
+
+    if not any(r.is_root for r in pessoas_rows):
+        raise HTTPException(status_code=404, detail="Pessoa não encontrada")
+
+    nodes_pessoas = [
+        {
+            "id": str(r.id),
+            "tipo": "pessoa",
+            "nome": r.nome_normalizado,
+            "cargo": r.cargo_mais_recente,
+            "icp": float(r.icp_individual) if r.icp_individual is not None else None,
+            "total_aparicoes": r.total_aparicoes or 0,
+            "suspeito": bool(r.eh_suspeito),
+            "primeiro_ato": r.primeiro_ato_data.isoformat() if r.primeiro_ato_data else None,
+            "ultimo_ato": r.ultimo_ato_data.isoformat() if r.ultimo_ato_data else None,
+            "cor_categoria": _icp_para_cor(r.icp_individual, bool(r.eh_suspeito)),
+        }
+        for r in pessoas_rows
+    ]
+
+    # 2. Edges pessoa↔pessoa: para cada par no conjunto, calcula peso + tags compartilhadas.
+    # Inclui só arestas onde a pessoa central é uma das pontas (o canvas tem ela como hub).
+    pessoa_ids = [str(r.id) for r in pessoas_rows]
+    edges_pp = []
+    if len(pessoa_ids) > 1:
+        pares_r = await db.execute(text("""
+            WITH ids AS (SELECT UNNEST(CAST(:ids AS uuid[])) AS pid),
+            relacoes_central AS (
+                SELECT
+                    LEAST(rp.pessoa_a_id, rp.pessoa_b_id) AS a,
+                    GREATEST(rp.pessoa_a_id, rp.pessoa_b_id) AS b,
+                    rp.peso, rp.atos_em_comum
+                FROM relacoes_pessoas rp
+                WHERE rp.tenant_id = :tid
+                  AND (rp.pessoa_a_id = :pid OR rp.pessoa_b_id = :pid)
+                  AND rp.pessoa_a_id IN (SELECT pid FROM ids)
+                  AND rp.pessoa_b_id IN (SELECT pid FROM ids)
+            ),
+            tags_por_par AS (
+                SELECT rc.a, rc.b,
+                       array_agg(DISTINCT t.codigo) FILTER (WHERE t.codigo IS NOT NULL) AS tags,
+                       MAX(CASE t.gravidade
+                            WHEN 'critica' THEN 4
+                            WHEN 'alta' THEN 3
+                            WHEN 'media' THEN 2
+                            WHEN 'baixa' THEN 1
+                            ELSE 0
+                       END) AS grav_rank
+                FROM relacoes_central rc
+                JOIN aparicoes_pessoa ap_a ON ap_a.pessoa_id = rc.a AND ap_a.tenant_id = :tid
+                JOIN aparicoes_pessoa ap_b ON ap_b.pessoa_id = rc.b
+                                           AND ap_b.ato_id = ap_a.ato_id
+                                           AND ap_b.tenant_id = :tid
+                LEFT JOIN ato_tags t ON t.ato_id = ap_a.ato_id AND t.ativa = TRUE
+                GROUP BY rc.a, rc.b
+            )
+            SELECT rc.a, rc.b, rc.peso, rc.atos_em_comum,
+                   COALESCE(tp.tags, ARRAY[]::text[]) AS tags,
+                   tp.grav_rank
+            FROM relacoes_central rc
+            LEFT JOIN tags_por_par tp ON tp.a = rc.a AND tp.b = rc.b
+        """), {"tid": str(tenant.id), "pid": pessoa_id, "ids": pessoa_ids})
+        rank_para_grav = {4: "critica", 3: "alta", 2: "media", 1: "baixa"}
+        for r in pares_r.fetchall():
+            edges_pp.append({
+                "source": str(r.a),
+                "target": str(r.b),
+                "kind": "co_aparicao",
+                "peso": float(r.peso),
+                "atos_em_comum": int(r.atos_em_comum),
+                "tags_compartilhadas": list(r.tags or []),
+                "gravidade_max": rank_para_grav.get(r.grav_rank),
+            })
+
+    # 3. Atos da pessoa central (opcional)
+    nodes_atos = []
+    edges_pa = []
+    nodes_tags = []
+    edges_at = []
+    ato_ids: list[str] = []
+
+    if incluir_atos:
+        atos_r = await db.execute(text("""
+            SELECT a.id, a.tipo, a.numero, a.data_publicacao,
+                   an.nivel_alerta,
+                   ap.tipo_aparicao, ap.cargo,
+                   (SELECT COUNT(*) FROM aparicoes_pessoa ap2 WHERE ap2.ato_id = a.id) AS pessoas_count,
+                   (SELECT COUNT(*) FROM ato_tags t WHERE t.ato_id = a.id AND t.ativa = TRUE) AS tags_count
+            FROM aparicoes_pessoa ap
+            JOIN atos a ON a.id = ap.ato_id
+            LEFT JOIN LATERAL (
+                SELECT nivel_alerta FROM analises an2
+                WHERE an2.ato_id = a.id
+                ORDER BY an2.criado_em DESC LIMIT 1
+            ) an ON TRUE
+            WHERE ap.pessoa_id = :pid AND ap.tenant_id = :tid
+            ORDER BY
+                CASE an.nivel_alerta
+                    WHEN 'vermelho' THEN 0
+                    WHEN 'laranja' THEN 1
+                    WHEN 'amarelo' THEN 2
+                    WHEN 'verde' THEN 3
+                    ELSE 4
+                END,
+                a.data_publicacao DESC NULLS LAST
+            LIMIT :lim
+        """), {"pid": pessoa_id, "tid": str(tenant.id), "lim": limit_atos})
+        for r in atos_r.fetchall():
+            ato_ids.append(str(r.id))
+            nodes_atos.append({
+                "id": str(r.id),
+                "tipo": "ato",
+                "numero": r.numero,
+                "ato_tipo": r.tipo,
+                "data_publicacao": r.data_publicacao.isoformat() if r.data_publicacao else None,
+                "nivel_alerta": r.nivel_alerta,
+                "pessoas_count": int(r.pessoas_count or 0),
+                "tags_count": int(r.tags_count or 0),
+            })
+            edges_pa.append({
+                "source": pessoa_id,
+                "target": str(r.id),
+                "kind": "aparicao",
+                "tipo_aparicao": r.tipo_aparicao,
+                "cargo": r.cargo,
+            })
+
+    # 4. Tags ativas dos atos retornados (opcional)
+    if incluir_tags and ato_ids:
+        tags_r = await db.execute(text("""
+            WITH atos_ids AS (SELECT UNNEST(CAST(:ato_ids AS uuid[])) AS ato_id),
+            tags_dos_atos AS (
+                SELECT t.codigo, t.nome, t.categoria, t.categoria_nome, t.gravidade,
+                       t.atribuido_por, t.ato_id
+                FROM ato_tags t
+                WHERE t.ativa = TRUE
+                  AND t.ato_id IN (SELECT ato_id FROM atos_ids)
+                  AND t.tenant_id = :tid
+            )
+            SELECT codigo, nome, categoria, categoria_nome, ato_id, gravidade, atribuido_por
+            FROM tags_dos_atos
+        """), {"ato_ids": ato_ids, "tid": str(tenant.id)})
+        # Agrega tags únicas + edges ato↔tag
+        tags_dict: dict[str, dict] = {}
+        for r in tags_r.fetchall():
+            if r.codigo not in tags_dict:
+                tags_dict[r.codigo] = {
+                    "codigo": r.codigo,
+                    "tipo": "tag",
+                    "nome": r.nome,
+                    "categoria": r.categoria,
+                    "categoria_nome": r.categoria_nome,
+                    "gravidade_predominante": r.gravidade,
+                    "atos_count": 0,
+                    "cor_categoria": _gravidade_para_cor(r.gravidade),
+                    "_grav_max_rank": _GRAVIDADE_RANK.get(r.gravidade, 0),
+                }
+            else:
+                # mantém a maior gravidade vista
+                if _GRAVIDADE_RANK.get(r.gravidade, 0) > tags_dict[r.codigo]["_grav_max_rank"]:
+                    tags_dict[r.codigo]["gravidade_predominante"] = r.gravidade
+                    tags_dict[r.codigo]["cor_categoria"] = _gravidade_para_cor(r.gravidade)
+                    tags_dict[r.codigo]["_grav_max_rank"] = _GRAVIDADE_RANK.get(r.gravidade, 0)
+            tags_dict[r.codigo]["atos_count"] += 1
+            edges_at.append({
+                "source": str(r.ato_id),
+                "target": r.codigo,
+                "kind": "atribuicao_tag",
+                "gravidade": r.gravidade,
+                "atribuido_por": r.atribuido_por,
+            })
+        for v in tags_dict.values():
+            v.pop("_grav_max_rank", None)
+        nodes_tags = list(tags_dict.values())
+
+    return {
+        "nodes_pessoas": nodes_pessoas,
+        "nodes_atos": nodes_atos,
+        "nodes_tags": nodes_tags,
+        "edges_pessoa_pessoa": edges_pp,
+        "edges_pessoa_ato": edges_pa,
+        "edges_ato_tag": edges_at,
+        "root_id": pessoa_id,
+    }
+
+
+@router.get("/orgaos/{slug}/grafo/atos-comuns/{pessoa_a_id}/{pessoa_b_id}")
+async def grafo_atos_comuns(
+    slug: str,
+    pessoa_a_id: str,
+    pessoa_b_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Lista atos onde duas pessoas aparecem juntas, com tags ativas e
+    tipo_aparicao/cargo de cada uma. Usado quando o usuário clica numa
+    aresta pessoa↔pessoa no grafo.
+    """
+    tenant = await _get_tenant(slug, db)
+
+    atos_r = await db.execute(text("""
+        SELECT a.id, a.tipo, a.numero, a.data_publicacao, a.ementa,
+               an.nivel_alerta,
+               ap_a.tipo_aparicao AS tipo_a, ap_a.cargo AS cargo_a,
+               ap_b.tipo_aparicao AS tipo_b, ap_b.cargo AS cargo_b
+        FROM aparicoes_pessoa ap_a
+        JOIN aparicoes_pessoa ap_b ON ap_b.ato_id = ap_a.ato_id
+                                   AND ap_b.pessoa_id = :pb
+                                   AND ap_b.tenant_id = :tid
+        JOIN atos a ON a.id = ap_a.ato_id
+        LEFT JOIN LATERAL (
+            SELECT nivel_alerta FROM analises an2
+            WHERE an2.ato_id = a.id
+            ORDER BY an2.criado_em DESC LIMIT 1
+        ) an ON TRUE
+        WHERE ap_a.pessoa_id = :pa AND ap_a.tenant_id = :tid
+        ORDER BY a.data_publicacao DESC NULLS LAST
+        LIMIT 50
+    """), {"pa": pessoa_a_id, "pb": pessoa_b_id, "tid": str(tenant.id)})
+    rows = atos_r.fetchall()
+    if not rows:
+        return {
+            "pessoa_a_id": pessoa_a_id,
+            "pessoa_b_id": pessoa_b_id,
+            "atos": [],
+        }
+
+    ato_ids = [str(r.id) for r in rows]
+    tags_r = await db.execute(text("""
+        SELECT ato_id, codigo, nome, gravidade
+        FROM ato_tags
+        WHERE ativa = TRUE
+          AND tenant_id = :tid
+          AND ato_id IN (SELECT UNNEST(CAST(:ato_ids AS uuid[])))
+    """), {"tid": str(tenant.id), "ato_ids": ato_ids})
+    tags_por_ato: dict[str, list] = {}
+    for t in tags_r.fetchall():
+        tags_por_ato.setdefault(str(t.ato_id), []).append({
+            "codigo": t.codigo,
+            "nome": t.nome,
+            "gravidade": t.gravidade,
+        })
+
+    return {
+        "pessoa_a_id": pessoa_a_id,
+        "pessoa_b_id": pessoa_b_id,
+        "atos": [
+            {
+                "ato_id": str(r.id),
+                "tipo": r.tipo,
+                "numero": r.numero,
+                "data_publicacao": r.data_publicacao.isoformat() if r.data_publicacao else None,
+                "ementa": (r.ementa or "")[:300] if r.ementa else None,
+                "nivel_alerta": r.nivel_alerta,
+                "tipo_aparicao_a": r.tipo_a,
+                "cargo_a": r.cargo_a,
+                "tipo_aparicao_b": r.tipo_b,
+                "cargo_b": r.cargo_b,
+                "tags": tags_por_ato.get(str(r.id), []),
+            }
+            for r in rows
+        ],
+    }
+
+
+@router.get("/orgaos/{slug}/grafo/tag/{codigo}")
+async def grafo_expandir_tag(
+    slug: str,
+    codigo: str,
+    limit_atos: int = Query(20, ge=1, le=50),
+    incluir_pessoas: bool = Query(True),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Drill-down por tag de irregularidade. Retorna o nó-tag, top N atos
+    com a tag ativa, e (opcional) pessoas envolvidas nesses atos.
+    Útil para "navegar pelo padrão" — ex: nepotismo, falsa_urgencia.
+    """
+    tenant = await _get_tenant(slug, db)
+
+    tag_r = await db.execute(text("""
+        SELECT codigo,
+               MIN(nome) AS nome,
+               MIN(categoria) AS categoria,
+               MIN(categoria_nome) AS categoria_nome,
+               COUNT(DISTINCT ato_id) AS atos_count,
+               MODE() WITHIN GROUP (ORDER BY gravidade) AS gravidade_predominante
+        FROM ato_tags
+        WHERE tenant_id = :tid AND ativa = TRUE AND codigo = :codigo
+        GROUP BY codigo
+    """), {"tid": str(tenant.id), "codigo": codigo})
+    tag_row = tag_r.first()
+    if not tag_row:
+        raise HTTPException(status_code=404, detail=f"Tag '{codigo}' sem atribuições ativas neste órgão")
+
+    node_tag = {
+        "codigo": tag_row.codigo,
+        "tipo": "tag",
+        "nome": tag_row.nome,
+        "categoria": tag_row.categoria,
+        "categoria_nome": tag_row.categoria_nome,
+        "gravidade_predominante": tag_row.gravidade_predominante or "baixa",
+        "atos_count": int(tag_row.atos_count),
+        "cor_categoria": _gravidade_para_cor(tag_row.gravidade_predominante),
+    }
+
+    atos_r = await db.execute(text("""
+        SELECT a.id, a.tipo, a.numero, a.data_publicacao,
+               an.nivel_alerta,
+               t.gravidade, t.atribuido_por,
+               (SELECT COUNT(*) FROM aparicoes_pessoa ap2 WHERE ap2.ato_id = a.id) AS pessoas_count,
+               (SELECT COUNT(*) FROM ato_tags t2 WHERE t2.ato_id = a.id AND t2.ativa = TRUE) AS tags_count
+        FROM ato_tags t
+        JOIN atos a ON a.id = t.ato_id
+        LEFT JOIN LATERAL (
+            SELECT nivel_alerta FROM analises an2
+            WHERE an2.ato_id = a.id
+            ORDER BY an2.criado_em DESC LIMIT 1
+        ) an ON TRUE
+        WHERE t.tenant_id = :tid AND t.ativa = TRUE AND t.codigo = :codigo
+        ORDER BY
+            CASE t.gravidade
+                WHEN 'critica' THEN 0
+                WHEN 'alta' THEN 1
+                WHEN 'media' THEN 2
+                WHEN 'baixa' THEN 3
+                ELSE 4
+            END,
+            a.data_publicacao DESC NULLS LAST
+        LIMIT :lim
+    """), {"tid": str(tenant.id), "codigo": codigo, "lim": limit_atos})
+    atos_rows = atos_r.fetchall()
+
+    nodes_atos = []
+    edges_at = []
+    ato_ids: list[str] = []
+    for r in atos_rows:
+        ato_ids.append(str(r.id))
+        nodes_atos.append({
+            "id": str(r.id),
+            "tipo": "ato",
+            "numero": r.numero,
+            "ato_tipo": r.tipo,
+            "data_publicacao": r.data_publicacao.isoformat() if r.data_publicacao else None,
+            "nivel_alerta": r.nivel_alerta,
+            "pessoas_count": int(r.pessoas_count or 0),
+            "tags_count": int(r.tags_count or 0),
+        })
+        edges_at.append({
+            "source": str(r.id),
+            "target": codigo,
+            "kind": "atribuicao_tag",
+            "gravidade": r.gravidade,
+            "atribuido_por": r.atribuido_por,
+        })
+
+    nodes_pessoas = []
+    edges_pa = []
+    if incluir_pessoas and ato_ids:
+        pessoas_r = await db.execute(text("""
+            SELECT DISTINCT ON (p.id)
+                   p.id, p.nome_normalizado, p.cargo_mais_recente, p.icp_individual,
+                   p.total_aparicoes, p.eh_suspeito,
+                   p.primeiro_ato_data, p.ultimo_ato_data
+            FROM pessoas p
+            JOIN aparicoes_pessoa ap ON ap.pessoa_id = p.id
+            WHERE p.tenant_id = :tid
+              AND ap.ato_id IN (SELECT UNNEST(CAST(:ato_ids AS uuid[])))
+            ORDER BY p.id
+        """), {"tid": str(tenant.id), "ato_ids": ato_ids})
+        for r in pessoas_r.fetchall():
+            nodes_pessoas.append({
+                "id": str(r.id),
+                "tipo": "pessoa",
+                "nome": r.nome_normalizado,
+                "cargo": r.cargo_mais_recente,
+                "icp": float(r.icp_individual) if r.icp_individual is not None else None,
+                "total_aparicoes": r.total_aparicoes or 0,
+                "suspeito": bool(r.eh_suspeito),
+                "primeiro_ato": r.primeiro_ato_data.isoformat() if r.primeiro_ato_data else None,
+                "ultimo_ato": r.ultimo_ato_data.isoformat() if r.ultimo_ato_data else None,
+                "cor_categoria": _icp_para_cor(r.icp_individual, bool(r.eh_suspeito)),
+            })
+
+        # Edges pessoa↔ato
+        ap_r = await db.execute(text("""
+            SELECT ap.pessoa_id, ap.ato_id, ap.tipo_aparicao, ap.cargo
+            FROM aparicoes_pessoa ap
+            WHERE ap.tenant_id = :tid
+              AND ap.ato_id IN (SELECT UNNEST(CAST(:ato_ids AS uuid[])))
+        """), {"tid": str(tenant.id), "ato_ids": ato_ids})
+        for r in ap_r.fetchall():
+            edges_pa.append({
+                "source": str(r.pessoa_id),
+                "target": str(r.ato_id),
+                "kind": "aparicao",
+                "tipo_aparicao": r.tipo_aparicao,
+                "cargo": r.cargo,
+            })
+
+    return {
+        "nodes_pessoas": nodes_pessoas,
+        "nodes_atos": nodes_atos,
+        "nodes_tags": [node_tag],
+        "edges_pessoa_pessoa": [],
+        "edges_pessoa_ato": edges_pa,
+        "edges_ato_tag": edges_at,
+        "root_id": codigo,
+    }

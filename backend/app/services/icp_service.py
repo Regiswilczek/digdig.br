@@ -53,7 +53,14 @@ async def calcular_icp_orgao(db: AsyncSession, tenant_id: uuid.UUID) -> dict:
     """
     Calcula e persiste o ICP para todas as pessoas do tenant.
     Retorna o resultado completo (top concentradores + ICP sistêmico).
+
+    Antes do cálculo, recalcula `relacoes_pessoas` para garantir que
+    `forca_rede` (somatório de pesos) reflete os dados mais recentes —
+    a CTE peso_por_pessoa abaixo lê dessa tabela.
     """
+    from app.services.relacoes_service import recalcular_relacoes
+    await recalcular_relacoes(db, tenant_id)
+
     # 1. Total de atos distintos do órgão
     total_r = await db.execute(
         text("SELECT COUNT(DISTINCT id) FROM atos WHERE tenant_id = :tid"),
