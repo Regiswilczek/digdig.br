@@ -4,13 +4,33 @@ Ferramentas externas utilizadas no pipeline do Dig Dig.
 
 ## obscura/
 
-Navegador headless com stealth para scraping de sites com JavaScript e proteções anti-bot.
-Usado via subprocess Python quando o `scrape_local.py` precisa de JS rendering.
+Navegador headless escrito em Rust com modo stealth, usado pra scraping de
+sites com JavaScript e proteções anti-bot (ex: Portal Transparência PR
+JSF/PrimeFaces).
 
-- `obscura.exe` — binário Windows (desenvolvimento local)
-- `obscura.zip` — pacote completo (contém binário Linux para VPS)
+**Repo:** https://github.com/h4ckf0r0day/obscura (Apache-2.0, Rust)
 
-Referência de uso: `backend/scripts/teste_obscura.py`
+**Binários NÃO são versionados** (~80MB cada). Pra instalar:
+```bash
+bash tools/obscura/install.sh           # pega v0.1.1 (default)
+bash tools/obscura/install.sh v0.2.0    # versão específica
+```
+
+O script detecta OS (Linux x86_64 / macOS arm64) e baixa do GitHub releases.
+
+**Uso:**
+```bash
+# Modo servidor (CDP em :9222) — Playwright conecta via connect_over_cdp
+./obscura serve --port 9222 --stealth
+
+# Fetch one-shot (HTML/text/links)
+./obscura fetch --stealth --wait 5 --dump html "https://..."
+
+# Scrape em batch
+./obscura scrape --concurrency 10 --format json url1 url2 url3
+```
+
+Referência de integração com Playwright: `backend/scripts/teste_obscura.py`
 
 ## paperclip/
 

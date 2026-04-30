@@ -77,3 +77,11 @@ tools/paperclip/node_modules/
 tools/paperclip/**/node_modules/
 tools/paperclip/**/dist/
 tools/paperclip/.paperclip/
+
+# Obscura — binários grandes (~80MB cada). Use tools/obscura/install.sh
+# pra baixar do GitHub releases (h4ckf0r0day/obscura).
+tools/obscura/obscura
+tools/obscura/obscura.exe
+tools/obscura/obscura.zip
+tools/obscura/obscura-*.tar.gz
+tools/obscura/obscura-*.zip
