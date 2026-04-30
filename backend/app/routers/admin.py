@@ -388,6 +388,7 @@ async def disparar_lote(
         tenant_id=tenant.id,
         status="em_progresso",
         total_atos=len(ato_ids),
+        agente=agente,
         criado_em=datetime.now(timezone.utc),
         iniciado_em=datetime.now(timezone.utc),
     )
@@ -418,6 +419,7 @@ def _rodada_dict(rodada: RodadaAnalise) -> dict:
     return {
         "rodada_id": str(rodada.id),
         "status": rodada.status,
+        "agente": rodada.agente,
         "total_atos": rodada.total_atos,
         "atos_scrapeados": rodada.atos_scrapeados,
         "atos_analisados_piper": rodada.atos_analisados_piper,

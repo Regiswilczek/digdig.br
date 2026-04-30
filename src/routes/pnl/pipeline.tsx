@@ -24,6 +24,7 @@ interface Rodada {
   slug: string;
   orgao: string;
   status: "pendente" | "em_progresso" | "concluida" | "cancelada";
+  agente: "piper" | "bud" | "new" | null;
   total_atos: number | null;
   atos_scrapeados: number | null;
   atos_analisados_piper: number | null;
@@ -307,6 +308,13 @@ function RodadaCard({
   const total = r.total_atos ?? 0;
   const piperCount = r.atos_analisados_piper ?? 0;
   const budCount = r.atos_analisados_bud ?? 0;
+  // Detecta agente principal: prioridade ao campo explícito; fallback heurístico
+  // pelos contadores (rodadas legadas pré-coluna agente).
+  const agentePrincipal: "piper" | "bud" | "new" =
+    r.agente ?? (budCount > 0 && piperCount === 0 ? "bud" : "piper");
+  const agenteCount = agentePrincipal === "bud" ? budCount : agentePrincipal === "new" ? 0 : piperCount;
+  const agenteCor = agentePrincipal === "bud" ? "#8b5cf6" : agentePrincipal === "new" ? "#ec4899" : "#3b82f6";
+  const agenteLabel = agentePrincipal.charAt(0).toUpperCase() + agentePrincipal.slice(1);
   const isActive = r.status === "em_progresso" || r.status === "pendente";
 
   return (
@@ -350,18 +358,19 @@ function RodadaCard({
         <div className="space-y-2 mb-4">
           <div>
             <div className="flex justify-between text-[10px] text-white/30 mb-1">
-              <span>Piper</span>
-              <span>{piperCount.toLocaleString("pt-BR")} / {total.toLocaleString("pt-BR")}</span>
+              <span style={{ color: agenteCor }}>{agenteLabel}</span>
+              <span>{agenteCount.toLocaleString("pt-BR")} / {total.toLocaleString("pt-BR")}</span>
             </div>
-            <ProgressBar value={piperCount} total={total} color="#3b82f6" />
+            <ProgressBar value={agenteCount} total={total} color={agenteCor} />
           </div>
-          {budCount > 0 && (
+          {/* Mostra Piper secundário se a rodada é Bud mas teve Piper anterior contado */}
+          {agentePrincipal !== "piper" && piperCount > 0 && (
             <div>
               <div className="flex justify-between text-[10px] text-white/30 mb-1">
-                <span>Bud</span>
-                <span>{budCount.toLocaleString("pt-BR")}</span>
+                <span>Piper (anterior)</span>
+                <span>{piperCount.toLocaleString("pt-BR")}</span>
               </div>
-              <ProgressBar value={budCount} total={total} color="#8b5cf6" />
+              <ProgressBar value={piperCount} total={total} color="#3b82f6" />
             </div>
           )}
         </div>

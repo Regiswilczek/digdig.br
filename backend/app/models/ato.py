@@ -66,6 +66,9 @@ class RodadaAnalise(Base):
     atos_analisados_piper: Mapped[int] = mapped_column(Integer, default=0)
     atos_analisados_bud: Mapped[int] = mapped_column(Integer, default=0)
     custo_total_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal("0"))
+    # Agente principal da rodada — usado pelo painel pra mostrar progress bar do agente certo.
+    # Valores: 'piper' | 'bud' | 'new' | NULL (legado / orquestrador completo).
+    agente: Mapped[str | None] = mapped_column(String(20), nullable=True)
     erro_mensagem: Mapped[str | None] = mapped_column(Text, nullable=True)
     iniciado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     concluido_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
