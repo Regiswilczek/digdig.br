@@ -79,6 +79,30 @@ O Piper identificou tags iniciais. Sua missão é auditar o trabalho dele:
 TAGS DISPONÍVEIS:
 {LISTA_TAGS_PROMPT}
 
+AUDITORIA DO PIPER (CRÍTICO — NÃO SEJA SERVIL):
+Você está vendo a ANÁLISE PRÉVIA DO PIPER acima. O Piper é triagem rápida e barata
+(LLM menor, sem cruzamento histórico, sem leis na KB). Você é a verificação rigorosa.
+Sua missão é detectar:
+
+1. ERROS DO PIPER — algo que ele afirmou e que o texto contradiz objetivamente.
+   Exemplos: nível_alerta errado, score discrepante do que o texto mostra,
+   indício baseado em interpretação equivocada, artigo violado errado,
+   classificação de tipo errada.
+
+2. LACUNAS DO PIPER — algo suspeito no documento que ele não enxergou.
+   Exemplos: pessoa beneficiada não citada, conflito de interesse omitido,
+   irregularidade processual ignorada, padrão histórico (do cruzamento) que ele
+   não tinha como ver, deliberação alterando regimento sem motivação, valor
+   contratual fora do padrão para o tipo de serviço.
+
+3. AJUSTE DE NÍVEL: se o Piper marcou "verde" mas há indícios claros, eleve
+   nivel_alerta_confirmado. Se exagerou (ex: "vermelho" em ato administrativo
+   rotineiro), rebaixe. Justifique sempre citando trecho ou ausência relevante.
+
+Documente isso no campo "auditoria_piper" do JSON. Se concordar 100% com o Piper,
+ainda assim preencha (com erros_do_piper=[] e lacunas_do_piper=[]) — isso indica
+revisão feita, não revisão omitida.
+
 Responda em JSON com esta estrutura:
 {{
   "nivel_alerta_confirmado": "verde|amarelo|laranja|vermelho",
@@ -101,7 +125,17 @@ Responda em JSON com esta estrutura:
   }},
   "tags_revisadas": [
     {{"codigo": "<codigo_exato>", "acao": "confirmada|adicionada|removida|elevada|rebaixada", "gravidade": "baixa|media|alta|critica", "justificativa": "Por que a tag foi alterada ou confirmada (citar evidência ou ausência de evidência)"}}
-  ]
+  ],
+  "auditoria_piper": {{
+    "concorda_com_piper": true,
+    "erros_do_piper": [
+      "Descreva cada erro objetivo na análise prévia do Piper, citando o trecho do texto que o contradiz. Lista vazia se concordar 100%."
+    ],
+    "lacunas_do_piper": [
+      "Descreva cada elemento suspeito que o Piper não enxergou. Lista vazia se ele cobriu tudo."
+    ],
+    "ajuste_de_nivel": "Se você mudou nivel_alerta_confirmado em relação ao Piper, explique por quê. Null se manteve."
+  }}
 }}"""
 
 
@@ -128,6 +162,33 @@ O Piper já identificou tags iniciais (recebidas no contexto). Sua missão é au
 
 TAGS DISPONÍVEIS:
 {LISTA_TAGS_PROMPT}
+
+AUDITORIA DO PIPER (CRÍTICO — quando houver análise prévia):
+Se o contexto trouxer ANÁLISE PRÉVIA DO PIPER, você é a verificação rigorosa do
+trabalho dele. O Piper é triagem rápida e barata (sem leis na KB, sem cruzamento
+histórico). Sua missão é detectar:
+
+1. ERROS DO PIPER — algo que ele afirmou e o texto da ata contradiz.
+   Em atas: tipo de reunião errado (extraordinária vs ordinária), quórum mal
+   contado, deliberação registrada com numeração trocada, votação resumida como
+   "unânime" quando havia abstenção registrada, pessoa marcada como presente
+   quando estava ausente.
+
+2. LACUNAS DO PIPER — pontos suspeitos da ata que ele não viu.
+   Em atas: nomeação plenária de parente declarada na própria ata, item incluído
+   extra-pauta sem justificativa, aprovação de ata anterior sem leitura, voto
+   isolado em assunto polêmico (única dissidência), conflito de interesse
+   declarado mas não tratado, deliberação alterando o regimento sem quórum
+   qualificado.
+
+3. AJUSTE DE NÍVEL: eleve "nivel_alerta" se o Piper subestimou (verde com indícios
+   reais), rebaixe se exagerou (vermelho em reunião protocolar).
+
+NÃO seja servil. Se concordar 100%, ainda preencha auditoria_piper com listas
+vazias para indicar revisão feita.
+
+Se NÃO houver análise prévia (ata foi direto pro Bud com qualidade='boa'),
+preencha auditoria_piper com concorda_com_piper=null e demais campos vazios.
 
 Responda APENAS com JSON válido, sem texto antes ou depois:
 
@@ -172,6 +233,16 @@ Responda APENAS com JSON válido, sem texto antes ou depois:
   "tags_revisadas": [
     {{"codigo": "<codigo_exato>", "acao": "confirmada|adicionada|removida|elevada|rebaixada", "gravidade": "baixa|media|alta|critica", "justificativa": "Por que a tag foi alterada ou confirmada (citar trecho da ata ou ausência relevante)"}}
   ],
+  "auditoria_piper": {{
+    "concorda_com_piper": true,
+    "erros_do_piper": [
+      "Descreva cada erro objetivo na análise prévia do Piper, citando trecho da ata. Lista vazia se concordar 100%. null se não houver análise prévia."
+    ],
+    "lacunas_do_piper": [
+      "Descreva cada elemento suspeito da ata que o Piper não enxergou. Lista vazia se ele cobriu tudo."
+    ],
+    "ajuste_de_nivel": "Se você mudou nivel_alerta em relação ao Piper, explique por quê. Null se manteve ou se não havia análise prévia."
+  }},
   "recomendacao_campanha": "string ou null"
 }}
 
@@ -206,6 +277,12 @@ def _parse_bud_ata_response(raw_text: str) -> dict:
         "deliberacoes_aprovadas": [], "pessoas_extraidas": [],
         "irregularidades": [],
         "tags_revisadas": [],
+        "auditoria_piper": {
+            "concorda_com_piper": None,
+            "erros_do_piper": [],
+            "lacunas_do_piper": [],
+            "ajuste_de_nivel": None,
+        },
         "parse_error": True,
     }
 
@@ -248,6 +325,12 @@ def _parse_bud_response(raw_text: str) -> dict:
         "recomendacao_campanha": "",
     })
     result.setdefault("tags_revisadas", [])
+    result.setdefault("auditoria_piper", {
+        "concorda_com_piper": None,
+        "erros_do_piper": [],
+        "lacunas_do_piper": [],
+        "ajuste_de_nivel": None,
+    })
     return result
 
 
@@ -390,8 +473,9 @@ async def analisar_ato_bud(
     is_ata = ato.tipo == "ata_plenaria"
 
     if is_ata:
-        # Conteúdo do ato direto (sem ficha do Piper) — o prompt de ata
-        # extrai presentes/pauta a partir da transcrição.
+        # Conteúdo da ata + (se houver) análise prévia do Piper Vision.
+        # Se a ata veio direto pro Bud (qualidade='boa'), resultado_piper é vazio
+        # e a auditoria_piper deve ficar com concorda_com_piper=null.
         from app.models.ato import ConteudoAto
         cr = await db.execute(select(ConteudoAto).where(ConteudoAto.ato_id == ato_id))
         conteudo = cr.scalar_one_or_none()
@@ -403,6 +487,18 @@ async def analisar_ato_bud(
             f"Ata da reunião plenária de {ato.data_publicacao or 'data não informada'}.\n\n"
             f"<documento>\n{texto}\n</documento>"
         )
+        # Injeta análise prévia do Piper se existir — habilita auditoria_piper
+        analise_previa = analise.resultado_piper or {}
+        if analise_previa:
+            contexto += (
+                f"\n\nANÁLISE PRÉVIA DO PIPER (para auditoria):\n"
+                f"{json.dumps(analise_previa, ensure_ascii=False, indent=2)}"
+            )
+        else:
+            contexto += (
+                "\n\nANÁLISE PRÉVIA DO PIPER: não disponível "
+                "(ata foi direto pro Bud; preencha auditoria_piper com listas vazias)."
+            )
         system_prompt = BUD_PROMPT_ATA_PLENARIA
     else:
         contexto = await _montar_contexto_bud(db, ato_id, analise)
