@@ -43,6 +43,17 @@ export interface ResultadoHaiku {
   motivo_aprofundamento: string | null;
 }
 
+export interface AtoAuditoria {
+  criado_em: string | null;
+  atualizado_em: string | null;
+  status: string | null;
+  agentes: ("piper" | "bud" | "new")[];
+  tokens_piper: number;
+  tokens_bud: number;
+  tokens_new: number;
+  custo_total_usd: number;
+}
+
 export interface AtoTagPainel {
   codigo: string;
   nome: string;
@@ -78,6 +89,7 @@ export interface PainelAto {
   cvss_ac: string | null;
   cvss_pr: string | null;
   tags: AtoTagPainel[];
+  auditoria: AtoAuditoria | null;
 }
 
 export interface PainelAtosResponse {

@@ -190,6 +190,23 @@ async def get_ato(
         "cvss_pr": analise.cvss_pr if analise else None,
         # Tags
         "tags": tags_payload,
+        # Auditoria — quem analisou, quando, custo, tokens
+        "auditoria": {
+            "criado_em": analise.criado_em.isoformat() if analise and analise.criado_em else None,
+            "atualizado_em": analise.atualizado_em.isoformat() if analise and analise.atualizado_em else None,
+            "status": analise.status if analise else None,
+            "agentes": [
+                a for a in [
+                    "piper" if analise and (analise.tokens_piper or 0) > 0 else None,
+                    "bud" if analise and (analise.tokens_bud or 0) > 0 else None,
+                    "new" if analise and (analise.tokens_new or 0) > 0 else None,
+                ] if a
+            ],
+            "tokens_piper": analise.tokens_piper if analise else 0,
+            "tokens_bud": analise.tokens_bud if analise else 0,
+            "tokens_new": analise.tokens_new if analise else 0,
+            "custo_total_usd": float(analise.custo_usd) if analise and analise.custo_usd else 0.0,
+        } if analise else None,
     }
 
 

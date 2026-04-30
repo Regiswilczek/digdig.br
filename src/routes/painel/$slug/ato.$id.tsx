@@ -702,8 +702,66 @@ function AtoDetailPage() {
           );
         })()}
 
+        {/* Histórico de auditoria */}
+        {ato.auditoria && ato.auditoria.agentes.length > 0 && (
+          <Section eyebrow="08" title="Histórico de auditoria">
+            <ul className="space-y-3">
+              {ato.auditoria.agentes.map((agente, idx) => {
+                const tokens = agente === "piper" ? ato.auditoria!.tokens_piper
+                  : agente === "bud" ? ato.auditoria!.tokens_bud
+                  : ato.auditoria!.tokens_new;
+                const cor = agente === "piper" ? "#1e40af"
+                  : agente === "bud" ? "#6b21a8"
+                  : "#9f1239";
+                const bg = agente === "piper" ? "#dbeafe"
+                  : agente === "bud" ? "#ede9fe"
+                  : "#fce7f3";
+                // Aproxima timestamp: piper = criado_em; bud/new = atualizado_em
+                const ts = agente === "piper"
+                  ? ato.auditoria!.criado_em
+                  : ato.auditoria!.atualizado_em;
+                const label = agente === "piper" ? "Triagem inicial"
+                  : agente === "bud" ? "Aprofundamento"
+                  : "Revisão sistêmica";
+                return (
+                  <li key={agente} className="flex items-start gap-3" style={{ borderLeft: `2px solid ${cor}`, paddingLeft: 12 }}>
+                    <span
+                      className="text-[10px] uppercase tracking-[0.16em] font-semibold px-2 py-0.5 shrink-0"
+                      style={{ background: bg, color: cor, borderRadius: 2, fontFamily: MONO }}
+                    >
+                      {agente}
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-[13px]" style={{ color: INK }}>
+                        <span className="font-medium">{label}</span>
+                        {ts && (
+                          <span className="ml-2 text-[11px]" style={{ color: MUTED, fontFamily: MONO }}>
+                            · {new Date(ts).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-[11px] mt-1" style={{ color: SUBTLE, fontFamily: MONO }}>
+                        {tokens.toLocaleString("pt-BR")} tokens
+                        {idx === ato.auditoria!.agentes.length - 1 && ato.auditoria!.custo_total_usd > 0 && (
+                          <span> · custo total acumulado: ${ato.auditoria!.custo_total_usd.toFixed(4)}</span>
+                        )}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="text-[10px] mt-4" style={{ color: SUBTLE, fontFamily: MONO }}>
+              Status atual: <span style={{ color: INK }}>{ato.auditoria.status ?? "—"}</span>
+              {ato.auditoria.atualizado_em && (
+                <> · última atualização: <span style={{ color: INK }}>{new Date(ato.auditoria.atualizado_em).toLocaleString("pt-BR")}</span></>
+              )}
+            </p>
+          </Section>
+        )}
+
         {/* Links */}
-        <Section eyebrow="08" title="Fontes">
+        <Section eyebrow="09" title="Fontes">
           <div className="flex flex-wrap gap-3">
             {ato.url_pdf && (
               <a
