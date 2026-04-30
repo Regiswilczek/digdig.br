@@ -254,7 +254,10 @@ def _extract_pdf(pdf_bytes: bytes) -> tuple[str, int]:
     return txt.strip(), n
 
 
-async def upsert_convenio(conn, tenant_id: str, c: dict, http_pdf: httpx.AsyncClient) -> str:
+async def upsert_convenio(
+    conn, tenant_id: str, c: dict, http_pdf: httpx.AsyncClient,
+    metadata_only: bool = False,
+) -> str:
     numero = _gen_numero(c)
     titulo = f"{c['concedente']} × {c['convenente']} (Conv. {c['numero']})"[:1000]
     ementa = c["objeto"][:500]
@@ -262,6 +265,18 @@ async def upsert_convenio(conn, tenant_id: str, c: dict, http_pdf: httpx.AsyncCl
         "SELECT id, pdf_baixado FROM atos WHERE tenant_id=$1 AND numero=$2 AND tipo=$3",
         tenant_id, numero, "convenio_estadual",
     )
+    if metadata_only:
+        if existing:
+            return f"SKIP {numero[:50]} (já existe)"
+        ato_id = uuid.uuid4()
+        await conn.execute(
+            """INSERT INTO atos (id, tenant_id, numero, tipo, titulo, ementa,
+                data_publicacao, url_pdf, pdf_baixado, processado, fonte_sistema)
+               VALUES ($1, $2, $3, 'convenio_estadual', $4, $5, $6, $7, FALSE, FALSE, 'pte_convenios')""",
+            ato_id, tenant_id, numero, titulo, ementa, c["dt_inicio"], c["pdf_url"],
+        )
+        return f"META {numero[:50]} {(c['valor_repasses'] or 0):>14.2f} {c['situacao'][:20]}"
+
     if existing and existing["pdf_baixado"]:
         return f"SKIP {numero[:50]}"
     if existing:
@@ -365,13 +380,18 @@ async def main(args):
                             print(f"  → atingiu --max-paginas={args.max_paginas}")
                             break
                         for i, c in enumerate(convenios, 1):
-                            msg = await upsert_convenio(conn, tenant_id, c, http_pdf)
+                            msg = await upsert_convenio(
+                                conn, tenant_id, c, http_pdf,
+                                metadata_only=args.metadata_only,
+                            )
                             tag = msg[:4].strip()
-                            if   tag == "OK":   ok += 1
-                            elif tag == "SKIP": skip += 1
-                            else:               err += 1
-                            print(f"    [p{pagina}/{i:>2}] {msg}", flush=True)
-                            await asyncio.sleep(RATE_LIMIT_PDF)
+                            if   tag in ("OK", "META"): ok += 1
+                            elif tag == "SKIP":         skip += 1
+                            else:                       err += 1
+                            if not args.metadata_only or i % 10 == 1:
+                                print(f"    [p{pagina}/{i:>2}] {msg}", flush=True)
+                            if not args.metadata_only:
+                                await asyncio.sleep(RATE_LIMIT_PDF)
 
                         # próxima página
                         next_first = pagina * ROWS_PER_PAGE
@@ -402,4 +422,6 @@ if __name__ == "__main__":
     p.add_argument("--anos", type=str)
     p.add_argument("--max-paginas", type=int, default=0, help="Limita páginas/ano (0=sem limite)")
     p.add_argument("--probe", action="store_true")
+    p.add_argument("--metadata-only", action="store_true",
+                   help="Salva só metadados+URL no banco (não baixa PDF, não extrai texto)")
     asyncio.run(main(p.parse_args()))
