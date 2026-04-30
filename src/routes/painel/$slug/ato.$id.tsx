@@ -566,15 +566,24 @@ function AtoDetailPage() {
         )}
 
         {/* Recomendação */}
-        {ato.recomendacao_campanha && (
-          <Section eyebrow="05" title="Recomendação">
+        <Section eyebrow="05" title="Recomendação">
+          {ato.recomendacao_campanha ? (
             <p className="whitespace-pre-wrap">{ato.recomendacao_campanha}</p>
-          </Section>
-        )}
+          ) : (
+            <p style={{ color: MUTED }}>
+              Recomendação ainda não disponível — produzida pelo Bud (aprofundamento).
+            </p>
+          )}
+        </Section>
 
         {/* Tags identificadas */}
-        {ato.tags && ato.tags.length > 0 && (
-          <Section eyebrow="06" title="Tags identificadas">
+        <Section eyebrow="06" title="Tags identificadas">
+          {!ato.tags || ato.tags.length === 0 ? (
+            <p style={{ color: MUTED }}>
+              Nenhuma tag de irregularidade identificada para este ato.
+            </p>
+          ) : (
+            <>
             <ul className="flex flex-wrap gap-2">
               {ato.tags.map((tag) => {
                 const g = GRAVIDADE_BG[tag.gravidade] ?? { bg: PAPER, fg: MUTED, border: BORDER };
@@ -647,8 +656,9 @@ function AtoDetailPage() {
                 </div>
               );
             })()}
-          </Section>
-        )}
+            </>
+          )}
+        </Section>
 
         {/* Métricas de auditoria — CVSS-A */}
         {ato.cvss_score != null && (() => {
