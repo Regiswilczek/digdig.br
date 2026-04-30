@@ -181,11 +181,24 @@ async def atividade_recente(slug: str, db: AsyncSession = Depends(get_db)):
         .group_by(Analise.ato_id)
         .subquery()
     )
+    # CASE para identificar o último modelo a tocar a análise.
+    # Prioridade: status_em_andamento > resultado_new > resultado_bud > resultado_piper.
+    modelo_case = case(
+        (Analise.status == "new_em_andamento", "new"),
+        (Analise.status == "bud_em_andamento", "bud"),
+        (Analise.status == "piper_em_andamento", "piper"),
+        (Analise.resultado_new.isnot(None), "new"),
+        (Analise.resultado_bud.isnot(None), "bud"),
+        (Analise.resultado_piper.isnot(None), "piper"),
+        else_=None,
+    )
     nivel_subq = (
         select(
             Analise.ato_id,
             Analise.nivel_alerta,
             Analise.atualizado_em.label("analisado_em"),
+            modelo_case.label("modelo"),
+            Analise.status.label("status_analise"),
         )
         .join(latest_analise, and_(
             Analise.ato_id == latest_analise.c.ato_id,
@@ -203,6 +216,8 @@ async def atividade_recente(slug: str, db: AsyncSession = Depends(get_db)):
             Ato.criado_em.label("criado_em"),
             nivel_subq.c.nivel_alerta,
             nivel_subq.c.analisado_em,
+            nivel_subq.c.modelo,
+            nivel_subq.c.status_analise,
         )
         .outerjoin(nivel_subq, nivel_subq.c.ato_id == Ato.id)
         .where(
@@ -242,6 +257,8 @@ async def atividade_recente(slug: str, db: AsyncSession = Depends(get_db)):
             "nivel_alerta": r.nivel_alerta,
             "status":       "analisado" if r.nivel_alerta else "entrando",
             "origem":       "ato",
+            "modelo":       r.modelo,
+            "em_andamento": (r.status_analise or "").endswith("_em_andamento"),
         }
         for r in atos_rows
     ]
@@ -258,6 +275,8 @@ async def atividade_recente(slug: str, db: AsyncSession = Depends(get_db)):
             "status":       "entrando",
             "origem":       "financeiro",
             "descricao":    r.tipo,  # nome_passageiro
+            "modelo":       None,
+            "em_andamento": False,
         }
         for r in diarias_rows
     ]

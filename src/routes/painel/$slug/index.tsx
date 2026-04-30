@@ -115,7 +115,15 @@ interface FeedItem {
   tipo?: string;
   status?: "entrando" | "analisado";
   analisado_em?: string | null;
+  modelo?: "piper" | "bud" | "new" | null;
+  em_andamento?: boolean;
 }
+
+const MODELO_BADGE: Record<string, { bg: string; fg: string }> = {
+  piper: { bg: "#dbeafe", fg: "#1e40af" },
+  bud:   { bg: "#ede9fe", fg: "#6b21a8" },
+  new:   { bg: "#fce7f3", fg: "#9f1239" },
+};
 
 const TIPO_ORDER = ["portaria", "ata_plenaria", "portaria_normativa", "deliberacao"];
 const TIPO_LABEL: Record<string, string> = {
@@ -191,6 +199,31 @@ function FeedRow({ item, slug }: { item: FeedItem; slug: string }) {
 
       {/* Line 2: status chip ou nível + score */}
       <div className="flex items-center gap-2 mt-1.5 pl-[18px]">
+        {item.modelo && (
+          <span
+            className="inline-flex items-center gap-1"
+            style={{
+              fontSize: 9,
+              fontFamily: MONO,
+              textTransform: "uppercase",
+              letterSpacing: "0.12em",
+              color: MODELO_BADGE[item.modelo]?.fg ?? "#666",
+              background: MODELO_BADGE[item.modelo]?.bg ?? "#eee",
+              padding: "1.5px 6px",
+              borderRadius: 3,
+              lineHeight: 1.4,
+            }}
+          >
+            {item.em_andamento && (
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{ background: MODELO_BADGE[item.modelo]?.fg ?? "#666" }}
+              />
+            )}
+            {item.modelo}
+            {item.em_andamento && " ·"}
+          </span>
+        )}
         {isEntrando ? (
           <span style={{ fontSize: 9, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.12em", color: "#6366f1", background: "#eef2ff", padding: "1.5px 6px", borderRadius: 3, lineHeight: 1.4 }}>
             entrando
@@ -247,6 +280,8 @@ function RealtimeFeed({
           score_risco: null,
           criado_em: i.criado_em ?? new Date().toISOString(),
           event_time: i.event_time || i.analisado_em || i.criado_em || new Date().toISOString(),
+          modelo: i.modelo ?? null,
+          em_andamento: i.em_andamento ?? false,
           numero: i.numero ?? undefined,
           tipo: i.tipo ?? undefined,
           status: i.status,
@@ -1901,6 +1936,8 @@ function TabPipeline({
           score_risco: null,
           criado_em: i.criado_em ?? new Date().toISOString(),
           event_time: i.event_time || i.analisado_em || i.criado_em || new Date().toISOString(),
+          modelo: i.modelo ?? null,
+          em_andamento: i.em_andamento ?? false,
           numero: i.numero ?? undefined,
           tipo: i.tipo ?? undefined,
           status: i.status,

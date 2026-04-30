@@ -51,6 +51,10 @@ export interface AtividadeItem {
   status: "entrando" | "analisado";
   origem?: "ato" | "financeiro";
   descricao?: string | null;
+  /** Último modelo a tocar a análise: piper | bud | new | null. */
+  modelo?: "piper" | "bud" | "new" | null;
+  /** True se status atual da analise é *_em_andamento (agente trabalhando agora). */
+  em_andamento?: boolean;
 }
 
 export async function fetchAtividade(slug: string): Promise<AtividadeItem[]> {
