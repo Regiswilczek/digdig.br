@@ -132,13 +132,123 @@ acesso ao site, sem JS o conteúdo não chega).
 
 ---
 
-## 5. Próximos passos (ainda Fase 1)
+## 5. Reconhecimento empírico — abril/2026
 
-1. **Achar binário Linux do Obscura** (ou Playwright na VPS).
-2. **Reconhecimento Obscura** em 5-10 sub-páginas-chave do PTE — capturar
-   estrutura DOM real após JS, identificar URLs AJAX, ViewState etc.
-3. **Decidir fonte de DOE** entre PTE/CAT8, imprensaoficial.pr.gov.br, e
-   eventualmente download direto de edições recentes.
+### 5.1 Obscura instalado e funcional
+
+`tools/obscura/install.sh v0.1.1` extrai o binário Linux x86_64 (~80MB)
+do GitHub releases. Rodou na VPS sem precisar Wine:
+
+```bash
+./obscura fetch --stealth --wait 5 --wait-until networkidle --dump html "<URL>"
+./obscura fetch --eval "JSON.stringify({fn: download.toString()})" "<URL>"  # introspecção JS
+./obscura serve --port 9222 --stealth --workers 4   # CDP server pra Playwright
+```
+
+JS errors do PrimeFaces (jQuery `undefined`) aparecem mas **não impedem
+extração de links/HTML** — Obscura captura o DOM final mesmo com inits
+quebrados.
+
+### 5.2 PTE — categorias inspecionadas
+
+| Categoria | URL | HTML pós-JS | Achados |
+|-----------|-----|-------------|---------|
+| **Licitações** (5/115) | `/pte/assunto/5/115` | 303 KB | Botão `formpesquisa:lnkdownloadbd` ("Download do BD CSV/ano"). Tabela ui-datatable renderiza, paginação AJAX. |
+| **Convênios** (4/127) | `/pte/assunto/4/127` | 896 KB | **31 PDFs já visíveis no HTML** (anexos no TCE-PR). Mesmo botão de Download do BD. |
+| **Diários Oficiais** (8/38) | `/pte/assunto/8/38` | 1.2 KB | Redireciona pro DIOE (sistema separado). |
+
+> **Achado-chave:** Convênios entrega PDFs anexados (no TCE-PR) já no HTML
+> renderizado, sem precisar interagir. **É a fonte mais simples pra primeiro
+> batch** — não precisa AJAX postback, não precisa captcha.
+
+### 5.3 DIOE — Diário Oficial Executivo
+
+Sistema diferente do PTE: **Struts/Java tradicional** em
+`https://www.documentos.dioe.pr.gov.br/dioe/`.
+
+**Endpoint de busca** (sem JS):
+```
+GET /dioe/consultaPublicaPDF.do
+    ?action=pgLocalizar&enviado=true
+    &diarioCodigo=3                # 3=Executivo, 2=ComInd, 10=Assembleia, 8=Concursos, 9=Curitiba
+    &dataInicialEntrada=&dataFinalEntrada=
+    &search=&submit=Localizar
+    &pg={N}                        # paginação (1..363 com qtd=5431, 15/pág)
+    &ec={TOKEN_DE_SESSAO}
+```
+
+Retorna HTML 67 KB com 15 edições por página, formato:
+- `EX_2026-04-29` (Executivo, data ISO)
+- `arquivoCodigo=24552` (ID interno da edição)
+- IDs sequenciais — abril/2026 está em ~24494-24552
+
+**Função `download()` decodificada via `obscura --eval`:**
+```javascript
+function download(ec, arquivoCodigo, pagina, ok, janela, posicao) {
+  if (ok == 'true') {
+    var url = 'consultaPublicaPDF.do?action=download'
+            + (pagina ? 'Pagina&pg='+pagina+'&posicao='+posicao : '')
+            + '&ec='+ec+'&arquivoCodigo='+arquivoCodigo;
+    window.location.href = url;
+  } else {
+    abrirCaptcha(ec, arquivoCodigo, pagina, janela, '', posicao);
+  }
+}
+```
+
+> 🚧 **Bloqueio: CAPTCHA na primeira chamada.** GET direto retorna HTML
+> "O arquivo não pode ser baixado desta forma." A flag `ok='true'` exige
+> sessão validada por captcha. Nas listagens públicas, o 4º argumento é
+> sempre vazio → cai no `abrirCaptcha`.
+
+**Opções pra contornar o captcha do DIOE (em ordem de preferência):**
+
+1. **Sessão semi-manual:** resolver captcha 1× num browser, capturar
+   cookies (`JSESSIONID`, `_ga`) e o token `ec`, mantê-los no scraper
+   por algumas horas/dias até expirar. Operacionalmente factível pra
+   batch grande de uma vez.
+2. **Fonte alternativa Jusbrasil:** `jusbrasil.com.br/diarios/DOEPR/`
+   indexa o DOE-PR. A verificar se conteúdo completo está acessível
+   (provavelmente exige conta paga).
+3. **Captcha solver pago** (2captcha, AntiCaptcha): ~$0,001/captcha.
+   ~5400 edições históricas custariam $5–10, viável.
+4. **API/Open data oficial:** `radardatransparencia.atricon.org.br`
+   dá rating mas não conteúdo. Sem alternativa oficial encontrada.
+
+### 5.4 Tipos de Diário Oficial mapeados
+
+| diarioCodigo | Nome |
+|---|---|
+| **3** | Diário Oficial Executivo (5.431 edições, prioridade auditoria) |
+| 2 | Diário Oficial Comércio, Indústria e Serviços |
+| 10 | Diário Oficial da Assembleia |
+| 8 | Suplemento de Concursos Públicos |
+| 9 | Diário do Município de Curitiba (escopo separado, não-PR) |
+
+---
+
+## 6. Próximos passos (revisados pós-reconhecimento)
+
+1. **Primeiro scraper: PTE Convênios (4/127)** — caminho mais limpo, sem
+   captcha, PDFs no TCE-PR já visíveis no HTML pós-JS. Use Obscura `fetch
+   --dump html`, parse os 31+ links de anexo, baixe PDFs do TCE.
+2. **Segundo scraper: PTE Licitações + Contratos (5/115, 5/114)** —
+   simular clique em "Download do BD" via Obscura serve + Playwright CDP,
+   capturar CSVs anuais.
+3. **Terceiro scraper: DIOE com sessão manual** — investigar 2captcha
+   ou pedir resolução manual em batch (Regis resolve 1× por dia, scraper
+   processa atrás). Estimar custo total se for via captcha solver.
+4. **Cadastrar tenant `gov-pr`** com `scraper_config` JSONB:
+   ```json
+   {
+     "fonte_principal": "pte_convenios",
+     "fontes": [
+       {"id": "pte_convenios",   "tipo": "pte_jsf",      "url": "https://www.transparencia.pr.gov.br/pte/assunto/4/127", "obscura": true},
+       {"id": "pte_licitacoes",  "tipo": "pte_jsf",      "url": "https://www.transparencia.pr.gov.br/pte/assunto/5/115", "obscura": true, "needs_postback": true},
+       {"id": "dioe_executivo",  "tipo": "dioe_struts",  "diario_codigo": 3, "captcha": "manual_session", "obscura": false}
+     ]
+   }
+   ```
 4. **Cadastrar tenant `gov-pr`** com `scraper_config` preenchido.
 5. **Popular KB própria do GOV-PR** com Constituição PR, Lei 15.608/2007
    (Lei Estadual de Licitações), LRF curada, organograma do Executivo,
