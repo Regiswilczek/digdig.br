@@ -3867,37 +3867,40 @@ function TabFinanceiro({ slug, tipo }: { slug: string; tipo: "diarias" | "passag
 }
 
 // ── Tab: Dados (submenu interno) ─────────────────────────────────────────
-// `grupo: "atlas"` → filtra por tipo_atlas (categoria ATLAS).
-// `grupo: "docs"` → filtra por tipo (vem do scraper).
+// ATLAS é o organizador canônico. As 17 categorias substituem os tipos
+// do scraper como navegação primária. Tipos antigos (portaria, deliberacao
+// etc) ainda existem em Ato.tipo, mas a UI navega por Ato.tipo_atlas.
+//
+// Ordem reflete volume típico no corpus do CAU/PR — mais frequentes primeiro
+// — pra reduzir o atrito de chegar ao que importa.
+//
+// `grupo: "atlas"` → filtra por tipo_atlas
+// `grupo: "especial"` → tab dedicado (Pendentes)
+// `grupo: "financeiro"` → fonte de dados separada (Diárias, Passagens)
 const DADOS_TIPOS = [
-  { value: "ata_plenaria",         label: "Atas Plenárias",     grupo: "docs" },
-  { value: "portaria",             label: "Portarias",           grupo: "docs" },
-  { value: "deliberacao",          label: "Deliberações",        grupo: "docs" },
-  { value: "portaria_normativa",   label: "Port. Normativas",    grupo: "docs" },
-  { value: "dispensa_eletronica",  label: "Dispensas Eletr.",    grupo: "docs" },
-  { value: "relatorio_parecer",    label: "Rel./Parecer",        grupo: "docs" },
-  { value: "relatorio_tcu",        label: "Rel. TCU",            grupo: "docs" },
-  { value: "contratacao_direta",   label: "Cont. Direta",        grupo: "docs" },
-  { value: "auditoria_independente", label: "Auditorias",        grupo: "docs" },
-  { value: "contrato",             label: "Contratos",           grupo: "docs" },
-  { value: "convenio",             label: "Convênios",           grupo: "docs" },
-  { value: "pendentes",            label: "Pendentes",           grupo: "docs" },
-  { value: "diarias",             label: "Diárias",              grupo: "financeiro" },
-  { value: "passagens",            label: "Passagens Aéreas",    grupo: "financeiro" },
-  // Categorias ATLAS — filtram via tipo_atlas, organizando o que veio do
-  // scraper como `media_library` (e similares) em grupos finais.
+  // Categorias ATLAS — ordenadas por volume típico
   { value: "licitacao",                  label: "Licitações",            grupo: "atlas" },
-  { value: "financeiro_balanco",         label: "Balanços Financeiros",   grupo: "atlas" },
-  { value: "financeiro_orcamento",       label: "Orçamentos",             grupo: "atlas" },
-  { value: "financeiro_demonstrativo",   label: "Demonstrativos",         grupo: "atlas" },
-  { value: "ata_pauta_comissao",         label: "Atas/Pautas Comissão",   grupo: "atlas" },
-  { value: "recursos_humanos",           label: "Recursos Humanos",       grupo: "atlas" },
-  { value: "auditoria_externa",          label: "Auditorias Externas",    grupo: "atlas" },
-  { value: "relatorio_gestao",           label: "Relatórios de Gestão",   grupo: "atlas" },
-  { value: "processo_etico",             label: "Processos Éticos",       grupo: "atlas" },
-  { value: "juridico_parecer",           label: "Pareceres Jurídicos",    grupo: "atlas" },
-  { value: "aditivo_contratual",         label: "Aditivos Contratuais",   grupo: "atlas" },
-  { value: "comunicacao_institucional",  label: "Comunicação Inst.",      grupo: "atlas" },
+  { value: "deliberacao_arquivo",        label: "Deliberações",          grupo: "atlas" },
+  { value: "portaria_arquivo",           label: "Portarias",             grupo: "atlas" },
+  { value: "ata_plenaria",               label: "Atas Plenárias",        grupo: "atlas" },
+  { value: "contrato",                   label: "Contratos",             grupo: "atlas" },
+  { value: "aditivo_contratual",         label: "Aditivos",              grupo: "atlas" },
+  { value: "financeiro_balanco",         label: "Balanços",              grupo: "atlas" },
+  { value: "financeiro_orcamento",       label: "Orçamentos",            grupo: "atlas" },
+  { value: "financeiro_demonstrativo",   label: "Demonstrativos",        grupo: "atlas" },
+  { value: "ata_pauta_comissao",         label: "Atas de Comissão",      grupo: "atlas" },
+  { value: "recursos_humanos",           label: "Recursos Humanos",      grupo: "atlas" },
+  { value: "auditoria_externa",          label: "Auditorias Externas",   grupo: "atlas" },
+  { value: "relatorio_gestao",           label: "Relatórios de Gestão",  grupo: "atlas" },
+  { value: "processo_etico",             label: "Processos Éticos",      grupo: "atlas" },
+  { value: "juridico_parecer",           label: "Pareceres Jurídicos",   grupo: "atlas" },
+  { value: "comunicacao_institucional",  label: "Comunicação",           grupo: "atlas" },
+  { value: "outros",                     label: "Outros",                grupo: "atlas" },
+  // Especial — atos sem texto extraído (não passaram pelo ATLAS)
+  { value: "pendentes",                  label: "Pendentes",             grupo: "especial" },
+  // Financeiro — fonte de dados separada
+  { value: "diarias",                    label: "Diárias",               grupo: "financeiro" },
+  { value: "passagens",                  label: "Passagens Aéreas",      grupo: "financeiro" },
 ] as const;
 
 function TabDados({ slug }: { slug: string }) {
@@ -3952,20 +3955,20 @@ function TabDados({ slug }: { slug: string }) {
         </span>
       </div>
 
-      {/* Grid de chips — docs */}
+      {/* Grid principal — categorias ATLAS (organização canônica) */}
       <div className="mb-2">
         <p style={{ fontFamily: MONO, fontSize: 8.5, color: SUBTLE, letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
-          Documentos
+          Documentos · organizados pelo ATLAS
         </p>
         <div
           className="grid gap-[1px] mb-4"
           style={{
-            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
             background: BORDER,
             border: `1px solid ${BORDER}`,
           }}
         >
-          {DADOS_TIPOS.filter((t) => t.grupo === "docs").map((t, i) => {
+          {DADOS_TIPOS.filter((t) => t.grupo === "atlas").map((t, i) => {
             const ativo = tipo === t.value;
             return (
               <button
@@ -3993,12 +3996,49 @@ function TabDados({ slug }: { slug: string }) {
           })}
         </div>
 
-        {/* Grupo financeiro */}
-        <p style={{ fontFamily: MONO, fontSize: 8.5, color: "#6366f1", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
-          Financeiro · novidade
+        {/* Especial — Pendentes (atos sem texto, fora do ATLAS) */}
+        <p style={{ fontFamily: MONO, fontSize: 8.5, color: SUBTLE, letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
+          Especial
         </p>
         <div
-          className="grid gap-[1px] mb-6"
+          className="grid gap-[1px] mb-4"
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+            background: BORDER,
+            border: `1px solid ${BORDER}`,
+          }}
+        >
+          {DADOS_TIPOS.filter((t) => t.grupo === "especial").map((t) => {
+            const ativo = tipo === t.value;
+            return (
+              <button
+                key={t.value}
+                onClick={() => setTipo(t.value)}
+                className="text-left transition-colors"
+                style={{
+                  fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.1em", textTransform: "uppercase",
+                  padding: "10px 12px",
+                  background: ativo ? INK : "#fff",
+                  color: ativo ? "#fff" : MUTED,
+                  fontWeight: ativo ? 600 : 500,
+                  cursor: "pointer", border: "none",
+                  borderLeft: ativo ? `2px solid ${ACCENT}` : "2px solid transparent",
+                }}
+                onMouseEnter={(e) => { if (!ativo) e.currentTarget.style.background = PAPER; }}
+                onMouseLeave={(e) => { if (!ativo) e.currentTarget.style.background = "#fff"; }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Grupo financeiro */}
+        <p style={{ fontFamily: MONO, fontSize: 8.5, color: "#6366f1", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
+          Financeiro
+        </p>
+        <div
+          className="grid gap-[1px] mb-2"
           style={{
             gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
             background: "#c7d2fe",
@@ -4022,43 +4062,6 @@ function TabDados({ slug }: { slug: string }) {
                   borderLeft: ativo ? `2px solid #818cf8` : "2px solid transparent",
                 }}
                 onMouseEnter={(e) => { if (!ativo) e.currentTarget.style.background = "#e0e7ff"; }}
-                onMouseLeave={(e) => { if (!ativo) e.currentTarget.style.background = "#eef2ff"; }}
-              >
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Grupo atlas — categorias descobertas pela classificação automática */}
-        <p style={{ fontFamily: MONO, fontSize: 8.5, color: "#16a34a", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
-          Categorias ATLAS · organização automática
-        </p>
-        <div
-          className="grid gap-[1px] mb-2"
-          style={{
-            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-            background: "#bbf7d0",
-            border: `1px solid #bbf7d0`,
-          }}
-        >
-          {DADOS_TIPOS.filter((t) => t.grupo === "atlas").map((t) => {
-            const ativo = tipo === t.value;
-            return (
-              <button
-                key={t.value}
-                onClick={() => setTipo(t.value)}
-                className="text-left transition-colors"
-                style={{
-                  fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.1em", textTransform: "uppercase",
-                  padding: "10px 12px",
-                  background: ativo ? "#15803d" : "#f0fdf4",
-                  color: ativo ? "#fff" : "#15803d",
-                  fontWeight: ativo ? 600 : 500,
-                  cursor: "pointer", border: "none",
-                  borderLeft: ativo ? `2px solid #4ade80` : "2px solid transparent",
-                }}
-                onMouseEnter={(e) => { if (!ativo) e.currentTarget.style.background = "#dcfce7"; }}
                 onMouseLeave={(e) => { if (!ativo) e.currentTarget.style.background = "#f0fdf4"; }}
               >
                 {t.label}
