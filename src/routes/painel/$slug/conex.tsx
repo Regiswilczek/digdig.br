@@ -221,15 +221,29 @@ interface FGLink extends LinkObject {
   raw: AnyEdge;
 }
 
-function radiusFor(n: AnyNode): number {
+function radiusFor(n: AnyNode, isRootView: boolean = false): number {
   if (n.tipo === "pessoa") {
     const icp = n.icp || 0;
-    return Math.min(32, Math.max(7, 7 + Math.sqrt(icp) * 3.5));
+    // Estado inicial (poucos nós, nenhuma aresta): pessoas viram avatares grandes.
+    const min = isRootView ? 22 : 10;
+    const max = isRootView ? 38 : 32;
+    return Math.min(max, Math.max(min, min + Math.sqrt(icp) * 3));
   }
   if (n.tipo === "ato") {
-    return Math.min(16, Math.max(5, 5 + Math.log2((n.pessoas_count || 1) + 1) * 2));
+    return Math.min(16, Math.max(6, 6 + Math.log2((n.pessoas_count || 1) + 1) * 2));
   }
-  return Math.min(20, Math.max(8, 8 + Math.log2((n.atos_count || 1) + 1) * 2.2));
+  return Math.min(22, Math.max(10, 10 + Math.log2((n.atos_count || 1) + 1) * 2.2));
+}
+
+function iniciaisDe(nome: string): string {
+  const partes = nome
+    .replace(/\b(de|da|do|das|dos|e|von|van|del)\b/gi, "")
+    .trim()
+    .split(/\s+/)
+    .filter((p) => p.length >= 2);
+  if (partes.length === 0) return nome.slice(0, 2).toUpperCase();
+  if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+  return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
 }
 
 function drawNode(
@@ -239,8 +253,9 @@ function drawNode(
   selectedKey: string | null,
   hoveredKey: string | null,
   highlightedKeys: Set<string>,
+  isRootView: boolean = false,
 ) {
-  const r = radiusFor(node.raw);
+  const r = radiusFor(node.raw, isRootView);
   const x = node.x ?? 0;
   const y = node.y ?? 0;
   const isSelected = node._key === selectedKey;
@@ -265,13 +280,25 @@ function drawNode(
   ctx.beginPath();
 
   if (node.tipo === "pessoa") {
-    const cor = corPorCategoria((node.raw as GrafoNodePessoa).cor_categoria);
+    const p = node.raw as GrafoNodePessoa;
+    const cor = corPorCategoria(p.cor_categoria);
     ctx.fillStyle = cor;
     ctx.arc(x, y, r, 0, 2 * Math.PI);
     ctx.fill();
     ctx.lineWidth = 1.5 / globalScale;
     ctx.strokeStyle = "#fff";
     ctx.stroke();
+
+    // Iniciais brancas dentro do círculo (só se grande o bastante)
+    if (r >= 14) {
+      const inits = iniciaisDe(p.nome);
+      ctx.fillStyle = "#fff";
+      const fontSize = r * 0.78;
+      ctx.font = `600 ${fontSize}px Inter Tight, system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(inits, x, y + 0.5);
+    }
   } else if (node.tipo === "ato") {
     const cor = corPorNivel((node.raw as GrafoNodeAto).nivel_alerta);
     ctx.fillStyle = cor;
@@ -309,11 +336,15 @@ function drawNode(
     ctx.stroke();
   }
 
-  // Label — só se selecionado, hovered, ou nó importante
+  // Label — sempre visível no estado inicial (poucos nós, nenhuma aresta);
+  // depois só pra selecionados/hovered/importantes pra evitar poluição.
   const importante =
     (node.tipo === "pessoa" && ((node.raw as GrafoNodePessoa).icp || 0) >= 8) ||
     node.tipo === "tag";
-  const showLabel = !dimmed && (isSelected || isHovered || importante) && globalScale > 0.5;
+  const showLabel =
+    !dimmed &&
+    (isRootView || isSelected || isHovered || importante) &&
+    globalScale > 0.4;
 
   if (showLabel) {
     const fontSize = Math.max(10, 11 / globalScale);
@@ -323,8 +354,16 @@ function drawNode(
 
     let label = "";
     if (node.tipo === "pessoa") {
-      const nm = (node.raw as GrafoNodePessoa).nome;
-      label = nm.length > 26 ? nm.slice(0, 24) + "…" : nm;
+      const p = node.raw as GrafoNodePessoa;
+      // Pessoa: 2 primeiros nomes só (mais legível e cabe na pill)
+      const partes = p.nome
+        .replace(/\b(de|da|do|das|dos|e|von|van|del)\b/gi, "")
+        .trim()
+        .split(/\s+/)
+        .filter((s) => s.length >= 2);
+      const nm =
+        partes.length >= 2 ? `${partes[0]} ${partes[partes.length - 1]}` : p.nome;
+      label = nm.length > 24 ? nm.slice(0, 22) + "…" : nm;
     } else if (node.tipo === "ato") {
       const a = node.raw as GrafoNodeAto;
       label = `${a.ato_tipo.toUpperCase()} ${a.numero}`;
@@ -333,18 +372,33 @@ function drawNode(
     }
 
     // Pill de fundo branco para legibilidade sobre os outros nós
-    const labelY = y + r + 4;
-    const padX = 4 / globalScale;
-    const padY = 2 / globalScale;
+    const labelY = y + r + 5;
+    const padX = 5 / globalScale;
+    const padY = 2.5 / globalScale;
     const textWidth = ctx.measureText(label).width;
     ctx.save();
-    ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
-    ctx.fillRect(
-      x - textWidth / 2 - padX,
-      labelY - padY,
-      textWidth + padX * 2,
-      fontSize + padY * 2,
-    );
+    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+    ctx.strokeStyle = isSelected || isHovered ? INK : "rgba(0,0,0,0.08)";
+    ctx.lineWidth = 0.5 / globalScale;
+    const pillW = textWidth + padX * 2;
+    const pillH = fontSize + padY * 2;
+    const pillX = x - pillW / 2;
+    const pillY = labelY - padY;
+    // borda arredondada
+    const radius = pillH / 2;
+    ctx.beginPath();
+    ctx.moveTo(pillX + radius, pillY);
+    ctx.lineTo(pillX + pillW - radius, pillY);
+    ctx.arcTo(pillX + pillW, pillY, pillX + pillW, pillY + radius, radius);
+    ctx.lineTo(pillX + pillW, pillY + pillH - radius);
+    ctx.arcTo(pillX + pillW, pillY + pillH, pillX + pillW - radius, pillY + pillH, radius);
+    ctx.lineTo(pillX + radius, pillY + pillH);
+    ctx.arcTo(pillX, pillY + pillH, pillX, pillY + pillH - radius, radius);
+    ctx.lineTo(pillX, pillY + radius);
+    ctx.arcTo(pillX, pillY, pillX + radius, pillY, radius);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
     ctx.restore();
 
     ctx.fillStyle = isSelected || isHovered ? INK : MUTED;
@@ -416,6 +470,12 @@ function ConexPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const [tooltip, setTooltip] = useState<{
+    x: number;
+    y: number;
+    node: AnyNode;
+  } | null>(null);
+  const mousePosRef = useRef({ x: 0, y: 0 });
 
   // Painéis laterais
   const [atosComuns, setAtosComuns] = useState<{
@@ -484,7 +544,7 @@ function ConexPage() {
     return () => clearTimeout(t);
   }, [state.nodes.size]);
 
-  // Resize observer
+  // Resize observer + mousemove pra rastrear posição do tooltip
   useEffect(() => {
     if (!containerRef.current) return;
     const el = containerRef.current;
@@ -493,7 +553,17 @@ function ConexPage() {
     });
     ro.observe(el);
     setSize({ w: el.clientWidth, h: el.clientHeight });
-    return () => ro.disconnect();
+
+    const onMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      mousePosRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    };
+    el.addEventListener("mousemove", onMove);
+
+    return () => {
+      ro.disconnect();
+      el.removeEventListener("mousemove", onMove);
+    };
   }, []);
 
   // Filtra nós/edges client-side
@@ -551,6 +621,14 @@ function ConexPage() {
     if (s.kind === "edge_pp") return null;
     return `${s.kind}:${s.id}`;
   }, [state.selected]);
+
+  // Estado inicial = nenhuma aresta no canvas (apenas top pessoas).
+  // Ativa renderização "avatar gigante com iniciais + nome" pra evitar
+  // a sensação de "página vazia com pontos espalhados".
+  const isRootView = useMemo(() => {
+    // Considera root se temos pessoas mas zero arestas
+    return state.edges.size === 0 && state.nodes.size > 0;
+  }, [state.edges.size, state.nodes.size]);
 
   // Conjunto de nós/arestas conectados ao selecionado/hover (para destacar e dimar o resto)
   const { highlightedNodes, highlightedEdges } = useMemo(() => {
@@ -954,10 +1032,11 @@ function ConexPage() {
                 selectedKey,
                 hoveredKey,
                 highlightedNodes,
+                isRootView,
               )
             }
             nodePointerAreaPaint={(node: any, color, ctx) => {
-              const r = radiusFor((node as FGNode).raw);
+              const r = radiusFor((node as FGNode).raw, isRootView);
               const x = node.x ?? 0, y = node.y ?? 0;
               ctx.fillStyle = color;
               ctx.beginPath();
@@ -978,9 +1057,19 @@ function ConexPage() {
             onNodeClick={handleNodeClick as any}
             onLinkClick={handleLinkClick as any}
             onNodeHover={(node: any) => {
-              setHoveredKey((node as FGNode | null)?._key ?? null);
+              const fgn = node as FGNode | null;
+              setHoveredKey(fgn?._key ?? null);
               if (containerRef.current) {
                 containerRef.current.style.cursor = node ? "pointer" : "grab";
+              }
+              if (fgn) {
+                setTooltip({
+                  x: mousePosRef.current.x,
+                  y: mousePosRef.current.y,
+                  node: fgn.raw,
+                });
+              } else {
+                setTooltip(null);
               }
             }}
             onLinkHover={(link: any) => {
@@ -990,31 +1079,132 @@ function ConexPage() {
             }}
           />
 
-          {/* Empty-state: pessoas no canvas mas ainda sem expansão (0 arestas) */}
-          {fgNodes.length > 0 && fgLinks.length === 0 && !state.loading && (
+          {/* Tooltip rico ao hover */}
+          {tooltip && hoveredKey && (
             <div
               className="absolute pointer-events-none"
               style={{
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                textAlign: "center",
-                background: "rgba(255,255,255,0.85)",
-                border: `1px dashed ${BORDER}`,
+                left: Math.min(tooltip.x + 14, size.w - 240),
+                top: Math.min(tooltip.y + 14, size.h - 110),
+                background: "#fff",
+                border: `1px solid ${BORDER}`,
                 borderRadius: 3,
-                padding: "12px 16px",
+                padding: "10px 12px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
                 fontFamily: MONO,
+                minWidth: 180,
+                maxWidth: 280,
+                zIndex: 10,
               }}
             >
-              <p className="text-[10.5px] uppercase tracking-[0.2em]" style={{ color: SUBTLE }}>
-                ▮ início da investigação
-              </p>
-              <p className="text-[12px] mt-2" style={{ color: INK }}>
-                Clique numa pessoa para expandir conexões
-              </p>
-              <p className="text-[10px] mt-1" style={{ color: MUTED }}>
-                ou use o filtro de tag para drill-down por padrão
-              </p>
+              {tooltip.node.tipo === "pessoa" && (
+                <>
+                  <p
+                    className="text-[11.5px] font-medium leading-tight"
+                    style={{ color: INK, fontFamily: TIGHT, letterSpacing: "-0.01em" }}
+                  >
+                    {(tooltip.node as GrafoNodePessoa).nome}
+                  </p>
+                  <p className="text-[10px] mt-0.5" style={{ color: MUTED }}>
+                    {(tooltip.node as GrafoNodePessoa).cargo || "—"}
+                  </p>
+                  <div className="mt-2 flex items-center gap-3 text-[9.5px]" style={{ color: SUBTLE }}>
+                    <span>
+                      ICP{" "}
+                      <strong style={{ color: INK }}>
+                        {(tooltip.node as GrafoNodePessoa).icp != null
+                          ? (tooltip.node as GrafoNodePessoa).icp!.toFixed(2)
+                          : "—"}
+                      </strong>
+                    </span>
+                    <span>
+                      Atos{" "}
+                      <strong style={{ color: INK }}>
+                        {(tooltip.node as GrafoNodePessoa).total_aparicoes}
+                      </strong>
+                    </span>
+                  </div>
+                  {(tooltip.node as GrafoNodePessoa).suspeito && (
+                    <p
+                      className="text-[9px] mt-1.5 uppercase tracking-wider"
+                      style={{ color: COR_ALERTA.vermelho }}
+                    >
+                      ⚠ marcado como suspeito
+                    </p>
+                  )}
+                  <p className="text-[9px] mt-2 uppercase tracking-wider" style={{ color: ACCENT }}>
+                    clique para expandir
+                  </p>
+                </>
+              )}
+              {tooltip.node.tipo === "ato" && (
+                <>
+                  <p
+                    className="text-[11.5px] font-medium leading-tight"
+                    style={{ color: INK, fontFamily: MONO }}
+                  >
+                    {(tooltip.node as GrafoNodeAto).ato_tipo.toUpperCase()}{" "}
+                    {(tooltip.node as GrafoNodeAto).numero}
+                  </p>
+                  <p className="text-[10px] mt-0.5" style={{ color: MUTED }}>
+                    {(tooltip.node as GrafoNodeAto).data_publicacao || "data ?"}
+                  </p>
+                  {(tooltip.node as GrafoNodeAto).nivel_alerta && (
+                    <p
+                      className="text-[9.5px] mt-1.5 uppercase tracking-wider"
+                      style={{ color: corPorNivel((tooltip.node as GrafoNodeAto).nivel_alerta) }}
+                    >
+                      Nível {(tooltip.node as GrafoNodeAto).nivel_alerta}
+                    </p>
+                  )}
+                </>
+              )}
+              {tooltip.node.tipo === "tag" && (
+                <>
+                  <p
+                    className="text-[11.5px] font-medium leading-tight"
+                    style={{ color: INK, fontFamily: TIGHT }}
+                  >
+                    {(tooltip.node as GrafoNodeTag).nome}
+                  </p>
+                  <p className="text-[9.5px] mt-0.5 uppercase tracking-wider" style={{ color: SUBTLE }}>
+                    {(tooltip.node as GrafoNodeTag).codigo}
+                  </p>
+                  <p className="text-[10px] mt-2" style={{ color: MUTED }}>
+                    {(tooltip.node as GrafoNodeTag).atos_count} atos · gravidade{" "}
+                    {(tooltip.node as GrafoNodeTag).gravidade_predominante}
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Empty-state: pessoas no canvas mas ainda sem expansão (0 arestas).
+              Posicionado no topo central pra não cobrir os avatares. */}
+          {fgNodes.length > 0 && fgLinks.length === 0 && !state.loading && (
+            <div
+              className="absolute pointer-events-none flex items-center gap-3 px-4 py-2"
+              style={{
+                top: 14,
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "rgba(255,255,255,0.92)",
+                border: `1px solid ${BORDER}`,
+                borderRadius: 999,
+                fontFamily: MONO,
+                boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+              }}
+            >
+              <span
+                className="text-[9.5px] uppercase tracking-[0.22em]"
+                style={{ color: ACCENT }}
+              >
+                ▮ {fgNodes.length} concentradores
+              </span>
+              <span style={{ color: BORDER }}>│</span>
+              <span className="text-[10.5px]" style={{ color: INK }}>
+                clique numa pessoa para expandir conexões
+              </span>
             </div>
           )}
 
