@@ -378,6 +378,12 @@ function FilaCard({
   const [tipoSel, setTipoSel] = useState("all");
   const [limiteSel, setLimiteSel] = useState(5);
   const [disparando, setDisparando] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Filtra a amostra do card pela tipo selecionado (visualmente)
+  const amostraFiltrada = tipoSel === "all"
+    ? fila.amostra
+    : fila.amostra.filter((it) => it.tipo === tipoSel);
 
   async function disparar() {
     if (!agente) return;
@@ -429,14 +435,16 @@ function FilaCard({
         </div>
       </div>
 
-      {fila.amostra.length > 0 ? (
+      {amostraFiltrada.length > 0 ? (
         <ul className="space-y-1">
-          {fila.amostra.map((item) => (
+          {amostraFiltrada.map((item) => (
             <FilaRow key={item.ato_id} item={item} accent={accent} />
           ))}
         </ul>
       ) : (
-        <p className="text-white/30 text-[11px] py-2">Nenhum documento na fila.</p>
+        <p className="text-white/30 text-[11px] py-2">
+          {tipoSel === "all" ? "Nenhum documento na fila." : `Nenhum ${tipoSel} entre os 10 mostrados (mas pode haver na fila completa).`}
+        </p>
       )}
 
       {fila.total > fila.amostra.length && (
@@ -446,44 +454,67 @@ function FilaCard({
       )}
 
       {agente && fila.total > 0 && (
-        <div className="mt-4 pt-3 border-t border-white/[0.05] flex items-center gap-2 flex-wrap">
-          <select
-            value={tipoSel}
-            onChange={(e) => setTipoSel(e.target.value)}
-            className="text-[10px] bg-white/[0.04] border border-white/[0.08] text-white/80 px-2 py-1"
-            style={{ fontFamily: "JetBrains Mono, monospace" }}
-            disabled={disparando}
-          >
-            {TIPOS_DISPARAVEIS.map((t) => (
-              <option key={t} value={t} style={{ background: "#0d0f1a" }}>{t}</option>
-            ))}
-          </select>
-          <select
-            value={limiteSel}
-            onChange={(e) => setLimiteSel(parseInt(e.target.value))}
-            className="text-[10px] bg-white/[0.04] border border-white/[0.08] text-white/80 px-2 py-1"
-            style={{ fontFamily: "JetBrains Mono, monospace" }}
-            disabled={disparando}
-          >
-            {[5, 10, 25, 50, 100].map((n) => (
-              <option key={n} value={n} style={{ background: "#0d0f1a" }}>{n}</option>
-            ))}
-          </select>
+        <div className="mt-4 pt-3 border-t border-white/[0.05] space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <select
+              value={tipoSel}
+              onChange={(e) => setTipoSel(e.target.value)}
+              className="text-[10px] bg-white/[0.04] border border-white/[0.08] text-white/80 px-2 py-1"
+              style={{ fontFamily: "JetBrains Mono, monospace" }}
+              disabled={disparando}
+            >
+              {TIPOS_DISPARAVEIS.map((t) => (
+                <option key={t} value={t} style={{ background: "#0d0f1a" }}>{t}</option>
+              ))}
+            </select>
+            <select
+              value={limiteSel}
+              onChange={(e) => setLimiteSel(parseInt(e.target.value))}
+              className="text-[10px] bg-white/[0.04] border border-white/[0.08] text-white/80 px-2 py-1"
+              style={{ fontFamily: "JetBrains Mono, monospace" }}
+              disabled={disparando}
+            >
+              {[5, 10, 25, 50, 100].map((n) => (
+                <option key={n} value={n} style={{ background: "#0d0f1a" }}>{n}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={disparar}
+              disabled={disparando}
+              className="text-[10px] uppercase tracking-[0.14em] px-3 py-1 transition-colors disabled:opacity-40"
+              style={{
+                color: accent,
+                border: `1px solid ${accent}60`,
+                background: `${accent}15`,
+                fontFamily: "JetBrains Mono, monospace",
+              }}
+            >
+              {disparando ? "..." : "Disparar"}
+            </button>
+          </div>
           <button
             type="button"
-            onClick={disparar}
-            disabled={disparando}
-            className="text-[10px] uppercase tracking-[0.14em] px-3 py-1 transition-colors disabled:opacity-40"
-            style={{
-              color: accent,
-              border: `1px solid ${accent}60`,
-              background: `${accent}15`,
-              fontFamily: "JetBrains Mono, monospace",
-            }}
+            onClick={() => setModalOpen(true)}
+            className="text-[10px] uppercase tracking-[0.14em] text-white/40 hover:text-white/80"
+            style={{ fontFamily: "JetBrains Mono, monospace" }}
           >
-            {disparando ? "..." : "Disparar"}
+            ▸ ver fila completa e selecionar individualmente
           </button>
         </div>
+      )}
+
+      {modalOpen && agente && (
+        <FilaModal
+          agente={agente}
+          accent={accent}
+          tipoInicial={tipoSel}
+          onClose={() => setModalOpen(false)}
+          onDisparado={(msg) => {
+            onDisparado?.(msg);
+            setModalOpen(false);
+          }}
+        />
       )}
     </div>
   );
@@ -532,5 +563,219 @@ function FilaRow({ item, accent }: { item: FilaItem; accent: string }) {
         </span>
       )}
     </li>
+  );
+}
+
+// ── Modal de fila completa com seleção individual ────────────────────────
+interface FilaListResponse {
+  total: number;
+  limit: number;
+  offset: number;
+  items: FilaItem[];
+}
+
+function FilaModal({
+  agente,
+  accent,
+  tipoInicial,
+  onClose,
+  onDisparado,
+}: {
+  agente: "piper" | "bud";
+  accent: string;
+  tipoInicial: string;
+  onClose: () => void;
+  onDisparado: (msg: string) => void;
+}) {
+  const [tipo, setTipo] = useState(tipoInicial);
+  const [data, setData] = useState<FilaListResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(0);
+  const [disparando, setDisparando] = useState(false);
+  const PAGE_SIZE = 50;
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const q = new URLSearchParams({
+      agente,
+      tipo,
+      limit: String(PAGE_SIZE),
+      offset: String(page * PAGE_SIZE),
+    });
+    const res = await authedFetch(`/pnl/admin/fila/${PIPELINE_SLUG}?${q}`);
+    if (res.ok) setData(await res.json());
+    setLoading(false);
+  }, [agente, tipo, page]);
+
+  useEffect(() => { load(); }, [load]);
+
+  function toggle(ato_id: string) {
+    setSelecionados((prev) => {
+      const next = new Set(prev);
+      if (next.has(ato_id)) next.delete(ato_id); else next.add(ato_id);
+      return next;
+    });
+  }
+  function selecionarTodosNaPagina() {
+    if (!data) return;
+    setSelecionados((prev) => {
+      const next = new Set(prev);
+      for (const it of data.items) next.add(it.ato_id);
+      return next;
+    });
+  }
+  function limparSelecao() { setSelecionados(new Set()); }
+
+  async function disparar() {
+    if (selecionados.size === 0) return;
+    setDisparando(true);
+    try {
+      const res = await authedFetch("/pnl/admin/disparar-lote", {
+        method: "POST",
+        body: JSON.stringify({
+          agente,
+          ato_ids: Array.from(selecionados),
+          slug: PIPELINE_SLUG,
+        }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok) {
+        onDisparado(`${d.atos ?? selecionados.size} ato(s) disparado(s) para ${agente}`);
+      } else {
+        const detail = typeof d.detail === "string" ? d.detail : d?.detail?.mensagem || "Erro";
+        onDisparado(`Erro: ${detail}`);
+      }
+    } catch (err) {
+      onDisparado(`Erro: ${(err as Error).message}`);
+    } finally {
+      setDisparando(false);
+    }
+  }
+
+  const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="w-full max-w-3xl max-h-[85vh] flex flex-col border" style={{ background: "#0d0f1a", borderColor: `${accent}60` }}>
+        <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em]" style={{ color: accent, fontFamily: "JetBrains Mono, monospace" }}>
+              Fila {agente.toUpperCase()}
+            </p>
+            <p className="text-white text-[14px] mt-0.5">
+              {data ? `${data.total.toLocaleString("pt-BR")} ato(s)` : "Carregando..."} · {selecionados.size} selecionado(s)
+            </p>
+          </div>
+          <button onClick={onClose} className="text-white/40 hover:text-white text-[18px]">×</button>
+        </div>
+
+        <div className="px-5 py-3 border-b border-white/[0.06] flex items-center gap-2 flex-wrap">
+          <select
+            value={tipo}
+            onChange={(e) => { setTipo(e.target.value); setPage(0); setSelecionados(new Set()); }}
+            className="text-[11px] bg-white/[0.04] border border-white/[0.08] text-white/80 px-2 py-1"
+            style={{ fontFamily: "JetBrains Mono, monospace" }}
+          >
+            {TIPOS_DISPARAVEIS.map((t) => (
+              <option key={t} value={t} style={{ background: "#0d0f1a" }}>{t}</option>
+            ))}
+          </select>
+          <button
+            onClick={selecionarTodosNaPagina}
+            className="text-[10px] uppercase tracking-[0.12em] px-3 py-1 text-white/60 hover:text-white border border-white/[0.08]"
+            style={{ fontFamily: "JetBrains Mono, monospace" }}
+          >
+            Selecionar página
+          </button>
+          {selecionados.size > 0 && (
+            <button
+              onClick={limparSelecao}
+              className="text-[10px] uppercase tracking-[0.12em] px-3 py-1 text-white/60 hover:text-white border border-white/[0.08]"
+              style={{ fontFamily: "JetBrains Mono, monospace" }}
+            >
+              Limpar ({selecionados.size})
+            </button>
+          )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {loading && (
+            <p className="text-white/40 text-[12px] p-5 text-center">Carregando...</p>
+          )}
+          {!loading && data && data.items.length === 0 && (
+            <p className="text-white/40 text-[12px] p-5 text-center">Nenhum ato na fila com esse tipo.</p>
+          )}
+          {!loading && data && data.items.length > 0 && (
+            <ul>
+              {data.items.map((it) => {
+                const sel = selecionados.has(it.ato_id);
+                return (
+                  <li
+                    key={it.ato_id}
+                    onClick={() => toggle(it.ato_id)}
+                    className="flex items-center gap-3 px-5 py-2 border-b border-white/[0.04] cursor-pointer hover:bg-white/[0.02]"
+                  >
+                    <input type="checkbox" checked={sel} readOnly className="cursor-pointer" />
+                    <span className="text-white/40 text-[10px] uppercase w-32 shrink-0 truncate" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                      {it.tipo.replace(/_/g, " ")}
+                    </span>
+                    <span className="text-white text-[12px] flex-1 truncate" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                      {it.numero}
+                    </span>
+                    {it.nivel_alerta && (
+                      <span className="text-[10px] uppercase tracking-wider" style={{ color: NIVEL_COLOR[it.nivel_alerta] ?? "#9ca3af" }}>
+                        {it.nivel_alerta}
+                      </span>
+                    )}
+                    {it.data_publicacao && (
+                      <span className="text-[10px] text-white/30 shrink-0" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                        {new Date(it.data_publicacao).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        <div className="px-5 py-3 border-t border-white/[0.06] flex items-center justify-between gap-2 flex-wrap">
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2 text-[10px] text-white/50" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+              <button
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                className="px-2 py-1 border border-white/[0.08] disabled:opacity-30"
+              >
+                ← anterior
+              </button>
+              <span>página {page + 1} de {totalPages}</span>
+              <button
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((p) => p + 1)}
+                className="px-2 py-1 border border-white/[0.08] disabled:opacity-30"
+              >
+                próxima →
+              </button>
+            </div>
+          )}
+          <div className="flex-1" />
+          <button
+            onClick={disparar}
+            disabled={selecionados.size === 0 || disparando}
+            className="text-[11px] uppercase tracking-[0.14em] px-4 py-2 transition-colors disabled:opacity-30"
+            style={{
+              color: accent,
+              border: `1px solid ${accent}80`,
+              background: `${accent}20`,
+              fontFamily: "JetBrains Mono, monospace",
+            }}
+          >
+            {disparando ? "disparando..." : `Disparar ${selecionados.size > 0 ? selecionados.size : ""} selecionado(s)`}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

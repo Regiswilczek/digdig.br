@@ -176,6 +176,102 @@ async def cancelar_rodada(
     }
 
 
+@router.get("/admin/fila/{slug}")
+async def listar_fila(
+    slug: str,
+    agente: str,
+    tipo: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
+):
+    """
+    Lista paginada da fila de um agente, filtrada por tipo (opcional).
+    Usada pelo modal de seleção individual no painel admin.
+    """
+    if agente not in ("piper", "bud"):
+        raise HTTPException(status_code=400, detail="agente deve ser 'piper' ou 'bud'")
+    if limit < 1 or limit > 500:
+        raise HTTPException(status_code=400, detail="limit deve estar entre 1 e 500")
+
+    tenant_r = await db.execute(select(Tenant).where(Tenant.slug == slug))
+    tenant = tenant_r.scalar_one_or_none()
+    if not tenant:
+        raise HTTPException(status_code=404, detail=f"Tenant '{slug}' não encontrado")
+
+    if agente == "piper":
+        filtros = [
+            Ato.tenant_id == tenant.id,
+            ConteudoAto.qualidade.in_(["boa", "parcial", "ruim"]),
+            ~select(Analise.id).where(
+                Analise.ato_id == Ato.id,
+                or_(
+                    Analise.resultado_piper.isnot(None),
+                    Analise.resultado_bud.isnot(None),
+                ),
+            ).exists(),
+        ]
+        if tipo and tipo != "all":
+            filtros.append(Ato.tipo == tipo)
+
+        base = (
+            select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao)
+            .join(ConteudoAto, ConteudoAto.ato_id == Ato.id)
+            .where(*filtros)
+        )
+        total = (await db.execute(select(func.count()).select_from(base.subquery()))).scalar_one()
+        rows = (
+            await db.execute(
+                base.order_by(Ato.data_publicacao.desc().nullslast()).limit(limit).offset(offset)
+            )
+        ).all()
+        items = [
+            {
+                "ato_id": str(r[0]),
+                "tipo": r[1],
+                "numero": r[2] or "?",
+                "data_publicacao": r[3].isoformat() if r[3] else None,
+                "nivel_alerta": None,
+            }
+            for r in rows
+        ]
+    else:  # bud
+        filtros = [
+            Ato.tenant_id == tenant.id,
+            Analise.resultado_piper.isnot(None),
+            Analise.nivel_alerta.in_(["vermelho", "laranja"]),
+            Analise.resultado_bud.is_(None),
+            Analise.status != "bud_em_andamento",
+        ]
+        if tipo and tipo != "all":
+            filtros.append(Ato.tipo == tipo)
+
+        base = (
+            select(Ato.id, Ato.tipo, Ato.numero, Ato.data_publicacao, Analise.nivel_alerta)
+            .join(Analise, Analise.ato_id == Ato.id)
+            .where(*filtros)
+        )
+        total = (await db.execute(select(func.count()).select_from(base.subquery()))).scalar_one()
+        rows = (
+            await db.execute(
+                base.order_by(Analise.criado_em.desc()).limit(limit).offset(offset)
+            )
+        ).all()
+        items = [
+            {
+                "ato_id": str(r[0]),
+                "tipo": r[1],
+                "numero": r[2] or "?",
+                "data_publicacao": r[3].isoformat() if r[3] else None,
+                "nivel_alerta": r[4],
+            }
+            for r in rows
+        ]
+
+    return {"total": total, "limit": limit, "offset": offset, "items": items}
+
+
 @router.post("/admin/disparar-lote")
 async def disparar_lote(
     body: dict,
@@ -185,33 +281,53 @@ async def disparar_lote(
     """
     Dispara worker Celery para processar um lote da fila do agente escolhido.
 
-    Body: {"agente": "piper"|"bud", "tipo": "ata_plenaria"|"all"|..., "limite": 5, "slug": "cau-pr"}
+    Body:
+      {"agente": "piper"|"bud", "ato_ids": ["uuid1", "uuid2"], "slug": "cau-pr"}
+        - usa ato_ids específicos (selecionados pelo usuário)
+      OU
+      {"agente": "piper"|"bud", "tipo": "ata_plenaria"|"all", "limite": 5, "slug": "cau-pr"}
+        - pega N atos da fila pelo critério tipo
     """
     agente = (body.get("agente") or "").lower()
+    ato_ids_input = body.get("ato_ids") or []
     tipo = body.get("tipo") or "all"
     limite = int(body.get("limite") or 5)
     slug = body.get("slug") or "cau-pr"
 
     if agente not in ("piper", "bud"):
         raise HTTPException(status_code=400, detail="agente deve ser 'piper' ou 'bud'")
-    if limite < 1 or limite > 200:
+    if not ato_ids_input and (limite < 1 or limite > 200):
         raise HTTPException(status_code=400, detail="limite deve estar entre 1 e 200")
+    if ato_ids_input and len(ato_ids_input) > 200:
+        raise HTTPException(status_code=400, detail="máximo 200 atos por lote")
 
     tenant_r = await db.execute(select(Tenant).where(Tenant.slug == slug))
     tenant = tenant_r.scalar_one_or_none()
     if not tenant:
         raise HTTPException(status_code=404, detail=f"Tenant '{slug}' não encontrado")
 
-    from sqlalchemy import or_ as sql_or
-
-    if agente == "piper":
+    if ato_ids_input:
+        # Modo "selecionados explicitamente" — só valida que pertencem ao tenant
+        ids_uuid = []
+        for s in ato_ids_input:
+            try:
+                ids_uuid.append(uuid.UUID(s))
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"ato_id inválido: {s}")
+        valid_r = await db.execute(
+            select(Ato.id).where(Ato.id.in_(ids_uuid), Ato.tenant_id == tenant.id)
+        )
+        ato_ids = [str(row[0]) for row in valid_r.all()]
+        if not ato_ids:
+            raise HTTPException(status_code=404, detail="Nenhum dos ato_ids pertence ao tenant")
+    elif agente == "piper":
         # Atos da fila aguarda_piper (sem qualquer análise prévia)
         filtros = [
             Ato.tenant_id == tenant.id,
             ConteudoAto.qualidade.in_(["boa", "parcial", "ruim"]),
             ~select(Analise.id).where(
                 Analise.ato_id == Ato.id,
-                sql_or(
+                or_(
                     Analise.resultado_piper.isnot(None),
                     Analise.resultado_bud.isnot(None),
                 ),
