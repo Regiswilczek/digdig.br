@@ -1,10 +1,49 @@
 # Frontend — Páginas, Componentes e Fluxos
 
-**Stack:** React + Vite + shadcn/ui + TanStack Router (via Lovable)  
-**Deploy:** Lovable (produção gerenciada, integrada ao GitHub)  
+> ## ⚠️ Atualização — Sprint Abril 2026
+>
+> **Deploy mudou:** Lovable foi descontinuado. Agora deploy é **Docker no VPS Hostinger** via `bash scripts/deploy-frontend.sh` (rebuild image + restart container, ~3min). Bundle Vite é baked no `Dockerfile.frontend` stage 1.
+>
+> ### Páginas novas
+>
+> | Rota | Componente |
+> |---|---|
+> | `/painel/conta` | Painel da conta com 4 abas: **Perfil** (nome, foto, avatar upload), **Assinatura** (status, próxima cobrança, cancelar), **Doação** (link pra `/apoiar`), **Favoritos** (lista de atos salvos com nota pessoal) |
+> | `/whitepaper-08-tres-dias` | "Três Dias Sem Dormir" |
+> | `/whitepaper-09-dados-o-que-fazer` | "Dados: O Que Fazer Com Eles" |
+> | `/whitepaper-10-antes-da-proxima-onda` | "Antes da Próxima Onda" — sprint Abril 2026 |
+>
+> ### Painel principal (`/painel/$slug`) — mudanças
+>
+> - **Aba `Dados` reorganizada por ATLAS** (não mais por tipo do scraper): `Documentos` (10 categorias investigáveis), `Especial` (Pendentes, Auditorias Externas, Relatórios de Gestão), `Financeiro` (Diárias, Passagens, Licitações, Aditivos, Balanços, Orçamentos, Demonstrativos)
+> - **Visão Geral** ganha seção "Categorias detectadas pelo ATLAS" com cobertura por categoria canônica
+> - **Tab persistente via URL:** `?tab=denuncias&sub=processo_etico` — back do navegador volta pra onde estava
+> - **Sidebar fixa no viewport** (sticky top:0, height:100dvh) — só conteúdo central rola
+> - **Sidebar footer:** avatar 44×44 do user, badge do plano (verde/cinza), botão `apoiar / assinar` (vira vermelho no hover) → leva pra `/apoiar`
+> - **Painel de conexões** (`/painel/$slug/conex`): mini-cards no canvas, modo foco com layout radial, breadcrumbs, halo no hover
+> - **Botão favoritar** em cada ficha de ato (`/painel/$slug/ato/$id`) — toggle estrela
+> - **Badge ↻ refazer** nos atos legados (Haiku → vão pro Bud) na fila admin e na ficha
+>
+> ### Spline (3D background) trocado
+>
+> Default URL agora é `circleparticle-2mOq8ZvTFErySjAW1QrVZhd6` (era `particles-f6xFiWCaq16O5rpaA7nIxf2O`). Renderizado em `/painel/chat`. Componente: `src/components/SplineEmbed.tsx`.
+>
+> ### Tipos atualizados
+>
+> - `PublicStats` ganhou `por_categoria_atlas?: Record<string, {total, analisados}>`
+> - `AtoAuditoria` ganhou `legado: bool` e `agentes: ("haiku_legado"|"piper"|"bud"|"new")[]`
+> - `FilaItem` ganhou `legado?: bool`
+> - `fetchPainelAtos` aceita `tipoAtlas?: string` (param `tipo_atlas`)
+>
+> ---
+
+# (Conteúdo original)
+
+**Stack:** React + Vite + shadcn/ui + TanStack Router  
+**Deploy:** Docker no VPS Hostinger (era Lovable; trocou no Sprint Abril/2026)  
 **Auth:** Supabase Auth (client-side)  
 **Design:** Inter (editorial, todas as páginas públicas) + Mono para labels  
-**Atualizado em:** 24 de abril de 2026
+**Atualizado em:** 30 de abril de 2026 (revisão Sprint Abril)
 
 ---
 

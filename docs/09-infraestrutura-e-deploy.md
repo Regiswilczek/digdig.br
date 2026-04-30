@@ -1,6 +1,60 @@
 # Infraestrutura e Deploy
 
----
+> ## ⚠️ Atualização — Sprint Abril 2026
+>
+> ### Comando único de deploy do frontend
+>
+> ```bash
+> bash scripts/deploy-frontend.sh
+> # ou
+> bun run deploy:frontend
+> ```
+>
+> Faz rebuild da imagem `digdig-frontend` (npm install + vite build:vps no stage 1) e reinicia o container nginx (~3min). Necessário **toda vez** que `src/`, `public/` ou `vite.config.vps.ts` mudar — o `dist-vps/` local NÃO é o que vai pra produção.
+>
+> ### nginx — locations novos
+>
+> Em `nginx/nginx.conf` (server `digdig.com.br`):
+>
+> ```nginx
+> # Painel do usuário
+> location = /me                      # GET/PATCH
+> location /me/                       # /me/avatar, /me/assinatura, /me/favoritos
+>     client_max_body_size 5M;       # avatar até 2MB com folga
+>
+> # Já existiam: /painel/, /public/, /billing/, /webhooks/, /admin/, /chat/, /health
+> ```
+>
+> Pra recarregar nginx **sem rebuild** quando só a config muda:
+>
+> ```bash
+> docker cp nginx/nginx.conf digdig-frontend-1:/etc/nginx/nginx.conf
+> docker exec digdig-frontend-1 nginx -t
+> docker exec digdig-frontend-1 nginx -s reload
+> ```
+>
+> ### Backend não tem volume mount
+>
+> O código do backend é **baked-in na imagem `digdig-api`**. `docker compose restart api` NÃO pega mudanças de código — precisa de:
+>
+> ```bash
+> docker compose build api
+> docker compose up -d api
+> ```
+>
+> ### Supabase Storage bucket de avatars
+>
+> Bucket `avatars` criado out-of-band via SQL: `backend/scripts/setup_supabase_storage.sql`. Roda uma vez no SQL Editor do Supabase OU via psql como service_role. Tem RLS owner-only no insert/update/delete + leitura pública.
+>
+> ### Supabase Secret Key (formato novo)
+>
+> A `SUPABASE_SERVICE_ROLE_KEY` do projeto está no formato novo `sb_secret_*` (não JWT). Pra usar com Storage REST, precisa mandar tanto no header `Authorization: Bearer ...` quanto no header `apikey: ...`. Sem o `apikey`, Storage devolve 400 "Invalid Compact JWS".
+>
+> ### Worker do Celery e o ATLAS
+>
+> O ATLAS é executado como **script Python no host** (`backend/scripts/atlas_classificar.py`), não como task Celery. Por isso `docker compose restart worker_ai` não afeta um run em andamento.
+>
+> ---
 
 ## 1. Ambientes
 

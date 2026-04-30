@@ -1,6 +1,39 @@
 # Arquitetura do Sistema
 
----
+> ## ⚠️ Atualização — Sprint Abril 2026
+>
+> ### Pipeline com 4 agentes
+>
+> A arquitetura de IA passou de 2 agentes (Haiku + Sonnet) para 4:
+>
+> ```
+> [scrape] → [ATLAS] → [PIPER] → [BUD] → [ZEW]
+>             ↓          ↓         ↓        ↓
+>          metadado   triagem   crítico  síntese
+>          + tipo     + tags    + linhas  sistêmica
+>                              investig.
+>          (Flash    (Gemini   (Sonnet  (Opus 4.7)
+>           Lite)    Pro 1M)    4.6)
+> ```
+>
+> ATLAS roda standalone via script (não no orquestrador automático ainda — Fase 2). Demais agentes seguem o orquestrador Celery existente.
+>
+> ### Componentes adicionados/expandidos
+>
+> - **Painel da conta** (`/painel/conta`) — perfil, assinatura, doação, favoritos, avatar (Supabase Storage)
+> - **Painel de conexões** (`/painel/$slug/conex`) — grafo navegável de pessoas/atos/tags com modo foco
+> - **CVSS-A scoring** — vetor 6 dimensões + score 0-10 reproduzível por análise
+> - **Meta-tags** — padrões comportamentais (camada acima das tags-evento)
+> - **Sistema de favoritos** — tabela `atos_favoritos` com nota pessoal + RLS owner-only
+>
+> ### Stack confirmada
+>
+> - Backend: FastAPI + Celery + Redis (Docker no VPS)
+> - Frontend: React + Vite + TanStack Router (Docker nginx no VPS — não Lovable)
+> - DB: PostgreSQL via Supabase + Storage
+> - IA: Gemini 2.5 (ATLAS, Piper) + Claude (Bud Sonnet 4.6, Zew Opus 4.7)
+>
+> ---
 
 ## 1. Visão Geral da Arquitetura
 

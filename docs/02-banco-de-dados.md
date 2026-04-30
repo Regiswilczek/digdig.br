@@ -1,9 +1,47 @@
 # Banco de Dados — Schema Completo
 
+> ## ⚠️ Atualização — Sprint Abril 2026
+>
+> **Total de tabelas:** 32 (era 29). Migrations recentes adicionaram 3 tabelas + colunas em `atos` e `users`.
+>
+> ### Novas tabelas (abril/2026)
+>
+> | Tabela | Migration | Conteúdo |
+> |---|---|---|
+> | `classificacao_atlas` | `b1c2d3e4f5a7` | saída do ATLAS — categoria, subcategoria, confianca, densidade_textual, número oficial, data, valor envolvido, dados_extras (JSONB com pessoas, órgãos, processos, tags), versão do prompt + modelo |
+> | `atos_favoritos` | `d3e4f5a6b7c9` | favoritos do usuário (PK composta `user_id + ato_id`), com campo `nota` opcional. RLS owner-only via `auth.uid()`. |
+> | `ato_tags` + `tag_historico` | `e1f2a3b4c5d6` | tags de irregularidade por ato (60 tipos em 9 categorias) + audit trail de revisões |
+>
+> ### Colunas novas
+>
+> | Tabela | Coluna | Descrição |
+> |---|---|---|
+> | `users` | `avatar_url` (text) | URL pública do Supabase Storage bucket `avatars/{user_id}/avatar.{ext}` |
+> | `atos` | `tipo_atlas` (varchar 40) | categoria canônica do ATLAS — preenchida por backfill via `scripts/atlas_backfill_tipo.py`. Indexed `(tenant_id, tipo_atlas)` partial onde NOT NULL. |
+> | `analises` | `cvss_score`, `cvss_vector`, `cvss_fi/li/ri/av/ac/pr` | CVSS-A — scoring de 6 dimensões inspirado em cyber segurança. |
+> | `analises` | `tokens_piper_cached` | tokens com implicit cache hit do Gemini Pro |
+> | `analises` | `custo_piper_usd`, `custo_bud_usd`, `custo_new_usd` | breakdown de custo por agente (NULL em registros pré-2026-04-30; backfill estima por tokens) |
+> | `pessoas` | `icp_individual`, `icp_atualizado_em` | Índice de Concentração de Poder por pessoa |
+> | `icp_orgao` (tabela nova) | snapshots periódicos de ICP sistêmico do órgão | |
+>
+> ### Storage bucket novo (não-Alembic)
+>
+> Bucket `avatars` no Supabase Storage. Criado via SQL out-of-band em `backend/scripts/setup_supabase_storage.sql`. RLS policies:
+> - Leitura pública (avatars são URLs públicas)
+> - Insert/update/delete: só o dono (`auth.uid()::text = (storage.foldername(name))[1]`)
+>
+> ### Conteúdo histórico abaixo
+>
+> A documentação detalhada de cada tabela (DDL completo, RLS, índices) está preservada nas seções seguintes. Apenas o cabeçalho ficou desatualizado quanto à contagem total e às tabelas mais novas.
+
+---
+
+# (Conteúdo original)
+
 **Banco:** PostgreSQL 15 (via Supabase)  
 **ORM:** SQLAlchemy 2.x  
 **Migrações:** Alembic  
-**Total de tabelas:** 29 (25 principais + 4 de log/auditoria)
+**Total de tabelas:** 29 (25 principais + 4 de log/auditoria) — *desatualizado, ver topo*
 
 ---
 

@@ -1,5 +1,50 @@
 # Pipeline de Inteligência Artificial
 
+> ## ⚠️ Atualização — Sprint Abril 2026
+>
+> **O pipeline foi reestruturado para 4 agentes.** As seções abaixo (escritas pra arquitetura Haiku+Sonnet) servem como referência histórica do prompt e da metodologia. A arquitetura corrente está documentada aqui no topo.
+>
+> ### Pipeline atual: ATLAS → Piper → Bud → Zew
+>
+> | Agente | Modelo | Função | Custo típico |
+> |---|---|---|---|
+> | **ATLAS** | `gemini-2.5-flash-lite` | Organização estrutural pré-Piper. 17 categorias canônicas, metadado barato (data, número oficial, valor, pessoas, processos). Roda em todo ato com texto. | ~$0,0006/ato (~$2 nos 3.424 do CAU/PR) |
+> | **Piper** | `gemini-2.5-pro` (1M tokens contexto) | Triagem investigativa. Lê texto inteiro sem truncar; classifica nivel_alerta (verde/amarelo/laranja/vermelho); extrai indícios, pessoas, tags. | ~$0,011/ato (média) |
+> | **Bud** | `claude-sonnet-4-6` via streaming | Aprofundamento dos críticos. Recebe Piper + histórico das pessoas envolvidas (linhas investigativas, 30 aparições/pessoa). Streaming obrigatório (max_tokens=32000 estoura SDK síncrono em atas). | ~$0,18-0,25/ato |
+> | **Zew/New** | `claude-opus-4-7` | Síntese sistêmica de longa duração. Em testes pontuais. | ~$0,30-0,50/ato (estimado) |
+>
+> ### Mudanças de prompt e metodologia
+>
+> - **CVSS-A scoring:** cada análise produz vetor de 6 dimensões (FI/LI/RI/AV/AC/PR), score 0.0-10.0. Calculado deterministicamente em `app/services/cvss_service.py`. Substitui o score subjetivo anterior.
+> - **Mindset de Auditoria:** prompt explícito sobre omissões = evidência. Princípios LIMPE como guia.
+> - **KnowledgeBase expandida:** regimento + Lei 12.378/2010 + Art. 37 CF + Lei 8.429/92 + Lei 8.666/93 + Lei 14.133/21 + LAI + Resoluções CAU/BR (51, 91, 194).
+> - **Tags + Meta-tags:** 60 tipos de irregularidade em 9 categorias. Tag = evento; meta-tag = padrão recorrente da pessoa ao longo do tempo (gerada pelo Bud com contexto histórico).
+> - **Linguagem de indícios:** prompt force "indício de", "padrão suspeito", nunca "é corrupto", "cometeu crime".
+>
+> ### Arquivos relevantes
+>
+> - `backend/app/services/atlas_service.py` — service do ATLAS, prompt v1, parser tolerante
+> - `backend/app/services/piper_service.py` — Piper texto + visão (escaneados)
+> - `backend/app/services/bud_service.py` — Bud com streaming (fix abril/2026)
+> - `backend/app/services/cvss_service.py` — cálculo do vetor CVSS-A
+> - `backend/app/services/tag_service.py` — 60 tags + persistência + histórico
+> - `backend/scripts/atlas_classificar.py` — batch ATLAS (concorrência configurável, idempotente)
+> - `backend/scripts/atlas_backfill_tipo.py` — copia categoria_atlas → atos.tipo_atlas
+>
+> ### Cobertura no CAU/PR (30/04/2026)
+>
+> - 7.718 docs no corpus | 3.424 com texto extraível | 1.453 atos com Piper
+> - 47 críticos na fila Bud (16 vermelho + 31 laranja); destes, **21 são legados** do antigo Haiku 4.5 (status normalizado pra `piper_completo`, marcados visualmente como `↻ refazer` no painel admin).
+> - Custo acumulado: ~$22 (Piper $20,01 + ATLAS $2,05).
+>
+> ### Sobre o conteúdo histórico abaixo
+>
+> O texto que segue (cobertura de portarias, prompts Haiku, lógica de cache) reflete a arquitetura anterior (Haiku 4.5 + Sonnet 4.6). A intenção investigativa, os critérios de auditoria e a estrutura geral do prompt foram preservados — só os modelos e os agentes mudaram.
+
+---
+
+# (Conteúdo histórico — pré-Sprint Abril 2026)
+
 **Modelos:** Haiku 4.5 (triagem) + Sonnet 4.6 (análise crítica e síntese)  
 **SDK:** `anthropic` Python  
 **Custo estimado por rodada CAU-PR:** ~$10-12  

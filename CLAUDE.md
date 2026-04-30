@@ -6,7 +6,7 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 
 ## O Que É Este Projeto
 
-**Dig Dig** é uma plataforma SaaS que audita automaticamente atos administrativos de órgãos públicos brasileiros usando IA (Claude API). O sistema baixa PDFs de sites oficiais, extrai o texto completo, analisa com Haiku + Sonnet para detectar irregularidades legais e morais, e apresenta os resultados via dashboard web e chat conversacional.
+**Dig Dig** é uma plataforma SaaS que audita automaticamente atos administrativos de órgãos públicos brasileiros usando IA. O sistema baixa PDFs de sites oficiais, extrai texto, organiza em categorias canônicas (ATLAS), faz triagem (Piper), aprofunda os críticos (Bud), e apresenta resultados via dashboard web e chat conversacional.
 
 **Dono do projeto:** Regis Alessander Wilczek — engenheiro, desenvolvedor full-stack, fundador da T.ZION. Tem background como Assessor Parlamentar na Câmara de Curitiba (onde fez investigações manuais de transparência e descobriu o escândalo da água San Pelegrino) e depois trabalhou no próprio CAU/PR como Chefe de Gabinete e Assessor Especial. Construiu o Dig Dig como a ferramenta que não existia enquanto fazia esse trabalho manualmente.
 
@@ -14,92 +14,138 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 
 ---
 
-## Estado Atual do Projeto (Abril 2026)
+## Estado Atual do Projeto (30/04/2026 — final do Sprint de Abril)
 
-### O que já está construído e funcionando
+### Pipeline com 4 agentes
 
-**Infraestrutura VPS (Hostinger — 187.127.30.188, Ubuntu 24.04):**
-- Docker Compose roda tudo: api, worker_ai, worker_beat, redis, frontend
-- nginx (dentro do container frontend) como reverse proxy HTTPS para todos os domínios
-- SSL via Let's Encrypt (certbot, wildcard `*.digdig.com.br`)
+| Agente | Modelo | Função | Estado |
+|--------|--------|--------|--------|
+| **ATLAS** | Gemini 2.5 Flash Lite | Organização estrutural pré-Piper. 17 categorias, metadado barato (data, número, valor, pessoas) | ✅ 1ª run completa: 3.424 docs classificados, $2,05 |
+| **Piper** | Gemini 2.5 Pro (1M tokens) | Triagem investigativa. Lê texto inteiro, classifica nível, extrai indícios e tags | ✅ 1.453 atos analisados |
+| **Bud** | Claude Sonnet 4.6 | Aprofundamento dos críticos (vermelho/laranja) com contexto histórico das pessoas envolvidas | 🔄 47 atos na fila (16 vermelhos + 31 laranjas) |
+| **Zew/New** | Claude Opus 4.7 | Síntese sistêmica do corpus, padrões de longa duração, hipóteses | 🚧 em testes pontuais |
+
+### Infraestrutura VPS (Hostinger — 187.127.30.188, Ubuntu 24.04)
+- Docker Compose: api, worker_ai, worker_beat, redis, frontend
+- nginx (no container frontend) como reverse proxy HTTPS
+- SSL via Let's Encrypt (wildcard `*.digdig.com.br`)
 - Domínios ativos: `digdig.com.br`, `www.digdig.com.br`, `pnl.digdig.com.br`, `office.digdig.com.br`
+- **Deploy frontend:** `bash scripts/deploy-frontend.sh` (rebuild image + restart container — comando único). Documentado em `package.json` como `deploy:frontend`.
 
-**Backend (FastAPI + Celery + Redis — VPS Docker):**
-- 29 tabelas no Supabase (PostgreSQL) com RLS e migrations aplicadas
-- Pipeline Haiku completo: scraper → análise → banco
-- Endpoint de rodada com guard contra duplicatas (4 camadas de proteção)
-- Endpoints: `POST /pnl/orgaos/{slug}/rodadas`, `POST /pnl/rodadas/{id}/cancelar`, `GET /pnl/orgaos/{slug}/rodadas`, `GET /pnl/rodadas/{id}`
-- Webhook Mercado Pago com validação de assinatura HMAC-SHA256 implementada
+### Backend (FastAPI + Celery + Redis)
+- 32 tabelas no Supabase com RLS e migrations aplicadas
+- Pipeline ATLAS → Piper → Bud (Zew em testes) — orquestrador em `app/workers/orquestrador.py`
+- Endpoints públicos `/public/*`, painel `/painel/*`, conta `/me/*`, billing `/billing/*`, admin `/pnl/admin/*`
+- Webhook Mercado Pago com HMAC-SHA256 validado e replay protection (300s)
 
-**Frontend (React + Vite — VPS Docker):**
+### Frontend (React + Vite + TanStack Router)
 - SPA servida pelo container frontend via nginx
-- Painel autenticado com 6 abas (Visão Geral, Portarias, Deliberações, Denúncias, Pipeline, Relatório)
-- Realtime via Supabase, ficha de ato com gating por plano
-- White Papers: `/whitepaper-01-extracao-caupr` a `/whitepaper-07-pre-auditoria-integrada`
+- Painel autenticado com 5 abas: **Visão Geral, Relatório, Denúncias, Pipeline, Dados**
+- Aba **Dados** organizada pelo ATLAS — 17 categorias canônicas + Pendentes + Financeiro
+- **Painel de conexões** (`/conex`) — grafo navegável com mini-cards de pessoa/ato/tag, modo foco
+- **Painel da conta** (`/painel/conta`) — perfil, assinatura, doação, favoritos, avatar (4 abas)
+- **Botão favoritar** em cada ato + lista no painel da conta
+- Sidebar fixa no viewport (sticky), avatar do usuário como link clicável
+- White Papers: `/whitepaper-01` a `/whitepaper-10`
 
-**Paperclip (office.digdig.com.br — VPS Docker separado):**
+### Paperclip (office.digdig.com.br — Docker separado)
 - Plataforma de agentes de IA em `/opt/digdig/tools/paperclip/docker/`
 - CEO + CMO + CFO + CCO + CLO agentes ativos
-- Workspace do projeto montado em `/workspace/digdig:ro` (leitura somente)
+- Workspace do projeto montado em `/workspace/digdig:ro` (leitura)
 
-**Scraper:**
-- `backend/scripts/scrape_local.py` — roda localmente (IP brasileiro) porque o servidor do CAU/PR bloqueia IPs de data centers (403)
-- 551 portarias coletadas; 151 escaneadas (2018–2021, sem camada de texto)
+### Scraper
+- `backend/scripts/scrape_local.py` roda localmente (IP brasileiro) — VPS é bloqueada com 403 pelo CAU/PR
+- 7.718 documentos no corpus do CAU/PR atual
 
-**Pipeline IA — Estado atual (consultado 25/04/2026):**
-- Rodada `5b365c0d` status `haiku_completo` — Sonnet ainda não rodou
-- **1.096 atos analisados pelo Haiku** (portarias 100% + deliberações 72%)
-- Distribuição: 816 amarelo / 165 verde / 101 laranja / 14 vermelho
-- Custo acumulado no banco: **$20,01**
-- **Próximo passo urgente:** disparar Sonnet nos 115 críticos (14 vermelhos + 101 laranjas)
+---
 
-**White Papers publicados:**
-- `docs/whitepaper-01-extracao-caupr.html` até `whitepaper-07-pre-auditoria-integrada.html`
+## Cobertura Real do CAU/PR (30/04/2026)
 
-### O que ainda falta
+### Por tipo do scraper (origem)
 
-1. **Fase Sonnet** — 115 atos críticos (14 vermelhos + 101 laranjas) aguardam análise profunda
-2. **Deliberações restantes** — 212 deliberações ainda não processadas pelo Haiku
-3. **Chat conversacional** — RAG no banco, Sonnet responde perguntas sobre os atos
-4. **Billing live** — Mercado Pago webhook está configurado e validado; falta ativação de plano no banco
-5. **OCR para portarias escaneadas** — 151 portarias de 2018–2021 precisam de Tesseract
-6. **Alertas por email** — Resend configurado mas sem código de disparo
+| Tipo | Total | Com texto | Status |
+|------|-------|-----------|--------|
+| media_library | 2.845 | 1.735 | maior massa, redistribuída pelo ATLAS |
+| deliberacao | 759 | 686 | |
+| portaria | 551 | 550 | |
+| dispensa_eletronica | 208 | 203 | |
+| ata_plenaria | 161 | 110 | 51 sem texto (escaneadas pré-2018) |
+| relatorio_parecer | 85 | 85 | |
+| convenio | 25 | 1 | quase todos sem texto |
+| portaria_normativa | 21 | 21 | |
+| relatorio_tcu | 12 | 11 | |
+| contratacao_direta | 12 | 12 | |
+| auditoria_independente | 8 | 8 | |
+| contrato | 2 | 2 | |
+| **Total** | **4.689** | **3.424** | resto são docs sem texto extraível |
+
+### Por categoria ATLAS (canônica)
+| Categoria | Qtd | Categoria | Qtd |
+|-----------|-----|-----------|-----|
+| licitacao | 1.516 | recursos_humanos | 38 |
+| deliberacao_arquivo | 624 | auditoria_externa | 36 |
+| portaria_arquivo | 563 | relatorio_gestao | 32 |
+| ata_plenaria | 177 | outros | 32 |
+| contrato | 107 | aditivo_contratual | 25 |
+| financeiro_balanco | 95 | processo_etico | 24 |
+| financeiro_orcamento | 55 | juridico_parecer | 4 |
+| financeiro_demonstrativo | 53 | comunicacao_institucional | 1 |
+| ata_pauta_comissao | 42 | | |
+
+### Análise IA atual
+- **Piper**: 1.453 atos analisados (com `resultado_piper` populado)
+- **Distribuição**: ~74% amarelo / ~15% verde / ~9% laranja / ~1% vermelho
+- **Bud**: ~50 atos completos, **47 críticos pendentes na fila**
+  - 21 deles são **legados** (análise primeira pelo Haiku 4.5, antes do Piper). Marcados com badge `↻ refazer` no painel admin.
+- **Zew**: testes pontuais
+- **Custo acumulado**: ~$22 (Piper $20,01 + ATLAS $2,05)
 
 ---
 
 ## Decisões Tomadas (não questionar sem motivo)
 
 | Decisão | O que foi escolhido | Por quê |
-|---------|--------------------|---------| 
-| Modelos de IA | Haiku 4.5 (triagem) + Sonnet 4.6 (análise + chat) | Custo ~$5/rodada portarias, Sonnet resolve tudo |
-| Sonnet no vermelho + laranja | Ambos vão para Sonnet na mesma rodada | Cache write do regimento é pago uma vez ($0,255); laranjas seguintes custam ~$0,06 cada via cache read — amortizado vale a pena |
-| Backend | FastAPI + Celery + Redis | Async nativo, fila real para jobs longos |
-| Frontend | React + Vite + shadcn/ui + TanStack Router | SPA servida por nginx no VPS |
-| Banco | PostgreSQL via Supabase | Auth + Storage + RLS inclusos |
-| Deploy | VPS Hostinger (Docker Compose) | Controle total, IP brasileiro, custo fixo |
-| Agentes IA (empresa) | Paperclip em office.digdig.com.br | CEO e diretores rodam como agentes autônomos |
-| Multi-tenancy | Schema compartilhado com RLS por tenant_id | Mais simples que schemas separados |
-| PDF extraction | pdfplumber (texto nativo) | Testado: funciona nas portarias de 2022–2026 |
-| Scraper | Local (não VPS) | IP de data center bloqueado pelo CAU/PR |
-| Chat | RAG com contexto do banco (não re-lê PDFs) | PDFs já analisados e salvos — chat é barato |
-| Billing | Mercado Pago | Mercado local, PIX nativo, parcelamento BR |
+|---------|--------------------|---------|
+| **ATLAS pré-Piper** | Gemini Flash Lite classifica antes do Piper rodar | Filtra docs sem valor investigativo, gera metadado estrutural barato, define a taxonomia canônica do painel |
+| **Piper = Gemini 2.5 Pro** | Migração de Haiku → Gemini Pro 1M tokens | Atas plenárias inteiras (40-80pg) cabem sem truncar; recall mais alto |
+| **Bud = Claude Sonnet 4.6** | Análise profunda dos críticos | Linhas investigativas (histórico de 30 aparições/pessoa), parse robusto de JSON longo |
+| **Streaming no Bud** | `client.messages.stream` em vez de `create` | `max_tokens=32000` (atas) excede o timeout síncrono do SDK |
+| **CVSS-A scoring** | 6 dimensões reproduzíveis (FI/LI/RI/AV/AC/PR) inspirado em cyber segurança | Substitui score subjetivo; reprodutível entre análises e órgãos |
+| **Meta-tags** | Tag = evento; meta-tag = padrão de pessoa ao longo do tempo | Permite responder "quem tem padrão sistemático de X" em vez de "quem aparece com tag X" |
+| **Backend** | FastAPI + Celery + Redis | Async nativo, fila real para jobs longos |
+| **Frontend** | React + Vite + shadcn/ui + TanStack Router | SPA com painel responsivo |
+| **Banco** | PostgreSQL via Supabase | Auth + Storage + RLS |
+| **Storage de avatars** | Supabase Storage bucket `avatars` | Bucket público, RLS owner-only no upload |
+| **Multi-tenancy** | Schema compartilhado com RLS por tenant_id | Mais simples que schemas separados |
+| **PDF extraction** | pdfplumber (texto nativo) | Funciona em 96% dos PDFs do CAU/PR pós-2022 |
+| **Scraper** | Local (não VPS) | IP de data center bloqueado pelo CAU/PR |
+| **Chat** | RAG com contexto do banco (não re-lê PDFs) | PDFs já analisados — chat barato |
+| **Billing** | Mercado Pago | PIX nativo, parcelamento BR |
 
 ---
 
 ## Regras Críticas de Operação
 
 ### Rodadas de análise
-1. **NUNCA dispare nova rodada sem verificar se existe uma ativa** — use `GET /pnl/orgaos/{slug}/rodadas` primeiro
-2. Se existir rodada `em_progresso` ou `pendente`, cancele via `POST /pnl/rodadas/{id}/cancelar` antes de criar nova
-3. O endpoint agora rejeita com 409 se já existe rodada ativa — mas verifique antes mesmo assim
-4. Limite de custo por rodada: $5. Se atingir, a rodada cancela automaticamente.
-5. A idempotência está implementada: re-rodar sobre atos já processados é gratuito (não chama API)
+1. **NUNCA dispare nova rodada sem verificar se existe uma ativa** — `GET /pnl/orgaos/{slug}/rodadas` primeiro
+2. Se existe rodada `em_progresso` ou `pendente`, cancele antes via `POST /pnl/rodadas/{id}/cancelar`
+3. Endpoint rejeita com 409 se já existe rodada ativa (constraint do banco também protege)
+4. Limite de custo por rodada: $5 — auto-cancela se atingir
+5. Idempotência: re-rodar sobre atos já processados é gratuito (não chama API)
 
-### Por que isso importa
-Em abril/2026, rodadas paralelas + bugs de debug consumiram $23 sem resultado rastreado. As 4 camadas de proteção (endpoint guard, idempotência, cancellation check, cost threshold) + índice único parcial no banco foram implementadas para prevenir reincidência. Veja `docs/whitepaper-02-custo-e-controle.html` para o diagnóstico completo.
+### Sobre o orquestrador (`backend/app/workers/orquestrador.py`)
+A rodada hoje é: scrape → Piper → Bud (críticos). **ATLAS ainda não está integrado no orquestrador automático** — roda standalone via `backend/scripts/atlas_classificar.py`. Inserir ATLAS antes do Piper é a Fase 2 do projeto ATLAS (ver white paper Nº 10).
 
 ### Scraper local
-O `scrape_local.py` **precisa rodar na máquina do Regis**, não na VPS. O servidor do CAU/PR bloqueia IPs de data centers (incluindo a VPS Hostinger) com 403. Headers de browser não ajudam — o bloqueio é por IP.
+`scrape_local.py` **precisa rodar na máquina do Regis**. CAU/PR bloqueia IPs de data center com 403. Headers de browser não ajudam — bloqueio por IP.
+
+### Mudanças destrutivas em DB compartilhado
+**NUNCA** rode UPDATE em massa, DROP, downgrade alembic ou DELETE em produção sem autorização explícita. O sandbox bloqueia operações arriscadas; quando bloquear, peça pro Regis confirmar.
+
+### Frontend
+- **Para mudar qualquer coisa do front em produção:** `bash scripts/deploy-frontend.sh` (rebuild + restart container, ~3min)
+- Bundle Vite é baked no Dockerfile.frontend — `dist-vps/` local NÃO é o que vai pra prod
+- Cache do navegador segura JS antigo: Ctrl+Shift+R sempre
 
 ---
 
@@ -108,7 +154,7 @@ O `scrape_local.py` **precisa rodar na máquina do Regis**, não na VPS. O servi
 ```
 VPS Hostinger (187.127.30.188 — Docker Compose)
     ├── nginx (HTTPS) → digdig.com.br / www / pnl.digdig.com.br
-    │       └── proxy → api:8000 para /painel/, /billing/, /public/, /admin/
+    │       └── proxy → api:8000 para /painel/, /me/, /billing/, /public/, /admin/, /chat/
     ├── office.digdig.com.br → proxy → paperclip:3100
     ├── api (FastAPI porta 8000)
     ├── worker_ai (Celery — fila ai,default)
@@ -117,59 +163,61 @@ VPS Hostinger (187.127.30.188 — Docker Compose)
 
 Paperclip (Docker separado — /opt/digdig/tools/paperclip/docker/)
     ├── CEO + CMO + CFO + CCO + CLO agentes autônomos
-    └── /workspace/digdig montado em :ro (lê docs do projeto)
+    └── /workspace/digdig montado em :ro
 
 Scraper: roda na máquina do Regis (IP brasileiro)
     └── salva PDFs + texto no Supabase Storage + PostgreSQL
 
-Banco: PostgreSQL (Supabase) + Storage (PDFs)
+ATLAS: roda manual via scripts/atlas_classificar.py (~10min, $2)
+Piper/Bud/Zew: rodam via orquestrador Celery (rodada disparada por endpoint)
+
+Banco: PostgreSQL (Supabase) + Storage (PDFs + avatars)
 Cache: Anthropic prompt caching — regimento 68k tokens, ephemeral 5min TTL
 ```
 
 ---
 
-## Cobertura Real do CAU/PR
+## Tabelas-chave
 
-| Tipo | Total | Processadas | Status |
-|------|-------|-------------|--------|
-| Portarias | 551 | 551 (100%) | ✅ Haiku completo |
-| Deliberações | 757 | 545 (72%) | 🔄 212 pendentes |
-| **Total Haiku** | **1.308** | **1.096** | — |
-| Total Sonnet | — | 21 | 🔄 115 críticos pendentes |
+```
+atos                  + tipo, tipo_atlas (ATLAS canônico), numero, ementa, ...
+conteudo_ato          texto extraído + qualidade (boa/parcial/ruim/digitalizado)
+classificacao_atlas   saída do ATLAS (categoria, confiança, num oficial, valor, ...)
+analises              resultado_piper, resultado_bud, resultado_new + CVSS-A
+irregularidades       indícios extraídos (categoria, tipo, gravidade, artigo)
+ato_tags / tag_historico   tags Piper/Bud com revisão auditável
+pessoas / aparicao_pessoa / relacao_pessoa  rede de pessoas e ICP
+users                 + avatar_url
+atos_favoritos        favoritos do usuário (PK composta user+ato, RLS owner-only)
+rodadas_analise       fila + custo + status
+diarias               dados financeiros (Implanta)
+```
 
-**Distribuição atual (1.096 atos — consultado 25/04/2026):**
-- Amarelo: 816 (74%) — suspeito, requer atenção
-- Verde: 165 (15%) — conforme, sem irregularidades
-- Laranja: 101 (9%) — indício moderado-grave
-- Vermelho: 14 (1%) — irregularidade crítica
-
-**Custo acumulado:** $20,01 (média $0,0118/ato no Haiku)
+Detalhes em `docs/02-banco-de-dados.md`.
 
 ---
 
-## Documentação Completa
+## Documentação
 
 | Arquivo | O que contém |
 |---------|-------------|
 | `docs/00-visao-geral-e-comercial.md` | Produto, planos, personas, roadmap |
-| `docs/01-arquitetura.md` | Stack completo, estrutura de pastas, fluxos |
-| `docs/02-banco-de-dados.md` | 29 tabelas com SQL completo, RLS, índices |
-| `docs/03-pipeline-ia.md` | Prompts Haiku e Sonnet, prompt caching, código |
-| `docs/04-api-endpoints.md` | Todos os endpoints REST incluindo chat |
-| `docs/05-frontend.md` | Páginas, componentes, layout do chat |
-| `docs/06-seguranca-e-lgpd.md` | Auth, RLS, CORS, SQL injection, LGPD |
-| `docs/07-scraper-e-instituicoes.md` | Código do scraper, como adicionar novo órgão |
+| `docs/01-arquitetura.md` | Stack, estrutura de pastas, fluxos |
+| `docs/02-banco-de-dados.md` | Tabelas com SQL completo, RLS, índices |
+| `docs/03-pipeline-ia.md` | Prompts ATLAS/Piper/Bud/Zew, prompt caching |
+| `docs/04-api-endpoints.md` | Todos os endpoints REST (público, painel, /me, admin, chat) |
+| `docs/05-frontend.md` | Páginas, componentes, sidebar, painel da conta |
+| `docs/06-seguranca-e-lgpd.md` | Auth, RLS, CORS, LGPD |
+| `docs/07-scraper-e-instituicoes.md` | Scraper, como adicionar novo órgão |
 | `docs/08-testes.md` | Unitários, integração, E2E, segurança, CI/CD |
-| `docs/09-infraestrutura-e-deploy.md` | VPS Hostinger, Docker Compose, nginx, Supabase, monitoramento |
-| `docs/10-logs-e-analytics.md` | Structlog, auditoria de usuário, PostHog |
-| `docs/11-chat-e-ia-conversacional.md` | RAG completo, tipos de pergunta, custos |
-| `docs/12-plano-de-negocios.md` | Plano de negócios, posicionamento, projeções |
-| `docs/13-api-dados-comercial.md` | Plano API & Dados (R$1.997/mês) |
-| `docs/14-revisao-pre-implementacao.md` | **LEIA ANTES DE CODAR** — 8 riscos críticos |
-| `docs/15-alertas-email-e-deduplicacao.md` | Alertas por email + deduplicação de nomes |
-| `docs/whitepaper-01-extracao-caupr.html` | White Paper Nº 01 — jornada de extração |
-| `docs/whitepaper-02-custo-e-controle.html` | White Paper Nº 02 — controle de custos |
-| `docs/registro-extracao-cau-pr.md` | Versão MD do White Paper Nº 01 |
+| `docs/09-infraestrutura-e-deploy.md` | VPS, Docker, nginx, Supabase, deploy:frontend |
+| `docs/10-logs-e-analytics.md` | Structlog, AuditLog, PostHog |
+| `docs/11-chat-e-ia-conversacional.md` | RAG, tipos de pergunta, custos |
+| `docs/12-plano-de-negocios.md` | Posicionamento, projeções |
+| `docs/13-api-dados-comercial.md` | Plano API & Dados |
+| `docs/14-revisao-pre-implementacao.md` | **LEIA ANTES DE CODAR** — riscos críticos |
+| `docs/15-alertas-email-e-deduplicacao.md` | Alertas + deduplicação |
+| `src/routes/whitepaper-01-extracao-caupr.tsx` ... `whitepaper-10-antes-da-proxima-onda.tsx` | 10 white papers publicados |
 
 ---
 
@@ -184,7 +232,7 @@ Cache: Anthropic prompt caching — regimento 68k tokens, ephemeral 5min TTL
 | API & Dados | R$1.998/mês | via API ilimitado | Todos + API REST |
 | Técnico | Sob consulta | ilimitado | Personalizado |
 
-**Modelo:** Todo conteúdo gerado (fichas, análises profundas, denúncias, scores) é gratuito e aberto. Planos pagos desbloqueiam chat com IA e geração de documentos prontos (peças jurídicas, artigos, relatórios em PDF/.md).
+**Modelo:** Todo conteúdo gerado (fichas, análises profundas, denúncias, scores) é gratuito e aberto. Planos pagos desbloqueiam chat com IA e geração de documentos prontos (peças jurídicas, artigos, relatórios).
 
 ---
 
@@ -192,35 +240,39 @@ Cache: Anthropic prompt caching — regimento 68k tokens, ephemeral 5min TTL
 
 1. Inserir em `tenants` com `scraper_config`
 2. Inserir regimento em `knowledge_base`
-3. Verificar se não há rodada ativa: `GET /pnl/orgaos/{slug}/rodadas`
-4. Disparar rodada: `POST /pnl/orgaos/{slug}/rodadas`
-5. Mudar `status` para `active`
+3. Rodar scraper local pra coletar PDFs
+4. Rodar ATLAS pra classificar (`python scripts/atlas_classificar.py --tenant <slug>`)
+5. Verificar se não há rodada ativa: `GET /pnl/orgaos/{slug}/rodadas`
+6. Disparar Piper: `POST /pnl/orgaos/{slug}/rodadas`
+7. Mudar `tenant.status` para `active`
 
-Custo de IA por novo órgão: ~$5–10 (portarias com texto nativo)
+Custo de IA por novo órgão: ~$5–15 (varia com volume + ATLAS antes)
 
 ---
 
 ## Regras de Trabalho Neste Projeto
 
-1. **Sempre leia o documento relevante antes de codar** — o design está nos docs
-2. **Não reinvente o schema** — 29 tabelas definidas em `02-banco-de-dados.md`
-3. **Prompt caching obrigatório** — system prompt do pipeline deve usar `cache_control`
-4. **RLS em tudo** — toda tabela com `tenant_id` precisa de política RLS ativa
-5. **Logs em toda ação significativa** — usar `AuditLog.registrar()` nos endpoints
-6. **Validar plano antes de servir chat/exportação** — conteúdo (fichas, análises) é livre para todos; só chat e geração de documentos requerem verificação de plano
-7. **Nunca commitar secrets** — toda variável sensível vai em `.env`
-8. **Verificar rodada ativa antes de disparar nova** — usar `GET /pnl/orgaos/{slug}/rodadas`
-9. **Scraper roda local** — não tentar rodar `scrape_local.py` no VPS (IP de data center bloqueado)
-10. **CEO e diretores são agentes no Paperclip** — não executam código, só criam issues e aprovações
+1. **Sempre leia o documento relevante antes de codar** — design está nos docs
+2. **Não reinvente o schema** — tabelas em `02-banco-de-dados.md`
+3. **Prompt caching obrigatório** — system prompt do pipeline deve usar `cache_control` (Anthropic) ou implicit cache (Gemini Pro)
+4. **RLS em tudo** — toda tabela com `tenant_id` ou `user_id` precisa de política RLS ativa
+5. **Logs em ações significativas** — usar structlog nos endpoints; AuditLog quando relevante
+6. **Validar plano antes de servir chat/exportação** — fichas/análises são livres; chat e geração de doc requerem plano
+7. **Nunca commitar secrets** — `.env` no `.gitignore`; SECURITY_AUDIT.md também é gitignored
+8. **Verificar rodada ativa antes de disparar nova** — endpoint guard + check manual
+9. **Scraper roda local** — não tentar na VPS
+10. **CEO e diretores são agentes no Paperclip** — não executam código
+11. **Frontend muda? `bash scripts/deploy-frontend.sh`** — sem rebuild, nginx serve bundle antigo
+12. **Mudanças destrutivas em prod precisam de autorização explícita do Regis**
 
 ---
 
 ## Contexto para os Prompts de IA
 
 O sistema analisa atos de órgãos públicos com foco em:
-- **Irregularidades legais:** violações diretas ao regimento interno
+- **Irregularidades legais:** violações diretas ao regimento interno, leis 12.378/2010, 8.429/92, 8.666/93, 14.133/21, LAI
 - **Irregularidades morais/éticas:** nepotismo, perseguição política, concentração de poder
-- **Uso público:** as fichas de denúncia são usadas em transparência, imprensa e processos
+- **Princípios constitucionais (LIMPE):** Legalidade, Impessoalidade, Moralidade, Publicidade, Eficiência
 
 A IA **não afirma crimes** — usa linguagem de "indício", "suspeita", "padrão irregular". A conclusão jurídica fica para advogados.
 
@@ -232,4 +284,6 @@ A IA **não afirma crimes** — usa linguagem de "indício", "suspeita", "padrã
 - **Portarias:** https://www.caupr.gov.br/portarias
 - **Deliberações:** https://www.caupr.gov.br/?page_id=17916
 - **Regimento Interno:** https://www.caupr.gov.br/regimento/ (6ª versão — DPOPR 0191-02/2025)
-- **Lei 12.378/2010:** Lei de criação do CAU (base legal nacional)
+- **Lei 12.378/2010:** Lei de criação do CAU
+- **Portal de transparência:** https://transparencia.caupr.gov.br/
+- **Implanta:** API mensal de dados financeiros (diárias, passagens) — fonte das tabelas `diarias`

@@ -1,6 +1,53 @@
 # API Endpoints
 
-**Base URL:** `https://api.digdig.com.br/v1`  
+> ## ⚠️ Atualização — Sprint Abril 2026
+>
+> **Base URL real em produção:** `https://digdig.com.br` (sem `/v1` — versionamento por URL nunca foi adotado). Routers FastAPI usam prefixos:
+> - `/health` — healthcheck
+> - `/public/*` — público (sem auth)
+> - `/painel/*` — autenticado (Bearer JWT Supabase)
+> - **`/me/*`** — painel do usuário (NOVO)
+> - `/billing/*` — pagamentos (Mercado Pago)
+> - `/chat/*` — chat com IA
+> - `/admin/*` (host `pnl.digdig.com.br`) — admin
+> - `/webhooks/*` — webhooks externos
+>
+> ### Endpoints `/me/*` (novos — painel da conta)
+>
+> | Método | Path | Descrição |
+> |---|---|---|
+> | GET | `/me` | perfil + plano + assinatura ativa |
+> | PATCH | `/me` | altera nome do usuário |
+> | POST | `/me/avatar` | upload de foto (multipart, ≤2MB, JPG/PNG/WebP/GIF) → Supabase Storage |
+> | DELETE | `/me/avatar` | remove foto |
+> | GET | `/me/assinatura` | detalhes da assinatura ativa |
+> | POST | `/me/assinatura/cancelar` | cancela no MP + marca local como `cancelled` |
+> | GET | `/me/favoritos` | lista atos favoritados (com info do ato) |
+> | POST | `/me/favoritos/{ato_id}` | adiciona favorito (body opcional `{"nota": "..."}`) |
+> | DELETE | `/me/favoritos/{ato_id}` | remove favorito |
+>
+> ### Mudanças nos endpoints existentes
+>
+> - `GET /painel/orgaos/{slug}/atos` — agora aceita `?tipo_atlas=licitacao` (filtra por categoria ATLAS) além de `?tipo=...` (tipo do scraper)
+> - `GET /public/orgaos/{slug}/stats` — retorna **`por_categoria_atlas`** paralelo a `por_tipo`
+> - `GET /pnl/admin/fila/{slug}?agente=bud` — itens incluem flag `legado: bool` (true se análise foi pelo Haiku antigo, tokens_piper=0)
+> - `GET /painel/orgaos/{slug}/pipeline-status` — amostras das filas incluem `legado` para flagar reprocessamento
+> - `GET /painel/orgaos/{slug}/atos/{id}` — bloco `auditoria` retorna `legado: bool` + agente "haiku_legado" no array `agentes` quando aplicável
+> - `POST /pnl/admin/disparar-lote` e `GET /pnl/admin/fila/{slug}` — filtros de tipo aceitam `OR(tipo, tipo_atlas)` (mesmo dropdown atende scraper e ATLAS)
+>
+> ### nginx config (importante)
+>
+> O nginx do container frontend agora proxia `/me` (exact) e `/me/*` (prefix) para a API com `client_max_body_size 5M` (upload de avatar). Veja `nginx/nginx.conf`.
+>
+> ### Conteúdo histórico abaixo
+>
+> A documentação completa de cada endpoint segue. O cabeçalho com `/v1/` é histórico — a API real nunca usou prefixo de versão.
+
+---
+
+# (Conteúdo original)
+
+**Base URL:** `https://api.digdig.com.br/v1` *(desatualizado — ver topo)*  
 **Autenticação:** Bearer token JWT (Supabase Auth)  
 **Formato:** JSON  
 **Versionamento:** URL path (`/v1/`)
