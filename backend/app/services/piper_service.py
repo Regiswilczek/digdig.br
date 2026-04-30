@@ -32,7 +32,7 @@ from app.models.analise import Analise, Irregularidade
 from app.models.tenant import Tenant, KnowledgeBase
 from app.services.pessoas_service import salvar_pessoas
 from app.services.tag_service import LISTA_TAGS_PROMPT, salvar_tags_piper
-from app.services.cvss_service import calcular_cvss_a
+from app.services.cvss_service import calcular_cvss_a, DEFAULTS_CVSS
 
 # ─── Constantes compartilhadas por todo o pipeline ───────────────────────────
 
@@ -148,7 +148,7 @@ Acrescente ao JSON de resposta o campo:
 
 Use apenas códigos presentes na lista. Inclua somente tags com evidência real no texto.
 
-VARIÁVEIS CVSS-A (preencher para todo ato — o backend calcula o score):
+VARIÁVEIS CVSS-A — OBRIGATÓRIAS (NUNCA omitir; o backend usa para calcular o score auditorial):
 - cvss_fi (Impacto Financeiro): "nenhum" (sem gasto), "baixo" (< R$50k), "medio" (R$50k–500k), "alto" (> R$500k)
 - cvss_li (Impacto Legal): "formal" (vício de forma, sem crime), "grave" (violação de lei, improbidade), "crime" (tipo penal configurado)
 - cvss_ri (Impacto Reputacional):
@@ -267,6 +267,11 @@ def _garantir_campos_piper(result: dict) -> None:
     result.setdefault("requer_aprofundamento", False)
     result.setdefault("motivo_aprofundamento", None)
     result.setdefault("tags_identificadas", [])
+    # Defaults conservadores para CVSS-A — quando o LLM omite os campos,
+    # preenchemos com os defaults para que cvss_fi/li/ri/av/ac/pr fiquem
+    # populados em vez de NULL no banco.
+    for k in ("fi", "li", "ri", "av", "ac", "pr"):
+        result.setdefault(f"cvss_{k}", DEFAULTS_CVSS[k])
 
 
 # ─── System prompt builder ────────────────────────────────────────────────────

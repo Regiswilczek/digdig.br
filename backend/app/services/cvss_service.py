@@ -36,6 +36,10 @@ _DEFAULTS = {
     "pr": "baixo_escalao",
 }
 
+# Exposto para uso por outros módulos (ex: piper_service preenche os
+# campos no JSON quando o LLM omite).
+DEFAULTS_CVSS = _DEFAULTS
+
 _ABREV = {
     "nenhum": "NEN", "baixo": "BAX", "medio": "MED", "alto": "ALT",
     "formal": "FOR", "grave": "GRV", "crime": "CRM",
