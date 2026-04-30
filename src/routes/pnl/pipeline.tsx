@@ -433,6 +433,7 @@ function RodadaCard({
         <RodadaDetalhesModal
           rodadaId={r.rodada_id}
           orgao={r.orgao}
+          agenteRodada={r.agente}
           onClose={() => setDetalhesOpen(false)}
         />
       )}
@@ -936,20 +937,45 @@ const ESTADO_LABEL: Record<string, { label: string; color: string }> = {
   concluido_bud: { label: "bud ok", color: "#8b5cf6" },
 };
 
+interface TimelineEvent {
+  ts: string;          // HH:MM:SS
+  tipo: "ato" | "task" | "info";
+  texto: string;
+  cor: string;
+}
+
 function RodadaDetalhesModal({
   rodadaId,
   orgao,
+  agenteRodada,
   onClose,
 }: {
   rodadaId: string;
   orgao: string;
+  agenteRodada: "piper" | "bud" | "new" | null;
   onClose: () => void;
 }) {
   const [atos, setAtos] = useState<AtoDaRodada[]>([]);
   const [workers, setWorkers] = useState<{ worker: string; tasks_ativas: WorkerTask[] }[]>([]);
   const [resumo, setResumo] = useState<{ total: number; piper: number; bud: number } | null>(null);
+  const [eventos, setEventos] = useState<TimelineEvent[]>([]);
+  const previousAtosRef = useRef<Map<string, AtoDaRodada["estado"]>>(new Map());
+  const previousTasksRef = useRef<Set<string>>(new Set());
+  const logRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Auto-scroll do log pra última linha quando novos eventos chegam
+  useEffect(() => {
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+    }
+  }, [eventos]);
   const [erro, setErro] = useState<string | null>(null);
+
+  const pushEvento = useCallback((tipo: TimelineEvent["tipo"], texto: string, cor: string) => {
+    const ts = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    setEventos((prev) => [...prev, { ts, tipo, texto, cor }].slice(-200));
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -959,7 +985,25 @@ function RodadaDetalhesModal({
       ]);
       if (resA.ok) {
         const d = await resA.json();
-        setAtos(d.atos || []);
+        const atosNovos: AtoDaRodada[] = d.atos || [];
+
+        // Detecta mudanças de estado em cada ato → eventos
+        const mapaAnterior = previousAtosRef.current;
+        for (const a of atosNovos) {
+          const anterior = mapaAnterior.get(a.ato_id);
+          if (anterior !== a.estado) {
+            const cor = ESTADO_LABEL[a.estado]?.color ?? "#9ca3af";
+            const acao =
+              a.estado === "em_andamento" ? "iniciou" :
+              a.estado === "concluido_piper" ? "concluiu (piper)" :
+              a.estado === "concluido_bud" ? "concluiu (bud)" :
+              "pendente";
+            pushEvento("ato", `${a.tipo.replace(/_/g, " ")} ${a.numero} → ${acao}`, cor);
+          }
+          mapaAnterior.set(a.ato_id, a.estado);
+        }
+
+        setAtos(atosNovos);
         setResumo({
           total: d.total_atos || 0,
           piper: d.atos_analisados_piper || 0,
@@ -970,14 +1014,33 @@ function RodadaDetalhesModal({
       }
       if (resW.ok) {
         const d = await resW.json();
-        setWorkers(d.workers || []);
+        const workersNovos = d.workers || [];
+
+        // Detecta novas tasks vs anteriores
+        const idsNovas = new Set<string>();
+        for (const w of workersNovos) {
+          for (const t of w.tasks_ativas || []) {
+            idsNovas.add(t.id);
+            if (!previousTasksRef.current.has(t.id)) {
+              pushEvento("task", `worker iniciou: ${t.name}`, "#16a34a");
+            }
+          }
+        }
+        // Tasks que sumiram → terminaram
+        for (const idAnterior of previousTasksRef.current) {
+          if (!idsNovas.has(idAnterior)) {
+            pushEvento("task", `worker liberou task ${idAnterior.slice(0, 8)}`, "#86efac");
+          }
+        }
+        previousTasksRef.current = idsNovas;
+        setWorkers(workersNovos);
       }
     } catch (e) {
       setErro((e as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [rodadaId]);
+  }, [rodadaId, pushEvento]);
 
   useEffect(() => {
     load();
@@ -991,40 +1054,63 @@ function RodadaDetalhesModal({
         <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between gap-4">
           <div>
             <p className="text-[10px] uppercase tracking-[0.14em] text-blue-400" style={{ fontFamily: "JetBrains Mono, monospace" }}>
-              Rodada · {orgao}
+              Rodada · {orgao} {agenteRodada && `· ${agenteRodada.toUpperCase()}`}
             </p>
             <p className="text-white text-[14px] mt-0.5" style={{ fontFamily: "JetBrains Mono, monospace" }}>
               {rodadaId.slice(0, 8)}…
-              {resumo && ` — Piper ${resumo.piper}/${resumo.total} · Bud ${resumo.bud}`}
+              {resumo && agenteRodada === "bud" && ` — Bud ${resumo.bud}/${resumo.total}`}
+              {resumo && agenteRodada === "new" && ` — New ${resumo.bud}/${resumo.total}`}
+              {resumo && (agenteRodada === "piper" || agenteRodada === null) && ` — Piper ${resumo.piper}/${resumo.total}${resumo.bud ? ` · Bud ${resumo.bud}` : ""}`}
             </p>
           </div>
           <button onClick={onClose} className="text-white/40 hover:text-white text-[20px]">×</button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {/* Worker status */}
+          {/* Worker status + timeline de eventos */}
           <div className="px-5 py-3 border-b border-white/[0.06]" style={{ background: "#0a1410" }}>
             <p className="text-[10px] uppercase tracking-[0.16em] text-emerald-400 mb-2 flex items-center gap-2" style={SYNE}>
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Worker · tarefas ativas
+              Worker · log da execução ({eventos.length} eventos)
             </p>
-            {workers.length === 0 ? (
-              <p className="text-white/40 text-[11px]">Nenhuma tarefa ativa nos workers.</p>
-            ) : (
-              workers.flatMap((w) =>
-                w.tasks_ativas.length === 0 ? (
-                  <p key={w.worker} className="text-white/40 text-[11px]">{w.worker}: ocioso</p>
-                ) : (
+
+            {/* tarefa ativa atual */}
+            <div className="text-[11px] py-1 mb-2" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+              {workers.length === 0 || workers.every((w) => w.tasks_ativas.length === 0) ? (
+                <span className="text-white/30">▸ ocioso</span>
+              ) : (
+                workers.flatMap((w) =>
                   w.tasks_ativas.map((t) => (
-                    <div key={t.id} className="text-[11px] py-1" style={{ fontFamily: "JetBrains Mono, monospace" }}>
-                      <span className="text-emerald-400">▸</span>{" "}
+                    <div key={t.id} className="py-0.5">
+                      <span className="text-emerald-400">▸ ATIVO:</span>{" "}
                       <span className="text-white">{t.name}</span>{" "}
                       <span className="text-white/40">{t.args_preview}</span>
                     </div>
                   ))
                 )
-              )
-            )}
+              )}
+            </div>
+
+            {/* timeline de eventos (terminal-like) */}
+            <div
+              ref={logRef}
+              className="text-[10.5px] leading-relaxed bg-black/40 px-3 py-2 max-h-48 overflow-y-auto border border-white/[0.06]"
+              style={{ fontFamily: "JetBrains Mono, monospace" }}
+            >
+              {eventos.length === 0 ? (
+                <span className="text-white/30">— sem eventos ainda; aguardando próxima atualização —</span>
+              ) : (
+                eventos.map((e, i) => (
+                  <div key={i} className="flex gap-2">
+                    <span className="text-white/30 tabular-nums shrink-0">{e.ts}</span>
+                    <span style={{ color: e.cor }}>
+                      {e.tipo === "task" ? "⚙" : e.tipo === "ato" ? "▸" : "ℹ"}
+                    </span>
+                    <span className="text-white/80 flex-1">{e.texto}</span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           {/* Lista de atos */}
