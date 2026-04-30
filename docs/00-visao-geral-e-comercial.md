@@ -1,9 +1,11 @@
 # Visão Geral e Modelo Comercial
 ## Plataforma de Auditoria de Atos Administrativos Públicos
 
-**Data:** 24 de abril de 2026  
-**Responsável:** Regis Alessander Wilczek  
-**Status:** MVP em produção — pipeline Haiku em andamento (CAU/PR)
+**Data:** 30 de abril de 2026 (revisão pós Sprint Abril)
+**Responsável:** Regis Alessander Wilczek
+**Status:** Pipeline com 4 agentes (ATLAS + Piper + Bud + Zew em testes) operando no CAU/PR
+
+> **Atualização Sprint Abril 2026:** Onde o conteúdo abaixo menciona "Claude Haiku" (triagem) e "Claude Sonnet" (análise), a stack atual é **Gemini 2.5 Flash Lite (ATLAS)** + **Gemini 2.5 Pro (Piper)** + **Claude Sonnet 4.6 (Bud)** + **Claude Opus 4.7 (Zew)**. Os planos comerciais e a proposta de valor seguem inalterados. Ver `CLAUDE.md` e `docs/03-pipeline-ia.md` para detalhes.
 
 ---
 

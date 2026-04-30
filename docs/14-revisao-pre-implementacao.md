@@ -3,7 +3,23 @@
 > Documento de auditoria técnica e comercial produzido antes do início da codificação.
 > Data: 2026-04-22
 
----
+> ## ⚠️ Status pós Sprint Abril 2026
+>
+> Este documento foi escrito **antes** da implementação. Muitos itens identificados como riscos/gaps já foram resolvidos:
+>
+> - ✅ **Schema reconciliado** — 32 tabelas em produção (era 23+4 no plano)
+> - ✅ **Pipeline IA funcionando** — agora com 4 agentes (ATLAS, Piper, Bud, Zew em teste); arquitetura evoluiu de Haiku+Sonnet pra essa pra otimizar custo+qualidade
+> - ✅ **Algoritmo de deduplicação de pessoas** — implementado em `app/services/pessoas_service.py` (rapidfuzz + heurísticas)
+> - ✅ **Scraper local** — VPS bloqueada com 403 pelo CAU/PR; resolvido rodando local
+> - ✅ **CVSS-A** — score reproduzível adicionado pra resolver subjetividade do nível
+> - ✅ **Painel da conta** — perfil, assinatura, doação, favoritos, avatar
+> - 🔄 **Alertas por email** — Resend configurado, código de disparo pendente
+> - 🔄 **OCR escaneadas** — Tesseract integrado em scripts locais; pipeline VPS pendente
+> - 🔄 **Geração de PDF de ficha de denúncia** — pendente
+>
+> O texto abaixo segue como **registro histórico** do raciocínio que precedeu a implementação. Útil pra entender por que algumas decisões foram tomadas.
+>
+> ---
 
 ## 1. Visão Geral do Estado do Projeto
 
