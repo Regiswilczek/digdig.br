@@ -14,7 +14,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ChevronDown, MessageSquare, LogOut, Menu } from "lucide-react";
+import { ChevronDown, MessageSquare, LogOut, Menu, Heart } from "lucide-react";
 import {
   INK,
   PAPER,
@@ -74,6 +74,7 @@ function SidebarContent({
   userEmail,
   userNome,
   userAvatar,
+  userPlano,
   excavOpen,
   setExcavOpen,
   onSignOut,
@@ -82,12 +83,15 @@ function SidebarContent({
   userEmail: string;
   userNome: string | null;
   userAvatar: string | null;
+  userPlano: string | null;
   excavOpen: boolean;
   setExcavOpen: (v: boolean) => void;
   onSignOut: () => void;
   onNavigate?: () => void;
 }) {
   const initial = ((userNome ?? userEmail)?.[0] ?? "•").toUpperCase();
+  const planoLabel = userPlano ?? "—";
+  const isFree = !userPlano || userPlano.toLowerCase() === "gratuito";
   const { stats: pipelineStats, finStats: pipelineFinStats } = useOrgao("cau-pr");
   const orgaos = [
     { nome: "CAU/PR", slug: "cau-pr", ativo: true, n: 1 },
@@ -380,24 +384,24 @@ function SidebarContent({
         className="px-3 py-3 flex-shrink-0"
         style={{ borderTop: `1px solid ${BORDER}` }}
       >
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-start gap-3">
           <Link
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             to={"/painel/conta" as any}
             onClick={onNavigate}
             title="Minha conta"
-            className="flex items-center gap-2.5 flex-1 min-w-0 transition-opacity hover:opacity-80"
+            className="flex items-start gap-3 flex-1 min-w-0 transition-opacity hover:opacity-80"
           >
             {userAvatar ? (
               <img
                 src={userAvatar}
                 alt="avatar"
-                className="w-7 h-7 object-cover flex-shrink-0"
+                className="w-11 h-11 object-cover flex-shrink-0"
                 style={{ borderRadius: RADIUS, border: `1px solid ${HAIRLINE}` }}
               />
             ) : (
               <span
-                className="flex items-center justify-center w-7 h-7 text-white text-[11px] font-semibold flex-shrink-0"
+                className="flex items-center justify-center w-11 h-11 text-white text-[15px] font-semibold flex-shrink-0"
                 style={{
                   background: INK,
                   fontFamily: MONO,
@@ -407,19 +411,32 @@ function SidebarContent({
                 {initial}
               </span>
             )}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 pt-0.5">
               <p
-                className="text-[11px] font-medium truncate leading-tight"
+                className="text-[12px] font-medium truncate leading-tight"
                 style={{ color: INK, fontFamily: TIGHT }}
               >
                 {userNome || userEmail || "—"}
               </p>
-              <p
-                className="text-[8.5px] uppercase tracking-[0.18em] mt-0.5"
-                style={{ color: MUTED_SOFT, fontFamily: MONO }}
+              <span
+                className="inline-flex items-center gap-1 text-[8.5px] uppercase tracking-[0.18em] mt-1 px-1.5 py-0.5"
+                style={{
+                  fontFamily: MONO,
+                  color: INK,
+                  background: PAPER,
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: RADIUS,
+                }}
               >
-                minha conta →
-              </p>
+                <span
+                  className="h-1 w-1 rounded-full"
+                  style={{
+                    background: isFree ? MUTED_SOFT : ACCENT,
+                    boxShadow: isFree ? "none" : `0 0 5px ${ACCENT}`,
+                  }}
+                />
+                {planoLabel}
+              </span>
             </div>
           </Link>
           <button
@@ -431,6 +448,25 @@ function SidebarContent({
             <LogOut size={12} />
           </button>
         </div>
+
+        {/* CTA: doar / virar assinante */}
+        <Link
+          to="/apoiar"
+          onClick={onNavigate}
+          className="mt-3 flex items-center justify-center gap-1.5 h-8 text-[10px] uppercase tracking-[0.18em] transition-colors hover:opacity-90"
+          style={{
+            fontFamily: MONO,
+            color: "#fff",
+            background: INK,
+            borderRadius: RADIUS,
+            fontWeight: 600,
+            textDecoration: "none",
+          }}
+          title={isFree ? "Apoiar o projeto ou virar assinante" : "Doar ao Dig Dig"}
+        >
+          <Heart size={11} />
+          {isFree ? "apoiar / assinar" : "doar"}
+        </Link>
       </div>
 
       {/* ─── Bottom status bar ────────────────────────────── */}
@@ -518,6 +554,7 @@ function PainelLayout() {
   const [userEmail, setUserEmail] = useState("");
   const [userNome, setUserNome] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userPlano, setUserPlano] = useState<string | null>(null);
   const [excavOpen, setExcavOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -537,6 +574,7 @@ function PainelLayout() {
           const p = await r.json();
           setUserNome(p.nome ?? null);
           setUserAvatar(p.avatar_url ?? null);
+          setUserPlano(p.plano?.nome ?? null);
         }
       } catch {/* silencioso */}
     });
@@ -583,6 +621,7 @@ function PainelLayout() {
               userEmail={userEmail}
               userNome={userNome}
               userAvatar={userAvatar}
+              userPlano={userPlano}
               excavOpen={excavOpen}
               setExcavOpen={setExcavOpen}
               onSignOut={handleSignOut}
@@ -636,6 +675,7 @@ function PainelLayout() {
           userEmail={userEmail}
           userNome={userNome}
           userAvatar={userAvatar}
+          userPlano={userPlano}
           excavOpen={excavOpen}
           setExcavOpen={setExcavOpen}
           onSignOut={handleSignOut}
