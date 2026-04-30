@@ -169,11 +169,13 @@ async def atividade_recente(slug: str, db: AsyncSession = Depends(get_db)):
     since_analisado = datetime.now(timezone.utc) - timedelta(hours=24)
     since_entrando = datetime.now(timezone.utc) - timedelta(hours=4)
 
-    # Última análise por ato (subquery lateral)
+    # Última atualização (criado OU atualizado pelo Bud/New) por ato.
+    # Usar atualizado_em garante que aprofundamentos via UPDATE também
+    # apareçam no topo do feed quando o Bud termina.
     latest_analise = (
         select(
             Analise.ato_id,
-            func.max(Analise.criado_em).label("analisado_em"),
+            func.max(Analise.atualizado_em).label("analisado_em"),
         )
         .where(Analise.tenant_id == tenant.id)
         .group_by(Analise.ato_id)
@@ -183,11 +185,11 @@ async def atividade_recente(slug: str, db: AsyncSession = Depends(get_db)):
         select(
             Analise.ato_id,
             Analise.nivel_alerta,
-            Analise.criado_em.label("analisado_em"),
+            Analise.atualizado_em.label("analisado_em"),
         )
         .join(latest_analise, and_(
             Analise.ato_id == latest_analise.c.ato_id,
-            Analise.criado_em == latest_analise.c.analisado_em,
+            Analise.atualizado_em == latest_analise.c.analisado_em,
         ))
         .where(Analise.tenant_id == tenant.id)
         .subquery()
@@ -233,6 +235,8 @@ async def atividade_recente(slug: str, db: AsyncSession = Depends(get_db)):
             "ato_id":       str(r.item_id),
             "numero":       r.numero,
             "tipo":         r.tipo,
+            # event_time = momento mais recente do ciclo (análise se houver, senão entrada)
+            "event_time":   (r.analisado_em or r.criado_em).isoformat() if (r.analisado_em or r.criado_em) else None,
             "criado_em":    r.criado_em.isoformat() if r.criado_em else None,
             "analisado_em": r.analisado_em.isoformat() if r.analisado_em else None,
             "nivel_alerta": r.nivel_alerta,
@@ -247,6 +251,7 @@ async def atividade_recente(slug: str, db: AsyncSession = Depends(get_db)):
             "ato_id":       str(r.item_id),
             "numero":       r.numero,
             "tipo":         "diaria",
+            "event_time":   r.criado_em.isoformat() if r.criado_em else None,
             "criado_em":    r.criado_em.isoformat() if r.criado_em else None,
             "analisado_em": None,
             "nivel_alerta": None,
@@ -259,7 +264,7 @@ async def atividade_recente(slug: str, db: AsyncSession = Depends(get_db)):
 
     todos = sorted(
         atos_items + diarias_items,
-        key=lambda x: x["criado_em"] or "",
+        key=lambda x: x["event_time"] or "",
         reverse=True,
     )[:60]
 

@@ -109,6 +109,8 @@ interface FeedItem {
   nivel_alerta: string | null;
   score_risco: number | null;
   criado_em: string;
+  /** event_time = analisado_em || criado_em — momento mais recente do item, usado pra "há Xmin". */
+  event_time: string;
   numero?: string;
   tipo?: string;
   status?: "entrando" | "analisado";
@@ -183,7 +185,7 @@ function FeedRow({ item, slug }: { item: FeedItem; slug: string }) {
           className="text-[9.5px] whitespace-nowrap flex-shrink-0 tabular-nums"
           style={{ color: "#a8a59c", fontFamily: MONO }}
         >
-          {timeAgo(item.criado_em)}
+          {timeAgo(item.event_time || item.criado_em)}
         </span>
       </div>
 
@@ -244,6 +246,7 @@ function RealtimeFeed({
           nivel_alerta: i.nivel_alerta,
           score_risco: null,
           criado_em: i.criado_em ?? new Date().toISOString(),
+          event_time: i.event_time || i.analisado_em || i.criado_em || new Date().toISOString(),
           numero: i.numero ?? undefined,
           tipo: i.tipo ?? undefined,
           status: i.status,
@@ -1897,6 +1900,7 @@ function TabPipeline({
           nivel_alerta: i.nivel_alerta,
           score_risco: null,
           criado_em: i.criado_em ?? new Date().toISOString(),
+          event_time: i.event_time || i.analisado_em || i.criado_em || new Date().toISOString(),
           numero: i.numero ?? undefined,
           tipo: i.tipo ?? undefined,
           status: i.status,
@@ -2081,7 +2085,7 @@ function TabPipeline({
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-[10px] uppercase tracking-wider" style={{ color: SUBTLE, fontFamily: MONO }}>
-                    {timeAgo(item.criado_em)}
+                    {timeAgo(item.event_time || item.criado_em)}
                   </td>
                 </tr>
               ))}

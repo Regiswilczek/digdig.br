@@ -73,12 +73,23 @@ function patch(slug: string, changes: Partial<OrgaoSnapshot>) {
   notify(slug);
 }
 
-function prependToAtividade(slug: string, item: AtividadeItem) {
+function prependToAtividade(
+  slug: string,
+  item: AtividadeItem,
+  opts: { dedupe?: boolean } = {},
+) {
   const prev = get(slug);
-  const already = (prev.atividade ?? []).some((i) => i.ato_id === item.ato_id);
+  const lista = prev.atividade ?? [];
+  if (opts.dedupe) {
+    // Remove qualquer entrada anterior do mesmo ato (pra mover pro topo no UPDATE)
+    const semDuplicata = lista.filter((i) => i.ato_id !== item.ato_id);
+    patch(slug, { atividade: [item, ...semDuplicata].slice(0, 80) });
+    return;
+  }
+  const already = lista.some((i) => i.ato_id === item.ato_id);
   if (already) return;
   patch(slug, {
-    atividade: [item, ...(prev.atividade ?? [])].slice(0, 80),
+    atividade: [item, ...lista].slice(0, 80),
   });
 }
 
@@ -159,10 +170,12 @@ function ensureChannel(slug: string) {
           .select("numero, tipo")
           .eq("id", row.ato_id)
           .single();
+        const now = new Date().toISOString();
         const item: AtividadeItem = {
           ato_id: row.ato_id,
           numero: ato?.numero ?? null,
           tipo: ato?.tipo ?? null,
+          event_time: row.criado_em || now,
           criado_em: row.criado_em,
           analisado_em: row.criado_em,
           nivel_alerta: row.nivel_alerta,
@@ -171,7 +184,48 @@ function ensureChannel(slug: string) {
         };
         prependToAtividade(slug, item);
         addNovidade(slug, item);
-        // também atualiza stats (total_analisados subiu)
+        fetchStats(slug)
+          .then((s) => patch(slug, { stats: s }))
+          .catch(() => {});
+      },
+    )
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "analises" },
+      async (payload) => {
+        // UPDATE em analise = Bud/New aprofundando OU virando "em_andamento".
+        // Move o item pro topo do feed com timestamp atualizado.
+        const row = payload.new as {
+          id: string;
+          ato_id: string;
+          nivel_alerta: string | null;
+          atualizado_em: string;
+          status: string | null;
+          resultado_bud: unknown | null;
+          resultado_new: unknown | null;
+        };
+        const { data: ato } = await supabase
+          .from("atos")
+          .select("numero, tipo")
+          .eq("id", row.ato_id)
+          .single();
+        const now = new Date().toISOString();
+        const item: AtividadeItem = {
+          ato_id: row.ato_id,
+          numero: ato?.numero ?? null,
+          tipo: ato?.tipo ?? null,
+          event_time: row.atualizado_em || now,
+          criado_em: row.atualizado_em || now,
+          analisado_em: row.atualizado_em || now,
+          nivel_alerta: row.nivel_alerta,
+          status: "analisado",
+          origem: "ato",
+        };
+        // Remove duplicata anterior (se houver) e prepend versão atualizada
+        prependToAtividade(slug, item, { dedupe: true });
+        if (row.resultado_bud || row.resultado_new) {
+          addNovidade(slug, item);
+        }
         fetchStats(slug)
           .then((s) => patch(slug, { stats: s }))
           .catch(() => {});
@@ -191,6 +245,7 @@ function ensureChannel(slug: string) {
           ato_id: row.id,
           numero: row.numero,
           tipo: row.tipo,
+          event_time: row.criado_em,
           criado_em: row.criado_em,
           analisado_em: null,
           nivel_alerta: null,
@@ -215,6 +270,7 @@ function ensureChannel(slug: string) {
           ato_id: row.id,
           numero: row.codigo_processo,
           tipo: "diaria",
+          event_time: row.criado_em,
           criado_em: row.criado_em,
           analisado_em: null,
           nivel_alerta: null,
@@ -223,7 +279,6 @@ function ensureChannel(slug: string) {
           descricao: row.nome_passageiro,
         };
         prependToAtividade(slug, item);
-        // financial records are not tracked as novidades (too many)
       },
     )
     .subscribe();

@@ -43,6 +43,8 @@ export interface AtividadeItem {
   ato_id: string;
   numero: string | null;
   tipo: string | null;
+  /** Momento mais recente do ciclo (analisado_em || criado_em) — usado para ordenar e exibir "há Xmin". */
+  event_time: string | null;
   criado_em: string | null;
   analisado_em: string | null;
   nivel_alerta: string | null;
