@@ -43,6 +43,14 @@ build/
 DOCUMENTOS QUE CONSEGUI NA MAO/
 Pesquisa portal da transparencia/
 backend/scripts/_transparencia_html.tmp
+CAU PR/
+
+# Build de deploy estático (artefato — não é código-fonte)
+dist-vps/
+
+# Auditorias de segurança (não commitar em repo público — risco de exposição)
+SECURITY_AUDIT.md
+SECURITY_AUDIT_*.md
 
 # OS / Editor
 .vscode/*
