@@ -14,39 +14,48 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 
 ---
 
-## Estado Atual do Projeto (30/04/2026 — final do Sprint de Abril)
+## Estado Atual do Projeto (01/05/2026 — Sprint Maio, dia 1)
 
 ### Pipeline com 4 agentes
 
-| Agente | Modelo | Função | Estado |
+> Convenção editorial: documentos públicos (whitepapers, página `/modelos`, `/soluções`) **nunca nomeiam** o motor por trás de cada agente — só falamos de Atlas, Piper, Bud e Zew. O CLAUDE.md aqui é interno e detalha o motor pra rastreabilidade técnica.
+
+| Agente | Motor (interno) | Função | Estado |
 |--------|--------|--------|--------|
-| **ATLAS** | Gemini 2.5 Flash Lite | Organização estrutural pré-Piper. 17 categorias, metadado barato (data, número, valor, pessoas) | ✅ 1ª run completa: 3.424 docs classificados, $2,05 |
-| **Piper** | Gemini 2.5 Pro (1M tokens) | Triagem investigativa. Lê texto inteiro, classifica nível, extrai indícios e tags | ✅ 1.453 atos analisados |
-| **Bud** | Claude Sonnet 4.6 | Aprofundamento dos críticos (vermelho/laranja) com contexto histórico das pessoas envolvidas | 🔄 47 atos na fila (16 vermelhos + 31 laranjas) |
+| **ATLAS** | Gemini 2.5 Flash Lite | Organização estrutural pré-Piper. 26 categorias canônicas, metadado barato (data, número, valor, pessoas). Também opera como OCR especializado pra atas escaneadas (~$0.013/ata). | ✅ rodou em 3.486+ docs do CAU/PR + começando GOV/PR |
+| **Piper** | Gemini 2.5 Pro (1M tokens, multimodal) | Triagem investigativa com janela de contexto longa. Lê regimento + ato completo numa só passada. Faz Vision em PDFs digitalizados sem chamada separada. | ✅ migrado de Haiku → Pro. 160/161 atas plenárias do CAU/PR analisadas |
+| **Bud** | Claude Sonnet 4.6 | Aprofundamento dos críticos (vermelho/laranja) com contexto histórico das pessoas envolvidas. Complementa CVSS-A e tags onde Piper deixou em branco. | ✅ 116 atas com Bud no CAU/PR |
 | **Zew/New** | Claude Opus 4.7 | Síntese sistêmica do corpus, padrões de longa duração, hipóteses | 🚧 em testes pontuais |
 
 ### Infraestrutura VPS (Hostinger — 187.127.30.188, Ubuntu 24.04)
 - Docker Compose: api, worker_ai, worker_beat, redis, frontend
 - nginx (no container frontend) como reverse proxy HTTPS
-- SSL via Let's Encrypt (wildcard `*.digdig.com.br`)
+- SSL via Let's Encrypt (cert SAN com 4 domínios + dns code.digdig.com.br criado mas não em uso)
 - Domínios ativos: `digdig.com.br`, `www.digdig.com.br`, `pnl.digdig.com.br`, `office.digdig.com.br`
 - **Deploy frontend:** `bash scripts/deploy-frontend.sh` (rebuild image + restart container — comando único). Documentado em `package.json` como `deploy:frontend`.
+- **Deploy backend (API):** `docker compose build api && docker compose up -d api` quando há mudanças em `requirements.txt` ou no código que precisem persistir além de `restart`.
 
 ### Backend (FastAPI + Celery + Redis)
-- 32 tabelas no Supabase com RLS e migrations aplicadas
+- 35+ tabelas no Supabase com RLS e migrations aplicadas (última: `j9k0l1m2n3o4_access_request_instagram_handle`)
 - Pipeline ATLAS → Piper → Bud (Zew em testes) — orquestrador em `app/workers/orquestrador.py`
 - Endpoints públicos `/public/*`, painel `/painel/*`, conta `/me/*`, billing `/billing/*`, admin `/pnl/admin/*`
 - Webhook Mercado Pago com HMAC-SHA256 validado e replay protection (300s)
+- **reCAPTCHA v3**: `/public/recaptcha-verify` (standalone) + validação inline em `/public/access-requests`. Threshold 0.5, fail-open em outage do Google.
+- **Stack atualizada (Maio/2026):** FastAPI 0.115.6, Starlette 0.41.3, h11 0.16.0, sentry-sdk 2.18.0, lxml 6.1.0, python-multipart 0.0.9. Snyk: 17 issues fechadas.
 
 ### Frontend (React + Vite + TanStack Router)
 - SPA servida pelo container frontend via nginx
 - Painel autenticado com 5 abas: **Visão Geral, Relatório, Denúncias, Pipeline, Dados**
-- Aba **Dados** organizada pelo ATLAS — 17 categorias canônicas + Pendentes + Financeiro
+- Aba **Dados** organizada pelo ATLAS — 26 categorias canônicas + Pendentes + Financeiro
 - **Painel de conexões** (`/conex`) — grafo navegável com mini-cards de pessoa/ato/tag, modo foco
 - **Painel da conta** (`/painel/conta`) — perfil, assinatura, doação, favoritos, avatar (4 abas)
 - **Botão favoritar** em cada ato + lista no painel da conta
-- Sidebar fixa no viewport (sticky), avatar do usuário como link clicável
-- White Papers: `/whitepaper-01` a `/whitepaper-10`
+- Sidebar fixa no viewport com card "Pipeline" agregando todos tenants ativos (sem porcentagem, design minimal)
+- **Spline brain** (cena `circleparticlecopy`) na home, no topo do stack lateral direito
+- **/solicitar-acesso** com 3 perguntas obrigatórias (filiado a partido, agente público, como nos encontrou) + Instagram opcional + reCAPTCHA invisível
+- **/entrar** com card "Sem cadastro? Solicite acesso →" e reCAPTCHA pré-check
+- **/por-que-fechado** — página minimalista nova explicando beta fechado
+- White Papers: `/whitepaper-01` a `/whitepaper-11`
 
 ### Paperclip (office.digdig.com.br — Docker separado)
 - Plataforma de agentes de IA em `/opt/digdig/tools/paperclip/docker/`
@@ -55,50 +64,66 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 
 ### Scraper
 - `backend/scripts/scrape_local.py` roda localmente (IP brasileiro) — VPS é bloqueada com 403 pelo CAU/PR
-- 7.718 documentos no corpus do CAU/PR atual
+- Scripts GOV/PR rodam na VPS direto (PTE permite IP de DC): `scrape_pte_*.py` (Convênios v3, Licitações, Viagens, etc.)
+- **OCR Flash Lite especializado:** `ocr_atas_flash.py` — usa o motor do ATLAS pra OCR puro de PDFs escaneados, ~18× mais barato que Piper Vision Pro
 
 ---
 
-## Cobertura Real do CAU/PR (30/04/2026)
+## Cobertura Real do Sistema (01/05/2026)
 
-### Por tipo do scraper (origem)
+**Total no banco: 99.723 documentos** divididos em dois órgãos.
 
-| Tipo | Total | Com texto | Status |
-|------|-------|-----------|--------|
-| media_library | 2.845 | 1.735 | maior massa, redistribuída pelo ATLAS |
-| deliberacao | 759 | 686 | |
-| portaria | 551 | 550 | |
-| dispensa_eletronica | 208 | 203 | |
-| ata_plenaria | 161 | 110 | 51 sem texto (escaneadas pré-2018) |
-| relatorio_parecer | 85 | 85 | |
-| convenio | 25 | 1 | quase todos sem texto |
-| portaria_normativa | 21 | 21 | |
-| relatorio_tcu | 12 | 11 | |
-| contratacao_direta | 12 | 12 | |
-| auditoria_independente | 8 | 8 | |
-| contrato | 2 | 2 | |
-| **Total** | **4.689** | **3.424** | resto são docs sem texto extraível |
+### CAU/PR — auditoria entregue como MVP
 
-### Por categoria ATLAS (canônica)
-| Categoria | Qtd | Categoria | Qtd |
-|-----------|-----|-----------|-----|
-| licitacao | 1.516 | recursos_humanos | 38 |
-| deliberacao_arquivo | 624 | auditoria_externa | 36 |
-| portaria_arquivo | 563 | relatorio_gestao | 32 |
-| ata_plenaria | 177 | outros | 32 |
-| contrato | 107 | aditivo_contratual | 25 |
-| financeiro_balanco | 95 | processo_etico | 24 |
-| financeiro_orcamento | 55 | juridico_parecer | 4 |
-| financeiro_demonstrativo | 53 | comunicacao_institucional | 1 |
-| ata_pauta_comissao | 42 | | |
+| Indicador | Valor |
+|---|---|
+| Total de atos | 4.689 |
+| Com `tipo_atlas` (classificados pelo ATLAS) | 3.486 (74%) |
+| Com texto utilizável | 3.488 (74%) |
+| **Atas plenárias** | 161 (160 analisadas, 1 sem texto OCR-extraível) |
+| Atas com qualidade `digitalizado_ocr` (recuperadas pelo OCR especializado) | 50 |
 
-### Análise IA atual
-- **Piper**: 1.453 atos analisados (com `resultado_piper` populado)
-- **Distribuição**: ~74% amarelo / ~15% verde / ~9% laranja / ~1% vermelho
-- **Bud**: ~50 atos completos, **47 críticos pendentes na fila**
-  - 21 deles são **legados** (análise primeira pelo Haiku 4.5, antes do Piper). Marcados com badge `↻ refazer` no painel admin.
-- **Zew**: testes pontuais
-- **Custo acumulado**: ~$22 (Piper $20,01 + ATLAS $2,05)
+**Distribuição de níveis de alerta — atas plenárias** (após OCR + Piper pós-OCR):
+- 🔴 **14 vermelhas** (era 7 antes do OCR — +7 descobertas pré-2018)
+- 🟠 96 laranjas
+- 🟡 49 amarelas
+- 🟢 1 verde
+
+**Status de auditoria**: rodada Piper + Bud final pendente nos 274 sinalizados (Vermelhos + Laranjas) pra completar tags + CVSS-A e fechar o MVP.
+
+### GOV/PR — primeiro dia operacional (95.034 atos)
+
+| Categoria | Qtd |
+|---|---|
+| Convênios estaduais | 27.832 |
+| Licitações | 19.280 |
+| Catálogo de itens | 18.463 |
+| Fornecedores do Estado | 16.690 |
+| Contratos públicos | 9.348 |
+| Preços registrados | 2.228 |
+| Viagens / diárias | 479 |
+| Remuneração mensal de servidores | 168 |
+| Remuneração financeira | 168 |
+| Dispensas / inexigibilidade | 103 |
+| Inventário PTE (sub-itens) | 101 |
+| Dumps anuais (despesa, receita, licitação, contrato) | 86 |
+| **Total** | **95.034** |
+
+**Análise IA no GOV/PR**: **10 amostras estratégicas** processadas (ATLAS → Piper) — 4 vermelhos, 5 laranjas, 1 amarelo. Detalhes na tabela do white paper Nº 11.
+
+**Próximo na fila**: ATLAS classificando os 95k em massa, depois Piper. Secretarias de governo (decretos, portarias do Governador, leis estaduais consolidadas) ainda não capturadas.
+
+### Custos da última rodada (Maio/2026)
+
+| Operação | Custo |
+|---|---|
+| OCR especializado (Flash Lite) em 20 atas | $0.21 |
+| Piper Vision Pro (3 atas smoke test) | $0.73 |
+| ATLAS pós-OCR (38 atas) | $0.04 |
+| Piper texto (25 atas + 3 retries) | $2.69 |
+| **Total da rodada** | **~$3.67** |
+
+**Custo acumulado total do projeto**: ~$26 (Piper texto $20,01 + ATLAS $2,05 + rodada Maio $3,67 + miscellaneous).
 
 ---
 
@@ -134,10 +159,11 @@ Este arquivo existe para que o Claude entenda completamente o projeto ao iniciar
 5. Idempotência: re-rodar sobre atos já processados é gratuito (não chama API)
 
 ### Sobre o orquestrador (`backend/app/workers/orquestrador.py`)
-A rodada hoje é: scrape → Piper → Bud (críticos). **ATLAS ainda não está integrado no orquestrador automático** — roda standalone via `backend/scripts/atlas_classificar.py`. Inserir ATLAS antes do Piper é a Fase 2 do projeto ATLAS (ver white paper Nº 10).
+A rodada hoje é: scrape → Piper → Bud (críticos). **ATLAS ainda não está integrado no orquestrador automático** — roda standalone via `backend/scripts/atlas_classificar.py` ou `atlas_pos_ocr.py` (atos sem tipo_atlas após OCR). Inserir ATLAS antes do Piper é a Fase 2 do projeto ATLAS (ver white paper Nº 10).
 
-### Scraper local
-`scrape_local.py` **precisa rodar na máquina do Regis**. CAU/PR bloqueia IPs de data center com 403. Headers de browser não ajudam — bloqueio por IP.
+### Scraper
+- **CAU/PR**: `scrape_local.py` precisa rodar na máquina do Regis. CAU/PR bloqueia IPs de data center com 403. Headers de browser não ajudam — bloqueio por IP.
+- **GOV/PR**: roda direto na VPS (PTE permite IP de DC). Scripts: `scrape_pte_convenios_v3.py`, `scrape_pte_export.py`, `scrape_pte_viagens.py`, `seed_leis_govpr.py`, etc. Cada subsistema do PTE tem sua própria estrutura (POST AJAX, paginação, formato de resposta).
 
 ### Mudanças destrutivas em DB compartilhado
 **NUNCA** rode UPDATE em massa, DROP, downgrade alembic ou DELETE em produção sem autorização explícita. O sandbox bloqueia operações arriscadas; quando bloquear, peça pro Regis confirmar.
@@ -199,25 +225,24 @@ Detalhes em `docs/02-banco-de-dados.md`.
 
 ## Documentação
 
-| Arquivo | O que contém |
-|---------|-------------|
-| `docs/00-visao-geral-e-comercial.md` | Produto, planos, personas, roadmap |
-| `docs/01-arquitetura.md` | Stack, estrutura de pastas, fluxos |
-| `docs/02-banco-de-dados.md` | Tabelas com SQL completo, RLS, índices |
-| `docs/03-pipeline-ia.md` | Prompts ATLAS/Piper/Bud/Zew, prompt caching |
-| `docs/04-api-endpoints.md` | Todos os endpoints REST (público, painel, /me, admin, chat) |
-| `docs/05-frontend.md` | Páginas, componentes, sidebar, painel da conta |
-| `docs/06-seguranca-e-lgpd.md` | Auth, RLS, CORS, LGPD |
-| `docs/07-scraper-e-instituicoes.md` | Scraper, como adicionar novo órgão |
-| `docs/08-testes.md` | Unitários, integração, E2E, segurança, CI/CD |
-| `docs/09-infraestrutura-e-deploy.md` | VPS, Docker, nginx, Supabase, deploy:frontend |
-| `docs/10-logs-e-analytics.md` | Structlog, AuditLog, PostHog |
-| `docs/11-chat-e-ia-conversacional.md` | RAG, tipos de pergunta, custos |
-| `docs/12-plano-de-negocios.md` | Posicionamento, projeções |
-| `docs/13-api-dados-comercial.md` | Plano API & Dados |
-| `docs/14-revisao-pre-implementacao.md` | **LEIA ANTES DE CODAR** — riscos críticos |
-| `docs/15-alertas-email-e-deduplicacao.md` | Alertas + deduplicação |
-| `src/routes/whitepaper-01-extracao-caupr.tsx` ... `whitepaper-10-antes-da-proxima-onda.tsx` | 10 white papers publicados |
+### Especificação técnica (15 docs numerados em `docs/`)
+
+`docs/00-*` até `docs/15-*` cobrem a arquitetura formal. Veja [docs/README.md](docs/README.md) pro índice completo com status de cada um.
+
+### Pesquisa e mapeamento (GOV-PR)
+
+Dossiê do trabalho de descoberta do governo do estado em `docs/gov-pr-research/`:
+- `mapeamento-gov-pr.md` — visão geral
+- `pte-discovery*.md` + `pte-mapa-completo.md` + `pte-download-urls.md` — Portal de Transparência Estadual
+- `sistemas-externos.md` — SIAFIC, FlexPortal, Qlik, PowerBI emendas
+- `coleta-pendente.md` — fontes ainda não conectadas
+- `storage-strategy.md` — armazenamento de PDFs vs metadados
+
+### White Papers publicados
+
+`src/routes/whitepaper-01-*.tsx` até `whitepaper-11-cem-mil-documentos.tsx` — 11 papers publicados.
+
+WP10 documenta o sprint que adicionou ATLAS, CVSS-A, meta-tags, painel de conexões e painel da conta. **WP11 (Maio/2026)** documenta a entrega do CAU/PR como MVP, o primeiro dia operacional do GOV/PR (95k docs), o OCR especializado das atas escaneadas pré-2018, e a pergunta existencial sobre os próximos passos do projeto.
 
 ---
 
@@ -260,10 +285,12 @@ Custo de IA por novo órgão: ~$5–15 (varia com volume + ATLAS antes)
 6. **Validar plano antes de servir chat/exportação** — fichas/análises são livres; chat e geração de doc requerem plano
 7. **Nunca commitar secrets** — `.env` no `.gitignore`; SECURITY_AUDIT.md também é gitignored
 8. **Verificar rodada ativa antes de disparar nova** — endpoint guard + check manual
-9. **Scraper roda local** — não tentar na VPS
+9. **Scraper CAU/PR roda local; GOV/PR roda na VPS** — IPs de DC bloqueados pelo CAU, mas permitidos no PTE
 10. **CEO e diretores são agentes no Paperclip** — não executam código
 11. **Frontend muda? `bash scripts/deploy-frontend.sh`** — sem rebuild, nginx serve bundle antigo
 12. **Mudanças destrutivas em prod precisam de autorização explícita do Regis**
+13. **Backend (`backend/app/`) muda? `docker compose build api && docker compose up -d api`** — `docker cp` sobrevive a `restart`, mas some em qualquer recreate
+14. **Documentos públicos não nomeiam motores** — só "Atlas/Piper/Bud/Zew", nunca "Gemini" ou "Claude". Whitepapers e páginas /modelos, /soluções, /apoiar seguem essa regra. CLAUDE.md aqui é interno e pode citar motor pra rastreabilidade.
 
 ---
 
@@ -280,6 +307,7 @@ A IA **não afirma crimes** — usa linguagem de "indício", "suspeita", "padrã
 
 ## Contatos e Referências
 
+### CAU/PR (primeiro órgão — auditoria entregue como MVP)
 - **Site CAU/PR:** https://www.caupr.gov.br
 - **Portarias:** https://www.caupr.gov.br/portarias
 - **Deliberações:** https://www.caupr.gov.br/?page_id=17916
@@ -287,3 +315,9 @@ A IA **não afirma crimes** — usa linguagem de "indício", "suspeita", "padrã
 - **Lei 12.378/2010:** Lei de criação do CAU
 - **Portal de transparência:** https://transparencia.caupr.gov.br/
 - **Implanta:** API mensal de dados financeiros (diárias, passagens) — fonte das tabelas `diarias`
+
+### GOV/PR (segundo órgão — primeiro dia operacional)
+- **Portal Transparência Estadual (PTE):** https://www.transparencia.pr.gov.br
+- **Diário Oficial Executivo (DIOE):** https://www.documentos.dioe.pr.gov.br
+- **Constituição do Paraná**, **Lei 15.608/2007** (Licitações estaduais), **LRF**, **Improbidade**: base legal injetada no system prompt do tenant `gov-pr`
+- **SIAFIC, FlexPortal, Qlik, PowerBI emendas:** sistemas adjacentes mapeados em `docs/sistemas-externos.md` — ainda não conectados

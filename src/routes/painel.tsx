@@ -32,7 +32,6 @@ import {
   RADIUS,
   tag,
 } from "../lib/painel-theme";
-import { useOrgao } from "../lib/orgao-store";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — route is registered once dev server regenerates routeTree.gen.ts
@@ -92,7 +91,13 @@ function SidebarContent({
   const initial = ((userNome ?? userEmail)?.[0] ?? "•").toUpperCase();
   const planoLabel = userPlano ?? "—";
   const isFree = !userPlano || userPlano.toLowerCase() === "gratuito";
-  const { stats: pipelineStats, finStats: pipelineFinStats } = useOrgao("cau-pr");
+
+  // Pipeline card agregado — soma todos os tenants ativos (não só CAU/PR)
+  const [aggStats, setAggStats] = useState<{
+    analisados: number;
+    total: number;
+    orgaos: number;
+  } | null>(null);
 
   // Sidebar dinâmica — busca tenants do backend, com fallback hardcoded
   // pro caso da API estar fora ou ainda não ter o endpoint deployado.
@@ -110,7 +115,7 @@ function SidebarContent({
         const { API_URL } = await import("@/lib/api");
         const r = await fetch(`${API_URL}/public/tenants`);
         if (!r.ok) return;
-        const lista = await r.json() as { slug: string; nome: string; ativo: boolean; status: string }[];
+        const lista = await r.json() as { slug: string; nome: string; ativo: boolean; status: string; total_atos?: number }[];
         if (cancelled || !Array.isArray(lista) || lista.length === 0) return;
         setOrgaos(lista.map((t, i) => ({
           nome: t.nome,
@@ -118,6 +123,30 @@ function SidebarContent({
           ativo: t.ativo,
           n: i + 1,
         })));
+
+        // Agregação pra pipeline card: soma stats dos ativos
+        const ativos = lista.filter((t) => t.ativo);
+        const stats = await Promise.all(
+          ativos.map(async (t) => {
+            try {
+              const sr = await fetch(`${API_URL}/public/orgaos/${t.slug}/stats`);
+              if (!sr.ok) return null;
+              return await sr.json() as { total_atos: number; total_analisados: number; total_sem_texto: number };
+            } catch { return null; }
+          })
+        );
+        if (cancelled) return;
+        const agg = stats.reduce(
+          (acc, s) => {
+            if (!s) return acc;
+            return {
+              analisados: acc.analisados + (s.total_analisados || 0),
+              total: acc.total + Math.max(0, (s.total_atos || 0) - (s.total_sem_texto || 0)),
+            };
+          },
+          { analisados: 0, total: 0 }
+        );
+        setAggStats({ analisados: agg.analisados, total: agg.total, orgaos: ativos.length });
       } catch { /* fallback silencioso */ }
     })();
     return () => { cancelled = true; };
@@ -338,18 +367,11 @@ function SidebarContent({
             </span>
           </div>
           {(() => {
-            const analisados = pipelineStats?.total_analisados ?? null;
-            // Total auditável: desconta os atos sem texto extraído — mesma lógica da Visão Geral.
-            // (sem_url / erro_download / pendente não podem entrar no pipeline IA.)
-            const totalDocs = pipelineStats
-              ? (pipelineStats.total_atos
-                  + (pipelineFinStats?.diarias.total ?? 0)
-                  + (pipelineFinStats?.passagens.total ?? 0))
-              : null;
-            const total = totalDocs != null
-              ? Math.max(0, totalDocs - (pipelineStats?.total_sem_texto ?? 0))
-              : null;
-            const pct = analisados != null && total ? Math.round((analisados / total) * 1000) / 10 : null;
+            const analisados = aggStats?.analisados ?? null;
+            const total = aggStats?.total ?? null;
+            const orgaos = aggStats?.orgaos ?? null;
+            const fmt = (n: number | null) =>
+              n != null ? n.toLocaleString("pt-BR") : "—";
             return (
               <>
                 <div className="flex items-baseline gap-1.5">
@@ -363,19 +385,13 @@ function SidebarContent({
                       lineHeight: 1,
                     }}
                   >
-                    {analisados ?? "—"}
+                    {fmt(analisados)}
                   </span>
                   <span
                     className="text-[10px] tabular-nums"
                     style={{ color: MUTED, fontFamily: MONO }}
                   >
-                    / {total ?? "—"}
-                  </span>
-                  <span
-                    className="ml-auto text-[9.5px] tabular-nums"
-                    style={{ color: ACCENT, fontFamily: MONO, fontWeight: 600 }}
-                  >
-                    {pct != null ? `${pct}%` : "—"}
+                    / {fmt(total)}
                   </span>
                 </div>
                 <div
@@ -383,10 +399,11 @@ function SidebarContent({
                   style={{ background: BORDER, borderRadius: 1 }}
                 >
                   <div
-                    className="h-full transition-all duration-700"
+                    className="h-full"
                     style={{
-                      width: pct != null ? `${pct}%` : "0%",
+                      width: "100%",
                       background: `linear-gradient(90deg, ${INK} 0%, ${ACCENT} 100%)`,
+                      opacity: 0.35,
                     }}
                   />
                 </div>
@@ -394,7 +411,9 @@ function SidebarContent({
                   className="text-[9px] mt-2 leading-snug uppercase tracking-[0.14em]"
                   style={{ color: MUTED_SOFT, fontFamily: MONO }}
                 >
-                  cau/pr · {total != null ? `${total} docs` : "carregando…"}
+                  {orgaos != null
+                    ? `${orgaos} ${orgaos === 1 ? "órgão" : "órgãos"} · ${fmt(total)} docs`
+                    : "carregando…"}
                 </p>
               </>
             );

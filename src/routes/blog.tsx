@@ -34,6 +34,16 @@ export const Route = createFileRoute("/blog")({
 // Add new entries here (newest first) whenever a new white paper is published.
 const PAPERS = [
   {
+    numero: "11",
+    slug: "/whitepaper-11-cem-mil-documentos",
+    titulo: "Cem Mil Documentos e Uma Pergunta",
+    subtitulo: "CAU/PR entregue como MVP, GOV/PR no primeiro dia, OCR de atas escaneadas pré-2018",
+    resumo:
+      "Saímos de 4.689 para 99.723 documentos. O CAU/PR foi entregue como MVP: pipeline rodou, descobriu, fichou — vai parar de ser projeto em construção. O GOV/PR começou: 27.832 convênios, 19.280 licitações, 16.690 fornecedores, viagens, remuneração — e ainda nem é o começo. As atas plenárias pré-2018 escaneadas voltaram a ser legíveis via OCR especializado (18× mais barato que via Piper Vision), revelando 7 novas vermelhas. Amostra de 10 convênios do GOV/PR já analisados pelo Piper: 4 vermelhos, 5 laranjas, 1 amarelo. Migração do Piper pra janela de 1M tokens, front polido, Snyk fechado, e a pergunta honesta: para onde isso tudo vai?",
+    data: "Maio 2026",
+    tags: ["GOV/PR", "MVP CAU/PR", "OCR especializado", "100 mil docs", "Pergunta"],
+  },
+  {
     numero: "10",
     slug: "/whitepaper-10-antes-da-proxima-onda",
     titulo: "Antes da Próxima Onda",
