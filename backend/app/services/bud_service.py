@@ -23,12 +23,26 @@ import re as _re
 from app.models.ato import Ato, ConteudoAto
 from app.models.analise import Analise, Irregularidade
 from app.models.pessoa import AparicaoPessoa, Pessoa
+from app.services.cvss_service import (
+    PESOS_FI, PESOS_LI, PESOS_RI,
+    PESOS_AV, PESOS_AC, PESOS_PR,
+    calcular_cvss_a,
+)
 from app.services.piper_service import NIVEIS_VALIDOS
 from app.services.tag_service import (
     LISTA_TAGS_PROMPT,
     buscar_tags_ativas,
     revisar_tags_bud_new,
 )
+
+CVSS_DOMINIOS = {
+    "cvss_fi": PESOS_FI,
+    "cvss_li": PESOS_LI,
+    "cvss_ri": PESOS_RI,
+    "cvss_av": PESOS_AV,
+    "cvss_ac": PESOS_AC,
+    "cvss_pr": PESOS_PR,
+}
 
 client = AsyncAnthropic()
 
@@ -70,38 +84,29 @@ USE O CONTEXTO FORNECIDO PARA:
 3. Construir uma narrativa investigativa coerente
 4. Gerar uma ficha de denúncia pronta para uso
 
-REVISÃO DE TAGS DO PIPER:
-O Piper identificou tags iniciais. Sua missão é auditar o trabalho dele:
-- Confirme as tags que têm base real no texto ou no histórico
-- Remova (ação "removida") tags que são falsos positivos sem evidência concreta
-- Adicione novas tags que o Piper não viu, especialmente as baseadas no cruzamento histórico de pessoas
+TAGS E CVSS-A — COMPLEMENTO DO PIPER (NÃO CORREÇÃO):
+A extração de tags e variáveis CVSS-A é responsabilidade primária do Piper. Você só
+preenche o que ele deixou em branco — não corrige, não substitui, não duplica.
 
-TAGS DISPONÍVEIS:
+REGRAS DE PREENCHIMENTO:
+- cvss_revisado: para cada variável (fi, li, ri, av, ac, pr), o contexto traz o que o
+  Piper extraiu. Se já tem valor, retorne null para essa variável. Se está null/vazio
+  no contexto (Piper não extraiu — ato legado pré-CVSS, por exemplo), aí sim você
+  preenche seguindo a calibragem abaixo.
+- tags_revisadas: se o ato JÁ tem tags identificadas pelo Piper (lista não-vazia em
+  TAGS IDENTIFICADAS PELO PIPER), retorne lista vazia. Se está vazia, você pode
+  adicionar tags com ação "adicionada".
+
+TAGS DISPONÍVEIS (use só esses códigos):
 {LISTA_TAGS_PROMPT}
 
-AUDITORIA DO PIPER (CRÍTICO — NÃO SEJA SERVIL):
-Você está vendo a ANÁLISE PRÉVIA DO PIPER acima. O Piper é triagem rápida e barata
-(LLM menor, sem cruzamento histórico, sem leis na KB). Você é a verificação rigorosa.
-Sua missão é detectar:
-
-1. ERROS DO PIPER — algo que ele afirmou e que o texto contradiz objetivamente.
-   Exemplos: nível_alerta errado, score discrepante do que o texto mostra,
-   indício baseado em interpretação equivocada, artigo violado errado,
-   classificação de tipo errada.
-
-2. LACUNAS DO PIPER — algo suspeito no documento que ele não enxergou.
-   Exemplos: pessoa beneficiada não citada, conflito de interesse omitido,
-   irregularidade processual ignorada, padrão histórico (do cruzamento) que ele
-   não tinha como ver, deliberação alterando regimento sem motivação, valor
-   contratual fora do padrão para o tipo de serviço.
-
-3. AJUSTE DE NÍVEL: se o Piper marcou "verde" mas há indícios claros, eleve
-   nivel_alerta_confirmado. Se exagerou (ex: "vermelho" em ato administrativo
-   rotineiro), rebaixe. Justifique sempre citando trecho ou ausência relevante.
-
-Documente isso no campo "auditoria_piper" do JSON. Se concordar 100% com o Piper,
-ainda assim preencha (com erros_do_piper=[] e lacunas_do_piper=[]) — isso indica
-revisão feita, não revisão omitida.
+VARIÁVEIS CVSS-A (mesma calibragem do Piper):
+- cvss_fi: "nenhum" | "baixo" (< R$50k) | "medio" (R$50k–500k) | "alto" (> R$500k)
+- cvss_li: "formal" | "grave" | "crime"
+- cvss_ri: "interno" | "publico" | "sistemico"
+- cvss_av: "colegiado" | "unilateral"
+- cvss_ac: "alta" | "baixa"
+- cvss_pr: "baixo_escalao" | "alto_escalao"
 
 Responda em JSON com esta estrutura:
 {{
@@ -111,30 +116,29 @@ Responda em JSON com esta estrutura:
   "analise_aprofundada": {{
     "indicios_legais": [{{"tipo": "string", "descricao": "string", "artigo_violado": "string", "gravidade": "string"}}],
     "indicios_morais": [{{"tipo": "string", "descricao": "string", "impacto_politico": "string", "gravidade": "string"}}],
-    "padrao_identificado": "Descreva o padrão anômalo encontrado ao cruzar o ato com o histórico de pessoas (ex: mesma pessoa em 12 comissões em 6 meses) — ou null se não houver padrão",
-    "narrativa_completa": "Explicação detalhada conectando o ato atual com o histórico de pessoas e atos relacionados"
+    "padrao_identificado": "Descreva o padrão anômalo encontrado ao cruzar o ato com o histórico de pessoas — ou null",
+    "narrativa_completa": "Explicação detalhada conectando o ato com o histórico de pessoas e atos relacionados"
   }},
   "ficha_denuncia": {{
     "titulo": "Título jornalístico direto e objetivo",
-    "fato": "O que aconteceu (com citação do trecho exato do documento que prova o fato)",
+    "fato": "O que aconteceu (com citação do trecho exato do documento)",
     "indicio_legal": "Qual lei ou regra apresenta indício de violação",
     "indicio_moral": "Qual princípio ético apresenta indício de violação",
-    "evidencias": ["Evidência 1 (trecho do texto)", "Evidência 2 (do histórico de pessoas)"],
+    "evidencias": ["Evidência 1 (trecho do texto)", "Evidência 2 (do histórico)"],
     "impacto": "Possível dano ao erário ou à instituição",
     "recomendacao_campanha": "Como usar isso em transparência pública, jornalismo ou processo"
   }},
   "tags_revisadas": [
-    {{"codigo": "<codigo_exato>", "acao": "confirmada|adicionada|removida|elevada|rebaixada", "gravidade": "baixa|media|alta|critica", "justificativa": "Por que a tag foi alterada ou confirmada (citar evidência ou ausência de evidência)"}}
+    {{"codigo": "<codigo_exato>", "acao": "adicionada|removida|elevada|rebaixada", "gravidade": "baixa|media|alta|critica", "justificativa": "Cite o trecho/ausência específica. Só intervenha se Piper errou ou perdeu."}}
   ],
-  "auditoria_piper": {{
-    "concorda_com_piper": true,
-    "erros_do_piper": [
-      "Descreva cada erro objetivo na análise prévia do Piper, citando o trecho do texto que o contradiz. Lista vazia se concordar 100%."
-    ],
-    "lacunas_do_piper": [
-      "Descreva cada elemento suspeito que o Piper não enxergou. Lista vazia se ele cobriu tudo."
-    ],
-    "ajuste_de_nivel": "Se você mudou nivel_alerta_confirmado em relação ao Piper, explique por quê. Null se manteve."
+  "cvss_revisado": {{
+    "cvss_fi": "valor novo se Piper errou/omitiu, ou null se mantém",
+    "cvss_li": "valor novo se Piper errou/omitiu, ou null se mantém",
+    "cvss_ri": "valor novo se Piper errou/omitiu, ou null se mantém",
+    "cvss_av": "valor novo se Piper errou/omitiu, ou null se mantém",
+    "cvss_ac": "valor novo se Piper errou/omitiu, ou null se mantém",
+    "cvss_pr": "valor novo se Piper errou/omitiu, ou null se mantém",
+    "justificativa": "1-2 frases explicando a correção, citando evidência. Null se nada mudou."
   }}
 }}"""
 
@@ -153,42 +157,27 @@ FOCO DA ANÁLISE:
 
 Use linguagem de INDÍCIO, nunca de conclusão jurídica definitiva.
 
-REVISÃO DE TAGS DO PIPER:
-O Piper já identificou tags iniciais (recebidas no contexto). Sua missão é auditar:
-- Confirme (ação "confirmada") tags com base real no texto da ata
-- Remova (ação "removida") tags que são falsos positivos sem evidência concreta
-- Adicione (ação "adicionada") tags que o Piper não viu — em atas, isso é frequente: nepotismo em nomeações plenárias, falsa_urgencia em itens incluídos extra-pauta, blindagem_pares em aprovações unânimes de processos contra colegas, opacidade_deliberada em deliberações sem motivação explícita
-- Eleve (ação "elevada") ou rebaixe (ação "rebaixada") gravidade quando o contexto da ata mudar a leitura
+TAGS E CVSS-A — COMPLEMENTO DO PIPER (NÃO CORREÇÃO):
+A extração de tags e variáveis CVSS-A é responsabilidade primária do Piper. Você só
+preenche o que ele deixou em branco — não corrige, não substitui.
+
+REGRAS DE PREENCHIMENTO:
+- cvss_revisado: para cada variável (fi, li, ri, av, ac, pr), se o Piper já extraiu
+  no contexto, retorne null. Se está null/vazio (Piper não extraiu — ato legado, ou
+  ata foi direto pro Bud sem Piper), aí sim você preenche seguindo a calibragem.
+- tags_revisadas: se o ato JÁ tem tags identificadas pelo Piper, retorne lista vazia.
+  Se está vazia, você pode adicionar tags com ação "adicionada".
 
 TAGS DISPONÍVEIS:
 {LISTA_TAGS_PROMPT}
 
-AUDITORIA DO PIPER (CRÍTICO — quando houver análise prévia):
-Se o contexto trouxer ANÁLISE PRÉVIA DO PIPER, você é a verificação rigorosa do
-trabalho dele. O Piper é triagem rápida e barata (sem leis na KB, sem cruzamento
-histórico). Sua missão é detectar:
-
-1. ERROS DO PIPER — algo que ele afirmou e o texto da ata contradiz.
-   Em atas: tipo de reunião errado (extraordinária vs ordinária), quórum mal
-   contado, deliberação registrada com numeração trocada, votação resumida como
-   "unânime" quando havia abstenção registrada, pessoa marcada como presente
-   quando estava ausente.
-
-2. LACUNAS DO PIPER — pontos suspeitos da ata que ele não viu.
-   Em atas: nomeação plenária de parente declarada na própria ata, item incluído
-   extra-pauta sem justificativa, aprovação de ata anterior sem leitura, voto
-   isolado em assunto polêmico (única dissidência), conflito de interesse
-   declarado mas não tratado, deliberação alterando o regimento sem quórum
-   qualificado.
-
-3. AJUSTE DE NÍVEL: eleve "nivel_alerta" se o Piper subestimou (verde com indícios
-   reais), rebaixe se exagerou (vermelho em reunião protocolar).
-
-NÃO seja servil. Se concordar 100%, ainda preencha auditoria_piper com listas
-vazias para indicar revisão feita.
-
-Se NÃO houver análise prévia (ata foi direto pro Bud com qualidade='boa'),
-preencha auditoria_piper com concorda_com_piper=null e demais campos vazios.
+VARIÁVEIS CVSS-A:
+- cvss_fi: nenhum | baixo (< R$50k) | medio (R$50k–500k) | alto (> R$500k)
+- cvss_li: formal | grave | crime
+- cvss_ri: interno | publico | sistemico
+- cvss_av: colegiado | unilateral
+- cvss_ac: alta | baixa
+- cvss_pr: baixo_escalao | alto_escalao
 
 Responda APENAS com JSON válido, sem texto antes ou depois:
 
@@ -231,17 +220,16 @@ Responda APENAS com JSON válido, sem texto antes ou depois:
     }}
   ],
   "tags_revisadas": [
-    {{"codigo": "<codigo_exato>", "acao": "confirmada|adicionada|removida|elevada|rebaixada", "gravidade": "baixa|media|alta|critica", "justificativa": "Por que a tag foi alterada ou confirmada (citar trecho da ata ou ausência relevante)"}}
+    {{"codigo": "<codigo_exato>", "acao": "adicionada", "gravidade": "baixa|media|alta|critica", "justificativa": "Cite o trecho da ata. Só preencha se Piper não viu nenhuma tag."}}
   ],
-  "auditoria_piper": {{
-    "concorda_com_piper": true,
-    "erros_do_piper": [
-      "Descreva cada erro objetivo na análise prévia do Piper, citando trecho da ata. Lista vazia se concordar 100%. null se não houver análise prévia."
-    ],
-    "lacunas_do_piper": [
-      "Descreva cada elemento suspeito da ata que o Piper não enxergou. Lista vazia se ele cobriu tudo."
-    ],
-    "ajuste_de_nivel": "Se você mudou nivel_alerta em relação ao Piper, explique por quê. Null se manteve ou se não havia análise prévia."
+  "cvss_revisado": {{
+    "cvss_fi": "valor se Piper deixou null/vazio, senão null",
+    "cvss_li": "valor se Piper deixou null/vazio, senão null",
+    "cvss_ri": "valor se Piper deixou null/vazio, senão null",
+    "cvss_av": "valor se Piper deixou null/vazio, senão null",
+    "cvss_ac": "valor se Piper deixou null/vazio, senão null",
+    "cvss_pr": "valor se Piper deixou null/vazio, senão null",
+    "justificativa": "1-2 frases citando trecho da ata. Null se nada foi preenchido."
   }},
   "recomendacao_campanha": "string ou null"
 }}
@@ -277,12 +265,7 @@ def _parse_bud_ata_response(raw_text: str) -> dict:
         "deliberacoes_aprovadas": [], "pessoas_extraidas": [],
         "irregularidades": [],
         "tags_revisadas": [],
-        "auditoria_piper": {
-            "concorda_com_piper": None,
-            "erros_do_piper": [],
-            "lacunas_do_piper": [],
-            "ajuste_de_nivel": None,
-        },
+        "cvss_revisado": {},
         "parse_error": True,
     }
 
@@ -325,12 +308,7 @@ def _parse_bud_response(raw_text: str) -> dict:
         "recomendacao_campanha": "",
     })
     result.setdefault("tags_revisadas", [])
-    result.setdefault("auditoria_piper", {
-        "concorda_com_piper": None,
-        "erros_do_piper": [],
-        "lacunas_do_piper": [],
-        "ajuste_de_nivel": None,
-    })
+    result.setdefault("cvss_revisado", {})
     return result
 
 
@@ -555,6 +533,10 @@ async def analisar_ato_bud(
         + getattr(response.usage, "cache_creation_input_tokens", 0) * PRECOS_BUD["cache_write"]
     )
 
+    # Captura o estado anterior ANTES de mutar — usado no guard de
+    # idempotência das Irregularidades abaixo.
+    ja_analisado_por_bud = bool(analise.analisado_por_bud)
+
     analise.status = "bud_completo"
     if is_ata:
         # Schema de ata: nivel_alerta direto + resumo_executivo + pauta etc.
@@ -577,7 +559,7 @@ async def analisar_ato_bud(
     # Irregularidades — só insere se ainda não foi feito (guard de retry).
     # Para atas, vem em resultado.irregularidades[]; para outros, em
     # resultado.analise_aprofundada.indicios_legais/morais[].
-    if not analise.analisado_por_bud:
+    if not ja_analisado_por_bud:
         if is_ata:
             for indicio in resultado.get("irregularidades", []):
                 db.add(Irregularidade(
@@ -618,12 +600,40 @@ async def analisar_ato_bud(
                     impacto_politico=indicio.get("impacto_politico"),
                 ))
 
-    # Revisão de tags pelo Bud
-    await revisar_tags_bud_new(
-        db, ato_id, analise.id, ato.tenant_id,
-        resultado.get("tags_revisadas", []),
-        modelo="bud",
-    )
+    # CVSS-A — Bud só preenche o que o Piper deixou NULL (ex.: ato analisado
+    # pelo Piper antigo, sem CVSS-A; ou ata que pulou o Piper).
+    cvss_revisado = resultado.get("cvss_revisado") or {}
+    cvss_mudou = False
+    for campo, dominio in CVSS_DOMINIOS.items():
+        if getattr(analise, campo, None) is not None:
+            continue  # Piper já preencheu — Bud não toca
+        valor = cvss_revisado.get(campo)
+        if not valor or valor not in dominio:
+            continue  # Bud não retornou valor válido
+        setattr(analise, campo, valor)
+        cvss_mudou = True
+    if cvss_mudou:
+        score, vector = calcular_cvss_a(
+            analise.cvss_fi, analise.cvss_li, analise.cvss_ri,
+            analise.cvss_av, analise.cvss_ac, analise.cvss_pr,
+        )
+        analise.cvss_score = score
+        analise.cvss_vector = vector
+
+    # Tags — Bud só adiciona tags se o ato ainda não tem nenhuma ativa
+    # (Piper antigo não extraía tags). Senão, não toca.
+    tags_existentes = await buscar_tags_ativas(db, ato_id)
+    if not tags_existentes:
+        tags_para_aplicar = [
+            t for t in resultado.get("tags_revisadas", [])
+            if t.get("acao") == "adicionada"
+        ]
+        if tags_para_aplicar:
+            await revisar_tags_bud_new(
+                db, ato_id, analise.id, ato.tenant_id,
+                tags_para_aplicar,
+                modelo="bud",
+            )
 
     await db.commit()
     return analise
