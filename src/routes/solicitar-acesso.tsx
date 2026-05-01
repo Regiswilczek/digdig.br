@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { API_URL } from "../lib/api";
+import { runRecaptcha, RECAPTCHA_ENABLED } from "../lib/recaptcha";
 
 export const Route = createFileRoute("/solicitar-acesso")({
   component: SolicitarAcessoPage,
@@ -187,6 +188,13 @@ function useWaitlistForm() {
   const [email, setEmail] = useState("");
   const [profissao, setProfissao] = useState("");
   const [motivacao, setMotivacao] = useState("");
+  // 3 perguntas obrigatórias do perfil:
+  const [filiadoPartido, setFiliadoPartido] = useState<boolean | null>(null);
+  const [partido, setPartido] = useState("");
+  const [agentePublico, setAgentePublico] = useState<boolean | null>(null);
+  const [comoEncontrou, setComoEncontrou] = useState("");
+  // Verificação opcional — admin valida manualmente abrindo o perfil:
+  const [instagram, setInstagram] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -198,12 +206,49 @@ function useWaitlistForm() {
       setError("Nome e email são obrigatórios.");
       return;
     }
+    if (filiadoPartido === null) {
+      setError("Responda se é filiado a partido político.");
+      return;
+    }
+    if (filiadoPartido && !partido.trim()) {
+      setError("Informe o partido político.");
+      return;
+    }
+    if (agentePublico === null) {
+      setError("Responda se é agente público.");
+      return;
+    }
+    if (!comoEncontrou.trim()) {
+      setError("Conte como você nos encontrou.");
+      return;
+    }
     setSubmitting(true);
     try {
+      let recaptchaToken: string | null = null;
+      if (RECAPTCHA_ENABLED) {
+        try {
+          recaptchaToken = await runRecaptcha("access_request");
+        } catch {
+          setError("Falha na verificação anti-bot. Recarregue a página.");
+          setSubmitting(false);
+          return;
+        }
+      }
       const res = await fetch(`${API_URL}/public/access-requests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, profissao: profissao || null, motivacao: motivacao || null }),
+        body: JSON.stringify({
+          nome,
+          email,
+          profissao: profissao || null,
+          motivacao: motivacao || null,
+          filiado_partido_politico: filiadoPartido,
+          partido_politico: filiadoPartido ? partido.trim() : null,
+          agente_publico: agentePublico,
+          como_encontrou: comoEncontrou.trim(),
+          instagram_handle: instagram.trim() || null,
+          recaptcha_token: recaptchaToken,
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -217,7 +262,116 @@ function useWaitlistForm() {
     }
   }
 
-  return { nome, setNome, email, setEmail, profissao, setProfissao, motivacao, setMotivacao, submitting, error, success, onSubmit };
+  return {
+    nome, setNome, email, setEmail, profissao, setProfissao,
+    motivacao, setMotivacao,
+    filiadoPartido, setFiliadoPartido, partido, setPartido,
+    agentePublico, setAgentePublico, comoEncontrou, setComoEncontrou,
+    instagram, setInstagram,
+    submitting, error, success, onSubmit,
+  };
+}
+
+// Botão Sim/Não — usado nas perguntas booleanas obrigatórias
+function SimNaoToggle({
+  value, onChange, label,
+}: {
+  value: boolean | null;
+  onChange: (v: boolean) => void;
+  label: string;
+}) {
+  return (
+    <div>
+      <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1" style={SYNE}>
+        {label}
+      </label>
+      <div className="grid grid-cols-2 gap-1.5">
+        {[
+          { v: false, l: "Não" },
+          { v: true, l: "Sim" },
+        ].map(({ v, l }) => (
+          <button
+            key={l}
+            type="button"
+            onClick={() => onChange(v)}
+            className={`py-1.5 text-[11px] uppercase tracking-[0.16em] border transition-colors ${
+              value === v
+                ? "bg-white text-[#07080f] border-white"
+                : "bg-white/[0.03] text-white/55 border-white/10 hover:border-white/30"
+            }`}
+            style={SYNE}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Filiação partidária — quando "Sim", o botão some e dá lugar ao input do partido
+function FiliacaoPartido({
+  value, onChange, partido, onChangePartido,
+}: {
+  value: boolean | null;
+  onChange: (v: boolean | null) => void;
+  partido: string;
+  onChangePartido: (v: string) => void;
+}) {
+  const expandido = value === true;
+  return (
+    <div>
+      <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1" style={SYNE}>
+        Filiado a partido político?
+      </label>
+      <div className={`grid gap-1.5 ${expandido ? "grid-cols-[1fr_2fr]" : "grid-cols-2"}`}>
+        {expandido ? (
+          <>
+            <button
+              type="button"
+              onClick={() => { onChange(null); onChangePartido(""); }}
+              title="Clique para desfazer"
+              className="py-1.5 text-[11px] uppercase tracking-[0.16em] border bg-white text-[#07080f] border-white"
+              style={SYNE}
+            >
+              Sim ✓
+            </button>
+            <input
+              type="text"
+              autoFocus
+              value={partido}
+              onChange={(e) => onChangePartido(e.target.value)}
+              placeholder="Sigla / nome do partido"
+              className="bg-white/[0.04] border border-white/10 px-3 py-1.5 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors"
+            />
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => onChange(false)}
+              className={`py-1.5 text-[11px] uppercase tracking-[0.16em] border transition-colors ${
+                value === false
+                  ? "bg-white text-[#07080f] border-white"
+                  : "bg-white/[0.03] text-white/55 border-white/10 hover:border-white/30"
+              }`}
+              style={SYNE}
+            >
+              Não
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange(true)}
+              className="py-1.5 text-[11px] uppercase tracking-[0.16em] border transition-colors bg-white/[0.03] text-white/55 border-white/10 hover:border-white/30"
+              style={SYNE}
+            >
+              Sim
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -233,7 +387,13 @@ function SolicitarAcessoPage() {
 
 // ── Mobile ────────────────────────────────────────────────────────────────────
 function MobileView({ f }: { f: ReturnType<typeof useWaitlistForm> }) {
-  const { nome, setNome, email, setEmail, profissao, setProfissao, motivacao, setMotivacao, submitting, error, success, onSubmit } = f;
+  const {
+    nome, setNome, email, setEmail, profissao, setProfissao, motivacao, setMotivacao,
+    filiadoPartido, setFiliadoPartido, partido, setPartido,
+    agentePublico, setAgentePublico, comoEncontrou, setComoEncontrou,
+    instagram, setInstagram,
+    submitting, error, success, onSubmit,
+  } = f;
 
   return (
     <div
@@ -302,6 +462,27 @@ function MobileView({ f }: { f: ReturnType<typeof useWaitlistForm> }) {
 
                 <div>
                   <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5 px-1" style={SYNE}>
+                    Instagram <span className="text-white/25 normal-case tracking-normal">(opcional)</span>
+                  </label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/35 text-[14px]">@</span>
+                    <input
+                      type="text"
+                      autoComplete="off"
+                      autoCapitalize="none"
+                      value={instagram}
+                      onChange={(e) => setInstagram(e.target.value)}
+                      className="w-full bg-white/[0.04] border border-white/10 rounded-xl pl-7 pr-3 py-3.5 text-[15px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 focus:bg-white/[0.06] transition-colors"
+                      placeholder="seuusuario"
+                    />
+                  </div>
+                  <p className="text-[10px] text-white/40 mt-1 px-1 leading-snug">
+                    Pedidos com Instagram tendem a ser aprovados mais rápido — usamos o perfil para confirmar identidade.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5 px-1" style={SYNE}>
                     Perfil
                   </label>
                   <select
@@ -315,6 +496,34 @@ function MobileView({ f }: { f: ReturnType<typeof useWaitlistForm> }) {
                       <option key={p} value={p} style={{ background: "#0d0f1a" }}>{p}</option>
                     ))}
                   </select>
+                </div>
+
+                <FiliacaoPartido
+                  value={filiadoPartido}
+                  onChange={setFiliadoPartido}
+                  partido={partido}
+                  onChangePartido={setPartido}
+                />
+
+                <SimNaoToggle
+                  label="É agente público?"
+                  value={agentePublico}
+                  onChange={setAgentePublico}
+                />
+
+                <div>
+                  <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5 px-1" style={SYNE}>
+                    Como nos encontrou?
+                  </label>
+                  <textarea
+                    value={comoEncontrou}
+                    onChange={(e) => setComoEncontrou(e.target.value)}
+                    maxLength={280}
+                    rows={2}
+                    placeholder="Indicação, redes sociais, busca, evento..."
+                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-[14px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors resize-none"
+                  />
+                  <p className="text-right text-[10px] text-white/25 mt-1 pr-1">{comoEncontrou.length}/280</p>
                 </div>
 
                 <div>
@@ -414,11 +623,17 @@ function SuccessCard({ email }: { email: string }) {
 
 // ── Desktop ───────────────────────────────────────────────────────────────────
 function DesktopView({ f }: { f: ReturnType<typeof useWaitlistForm> }) {
-  const { nome, setNome, email, setEmail, profissao, setProfissao, motivacao, setMotivacao, submitting, error, success, onSubmit } = f;
+  const {
+    nome, setNome, email, setEmail, profissao, setProfissao, motivacao, setMotivacao,
+    filiadoPartido, setFiliadoPartido, partido, setPartido,
+    agentePublico, setAgentePublico, comoEncontrou, setComoEncontrou,
+    instagram, setInstagram,
+    submitting, error, success, onSubmit,
+  } = f;
 
   return (
     <div className="hidden md:flex min-h-[100dvh] bg-[#07080f] text-white flex-row">
-      <section className="w-[46%] lg:w-[42%] xl:w-[38%] flex flex-col px-12 lg:px-16 py-10 overflow-y-auto">
+      <section className="w-[46%] lg:w-[42%] xl:w-[38%] flex flex-col px-12 lg:px-16 py-6 overflow-y-auto">
         <div className="flex items-center justify-between flex-shrink-0">
           <Link to="/" style={{ ...SYNE, letterSpacing: "0.18em" }} className="text-white text-[13px] uppercase hover:text-white/70 transition-colors">
             DIG DIG
@@ -428,31 +643,52 @@ function DesktopView({ f }: { f: ReturnType<typeof useWaitlistForm> }) {
           </Link>
         </div>
 
-        <div className="flex-1 flex items-center py-10">
+        <div className="flex-1 flex items-center py-4">
           <div className="w-full max-w-[400px] mx-auto">
             {success ? (
               <SuccessCard email={email} />
             ) : (
               <>
-                <h1 style={SYNE} className="text-white text-[2rem] leading-tight uppercase tracking-tight mb-1.5">
+                <h1 style={SYNE} className="text-white text-[1.5rem] leading-tight uppercase tracking-tight mb-1">
                   Solicitar acesso
                 </h1>
-                <p className="text-white/45 text-[13px] leading-relaxed mb-6">
+                <p className="text-white/45 text-[12px] leading-relaxed mb-4">
                   Preencha o formulário e entraremos em contato quando uma vaga for liberada.
                 </p>
 
-                <form onSubmit={onSubmit} className="space-y-4">
+                <form onSubmit={onSubmit} className="space-y-3">
                   <DesktopField label="Nome completo" type="text" autoComplete="name" value={nome} onChange={setNome} placeholder="Seu nome completo" />
                   <DesktopField label="Email" type="email" autoComplete="email" value={email} onChange={setEmail} placeholder="voce@exemplo.com" />
 
                   <div>
-                    <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5" style={SYNE}>
+                    <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1" style={SYNE}>
+                      Instagram <span className="text-white/25 normal-case tracking-normal">(opcional)</span>
+                    </label>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/35 text-[12px]">@</span>
+                      <input
+                        type="text"
+                        autoComplete="off"
+                        autoCapitalize="none"
+                        value={instagram}
+                        onChange={(e) => setInstagram(e.target.value)}
+                        className="w-full bg-white/[0.03] border border-white/10 pl-7 pr-3 py-1.5 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors"
+                        placeholder="seuusuario"
+                      />
+                    </div>
+                    <p className="text-[10px] text-white/40 mt-1 leading-snug">
+                      Pedidos com Instagram tendem a ser aprovados mais rápido.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1" style={SYNE}>
                       Perfil
                     </label>
                     <select
                       value={profissao}
                       onChange={(e) => setProfissao(e.target.value)}
-                      className="w-full bg-white/[0.03] border border-white/10 px-3 py-2.5 text-[14px] text-white focus:outline-none focus:border-white/40 transition-colors appearance-none"
+                      className="w-full bg-white/[0.03] border border-white/10 px-3 py-1.5 text-[12px] text-white focus:outline-none focus:border-white/40 transition-colors appearance-none"
                       style={{ background: "rgba(7,8,15,0.98)" }}
                     >
                       <option value="" style={{ background: "#07080f" }}>Selecione seu perfil...</option>
@@ -462,23 +698,49 @@ function DesktopView({ f }: { f: ReturnType<typeof useWaitlistForm> }) {
                     </select>
                   </div>
 
+                  <FiliacaoPartido
+                    value={filiadoPartido}
+                    onChange={setFiliadoPartido}
+                    partido={partido}
+                    onChangePartido={setPartido}
+                  />
+
+                  <SimNaoToggle
+                    label="É agente público?"
+                    value={agentePublico}
+                    onChange={setAgentePublico}
+                  />
+
                   <div>
-                    <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5" style={SYNE}>
+                    <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1" style={SYNE}>
+                      Como nos encontrou?
+                    </label>
+                    <textarea
+                      value={comoEncontrou}
+                      onChange={(e) => setComoEncontrou(e.target.value)}
+                      maxLength={280}
+                      rows={2}
+                      placeholder="Indicação, redes sociais, busca, evento..."
+                      className="w-full bg-white/[0.03] border border-white/10 px-3 py-1.5 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1" style={SYNE}>
                       Por que quer acesso? <span className="text-white/25">(opcional)</span>
                     </label>
                     <textarea
                       value={motivacao}
                       onChange={(e) => setMotivacao(e.target.value)}
                       maxLength={280}
-                      rows={3}
+                      rows={2}
                       placeholder="Contexto, uso pretendido..."
-                      className="w-full bg-white/[0.03] border border-white/10 px-3 py-2.5 text-[14px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors resize-none"
+                      className="w-full bg-white/[0.03] border border-white/10 px-3 py-1.5 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors resize-none"
                     />
-                    <p className="text-right text-[10px] text-white/25 mt-1">{motivacao.length}/280</p>
                   </div>
 
                   {error && (
-                    <p className="text-[12px] text-yellow-300/90 leading-relaxed border-l-2 border-yellow-300/60 pl-3 py-1">
+                    <p className="text-[11px] text-yellow-300/90 leading-relaxed border-l-2 border-yellow-300/60 pl-2 py-0.5">
                       {error}
                     </p>
                   )}
@@ -487,21 +749,28 @@ function DesktopView({ f }: { f: ReturnType<typeof useWaitlistForm> }) {
                     type="submit"
                     disabled={submitting}
                     style={SYNE}
-                    className="w-full bg-white text-[#07080f] py-3 text-[12px] uppercase tracking-[0.2em] hover:bg-white/90 transition-colors disabled:opacity-50"
+                    className="w-full bg-white text-[#07080f] py-2.5 text-[11px] uppercase tracking-[0.2em] hover:bg-white/90 transition-colors disabled:opacity-50"
                   >
                     {submitting ? "Enviando..." : "Solicitar acesso"}
                   </button>
                 </form>
 
-                <p className="mt-5 text-center text-[12px] text-white/45">
+                <p className="mt-3 text-center text-[10px] text-white/35 leading-snug">
+                  Beta fechado. Validamos cada pedido antes de liberar.{" "}
+                  <Link to="/por-que-fechado" className="text-white/55 underline-offset-2 hover:underline">
+                    Saiba por quê →
+                  </Link>
+                </p>
+
+                <p className="mt-2 text-center text-[11px] text-white/45">
                   Já tem acesso?{" "}
                   <Link to="/entrar" className="text-white hover:text-white/80 underline-offset-4 hover:underline">
                     Entrar →
                   </Link>
-                </p>
-
-                <p className="mt-8 text-center text-[10px] text-white/30 uppercase tracking-[0.16em]">
-                  Seus dados não serão compartilhados com terceiros
+                  <span className="text-white/20"> · </span>
+                  <span className="text-white/25 uppercase tracking-[0.14em] text-[9px]">
+                    dados não compartilhados
+                  </span>
                 </p>
               </>
             )}
@@ -544,7 +813,7 @@ function DesktopField({
 }) {
   return (
     <div>
-      <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1.5" style={SYNE}>
+      <label className="block text-[10px] uppercase tracking-[0.2em] text-white/45 mb-1" style={SYNE}>
         {label}
       </label>
       <input
@@ -552,7 +821,7 @@ function DesktopField({
         autoComplete={autoComplete}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-white/[0.03] border border-white/10 px-3 py-2.5 text-[14px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors"
+        className="w-full bg-white/[0.03] border border-white/10 px-3 py-1.5 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/40 transition-colors"
         placeholder={placeholder}
       />
     </div>

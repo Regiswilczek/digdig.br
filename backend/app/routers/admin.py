@@ -663,16 +663,19 @@ async def admin_list_access_requests(
     db: AsyncSession = Depends(get_db),
     _: dict = Depends(require_admin),
 ):
+    cols = (
+        "id, nome, email, profissao, motivacao, status, created_at, "
+        "filiado_partido_politico, partido_politico, agente_publico, como_encontrou, "
+        "instagram_handle"
+    )
     if status:
         rows = await db.execute(
-            text("SELECT id, nome, email, profissao, motivacao, status, created_at "
-                 "FROM access_requests WHERE status = :s ORDER BY created_at DESC")
-            .bindparams(s=status)
+            text(f"SELECT {cols} FROM access_requests WHERE status = :s "
+                 "ORDER BY created_at DESC").bindparams(s=status)
         )
     else:
         rows = await db.execute(
-            text("SELECT id, nome, email, profissao, motivacao, status, created_at "
-                 "FROM access_requests ORDER BY created_at DESC")
+            text(f"SELECT {cols} FROM access_requests ORDER BY created_at DESC")
         )
     return [
         {
@@ -683,6 +686,11 @@ async def admin_list_access_requests(
             "motivacao": r[4],
             "status": r[5],
             "created_at": r[6].isoformat() if r[6] else None,
+            "filiado_partido_politico": r[7],
+            "partido_politico": r[8],
+            "agente_publico": r[9],
+            "como_encontrou": r[10],
+            "instagram_handle": r[11],
         }
         for r in rows.fetchall()
     ]

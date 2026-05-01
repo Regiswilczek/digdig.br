@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { API_URL } from "../lib/api";
+import { runRecaptcha, RECAPTCHA_ENABLED } from "../lib/recaptcha";
 
 export const Route = createFileRoute("/entrar")({
   component: EntrarPage,
@@ -191,6 +193,26 @@ function useLoginForm() {
     }
     setSubmitting(true);
     try {
+      // reCAPTCHA pré-check via backend (bloqueia bots que não executam JS)
+      if (RECAPTCHA_ENABLED) {
+        try {
+          const token = await runRecaptcha("login");
+          const r = await fetch(`${API_URL}/public/recaptcha-verify`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token, action: "login" }),
+          });
+          if (!r.ok) {
+            setError("Falha na verificação anti-bot. Tente novamente.");
+            setSubmitting(false);
+            return;
+          }
+        } catch {
+          setError("Não foi possível validar o reCAPTCHA. Recarregue a página.");
+          setSubmitting(false);
+          return;
+        }
+      }
       const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError) throw authError;
       navigate({ to: "/painel" });
@@ -392,9 +414,9 @@ function MobileView({ f }: { f: ReturnType<typeof useLoginForm> }) {
           </form>
 
           <p className="mt-5 text-center text-[12.5px] text-white/55">
-            Quer acesso?{" "}
+            Não tem uma conta?{" "}
             <Link to="/solicitar-acesso" className="text-white font-medium underline-offset-4 hover:underline">
-              Solicitar acesso →
+              Solicite acesso →
             </Link>
           </p>
         </div>
@@ -442,11 +464,19 @@ function DesktopView({ f }: { f: ReturnType<typeof useLoginForm> }) {
               Acesse o painel e continue investigando.
             </p>
 
-            <p className="text-[12px] text-white/35 leading-relaxed mb-8">
-              A comunidade Dig Dig já analisou mais de{" "}
-              <span className="text-white/70 font-semibold">1.300 atos administrativos</span>.
-              <br />Junte-se à escavação.
-            </p>
+            <Link
+              to="/solicitar-acesso"
+              className="block mb-8 px-3 py-2.5 border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/20 transition-colors group"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[12px] text-white/55">
+                  Sem cadastro? Solicite acesso.
+                </span>
+                <span className="text-[12px] text-white/40 group-hover:text-white/70 transition-colors">
+                  →
+                </span>
+              </div>
+            </Link>
 
             <form onSubmit={onSubmit} className="space-y-4">
               <div>
@@ -524,12 +554,12 @@ function DesktopView({ f }: { f: ReturnType<typeof useLoginForm> }) {
             </form>
 
             <p className="mt-5 text-center text-[12px] text-white/45">
-              Quer acesso?{" "}
+              Não tem uma conta?{" "}
               <Link
                 to="/solicitar-acesso"
                 className="text-white hover:text-white/80 underline-offset-4 hover:underline"
               >
-                Solicitar acesso →
+                Solicite acesso →
               </Link>
             </p>
 

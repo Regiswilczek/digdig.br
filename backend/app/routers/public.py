@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
@@ -10,7 +11,49 @@ from app.models.ato import Ato, ConteudoAto
 from app.models.analise import Analise
 from app.models.dados_financeiros import Diaria
 from app.models.tag import AtoTag
+import httpx
 import resend
+
+logger = logging.getLogger(__name__)
+
+# reCAPTCHA v3 — score-based. Threshold abaixo do qual rejeitamos.
+# Google retorna score entre 0.0 (bot) e 1.0 (humano).
+_RECAPTCHA_MIN_SCORE = 0.5
+
+
+async def _verify_recaptcha(token: str | None, expected_action: str) -> bool:
+    """Valida token reCAPTCHA v3. Retorna True se válido OU se reCAPTCHA
+    estiver desabilitado (sem RECAPTCHA_SECRET no env). Loga rejeições."""
+    secret = os.environ.get("RECAPTCHA_SECRET", "").strip()
+    if not secret:
+        # reCAPTCHA não configurado — permite (dev / pré-rollout)
+        return True
+    if not token:
+        logger.warning("recaptcha rejeitado: token ausente action=%s", expected_action)
+        return False
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as http:
+            resp = await http.post(
+                "https://www.google.com/recaptcha/api/siteverify",
+                data={"secret": secret, "response": token},
+            )
+            data = resp.json()
+    except Exception as exc:
+        logger.warning("recaptcha falha de rede: %s — permitindo fallback", exc)
+        # Falha de rede: permite (não punir usuário por outage do Google)
+        return True
+    if not data.get("success"):
+        logger.warning("recaptcha rejeitado: success=false errors=%s", data.get("error-codes"))
+        return False
+    score = float(data.get("score") or 0)
+    action = data.get("action") or ""
+    if score < _RECAPTCHA_MIN_SCORE:
+        logger.warning("recaptcha rejeitado: score baixo %.2f action=%s", score, action)
+        return False
+    if expected_action and action and action != expected_action:
+        logger.warning("recaptcha rejeitado: action mismatch %s != %s", action, expected_action)
+        return False
+    return True
 
 # SQL fragment: identifica passagens aéreas pelo nome da cia
 _PASSAGEM_COND = (
@@ -143,7 +186,12 @@ async def get_stats(slug: str, db: AsyncSession = Depends(get_db)):
     por_categoria_atlas_analise = {r.tipo_atlas: r.com_analise for r in atlas_analise_r.all()}
 
     return {
-        "tenant": {"slug": tenant.slug, "nome": tenant.nome},
+        "tenant": {
+            "slug": tenant.slug,
+            "nome": tenant.nome,
+            "tipo_orgao": tenant.tipo_orgao,
+            "cor_tema": tenant.cor_tema,
+        },
         "total_atos": total_atos,
         "total_analisados": total_analisados,
         "total_criticos": total_criticos,
@@ -733,21 +781,81 @@ class AccessRequestBody(BaseModel):
     email: str
     profissao: str | None = None
     motivacao: str | None = None
+    # Perfil obrigatório (3 perguntas):
+    filiado_partido_politico: bool
+    partido_politico: str | None = None  # obrigatório se filiado=true
+    agente_publico: bool
+    como_encontrou: str  # texto livre, obrigatório
+    # Verificação opcional — admin valida manualmente abrindo o perfil:
+    instagram_handle: str | None = None
+    # reCAPTCHA v3 — token opcional no body (validado server-side)
+    recaptcha_token: str | None = None
+
+
+class RecaptchaVerifyBody(BaseModel):
+    token: str | None = None
+    action: str = "default"
+
+
+@router.post("/recaptcha-verify")
+async def recaptcha_verify(body: RecaptchaVerifyBody):
+    """Valida token reCAPTCHA v3 standalone. Usado pelo /entrar antes do
+    login Supabase. Retorna 200 se válido, 403 se rejeitado."""
+    ok = await _verify_recaptcha(body.token, body.action)
+    if not ok:
+        raise HTTPException(status_code=403, detail="reCAPTCHA falhou")
+    return {"ok": True}
 
 
 @router.post("/access-requests", status_code=201)
 async def create_access_request(body: AccessRequestBody, db: AsyncSession = Depends(get_db)):
+    if not await _verify_recaptcha(body.recaptcha_token, "access_request"):
+        raise HTTPException(status_code=403, detail="reCAPTCHA falhou — recarregue a página.")
+
     email = body.email.strip().lower()
     nome = body.nome.strip()
 
+    como = (body.como_encontrou or "").strip()
+    if not como:
+        raise HTTPException(status_code=400, detail="Informe como nos encontrou.")
+    partido = (body.partido_politico or "").strip() or None
+    if body.filiado_partido_politico and not partido:
+        raise HTTPException(status_code=400, detail="Informe o partido político.")
+
+    # Normaliza instagram: remove @, espaços, URL prefix se a pessoa colar
+    ig_raw = (body.instagram_handle or "").strip()
+    if ig_raw:
+        # Se colaram URL inteira, pega só o último segmento
+        for prefix in ("https://www.instagram.com/", "https://instagram.com/",
+                       "www.instagram.com/", "instagram.com/"):
+            if ig_raw.startswith(prefix):
+                ig_raw = ig_raw[len(prefix):]
+        ig_raw = ig_raw.lstrip("@").rstrip("/").split("/")[0].split("?")[0]
+    instagram = ig_raw or None
+
     await db.execute(
         text("""
-            INSERT INTO access_requests (nome, email, profissao, motivacao)
-            VALUES (:nome, :email, :profissao, :motivacao)
+            INSERT INTO access_requests (
+                nome, email, profissao, motivacao,
+                filiado_partido_politico, partido_politico,
+                agente_publico, como_encontrou, instagram_handle
+            )
+            VALUES (
+                :nome, :email, :profissao, :motivacao,
+                :filiado, :partido, :agente, :como, :instagram
+            )
             ON CONFLICT DO NOTHING
         """),
-        {"nome": nome, "email": email,
-         "profissao": body.profissao or None, "motivacao": body.motivacao or None},
+        {
+            "nome": nome, "email": email,
+            "profissao": body.profissao or None,
+            "motivacao": body.motivacao or None,
+            "filiado": body.filiado_partido_politico,
+            "partido": partido if body.filiado_partido_politico else None,
+            "agente": body.agente_publico,
+            "como": como,
+            "instagram": instagram,
+        },
     )
     await db.commit()
 

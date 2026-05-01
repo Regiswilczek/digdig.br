@@ -85,3 +85,6 @@ tools/obscura/obscura.exe
 tools/obscura/obscura.zip
 tools/obscura/obscura-*.tar.gz
 tools/obscura/obscura-*.zip
+
+# Dados extraídos do GOV-PR (leis, PTE — gigabytes, não commitar)
+data/

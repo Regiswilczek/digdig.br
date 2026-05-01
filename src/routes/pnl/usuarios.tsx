@@ -19,6 +19,11 @@ interface AccessRequest {
   motivacao: string | null;
   status: "pendente" | "aprovado" | "rejeitado";
   created_at: string | null;
+  filiado_partido_politico: boolean | null;
+  partido_politico: string | null;
+  agente_publico: boolean | null;
+  como_encontrou: string | null;
+  instagram_handle: string | null;
 }
 
 interface AuthUser {
@@ -225,17 +230,60 @@ function UsuariosPage() {
               className="grid px-4 py-4 border-b border-white/[0.05] hover:bg-white/[0.02] transition-colors"
               style={{ gridTemplateColumns: "1fr 1fr 120px 80px 100px", background: "#0d0f1a" }}
             >
-              {/* Nome / Email */}
+              {/* Nome / Email / Instagram */}
               <div>
                 <p className="text-white text-[13px] font-medium">{r.nome}</p>
                 <p className="text-white/40 text-[11px] mt-0.5">{r.email}</p>
+                {r.instagram_handle && (
+                  <a
+                    href={`https://instagram.com/${r.instagram_handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-pink-400/70 hover:text-pink-300 text-[11px] mt-0.5 inline-flex items-center gap-1 underline-offset-2 hover:underline"
+                    title="Abrir perfil no Instagram para verificar identidade"
+                  >
+                    @{r.instagram_handle} ↗
+                  </a>
+                )}
               </div>
 
-              {/* Perfil / Motivação */}
+              {/* Perfil / Motivação / Perguntas obrigatórias */}
               <div className="pr-4">
                 <p className="text-white/60 text-[12px]">{r.profissao || "—"}</p>
+
+                {/* Tags do perfil obrigatório */}
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {r.filiado_partido_politico === true && (
+                    <span className="text-[9px] uppercase tracking-[0.1em] px-1.5 py-0.5 border border-amber-400/30 text-amber-300/80 bg-amber-400/[0.05]">
+                      Partido: {r.partido_politico || "?"}
+                    </span>
+                  )}
+                  {r.filiado_partido_politico === false && (
+                    <span className="text-[9px] uppercase tracking-[0.1em] px-1.5 py-0.5 border border-white/10 text-white/40">
+                      Sem partido
+                    </span>
+                  )}
+                  {r.agente_publico === true && (
+                    <span className="text-[9px] uppercase tracking-[0.1em] px-1.5 py-0.5 border border-blue-400/30 text-blue-300/80 bg-blue-400/[0.05]">
+                      Agente público
+                    </span>
+                  )}
+                  {r.agente_publico === false && (
+                    <span className="text-[9px] uppercase tracking-[0.1em] px-1.5 py-0.5 border border-white/10 text-white/40">
+                      Cidadão
+                    </span>
+                  )}
+                </div>
+
+                {r.como_encontrou && (
+                  <p className="text-white/35 text-[11px] mt-1.5 leading-relaxed">
+                    <span className="text-white/25 uppercase tracking-[0.1em] text-[9px]">Encontrou: </span>
+                    {r.como_encontrou}
+                  </p>
+                )}
                 {r.motivacao && (
-                  <p className="text-white/30 text-[11px] mt-0.5 line-clamp-2 leading-relaxed">
+                  <p className="text-white/30 text-[11px] mt-1 line-clamp-2 leading-relaxed">
+                    <span className="text-white/25 uppercase tracking-[0.1em] text-[9px]">Motivação: </span>
                     {r.motivacao}
                   </p>
                 )}
