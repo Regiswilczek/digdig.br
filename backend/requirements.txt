@@ -1,4 +1,5 @@
 fastapi==0.115.6
+python-multipart>=0.0.9  # FastAPI 0.115+ exige explícito p/ File/Form
 uvicorn[standard]==0.30.1
 sqlalchemy[asyncio]==2.0.49
 asyncpg>=0.30.0
