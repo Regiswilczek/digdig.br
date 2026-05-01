@@ -4,17 +4,17 @@ import { ParticleField } from "@/components/ParticleField";
 export const Route = createFileRoute("/modelos")({
   head: () => ({
     meta: [
-      { title: "Modelos — Dig Dig" },
+      { title: "Modelos | Dig Dig" },
       {
         name: "description",
         content:
-          "Os três motores de IA do Dig Dig: Piper (triagem), Bud (análise profunda) e Zew (investigação histórica).",
+          "Os quatro motores de IA do Dig Dig: Atlas (catalogação), Piper (triagem), Bud (análise profunda) e Zew (investigação histórica).",
       },
-      { property: "og:title", content: "Modelos — Dig Dig" },
+      { property: "og:title", content: "Modelos | Dig Dig" },
       {
         property: "og:description",
         content:
-          "Piper, Bud e Zew — os modelos do Dig Dig especializados em auditoria de atos públicos.",
+          "Atlas, Piper, Bud e Zew. Os modelos do Dig Dig especializados em auditoria de atos públicos.",
       },
     ],
     links: [
@@ -63,33 +63,64 @@ type Modelo = {
 
 const MODELOS: Modelo[] = [
   {
-    id: "piper",
-    nome: "Piper",
-    classe: "Modelo rápido",
-    geracao: "Geração 4.5",
-    tagline: "Velocidade em escala, com precisão suficiente para triagem.",
+    id: "atlas",
+    nome: "Atlas",
+    classe: "Modelo de classificação",
+    geracao: "Geração 2.5 Lite",
+    tagline: "Catalogação canônica em escala industrial.",
     descricao:
-      "Modelo compacto otimizado para throughput. Foi desenhado para processar volumes massivos de texto técnico — leis, portarias, regimentos — classificando, extraindo entidades e estruturando dados em JSON estável. Roda barato, responde em sub-segundo e mantém consistência ao longo de milhares de chamadas paralelas.",
-    janelaContexto: "200K tokens",
+      "Modelo compacto otimizado para throughput. É a primeira camada do pipeline: lê cada documento bruto vindo do scraper e o coloca numa das 26 categorias canônicas (convênio, contrato, ata plenária, decreto, portaria, dispensa, etc.), extraindo metadados estruturados como número oficial, data, valor envolvido e pessoas mencionadas. Roda em sub-segundo e processa milhares de documentos por hora a custo marginal.",
+    janelaContexto: "1M tokens",
     saidaMaxima: "8K tokens",
-    latencia: "Baixa — sub-segundo por requisição",
+    latencia: "Baixa, sub-segundo por requisição",
     capacidades: [
-      "Saída JSON estruturada e validada",
-      "Extração de entidades nomeadas",
-      "Classificação multi-rótulo",
-      "Tool use e function calling",
-      "Prompt caching (até 90% de desconto)",
-      "Multilíngue, com forte desempenho em PT-BR",
+      "Classificação multi-rótulo em taxonomia fixa",
+      "Extração de campos estruturados em JSON",
+      "Detecção de qualidade textual (boa, parcial, ruim)",
+      "OCR multimodal de PDFs escaneados",
+      "Prompt caching com contexto compartilhado",
+      "Multilíngue, calibrado em PT-BR",
     ],
     benchmarks: [
-      { label: "MMLU (conhecimento geral)", valor: "73,5%" },
-      { label: "GPQA Diamond (ciências)", valor: "33,3%" },
-      { label: "HumanEval (saída estruturada)", valor: "75,9%" },
+      { label: "Acurácia de categoria (CAU/PR)", valor: "~98%" },
+      { label: "Custo médio por ato", valor: "US$ 0,0006" },
+      { label: "Throughput", valor: "~200 atos/min" },
     ],
     idealPara: [
-      "Triagem de grandes acervos documentais",
-      "Pipelines de classificação em lote",
-      "Extração de campos a partir de texto livre",
+      "Catalogação inicial de acervos massivos",
+      "Padronização de tipos vindos de fontes heterogêneas",
+      "Extração estruturada para indexação e busca",
+    ],
+    disponivel: true,
+  },
+  {
+    id: "piper",
+    nome: "Piper",
+    classe: "Modelo Pro de contexto longo",
+    geracao: "Geração 2.5 Pro",
+    tagline: "Triagem investigativa com leitura integral do ato.",
+    descricao:
+      "Modelo de alta capacidade com janela de contexto extensa, capaz de ingerir o regimento inteiro do órgão, leis aplicáveis e o texto completo de uma ata plenária de 80 páginas numa só passada, sem truncamento. Classifica nível de risco (verde, amarelo, laranja, vermelho), aponta indícios de irregularidade com citação direta do trecho, calcula score CVSS-A e extrai pessoas, valores e referências cruzadas. Quando o documento vem digitalizado sem texto, faz OCR via visão multimodal e ainda devolve a transcrição literal.",
+    janelaContexto: "1M tokens (até 2M)",
+    saidaMaxima: "64K tokens",
+    latencia: "Média, alguns segundos por análise",
+    capacidades: [
+      "Janela de 1M tokens permite ler regimento + ato completo",
+      "Visão multimodal para PDFs escaneados (OCR e análise juntos)",
+      "Saída JSON estruturada com score, indícios e tags",
+      "Implicit prompt caching para contexto repetido",
+      "Raciocínio jurídico passo a passo",
+      "Multilíngue, calibrado em PT-BR",
+    ],
+    benchmarks: [
+      { label: "MMLU (conhecimento geral)", valor: "85,7%" },
+      { label: "GPQA Diamond (ciências)", valor: "84,0%" },
+      { label: "Custo médio por ato", valor: "US$ 0,01–0,02" },
+    ],
+    idealPara: [
+      "Triagem investigativa com texto integral do ato",
+      "OCR de documentos escaneados em pipeline único",
+      "Análise de atas plenárias longas sem truncamento",
     ],
     disponivel: true,
   },
@@ -103,7 +134,7 @@ const MODELOS: Modelo[] = [
       "Modelo de alta capacidade para tarefas que exigem compreensão profunda: ler um regimento de 70 mil tokens, cruzar com um ato administrativo, identificar o artigo violado e construir um argumento coerente, com citações diretas. Equilibra qualidade de raciocínio, fidelidade ao texto fonte e custo controlado via cache.",
     janelaContexto: "200K tokens",
     saidaMaxima: "64K tokens",
-    latencia: "Média — alguns segundos por análise",
+    latencia: "Média, alguns segundos por análise",
     capacidades: [
       "Raciocínio jurídico passo a passo",
       "Citação literal com referência ao trecho fonte",
@@ -131,10 +162,10 @@ const MODELOS: Modelo[] = [
     geracao: "Geração 4.7",
     tagline: "Raciocínio prolongado para investigação sistêmica.",
     descricao:
-      "O modelo mais capaz da família. Suporta raciocínio estendido — pode pensar por minutos antes de responder, mantendo cadeias longas de inferência sobre acervos de décadas. Construído para perguntas que nenhum modelo rápido resolve: identificar padrões longitudinais, correlacionar gestões distintas e produzir narrativas investigativas com profundidade analítica.",
+      "O modelo mais capaz da família. Suporta raciocínio estendido: pode pensar por minutos antes de responder, mantendo cadeias longas de inferência sobre acervos de décadas. Construído para perguntas que nenhum modelo rápido resolve: identificar padrões longitudinais, correlacionar gestões distintas e produzir narrativas investigativas com profundidade analítica.",
     janelaContexto: "200K tokens (com extended thinking)",
     saidaMaxima: "32K tokens",
-    latencia: "Alta — projetado para profundidade, não velocidade",
+    latencia: "Alta. Projetado para profundidade, não velocidade.",
     capacidades: [
       "Extended thinking (raciocínio prolongado visível)",
       "Análise longitudinal multi-período",
@@ -253,7 +284,7 @@ function ModelosPage() {
               maxWidth: 820,
             }}
           >
-            Três modelos de IA.<br />
+            Quatro modelos de IA.<br />
             <span style={{ color: "rgba(255,255,255,0.55)" }}>
               Uma família construída para auditoria pública.
             </span>
@@ -267,9 +298,10 @@ function ModelosPage() {
               margin: 0,
             }}
           >
-            Piper, Bud e Zew formam a família de modelos do Dig Dig — do mais
-            rápido ao de raciocínio mais profundo. Cada um com sua janela de
-            contexto, seus benchmarks e o tipo de tarefa em que se destaca.
+            Atlas, Piper, Bud e Zew formam a família de modelos do Dig Dig, da
+            classificação massiva ao raciocínio investigativo mais profundo.
+            Cada um com sua janela de contexto, seus benchmarks e o tipo de
+            tarefa em que se destaca.
           </p>
         </div>
       </header>
@@ -555,7 +587,7 @@ function ModelosPage() {
               lineHeight: 1.3,
             }}
           >
-            Os três rodam sobre a mesma base de dados pública.
+            Os quatro rodam sobre a mesma base de dados pública.
           </p>
           <p
             style={{
@@ -566,7 +598,7 @@ function ModelosPage() {
               margin: "0 auto 32px",
             }}
           >
-            Tudo que o Dig Dig encontra — fichas, análises, padrões — fica acessível.
+            Tudo que o Dig Dig encontra (fichas, análises, padrões) fica acessível.
             Sem paywall no conteúdo.
           </p>
           <div

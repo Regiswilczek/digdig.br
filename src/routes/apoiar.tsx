@@ -8,17 +8,17 @@ import { API_URL } from "@/lib/api";
 export const Route = createFileRoute("/apoiar")({
   head: () => ({
     meta: [
-      { title: "Apoiar — Dig Dig" },
+      { title: "Apoiar | Dig Dig" },
       {
         name: "description",
         content:
           "O Dig Dig é uma ferramenta pública e gratuita. Quem financia são pessoas e organizações que acreditam que transparência não é privilégio.",
       },
-      { property: "og:title", content: "Apoiar — Dig Dig" },
+      { property: "og:title", content: "Apoiar | Dig Dig" },
       {
         property: "og:description",
         content:
-          "Apoie o Dig Dig — uma plataforma de auditoria pública gratuita, financiada por quem acredita.",
+          "Apoie o Dig Dig: uma plataforma de auditoria pública gratuita, financiada por quem acredita.",
       },
     ],
     links: [
@@ -46,7 +46,7 @@ const SUBTLE = "#9a9a9a";
 const BORDER = "rgba(0,0,0,0.08)";
 const PAPER  = "#faf8f3";
 
-function fmt(n: number | undefined | null, fallback = "—"): string {
+function fmt(n: number | undefined | null, fallback = "·"): string {
   if (n == null) return fallback;
   return n.toLocaleString("pt-BR");
 }
@@ -179,7 +179,7 @@ function CheckoutModal({ state, onClose }: { state: ModalState; onClose: () => v
   const [copied, setCopied] = useState(false);
 
   const titulo   = state.tipo === "patrocinador" ? "Patrocinar Dig Dig" : "Fazer uma doação";
-  const sublabel = state.tipo === "patrocinador" ? "Plano Patrocinador — acesso anual · pode parcelar" : "Contribuição livre — Dig Dig";
+  const sublabel = state.tipo === "patrocinador" ? "Plano Patrocinador · acesso anual · pode parcelar" : "Contribuição livre · Dig Dig";
 
   const handleSubmit = async ({ formData }: { formData: unknown; selectedPaymentMethod: string }) => {
     const res = await fetch(`${API_URL}/billing/criar-pagamento`, {
@@ -289,7 +289,7 @@ function CheckoutModal({ state, onClose }: { state: ModalState; onClose: () => v
               <span style={{ fontSize: 18 }}>✓</span>
             </div>
             <p style={{ ...MONO, fontSize: 10, color: SUBTLE, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 8 }}>
-              PIX gerado — aguardando pagamento
+              PIX gerado · aguardando pagamento
             </p>
             <p style={{ fontSize: 14, color: MUTED, marginBottom: 20, lineHeight: 1.5 }}>
               Escaneie o QR code ou copie o código abaixo no seu app de banco.
@@ -414,7 +414,7 @@ function ApoiarPage() {
           </h1>
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.7)", lineHeight: 1.55, maxWidth: 600, margin: "0 0 48px" }}>
             O Dig Dig lê automaticamente os atos administrativos de órgãos públicos
-            brasileiros e detecta irregularidades com IA. O resultado é aberto —
+            brasileiros e detecta irregularidades com IA. O resultado é aberto:
             sem paywall, sem cadastro obrigatório.
           </p>
 
@@ -638,8 +638,8 @@ function ApoiarPage() {
           </p>
           <p style={{ fontSize: 13, color: SUBTLE }}>
             Dúvidas:{" "}
-            <a href="mailto:regisalessander@gmail.com" style={{ color: MUTED, textDecoration: "underline" }}>
-              regisalessander@gmail.com
+            <a href="mailto:contato@digdig.com.br" style={{ color: MUTED, textDecoration: "underline" }}>
+              contato@digdig.com.br
             </a>
           </p>
         </section>

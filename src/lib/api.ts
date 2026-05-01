@@ -142,7 +142,12 @@ export async function fetchFinanceiroPassagens(
 // ─── types ────────────────────────────────────────────────────────────────────
 
 export interface PublicStats {
-  tenant: { slug: string; nome: string };
+  tenant: {
+    slug: string;
+    nome: string;
+    tipo_orgao?: string;
+    cor_tema?: string | null;
+  };
   total_atos: number;
   total_analisados: number;
   total_criticos: number;

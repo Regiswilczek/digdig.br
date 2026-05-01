@@ -282,9 +282,29 @@ function Skeleton({ w, h = "1em", className = "" }: { w: string; h?: string; cla
   );
 }
 
+function SplineBrain() {
+  // Mesma cena Spline usada no dashboard (/painel/chat).
+  return (
+    <div
+      className="w-[215px] h-[215px] overflow-hidden pointer-events-auto"
+      style={{ background: "transparent" }}
+      aria-hidden="true"
+    >
+      <iframe
+        src="https://my.spline.design/circleparticlecopy-SrRIUJZYBEBMTeUl6OBnPOpf/"
+        title="Dig Dig · 3D"
+        loading="lazy"
+        allow="autoplay; fullscreen"
+        style={{ width: "100%", height: "100%", border: 0, background: "transparent" }}
+      />
+    </div>
+  );
+}
+
 function DesktopBadge({ stats, loading, analyses, totalDocs }: { stats: PublicStats | null; loading: boolean; analyses: AnaliseRecente[] | null; totalDocs: number }) {
   return (
     <div className="flex flex-col gap-[3px] select-none flex-shrink-0 w-[215px]">
+      <SplineBrain />
       <PoweredByClaude fullWidth />
       <div className="border border-white/20 bg-black/55 backdrop-blur-sm px-3 py-[7px]">
         <p style={SYNE} className="text-[10px] tracking-[0.16em] uppercase leading-[1.55] text-white/80 flex items-center gap-1.5">
@@ -581,8 +601,13 @@ function MobileHero({ stats, loading, analyses, totalDocs }: { stats: PublicStat
 function HomePage() {
   const { stats, finStats, isLoading: loading } = useOrgao("cau-pr");
   const [recentAnalyses, setRecentAnalyses] = useState<AnaliseRecente[] | null>(null);
+  const [tenantsTotalAtos, setTenantsTotalAtos] = useState<number>(0);
 
-  const totalDocs = (stats?.total_atos ?? 0)
+  // Soma `total_atos` de TODOS os tenants do banco (ativos ou em coleta).
+  // Cobre CAU/PR + GOV/PR + futuros, sem precisar fetchar stats individuais.
+  // Diárias + Passagens (via Implanta) ainda vêm só do CAU/PR — outros órgãos
+  // não usam Implanta.
+  const totalDocs = tenantsTotalAtos
     + (finStats?.diarias.total ?? 0)
     + (finStats?.passagens.total ?? 0);
 
@@ -590,7 +615,14 @@ function HomePage() {
     fetchAnalysesRecentes("cau-pr")
       .then(setRecentAnalyses)
       .catch(() => setRecentAnalyses([]));
-  }, []);
+    fetch("/public/tenants")
+      .then((r) => r.json())
+      .then((tenants: Array<{ total_atos?: number }>) => {
+        const total = tenants.reduce((acc, t) => acc + (t.total_atos ?? 0), 0);
+        setTenantsTotalAtos(total);
+      })
+      .catch(() => setTenantsTotalAtos(stats?.total_atos ?? 0));
+  }, [stats?.total_atos]);
 
   return (
     <div
