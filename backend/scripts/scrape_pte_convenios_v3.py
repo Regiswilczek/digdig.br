@@ -171,8 +171,17 @@ class PFSession:
             "Referer": PTE_URL,
         }
 
-    async def pesquisar_ano(self, ano: int) -> str:
-        """POST btnPesquisar com filtroAno=ano. Retorna body XML."""
+    async def pesquisar_ano(self, ano: Optional[int]) -> str:
+        """POST btnPesquisar com filtroAno=ano. None ou 0 = todos os anos.
+
+        ATENÇÃO: filtroAno do PTE não é por data de assinatura — ele lista
+        convênios com QUALQUER atividade naquele ano (aditivos, prestações
+        de contas, pagamentos). Filtrar por ano gera massiva duplicação:
+        soma de totais por ano = ~89k, mas total único = ~11k.
+
+        Pra coletar universo único, chame com ano=None.
+        """
+        ano_str = "" if (ano is None or ano == 0) else str(ano)
         payload = {
             "javax.faces.partial.ajax": "true",
             "javax.faces.source": "formPesquisa:btnPesquisar",
@@ -181,7 +190,7 @@ class PFSession:
             "formPesquisa:btnPesquisar": "formPesquisa:btnPesquisar",
             "formPesquisa": "formPesquisa",
             "formPesquisa:filtroAno_focus": "",
-            "formPesquisa:filtroAno_input": str(ano),
+            "formPesquisa:filtroAno_input": ano_str,
             "formPesquisa:filtroMes_focus": "",
             "formPesquisa:filtroMes_input": "",
             "formPesquisa:filtroConcedente_focus": "",
@@ -316,7 +325,9 @@ async def upsert_convenio(
 
 # ── Main ────────────────────────────────────────────────────────────────────
 
-def parse_anos(args) -> tuple[int, int]:
+def parse_anos(args) -> Optional[tuple[int, int]]:
+    if args.todos:
+        return None
     if args.ano:
         return args.ano, args.ano
     if args.anos:
@@ -324,13 +335,20 @@ def parse_anos(args) -> tuple[int, int]:
         if not m:
             sys.exit("--anos AAAA-AAAA")
         return int(m.group(1)), int(m.group(2))
-    sys.exit("Use --ano AAAA ou --anos AAAA-AAAA")
+    sys.exit("Use --ano AAAA, --anos AAAA-AAAA, ou --todos")
 
 
 async def main(args):
-    ano_ini, ano_fim = parse_anos(args)
+    range_anos = parse_anos(args)
+    if range_anos is None:
+        anos_iter: list[Optional[int]] = [None]
+        rotulo = "TODOS"
+    else:
+        ano_ini, ano_fim = range_anos
+        anos_iter = list(range(ano_ini, ano_fim + 1))
+        rotulo = f"{ano_ini}..{ano_fim}"
     print(f"\n{'='*72}")
-    print(f"  PTE Convênios — {'PROBE' if args.probe else 'COLETA'} {ano_ini}..{ano_fim}")
+    print(f"  PTE Convênios — {'PROBE' if args.probe else 'COLETA'} ano={rotulo}")
     print(f"{'='*72}\n")
 
     headers_html = {"User-Agent": UA_HTML, "Accept-Language": "pt-BR,pt;q=0.9"}
@@ -343,12 +361,13 @@ async def main(args):
         print(f"[setup] ViewState inicial: {sess.viewstate[:40]}...")
 
         if args.probe:
-            for ano in range(ano_ini, ano_fim + 1):
+            for ano in anos_iter:
                 try:
                     body = await sess.pesquisar_ano(ano)
                     total = extrair_total(body)
                     n_pag = len(parse_convenios(body))
-                    print(f"  {ano}: total={total:>6}  primeira_pag={n_pag}")
+                    rotulo_ano = "TODOS" if ano is None else str(ano)
+                    print(f"  {rotulo_ano}: total={total:>6}  primeira_pag={n_pag}")
                 except Exception as exc:
                     print(f"  {ano}: ERRO {exc!s:.80}")
                 await asyncio.sleep(RATE_LIMIT_PAGE)
@@ -360,8 +379,9 @@ async def main(args):
         try:
             async with httpx.AsyncClient(headers=headers_pdf, follow_redirects=True, timeout=60) as http_pdf:
                 ok = err = skip = 0
-                for ano in range(ano_ini, ano_fim + 1):
-                    print(f"\n══ ANO {ano} ══")
+                for ano in anos_iter:
+                    rotulo_ano = "TODOS" if ano is None else str(ano)
+                    print(f"\n══ ANO {rotulo_ano} ══")
                     try:
                         body = await sess.pesquisar_ano(ano)
                     except Exception as exc:
@@ -420,6 +440,8 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--ano", type=int)
     p.add_argument("--anos", type=str)
+    p.add_argument("--todos", action="store_true",
+                   help="Sem filtro de ano — universo único de convênios (~11k em vez de ~89k duplicados)")
     p.add_argument("--max-paginas", type=int, default=0, help="Limita páginas/ano (0=sem limite)")
     p.add_argument("--probe", action="store_true")
     p.add_argument("--metadata-only", action="store_true",

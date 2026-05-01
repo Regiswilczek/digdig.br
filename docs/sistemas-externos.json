@@ -1,0 +1,1433 @@
+[
+  {
+    "slug": "portal_v4_repasses",
+    "label": "Portal v4 — Repasses Municípios",
+    "url": "https://www4.pr.gov.br/Gestao/portaldatransparencia/repasses/index.jsp",
+    "title": "Gestão do Dinheiro Público - Repasses",
+    "h1": null,
+    "forms": [],
+    "selects": [
+      {
+        "name": "cmbAno",
+        "n_opts": 28,
+        "first_opts": [
+          {
+            "v": "2026",
+            "t": "2026"
+          },
+          {
+            "v": "2025",
+            "t": "2025"
+          },
+          {
+            "v": "2024",
+            "t": "2024"
+          },
+          {
+            "v": "2023",
+            "t": "2023"
+          },
+          {
+            "v": "2022",
+            "t": "2022"
+          }
+        ]
+      },
+      {
+        "name": "cmbInformacao",
+        "n_opts": 5,
+        "first_opts": [
+          {
+            "v": "Municipio",
+            "t": "Município"
+          },
+          {
+            "v": "Assoc. de Municipios",
+            "t": "Assoc. de Municípios"
+          },
+          {
+            "v": "Micro Regiao",
+            "t": "Micro Região"
+          },
+          {
+            "v": "Delegacia de Receita",
+            "t": "Delegacia de Receita"
+          },
+          {
+            "v": "Estado",
+            "t": "Estado"
+          }
+        ]
+      },
+      {
+        "name": "cmbItensInformacao",
+        "n_opts": 400,
+        "first_opts": [
+          {
+            "v": " ",
+            "t": ""
+          },
+          {
+            "v": "520",
+            "t": "Abatiá"
+          },
+          {
+            "v": "111",
+            "t": "Adrianópolis"
+          },
+          {
+            "v": "121",
+            "t": "Agudos do Sul"
+          },
+          {
+            "v": "102",
+            "t": "Almirante Tamandaré"
+          }
+        ]
+      },
+      {
+        "name": "cmbItensInformacaoMunOracle",
+        "n_opts": 490,
+        "first_opts": [
+          {
+            "v": "19000101;20501231;520",
+            "t": "Abatiá                        "
+          },
+          {
+            "v": "20030101;20501231;111",
+            "t": "Adrianópolis                  "
+          },
+          {
+            "v": "20010701;20501231;111",
+            "t": "Adrianópolis                  "
+          },
+          {
+            "v": "19000101;20010630;111",
+            "t": "Adrianópolis                  "
+          },
+          {
+            "v": "20030101;20501231;121",
+            "t": "Agudos do Sul                 "
+          }
+        ]
+      },
+      {
+        "name": "cmbItensInformacaoAsmOracle",
+        "n_opts": 41,
+        "first_opts": [
+          {
+            "v": "20030101;20501231;2",
+            "t": "ASSOMEC - Ass. dos Munic. da R"
+          },
+          {
+            "v": "20010701;20501231;2",
+            "t": "ASSOMEC - Ass. dos Munic. da R"
+          },
+          {
+            "v": "19000101;20010630;2",
+            "t": "ASSOMEC - Ass. dos Munic. da R"
+          },
+          {
+            "v": "19000101;20501231;2",
+            "t": "ASSOMEC - Ass. dos Munic. da R"
+          },
+          {
+            "v": "20010701;20501231;3",
+            "t": "AMSULEP - Ass. dos Munic. da R"
+          }
+        ]
+      },
+      {
+        "name": "cmbItensInformacaoMrhOracle",
+        "n_opts": 52,
+        "first_opts": [
+          {
+            "v": "19000101;20501231;280",
+            "t": "Algodoeira de Assaí"
+          },
+          {
+            "v": "20020101;20501231;277",
+            "t": "Alto Ivaí"
+          },
+          {
+            "v": "19000101;20011231;277",
+            "t": "Alto Ivaí"
+          },
+          {
+            "v": "19000101;20501231;277",
+            "t": "Alto Ivaí"
+          },
+          {
+            "v": "20030101;20501231;270",
+            "t": "Alto Ribeira"
+          }
+        ]
+      },
+      {
+        "name": "cmbItensInformacaoDrrOracle",
+        "n_opts": 14,
+        "first_opts": [
+          {
+            "v": "19000101;20010630;2",
+            "t": "Região Metropolitana e Litoral"
+          },
+          {
+            "v": "19000101;20501231;5",
+            "t": "Guarapuava"
+          },
+          {
+            "v": "19000101;20501231;6",
+            "t": "Jacarezinho"
+          },
+          {
+            "v": "19000101;20501231;8",
+            "t": "Londrina"
+          },
+          {
+            "v": "null;null;null",
+            "t": "S.T. Outros Estados"
+          }
+        ]
+      },
+      {
+        "name": "cmbSemanal",
+        "n_opts": 1426,
+        "first_opts": [
+          {
+            "v": "26/04/2026",
+            "t": "26/04/2026 a 02/05/2026"
+          },
+          {
+            "v": "19/04/2026",
+            "t": "19/04/2026 a 25/04/2026"
+          },
+          {
+            "v": "12/04/2026",
+            "t": "12/04/2026 a 18/04/2026"
+          },
+          {
+            "v": "05/04/2026",
+            "t": "05/04/2026 a 11/04/2026"
+          },
+          {
+            "v": "29/03/2026",
+            "t": "29/03/2026 a 04/04/2026"
+          }
+        ]
+      },
+      {
+        "name": "cmbMensal",
+        "n_opts": 328,
+        "first_opts": [
+          {
+            "v": "202604",
+            "t": "Abril/2026"
+          },
+          {
+            "v": "202603",
+            "t": "Março/2026"
+          },
+          {
+            "v": "202602",
+            "t": "Fevereiro/2026"
+          },
+          {
+            "v": "202601",
+            "t": "Janeiro/2026"
+          },
+          {
+            "v": "202512",
+            "t": "Dezembro/2025"
+          }
+        ]
+      },
+      {
+        "name": "cmbAnual",
+        "n_opts": 28,
+        "first_opts": [
+          {
+            "v": "2026",
+            "t": "2026"
+          },
+          {
+            "v": "2025",
+            "t": "2025"
+          },
+          {
+            "v": "2024",
+            "t": "2024"
+          },
+          {
+            "v": "2023",
+            "t": "2023"
+          },
+          {
+            "v": "2022",
+            "t": "2022"
+          }
+        ]
+      }
+    ],
+    "tables": 12,
+    "links_data": [],
+    "iframes": [
+      "https://www4.pr.gov.br/Gestao/funcaocalendario/popcjs.html"
+    ],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": []
+  },
+  {
+    "slug": "portal_v4_adiantamentos",
+    "label": "Portal v4 — Adiantamentos",
+    "url": "https://www4.pr.gov.br/Gestao/portaldatransparencia/adiantamentos/adiantamentos.jsp",
+    "title": "Gestão do Dinheiro Público - Adiantamentos",
+    "h1": null,
+    "forms": [
+      {
+        "id": "",
+        "action": "https://www4.pr.gov.br/Gestao/portaldatransparencia/adiantamentos/adiantamentos.jsp",
+        "method": "post"
+      }
+    ],
+    "selects": [
+      {
+        "name": "txtMes",
+        "n_opts": 12,
+        "first_opts": [
+          {
+            "v": "01",
+            "t": "Jan"
+          },
+          {
+            "v": "02",
+            "t": "Fev"
+          },
+          {
+            "v": "03",
+            "t": "Mar"
+          },
+          {
+            "v": "04",
+            "t": "Abr"
+          },
+          {
+            "v": "05",
+            "t": "Mai"
+          }
+        ]
+      },
+      {
+        "name": "txtAno",
+        "n_opts": 12,
+        "first_opts": [
+          {
+            "v": "2006",
+            "t": "2006"
+          },
+          {
+            "v": "2007",
+            "t": "2007"
+          },
+          {
+            "v": "2008",
+            "t": "2008"
+          },
+          {
+            "v": "2009",
+            "t": "2009"
+          },
+          {
+            "v": "2010",
+            "t": "2010"
+          }
+        ]
+      },
+      {
+        "name": "txtMesAte",
+        "n_opts": 12,
+        "first_opts": [
+          {
+            "v": "01",
+            "t": "Jan"
+          },
+          {
+            "v": "02",
+            "t": "Fev"
+          },
+          {
+            "v": "03",
+            "t": "Mar"
+          },
+          {
+            "v": "04",
+            "t": "Abr"
+          },
+          {
+            "v": "05",
+            "t": "Mai"
+          }
+        ]
+      },
+      {
+        "name": "selOrgao",
+        "n_opts": 91,
+        "first_opts": [
+          {
+            "v": "-1",
+            "t": "--------------------------Sele"
+          },
+          {
+            "v": "21",
+            "t": "Administração Geral do Estado "
+          },
+          {
+            "v": "13",
+            "t": "Administração Geral do Estado "
+          },
+          {
+            "v": "71",
+            "t": "Administração dos Portos de Pa"
+          },
+          {
+            "v": "72",
+            "t": "Agência Reguladora de Serviços"
+          }
+        ]
+      }
+    ],
+    "tables": 3,
+    "links_data": [],
+    "iframes": [],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": []
+  },
+  {
+    "slug": "rpv",
+    "label": "RPV — Requisição Pequeno Valor",
+    "url": "https://rpv.fazenda.pr.gov.br/prpv/publico/transparencia",
+    "title": "PRPV",
+    "h1": "REQUISIÇÃO DE PEQUENO VALOR",
+    "forms": [],
+    "selects": [],
+    "tables": 0,
+    "links_data": [],
+    "iframes": [],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": []
+  },
+  {
+    "slug": "recdiario",
+    "label": "Recolhimento Diário",
+    "url": "https://recdiario.fazenda.pr.gov.br/recdiario/index",
+    "title": "Gestão do Dinheiro Público",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 4,
+    "links_data": [],
+    "iframes": [],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": []
+  },
+  {
+    "slug": "flexportal_receitas",
+    "label": "FlexPortal Receitas",
+    "url": "https://www.transparencia.pr.gov.br/FlexPortal/#!Receitas",
+    "goto_err": "Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/FlexPortal/#!Receitas\", waiting until \"networkidle\"\n",
+    "title": "",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 4,
+    "links_data": [
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Home",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Home\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Receitas",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Receitas\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Despesas",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Despesas\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Fornecedores",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Fornecedores\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!ISSPAGOS",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t ISSPAGOS\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta1",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta1\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta2",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta2\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta3",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta3\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta4",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta4\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta5",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta5\n\t\t\t\t\t\t\t\t\t"
+      }
+    ],
+    "iframes": [
+      "",
+      "",
+      "",
+      ""
+    ],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "POST",
+        "url": "https://www.transparencia.pr.gov.br/FlexPortal/?v-1777602912884",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://www.transparencia.pr.gov.br/FlexPortal/UIDL/?v-uiId=0",
+        "type": "xhr"
+      }
+    ]
+  },
+  {
+    "slug": "flexportal_despesas",
+    "label": "FlexPortal Despesas",
+    "url": "https://www.transparencia.pr.gov.br/FlexPortal/#!Despesas",
+    "goto_err": "Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/FlexPortal/#!Despesas\", waiting until \"networkidle\"\n",
+    "title": "",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 4,
+    "links_data": [
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Home",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Home\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Receitas",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Receitas\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Despesas",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Despesas\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Fornecedores",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Fornecedores\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!ISSPAGOS",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t ISSPAGOS\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta1",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta1\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta2",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta2\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta3",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta3\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta4",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta4\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta5",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta5\n\t\t\t\t\t\t\t\t\t"
+      }
+    ],
+    "iframes": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "POST",
+        "url": "https://www.transparencia.pr.gov.br/FlexPortal/?v-1777602957879",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://www.transparencia.pr.gov.br/FlexPortal/UIDL/?v-uiId=1",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://www.transparencia.pr.gov.br/FlexPortal/UIDL/?v-uiId=1",
+        "type": "xhr"
+      }
+    ]
+  },
+  {
+    "slug": "flexportal_fornecedores",
+    "label": "FlexPortal Fornecedores",
+    "url": "https://www.transparencia.pr.gov.br/FlexPortal/#!Fornecedores",
+    "goto_err": "Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/FlexPortal/#!Fornecedores\", waiting until \"networkidle\"\n",
+    "title": "",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 8,
+    "links_data": [
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Home",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Home\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Receitas",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Receitas\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Despesas",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Despesas\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Fornecedores",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Fornecedores\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!ISSPAGOS",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t ISSPAGOS\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta1",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta1\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta2",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta2\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta3",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta3\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta4",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta4\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.transparencia.pr.gov.br/FlexPortal/#!Consulta5",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta5\n\t\t\t\t\t\t\t\t\t"
+      }
+    ],
+    "iframes": [
+      "",
+      ""
+    ],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "POST",
+        "url": "https://www.transparencia.pr.gov.br/FlexPortal/?v-1777603002945",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://www.transparencia.pr.gov.br/FlexPortal/UIDL/?v-uiId=2",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://www.transparencia.pr.gov.br/FlexPortal/UIDL/?v-uiId=2",
+        "type": "xhr"
+      }
+    ]
+  },
+  {
+    "slug": "siafic_consulta1",
+    "label": "SIAFIC Dispêndios",
+    "url": "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta1",
+    "goto_err": "Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.siafic.pr.gov.br/FlexPortal/#!Consulta1\", waiting until \"networkidle\"\n",
+    "title": "",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 1,
+    "links_data": [
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Home",
+        "t": "Home"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Receitas",
+        "t": "Receitas"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Despesas",
+        "t": "Despesas"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Fornecedores",
+        "t": "Fornecedores"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!ISSPAGOS",
+        "t": "ISSPAGOS"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta1",
+        "t": "Consulta1"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta2",
+        "t": "Consulta2"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta3",
+        "t": "Consulta3"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta4",
+        "t": "Consulta4"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta5",
+        "t": "Consulta5"
+      }
+    ],
+    "iframes": [
+      ""
+    ],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "POST",
+        "url": "https://www.siafic.pr.gov.br/FlexPortal/?v-1777603047958",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://www.siafic.pr.gov.br/FlexPortal/UIDL/?v-uiId=0",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://www.siafic.pr.gov.br/FlexPortal/UIDL/?v-uiId=0",
+        "type": "xhr"
+      }
+    ]
+  },
+  {
+    "slug": "siafic_isspagos",
+    "label": "SIAFIC ISSPAGOS",
+    "url": "https://www.siafic.pr.gov.br/FlexPortal/#!ISSPAGOS",
+    "goto_err": "Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.siafic.pr.gov.br/FlexPortal/#!ISSPAGOS\", waiting until \"networkidle\"\n",
+    "title": "",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 1,
+    "links_data": [
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Home",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Home\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Receitas",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Receitas\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Despesas",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Despesas\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Fornecedores",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Fornecedores\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!ISSPAGOS",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t ISSPAGOS\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta1",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta1\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta2",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta2\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta3",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta3\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta4",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta4\n\t\t\t\t\t\t\t\t\t"
+      },
+      {
+        "h": "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta5",
+        "t": "\n\t\t\t\t\t\t\t\t\t\t Consulta5\n\t\t\t\t\t\t\t\t\t"
+      }
+    ],
+    "iframes": [
+      ""
+    ],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "POST",
+        "url": "https://www.siafic.pr.gov.br/FlexPortal/?v-1777603092997",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://www.siafic.pr.gov.br/FlexPortal/UIDL/?v-uiId=1",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://www.siafic.pr.gov.br/FlexPortal/UIDL/?v-uiId=1",
+        "type": "xhr"
+      }
+    ]
+  },
+  {
+    "slug": "qlik_pte",
+    "label": "Qlik PTE (legacy)",
+    "url": "http://bi.pr.gov.br/QvAJAXZfc/opendoc.htm?document=PTE.qvw&host=QVS%40sparana00541&anonymous=true",
+    "title": "Gráficos Interativos",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 16,
+    "links_data": [],
+    "iframes": [],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "POST",
+        "url": "http://bi.pr.gov.br/QvAjaxZfc/QvsViewClient.aspx?mark=&host=QVS%40sparana00541&view=PTE.qvw&slot=&platform=browser.chrome&dpi=96&xrfkey=XE3OSDqZxaOrvzH8",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "http://bi.pr.gov.br/QvAjaxZfc/QvsViewClient.aspx?mark=40E687C054932710&host=QVS%40sparana00541&view=PTE.qvw&slot=&platform=browser.chrome&dpi=96&xrfkey=XE3OSDqZxaOrvzH8",
+        "type": "xhr"
+      }
+    ]
+  },
+  {
+    "slug": "qlik_realizacoes",
+    "label": "Qlik Realizações de Governo",
+    "url": "http://bi.pr.gov.br/QvAJAXZfc/opendoc.htm?document=RealizacoesdeGoverno.qvw&host=QVS%40sparana00541&anonymous=true",
+    "title": "Realizações de Governo",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 20,
+    "links_data": [],
+    "iframes": [],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "POST",
+        "url": "http://bi.pr.gov.br/QvAjaxZfc/QvsViewClient.aspx?mark=&host=QVS%40sparana00541&view=RealizacoesdeGoverno.qvw&slot=&platform=browser.chrome&dpi=96&xrfkey=XE3OSDqZxaOrvzH8",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "http://bi.pr.gov.br/QvAjaxZfc/QvsViewClient.aspx?mark=40E687C43EF50061&host=QVS%40sparana00541&view=RealizacoesdeGoverno.qvw&slot=&platform=browser.chrome&dpi=96&xrfkey=XE3OSDqZxaOrvzH8",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "http://bi.pr.gov.br/QvAjaxZfc/QvsViewClient.aspx?mark=40E687C43EF50061&host=QVS%40sparana00541&view=RealizacoesdeGoverno.qvw&slot=&platform=browser.chrome&dpi=96&xrfkey=XE3OSDqZxaOrvzH8",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "http://bi.pr.gov.br/QvAjaxZfc/QvsViewClient.aspx?mark=40E687C43EF50061&host=QVS%40sparana00541&view=RealizacoesdeGoverno.qvw&slot=&platform=browser.chrome&dpi=96&xrfkey=XE3OSDqZxaOrvzH8",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "http://bi.pr.gov.br/QvAjaxZfc/QvsViewClient.aspx?mark=40E687C43EF50061&host=QVS%40sparana00541&view=RealizacoesdeGoverno.qvw&slot=&platform=browser.chrome&dpi=96&xrfkey=XE3OSDqZxaOrvzH8",
+        "type": "xhr"
+      }
+    ]
+  },
+  {
+    "slug": "qlik_terceirizados",
+    "label": "Qlik Sense Terceirizados",
+    "url": "https://bi2.pr.gov.br/single/?appid=d9284dcd-1ab8-4044-8fee-28393520e405&sheet=ebb66970-8225-47ea-8a83-a8524a3d1d20",
+    "title": "CGE",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 2,
+    "links_data": [],
+    "iframes": [],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/import-map.json",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/autogenerated/product-info.json",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/api/v1/features?xrfkey=MmDFLz6MLpRgINmo",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/api/v1/features?xrfkey=MmDFLz6MLpRgINmo",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/api/v1/user-locale?xrfkey=MmDFLz6MLpRgINmo",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/api/v1/features",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/autogenerated/product-info.json?xrfkey=alzokPQ9h662PVZJ",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/translations/client/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/translations/common/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/translations/engine/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/translations/qcs-ui-common/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/translations/qcs-ui-common/en.plural.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/assets/external/sense-themes-default/default-themes.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/assets/external/sense-themes-default/sense/theme.json",
+        "type": "xhr"
+      }
+    ]
+  },
+  {
+    "slug": "qlik_cgeouv",
+    "label": "Qlik Sense CGEOuv+",
+    "url": "https://bi2.pr.gov.br/single/?appid=3e7bea38-ccca-4d8f-9853-5484f1630aad&sheet=475ee842-3ac3-4466-b8e7-49949c002473",
+    "title": "CGEOuv+",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 0,
+    "links_data": [],
+    "iframes": [],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/import-map.json",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/autogenerated/product-info.json",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/api/v1/features?xrfkey=RWj2zF3sgeGMcM7P",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/api/v1/features?xrfkey=RWj2zF3sgeGMcM7P",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/api/v1/user-locale?xrfkey=RWj2zF3sgeGMcM7P",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/api/v1/features",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/autogenerated/product-info.json?xrfkey=1k1YV26uY4s1CNPe",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/translations/client/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/translations/common/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/translations/engine/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/translations/qcs-ui-common/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/translations/qcs-ui-common/en.plural.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/assets/external/sense-themes-default/default-themes.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://bi2.pr.gov.br/resources/qmfe/sense-client/8.314.22/assets/external/sense-themes-default/sense/theme.json",
+        "type": "xhr"
+      }
+    ]
+  },
+  {
+    "slug": "powerbi_emendas_pix",
+    "label": "PowerBI Emendas PIX",
+    "url": "https://app.powerbi.com/view?r=eyJrIjoiN2UzN2UyMTQtODgxMC00N2NiLWE1NzQtZjFkYmZkZWQ0YzVmIiwidCI6ImY3MGEwYWY2LWRhMGYtNDViZS1iN2VkLTlmOGMxYjI0YmZkZiIsImMiOjR9",
+    "title": "Microsoft Power BI",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 0,
+    "links_data": [],
+    "iframes": [],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "GET",
+        "url": "https://content.powerapps.com/resource/powerbiwfe/scripts/reportEmbed.fluent-no-header-teal.json.min.4d09d7c4ce873f4a6393.js",
+        "type": "script"
+      },
+      {
+        "method": "GET",
+        "url": "https://js.monitor.azure.com/scripts/b/ai.config.1.cfg.json",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://content.powerapps.com/resource/powerbiwfe/scripts/reportEmbed.json-contracts.min.f2e64b3deef991f9b704.js",
+        "type": "script"
+      },
+      {
+        "method": "POST",
+        "url": "https://dc.services.visualstudio.com/v2/track",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://dc.services.visualstudio.com/v2/track",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://dc.services.visualstudio.com/v2/track",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://pbivisuals.powerbi.com/approvedResources.json",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://dc.services.visualstudio.com/v2/track",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://app.powerbi.com/13.0.28187.37/sharedresources/BaseThemes/CY18SU07.json",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://wabi-south-central-us-c-primary-api.analysis.windows.net/public/reports/conceptualschema",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://wabi-south-central-us-c-primary-api.analysis.windows.net/public/reports/querydata?synchronous=true",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://wabi-south-central-us-c-primary-api.analysis.windows.net/public/reports/querydata?synchronous=true",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://wabi-south-central-us-c-primary-api.analysis.windows.net/public/reports/querydata?synchronous=true",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://wabi-south-central-us-c-primary-api.analysis.windows.net/public/reports/querydata?synchronous=true",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://wabi-south-central-us-c-primary-api.analysis.windows.net/public/reports/querydata?synchronous=true",
+        "type": "xhr"
+      }
+    ]
+  },
+  {
+    "slug": "powerbi_sefa",
+    "label": "PowerBI SEFA",
+    "url": "https://app.powerbi.com/view?r=eyJrIjoiN2E1YzRmN2EtOGMwMi00NDM0LWFhMWEtOWYzNzNjMjZmZWEwIiwidCI6ImU2MmE4YWQ4LTU0MzYtNDkzMy04OTBmLTk1MmU2ODY3MzM3NyIsImMiOjR9",
+    "title": "Microsoft Power BI",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 0,
+    "links_data": [],
+    "iframes": [],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "GET",
+        "url": "https://content.powerapps.com/resource/powerbiwfe/scripts/reportEmbed.fluent-no-header-teal.json.min.4d09d7c4ce873f4a6393.js",
+        "type": "script"
+      },
+      {
+        "method": "GET",
+        "url": "https://js.monitor.azure.com/scripts/b/ai.config.1.cfg.json",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://content.powerapps.com/resource/powerbiwfe/scripts/reportEmbed.json-contracts.min.f2e64b3deef991f9b704.js",
+        "type": "script"
+      },
+      {
+        "method": "POST",
+        "url": "https://dc.services.visualstudio.com/v2/track",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://dc.services.visualstudio.com/v2/track",
+        "type": "xhr"
+      }
+    ]
+  },
+  {
+    "slug": "serpro",
+    "label": "SERPRO Transferências",
+    "url": "https://dd-publico.serpro.gov.br/extensions/transferencias-discricionarias-e-legais/transferencias-discricionarias-e-legais.html",
+    "title": "Painel Discricionárias",
+    "h1": null,
+    "forms": [],
+    "selects": [],
+    "tables": 2,
+    "links_data": [],
+    "iframes": [],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": [
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/resources/qmfe/import-map.json",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/resources/autogenerated/product-info.json",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/api/v1/features?xrfkey=4JYDVs8xf8YCeBXx",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/api/v1/user-locale?xrfkey=4JYDVs8xf8YCeBXx",
+        "type": "fetch"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/api/v1/features",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/resources/autogenerated/product-info.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/resources/qmfe/sense-client/8.423.17/translations/client/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/resources/qmfe/sense-client/8.423.17/translations/common/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/resources/qmfe/sense-client/8.423.17/translations/engine/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/resources/qmfe/sense-client/8.423.17/translations/qcs-ui-common/en.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/resources/qmfe/sense-client/8.423.17/translations/qcs-ui-common/en.plural.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/resources/qmfe/sense-client/8.423.17/assets/external/sense-themes-default/default-themes.json",
+        "type": "xhr"
+      },
+      {
+        "method": "GET",
+        "url": "https://dd-publico.serpro.gov.br/extensions/tema-verde-detru/theme.json?xrfkey=1d5unl8BuUilm6lM",
+        "type": "xhr"
+      },
+      {
+        "method": "POST",
+        "url": "https://sqs.us-east-1.amazonaws.com/",
+        "type": "fetch"
+      },
+      {
+        "method": "POST",
+        "url": "https://sqs.us-east-1.amazonaws.com/",
+        "type": "fetch"
+      }
+    ]
+  },
+  {
+    "slug": "sistag",
+    "label": "SISTAG Repasses Sociais",
+    "url": "https://www.sistag.social.pr.gov.br/sis/publico/repasses-geral",
+    "title": "SISTAG - sis",
+    "h1": "SECRETARIA DO\nDESENVOLVIMENTO SOCIAL E FAMÍLIA",
+    "forms": [
+      {
+        "id": "",
+        "action": "https://www.sistag.social.pr.gov.br/sis/publico/repasses",
+        "method": "post"
+      }
+    ],
+    "selects": [
+      {
+        "name": "codigo_repasse",
+        "n_opts": 46,
+        "first_opts": [
+          {
+            "v": "",
+            "t": "Todos os repasses..."
+          },
+          {
+            "v": "2",
+            "t": "CASA DE PASSAGEM REGIONALIZADA"
+          },
+          {
+            "v": "36",
+            "t": "CENTRO-DIA PARA CPCD"
+          },
+          {
+            "v": "94",
+            "t": "CRESCER EM FAMÍLIA  – ACOLHIME"
+          },
+          {
+            "v": "91",
+            "t": "EXPANSÃO MSE - LA E PSC"
+          }
+        ]
+      },
+      {
+        "name": "codigo_ibge",
+        "n_opts": 400,
+        "first_opts": [
+          {
+            "v": "",
+            "t": "TODOS"
+          },
+          {
+            "v": "103",
+            "t": "Abatiá"
+          },
+          {
+            "v": "202",
+            "t": "Adrianópolis"
+          },
+          {
+            "v": "301",
+            "t": "Agudos do Sul"
+          },
+          {
+            "v": "400",
+            "t": "Almirante Tamandaré"
+          }
+        ]
+      },
+      {
+        "name": "fonte",
+        "n_opts": 15,
+        "first_opts": [
+          {
+            "v": "",
+            "t": "Todas"
+          },
+          {
+            "v": "100",
+            "t": "100"
+          },
+          {
+            "v": "101",
+            "t": "101"
+          },
+          {
+            "v": "102",
+            "t": "102"
+          },
+          {
+            "v": "120",
+            "t": "120"
+          }
+        ]
+      },
+      {
+        "name": "group_by",
+        "n_opts": 2,
+        "first_opts": [
+          {
+            "v": "ano",
+            "t": "Ano"
+          },
+          {
+            "v": "regional",
+            "t": "Regional"
+          }
+        ]
+      }
+    ],
+    "tables": 1,
+    "links_data": [],
+    "iframes": [],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": []
+  },
+  {
+    "slug": "educacao_convenios",
+    "label": "SEED Convênios",
+    "url": "https://www.educacao.pr.gov.br/Convenios",
+    "title": "Parcerias, Convênios e Doações da Seed-PR | Secretaria da Educação",
+    "h1": "SECRETARIA DA EDUCAÇÃO\nSECRETARIA DA EDUCAÇÃO",
+    "forms": [
+      {
+        "id": "celepar-busca",
+        "action": "https://www.educacao.pr.gov.br/Convenios",
+        "method": "post"
+      },
+      {
+        "id": "",
+        "action": "https://www.educacao.pr.gov.br/Convenios",
+        "method": "get"
+      }
+    ],
+    "selects": [],
+    "tables": 0,
+    "links_data": [
+      {
+        "h": "https://www.educacao.pr.gov.br/sites/default/arquivos_restritos/files/documento/2025-08/estrutura_organizacional.pdf",
+        "t": ""
+      },
+      {
+        "h": "https://www.educacao.pr.gov.br/print/pdf/node/20047",
+        "t": " Baixar"
+      },
+      {
+        "h": "https://www.educacao.pr.gov.br/sites/default/arquivos_restritos/files/documento/2025-08/estrutura_organizacional.pdf",
+        "t": "Estrutura Organizacional "
+      }
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load",
+      "https://www.educacao.pr.gov.br/Convenios"
+    ],
+    "has_react": false,
+    "has_swf": false,
+    "ajax_requests": []
+  }
+]

@@ -1,0 +1,2037 @@
+[
+  {
+    "path": "6/18",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Portal da Transparência",
+    "h1": "ESTRUTURA ORGANIZACIONAL",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formEstruturaOrganizacional"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "6/34",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Carreiras e Tabelas Salariais | Secretaria da Administração e da Previdência",
+    "h1": "RECURSOS HUMANOS\nRECURSOS HUMANOS",
+    "h2": "Navegação Principal RH",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "6/35",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Concursos Públicos | Secretaria da Administração e da Previdência",
+    "h1": "SECRETARIA DA ADMINISTRAÇÃO E DA PREVIDÊNCIA\nSECRETARIA DA ADMINISTRAÇÃO E DA PREVIDÊNCIA",
+    "h2": "Navegação Principal SEAP",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "6/45",
+    "captured_urls": [],
+    "errors": [],
+    "title": "PESSOAL | Relação Nominal (Art. 234 - CE) | Portal da Transparência",
+    "h1": null,
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formExibirPdf"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "6/207",
+    "captured_urls": [],
+    "errors": [],
+    "title": "PESSOAL | Relação de Servidores para Concorrer Mandato Eletivo em 2024 | Portal da Transparência",
+    "h1": null,
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formExibirPdf"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "6/308",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Legislação | Secretaria da Administração e da Previdência",
+    "h1": "RECURSOS HUMANOS\nRECURSOS HUMANOS",
+    "h2": "Navegação Principal RH",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "6/271",
+    "captured_urls": [],
+    "errors": [],
+    "title": "PESSOAL | Relação de Terceirizados | Portal da Transparência",
+    "h1": "RELAÇÃO DE TERCEIRIZADOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "iframes": [
+      "https://bi2.pr.gov.br/single/?appid=d9284dcd-1ab8-4044-8fee-28393520e405&sheet=ebb66970-8225-47ea-8a83-a8524a3d1d20&theme=horizon&opt=currsel%2Cctxmenu&select=clearall"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/17",
+    "captured_urls": [],
+    "errors": [
+      "goto: Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/pte/assunto/8/17\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "path": "8/119",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Gráficos Interativos",
+    "h1": null,
+    "h2": null,
+    "forms": [],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/121",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Portal da Transparência",
+    "h1": "BENS MÓVEIS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "parent_form"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/130",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Comitês | CGE-PR - Controladoria Geral do Estado do Paraná",
+    "h1": "CGE-PR - CONTROLADORIA GERAL DO ESTADO DO PARANÁ",
+    "h2": "Navegação Principal CGE",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/177",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Portal da Transparência",
+    "h1": "BENS MÓVEIS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "parent_form"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": true,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": [
+      "parent_form:lnkDownloadBD"
+    ]
+  },
+  {
+    "path": "8/211",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Conselhos | CGE-PR - Controladoria Geral do Estado do Paraná",
+    "h1": "CGE-PR - CONTROLADORIA GERAL DO ESTADO DO PARANÁ",
+    "h2": "Navegação Principal CGE",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/259",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Legislação Fazendária | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/295",
+    "captured_urls": [],
+    "errors": [],
+    "title": "INFORMAÇÕES GERAIS | CGEOuv+ | Portal da Transparência",
+    "h1": "CGEOUV+",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "iframes": [
+      "https://bi2.pr.gov.br/single/?appid=3e7bea38-ccca-4d8f-9853-5484f1630aad&sheet=475ee842-3ac3-4466-b8e7-49949c002473&opt=currsel&select=clearall"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/300",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Coordenadoria de Compliance - Legislação | CGE-PR - Controladoria Geral do Estado do Paraná",
+    "h1": "CGE-PR - CONTROLADORIA GERAL DO ESTADO DO PARANÁ",
+    "h2": "Navegação Principal CGE",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/302",
+    "captured_urls": [],
+    "errors": [],
+    "title": "",
+    "h1": "Exibir Ato",
+    "h2": null,
+    "forms": [
+      "pesquisarAtoForm"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/303",
+    "captured_urls": [],
+    "errors": [],
+    "title": "",
+    "h1": "Exibir Ato",
+    "h2": null,
+    "forms": [
+      "pesquisarAtoForm"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/306",
+    "captured_urls": [],
+    "errors": [],
+    "title": "",
+    "h1": "Exibir Ato",
+    "h2": null,
+    "forms": [
+      "pesquisarAtoForm"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/307",
+    "captured_urls": [],
+    "errors": [],
+    "title": "LGPD - Legislação | CGE-PR - Controladoria Geral do Estado do Paraná",
+    "h1": "CGE-PR - CONTROLADORIA GERAL DO ESTADO DO PARANÁ",
+    "h2": "Navegação Principal CGE",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/317",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Consultar licenciamentos | Instituto Água e Terra",
+    "h1": "INSTITUTO ÁGUA E TERRA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/321",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Relatórios Estatísticos - Jucepar | Junta Comercial do Paraná",
+    "h1": "JUNTA COMERCIAL DO PARANÁ",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/322",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Listagem Cadastral de Empresas Mercantis | Junta Comercial do Paraná",
+    "h1": "JUNTA COMERCIAL DO PARANÁ",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "8/323",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Conselho do Transporte Coletivo | Agência de Assuntos Metropolitanos do Paraná",
+    "h1": "AGÊNCIA DE ASSUNTOS METROPOLITANOS DO PARANÁ",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "11/61",
+    "captured_urls": [],
+    "errors": [],
+    "title": "REALIZACOESGOV",
+    "h1": null,
+    "h2": null,
+    "forms": [],
+    "iframes": [
+      "http://bi.pr.gov.br/QvAJAXZfc/opendoc.htm?document=RealizacoesdeGoverno.qvw&host=QVS%40sparana00541&anonymous=true"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "11/208",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Transparência Paraná",
+    "h1": "Transparência de Obras, Ações e Projetos",
+    "h2": null,
+    "forms": [],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "11/209",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Projetos Autorizados Para Licitação",
+    "h1": "Projetos Autorizados Para Licitação",
+    "h2": null,
+    "forms": [],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "11/305",
+    "captured_urls": [],
+    "errors": [
+      "goto: Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/pte/assunto/11/305\", waiting until \"networkidle\""
+    ]
+  },
+  {
+    "path": "11/311",
+    "captured_urls": [],
+    "errors": [
+      "goto: Page.goto: Download is starting\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/pte/assunto/11/311\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "path": "11/320",
+    "captured_urls": [],
+    "errors": [],
+    "title": "",
+    "h1": null,
+    "h2": null,
+    "forms": [],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "12/222",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Consultar empresas enquadradas no Regime Especial - Devedores Contumazes | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "12/290",
+    "captured_urls": [],
+    "errors": [
+      "pesquisar: Page.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator(\"#navegacao-pesquisar-tab\")\n "
+    ],
+    "title": "Portal Devedor | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "12/313",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Consulta de Sanções | Portal da Transparência do Governo Federal",
+    "h1": "Respeitamos a sua Privacidade",
+    "h2": "Consulta de Sanções",
+    "forms": [],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "12/314",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Consulta de Sanções | Portal da Transparência do Governo Federal",
+    "h1": "Respeitamos a sua Privacidade",
+    "h2": "Consulta de Sanções",
+    "forms": [],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [
+      [
+        "",
+        "CNEP",
+        "11.685.502/0001-10",
+        "A C CONSTRUCOES E SERVICOS LTDA",
+        "CE",
+        "Empresa Brasileira de Correios e Telégrafos",
+        "Multa",
+        "27/09/2023",
+        "184.138,94",
+        "1"
+      ],
+      [
+        "",
+        "CNEP",
+        "22.499.940/0001-00",
+        "A.G. ROSSATO DISTRIBUIDORA ME",
+        "PR",
+        "Prefeitura Municipal de Maringá - PR",
+        "Multa",
+        "07/06/2021",
+        "6.000,00",
+        "1"
+      ]
+    ],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/30",
+    "errors": [
+      "Page.evaluate: Execution context was destroyed, most likely because of a navigation"
+    ]
+  },
+  {
+    "path": "4/96",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Precatórios | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/99",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Repasses do Governo Federal ao Paraná | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/101",
+    "captured_urls": [],
+    "errors": [],
+    "title": "FUNDEB | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/102",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Funsaude | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/104",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Convênios com o Governo Federal | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/254",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Despesas - a partir de 2018 | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/255",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Execução Orçamentária Covid-19 - a partir de 2020 | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/256",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Dívida Pública - Consolidada e por Contrato | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/284",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Repasses aos Municípios - Compensações Perdas de Arrecadação do ICMS - LC 194/2022 e 201/2023 | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/287",
+    "captured_urls": [],
+    "errors": [
+      "goto: Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/pte/assunto/4/287\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "path": "4/288",
+    "captured_urls": [],
+    "errors": [
+      "goto: Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/pte/assunto/4/288\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "path": "4/324",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Consulta de Emendas Parlamentares | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://app.powerbi.com/view?r=eyJrIjoiN2E1YzRmN2EtOGMwMi00NDM0LWFhMWEtOWYzNzNjMjZmZWEwIiwidCI6ImU2MmE4YWQ4LTU0MzYtNDkzMy1iZTMyLTVjOWNmMTcxYTQ2ZiJ9",
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/325",
+    "captured_urls": [],
+    "errors": [
+      "goto: Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/pte/assunto/4/325\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "path": "4/50",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Portal da Transparência",
+    "h1": "ADIANTAMENTOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "iframes": [
+      "https://www4.pr.gov.br/Gestao/portaldatransparencia/adiantamentos/adiantamentos.jsp"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/100",
+    "captured_urls": [],
+    "errors": [],
+    "title": "DESPESAS | Repasses e Transferências | Repasses do Governo Estadual aos Municípios | Portal da Transparência",
+    "h1": "REPASSES DO GOVERNO ESTADUAL AOS MUNICÍPIOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "iframes": [
+      "https://www4.pr.gov.br/Gestao/portaldatransparencia/repasses/index.jsp"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "4/191",
+    "captured_urls": [],
+    "errors": [],
+    "title": "DESPESAS | Dívida Pública | Requisição de Pequeno Valor | Portal da Transparência",
+    "h1": "REQUISIÇÃO DE PEQUENO VALOR",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "iframes": [
+      "https://rpv.fazenda.pr.gov.br/prpv/publico/transparencia"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/3",
+    "captured_urls": [],
+    "errors": [],
+    "title": "RECEITAS | Receita Orçamentária - até 2023 | Consulta Detalhada da Receita | Portal da Transparência",
+    "h1": "CONSULTA DETALHADA DA RECEITA",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisaReceita"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": true,
+    "datatables": [
+      "formPesquisaReceita:gridNovaReceita"
+    ],
+    "colunas": [
+      "Agrupamento",
+      "Inicial Total - LOA (R$)",
+      "Suplementação (R$)",
+      "Cancelamento (R$)",
+      "Previsão Atualizada (R$)",
+      "Receita Arrecadada (R$)",
+      "Dedução Realizada (R$)",
+      "Arrecadada Líquida (R$)",
+      "No Mês",
+      "Até o Mês",
+      "No Mês",
+      "Até o Mês",
+      "No Mês",
+      "Até o Mês",
+      "No Mês",
+      "Até o Mês",
+      "No Mês",
+      "Até o Mês",
+      "No Mês",
+      "Até o Mês"
+    ],
+    "amostra": [
+      [
+        "Estado",
+        "56.645.115.442,00",
+        "105.120.603,00",
+        "5.413.337.622,00",
+        "0,00",
+        "0,00",
+        "56.750.236.045,00",
+        "62.058.453.064,00",
+        "8.536.404.773,35",
+        "95.562.832.055,13",
+        "2.415.582.548,38",
+        "24.344.990.232,67",
+        "6.120.822.224,97",
+        "71.217.841.822,46"
+      ]
+    ],
+    "total_records": null,
+    "botao_download": [
+      "formPesquisaReceita:lnkDownloadBD"
+    ]
+  },
+  {
+    "path": "3/57",
+    "captured_urls": [],
+    "errors": [],
+    "title": "RECEITAS | Receita Orçamentária - até 2023 | Outras Consultas da Receita | Portal da Transparência",
+    "h1": "OUTRAS CONSULTAS DA RECEITA",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisaReceitaOrcamentaria"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": true,
+    "datatables": [
+      "formPesquisa:gridInicialReceita"
+    ],
+    "colunas": [
+      "Natureza",
+      "Descrição",
+      "Inicial Total - LOA",
+      "Suplementação",
+      "Cancelamento",
+      "Previsão Atualizada",
+      "Arrecadada",
+      "No Mês",
+      "No Período",
+      "Acumulada",
+      "No Mês",
+      "No Período",
+      "Acumulada",
+      "Acumulada",
+      "No Mês",
+      "No Período",
+      "Acumulada"
+    ],
+    "amostra": [
+      [
+        "Período:",
+        "Ano:20262025202420232022202120202019201820172016201520142013"
+      ],
+      [
+        "Selecione o tipo da consulta desejada:",
+        "Natureza da Receita\n\t\t\t\n\t\t\t\t\n\t\t\t\n\n\n\nFonte de Recurso\n\t\t\t\n\t\t\t",
+        "",
+        "Natureza da Receita",
+        "",
+        "Fonte de Recurso",
+        "",
+        "Unidade Orçamentária",
+        "",
+        "Transferências Voluntárias e Obrigatórias"
+      ],
+      [
+        "Nenhum registro encontrado."
+      ]
+    ],
+    "total_records": null,
+    "botao_download": [
+      "formPesquisa:lnkDownloadBD"
+    ]
+  },
+  {
+    "path": "3/27",
+    "captured_urls": [],
+    "errors": [],
+    "title": "RECEITAS | Receita Tributária | Receita Arrecadada | Portal da Transparência",
+    "h1": "RECEITA ARRECADADA",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "iframes": [
+      "https://recdiario.fazenda.pr.gov.br/recdiario/index"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/242",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Receitas - a partir de 2019 | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/243",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Execução Orçamentária Covid-19 - a partir de 2020 | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/247",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Dívida Ativa Tributária | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/248",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Renúncias Fiscais | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/250",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Indicadores de Produtividade dos Órgãos Julgadores | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/251",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Conselho de Contribuintes e Recursos Fiscais | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/253",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Profisco - PR | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/261",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Programas de anistia ou remissão de créditos tributários | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/262",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Efetivo de Fiscalização | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/265",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Consulta Detalhada da Receita Tributária | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/266",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Programa Paraná Competitivo | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/267",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Benefícios Fiscais de Caráter Geral | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/285",
+    "captured_urls": [],
+    "errors": [
+      "goto: Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/pte/assunto/3/285\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "path": "3/289",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Programas de Parcelamento Incentivado | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/298",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Sistemas de Informação da Cultura",
+    "h1": null,
+    "h2": null,
+    "forms": [
+      "contemplados_form_search2DGP6tvV8scpYDAf3",
+      "contemplados_form_search11DGP6tvV8scpYDAf3",
+      "contemplados_fornecedores_form_searchDGP6tvV8scpYDAf3",
+      "contemplados_fichatecnica_form_searchDGP6tvV8scpYDAf3"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": true,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [
+      [
+        "267",
+        "Do Cão Fez-se o dia - Inter-relação Literatura e Teatro",
+        "Realização em Cidades entre 20 mil e 100 mil habitantes",
+        "Teatro",
+        "Inominável Produções Artísticas Ltda. - ME",
+        "CAMPO MOURÃO\nCASTRO\nFRANCISCO BELTRÃO\nLAPA\nPATO BRANCO\nRIO N",
+        "150.000,00",
+        "150.000,00",
+        "150.000,00",
+        ""
+      ]
+    ],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/299",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Sistema de Informações do Esporte",
+    "h1": null,
+    "h2": null,
+    "forms": [
+      "esporte_form_autenticacao",
+      "esporte_form_esqueci",
+      "contemplados_form_search2aPgOoRZkDnRvYuju",
+      "contemplados_fornecedores_form_searchaPgOoRZkDnRvYuju",
+      "contemplados_fichatecnica_form_searchaPgOoRZkDnRvYuju"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": true,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [
+      [
+        "11607",
+        "ADFP ESGRIMA EM CADEIRA DE RODAS - CICLO TÓQUIO 2020",
+        "Projetos destinados ao alto rendimento",
+        "Decisão e Excelência Esportiva",
+        "Associação dos Deficientes Físicos do Paraná",
+        "CURITIBA",
+        "183.831,00",
+        "186.676,71",
+        "190.950,80",
+        ""
+      ]
+    ],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/304",
+    "captured_urls": [],
+    "errors": [],
+    "title": "RECEITAS | Emendas Parlamentares PIX | Portal da Transparência",
+    "h1": "EMENDAS PARLAMENTARES PIX",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "iframes": [
+      "https://app.powerbi.com/view?r=eyJrIjoiN2UzN2UyMTQtODgxMC00N2NiLWE1NzQtZjFkYmZkZWQ0YzVmIiwidCI6ImY3MGEwYWY2LWRhMGYtNDViZS1iN2VkLTlmOGMxYjI0YmZkZiIsImMiOjR9"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/309",
+    "captured_urls": [],
+    "errors": [],
+    "title": "RECEITAS | Emendas Parlamentares | Portal da Transparência",
+    "h1": "EMENDAS PARLAMENTARES",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "iframes": [
+      "https://dd-publico.serpro.gov.br/extensions/transferencias-discricionarias-e-legais/transferencias-discricionarias-e-legais.html"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/310",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Emendas Parlamentares | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "3/316",
+    "captured_urls": [],
+    "errors": [],
+    "title": "TRANSPARÊNCIA - Contratos com Prefeituras | FOMENTO PARANÁ",
+    "h1": "FOMENTO PARANÁ",
+    "h2": "Navegação Principal Fomento",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "5/212",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Portal da Transparência",
+    "h1": "DOCUMENTOS FISCAIS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "parent_form"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": true,
+    "datatables": [
+      "parent_form:lista"
+    ],
+    "colunas": [
+      "Órgão",
+      "CNPJ Fornecedor",
+      "Fornecedor",
+      "Nº Nota",
+      "Data Emissão",
+      "Valor R$",
+      "Nota Fiscal"
+    ],
+    "amostra": [
+      [
+        "FUNDO ESTADUAL DE SAUDE - FUNSAÚDE",
+        "28.337.990/0001-77",
+        "J N P COSTA RESTAURANTE E MUSICA LTDA",
+        "00000194",
+        "30/04/2026",
+        "R$ 1.380,00",
+        "41260428337990000177550010000001941000001955"
+      ],
+      [
+        "FUNDEPAR - FUNDEPAR",
+        "45.576.696/0001-37",
+        "FABIANO LAZZARI LTDA",
+        "00000651",
+        "30/04/2026",
+        "R$ 1.705,00",
+        "41260445576696000137550010000006511401525513"
+      ]
+    ],
+    "total_records": 128,
+    "botao_download": []
+  },
+  {
+    "path": "5/215",
+    "captured_urls": [],
+    "errors": [],
+    "title": "COMPRAS | Contratos - Recursos Externos | Portal da Transparência",
+    "h1": "CONTRATOS - RECURSOS EXTERNOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formExibirPdf"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "5/318",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Contratações Públicas | Secretaria da Administração e da Previdência",
+    "h1": "CONTRATAÇÕES PÚBLICAS\nCONTRATAÇÕES PÚBLICAS",
+    "h2": "Navegaçao Principal Compras",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/25",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Transparência - Planos Plurianuais | Secretaria do Planejamento",
+    "h1": "PLANEJA PARANÁ\nPLANEJA PARANÁ",
+    "h2": "Navegação principal Planeja Paraná",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/62",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Diretrizes Orçamentárias | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/63",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Orçamento Anual | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/64",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Alterações Orçamentárias | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/67",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Execução Física do Orçamento - Programa | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/68",
+    "captured_urls": [],
+    "errors": [
+      "goto: Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/pte/assunto/2/68\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "path": "2/69",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Manual Técnico do Orçamento (MTO) | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/70",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Normas Estabelecidas para o Exercício | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/214",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Programação Financeira | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/268",
+    "captured_urls": [],
+    "errors": [],
+    "title": "PCA-E | Secretaria do Planejamento",
+    "h1": "SECRETARIA DO PLANEJAMENTO\nSECRETARIA DO PLANEJAMENTO",
+    "h2": "Navegação Principal SEPL",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/282",
+    "captured_urls": [],
+    "errors": [],
+    "title": "",
+    "h1": "Exibir Ato",
+    "h2": null,
+    "forms": [
+      "pesquisarAtoForm"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/326",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Limite de Saque | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "2/327",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Cota Financeira | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "7/36",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Demonstrativo da LRF (RREO e RGF) | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "7/53",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Audiências Públicas Fazendárias | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "7/54",
+    "captured_urls": [],
+    "errors": [
+      "goto: Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/pte/assunto/7/54\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "path": "7/257",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Procedimentos Contábeis | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "7/258",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Programa de Ajuste Fiscal | Secretaria da Fazenda",
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "10/48",
+    "captured_urls": [],
+    "errors": [
+      "goto: Page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.transparencia.pr.gov.br/pte/assunto/10/48\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "path": "10/56",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Consulta Escolas",
+    "h1": "Estado do Paraná",
+    "h2": null,
+    "forms": [
+      "caminhoPao",
+      "j_idt56",
+      "initial",
+      "j_idt446"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": true,
+    "datatables": [
+      "initial:j_idt358",
+      "initial:j_idt369"
+    ],
+    "colunas": [],
+    "amostra": [
+      [
+        "NREs",
+        "32"
+      ],
+      [
+        "Municípios",
+        "399"
+      ]
+    ],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "10/140",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Portal da Transparência",
+    "h1": "DESENVOLVIMENTO SOCIAL",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "iframes": [
+      "https://www.sistag.social.pr.gov.br/sis/publico/repasses-geral"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "10/192",
+    "captured_urls": [],
+    "errors": [],
+    "title": "TRANSPARÊNCIA TEMÁTICA | Órgãos de Governo | Portal da Transparência",
+    "h1": "ÓRGÃOS DE GOVERNO",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPortalInstitucional"
+    ],
+    "iframes": [],
+    "pesquisar_clicado": true,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "10/315",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Conselho de Parcerias do Paraná - CPAR | Paraná Parcerias",
+    "h1": "PARANÁ PARCERIAS",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  },
+  {
+    "path": "10/319",
+    "captured_urls": [],
+    "errors": [],
+    "title": "Parcerias, Convênios e Doações da Seed-PR | Secretaria da Educação",
+    "h1": "SECRETARIA DA EDUCAÇÃO\nSECRETARIA DA EDUCAÇÃO",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load",
+      "https://www.educacao.pr.gov.br/Convenios?windowId=2d7"
+    ],
+    "pesquisar_clicado": false,
+    "datatables": [],
+    "colunas": [],
+    "amostra": [],
+    "total_records": null,
+    "botao_download": []
+  }
+]

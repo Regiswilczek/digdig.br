@@ -1,0 +1,3434 @@
+[
+  {
+    "h1": "ÓRGÃOS DE GOVERNO",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPortalInstitucional"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "10/192"
+  },
+  {
+    "h1": "PARANÁ PARCERIAS",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "10/315"
+  },
+  {
+    "h1": "SECRETARIA DA EDUCAÇÃO\nSECRETARIA DA EDUCAÇÃO",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www.educacao.pr.gov.br/Convenios?windowId=988",
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "10/319"
+  },
+  {
+    "h1": "DESENVOLVIMENTO SOCIAL",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www.sistag.social.pr.gov.br/sis/publico/repasses-geral"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "10/140"
+  },
+  {
+    "h1": "GOVERNO DO ESTADO DO PARANÁ",
+    "h2": "Navegação Principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "",
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "10/48"
+  },
+  {
+    "h1": "Estado do Paraná",
+    "h2": null,
+    "forms": [
+      "caminhoPao",
+      "j_idt56",
+      "initial",
+      "j_idt446"
+    ],
+    "datatables": [
+      "initial:j_idt358",
+      "initial:j_idt369"
+    ],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [
+      "1000",
+      "1010",
+      "1014",
+      "1017",
+      "1020",
+      "1030",
+      "1040",
+      "1050",
+      "1060",
+      "1070",
+      "1074",
+      "1080",
+      "1090",
+      "1100",
+      "1104",
+      "1110",
+      "1120",
+      "1130",
+      "1134",
+      "1140",
+      "1150",
+      "1160",
+      "1165",
+      "1170",
+      "1180",
+      "1190",
+      "1200",
+      "1210",
+      "1220",
+      "1230",
+      "1240",
+      "1250",
+      "1260",
+      "1270",
+      "1280",
+      "1284",
+      "1290",
+      "1300",
+      "1304",
+      "1310",
+      "1320",
+      "1330",
+      "1334",
+      "1340",
+      "1350",
+      "1353",
+      "1355",
+      "1360",
+      "1370",
+      "1380",
+      "1382",
+      "1384",
+      "1390",
+      "1400",
+      "1410",
+      "1420",
+      "1430",
+      "1440",
+      "1444",
+      "1450",
+      "1460",
+      "1470",
+      "1480",
+      "1490",
+      "1500",
+      "1510",
+      "1520",
+      "1530",
+      "1540",
+      "1544",
+      "1550",
+      "1554",
+      "1560",
+      "1570",
+      "1580",
+      "1584",
+      "1587",
+      "1590",
+      "1594",
+      "1600",
+      "1610",
+      "1614",
+      "1620",
+      "1630",
+      "1640",
+      "1650",
+      "1660",
+      "1670",
+      "1680",
+      "1690",
+      "1700",
+      "1704",
+      "1710",
+      "1714",
+      "1720",
+      "1730",
+      "1734",
+      "1737",
+      "1740",
+      "1745",
+      "1747",
+      "1750",
+      "1760",
+      "1765",
+      "1770",
+      "1780",
+      "1790",
+      "1800",
+      "1810",
+      "1820",
+      "1830",
+      "1840",
+      "1850",
+      "1860",
+      "1864",
+      "1870",
+      "1880",
+      "1890",
+      "1900",
+      "1904",
+      "1910",
+      "1920",
+      "1930",
+      "1932",
+      "1934",
+      "1940",
+      "1950",
+      "1960",
+      "1970",
+      "1980",
+      "1984",
+      "1990",
+      "2000",
+      "2010",
+      "2014",
+      "2020",
+      "2030",
+      "2034",
+      "2040",
+      "2050",
+      "2052",
+      "2054",
+      "2060",
+      "2070",
+      "2080",
+      "2084",
+      "2090",
+      "2100",
+      "2104",
+      "2110",
+      "2120",
+      "2130",
+      "2140",
+      "2144",
+      "2150",
+      "2154",
+      "2160",
+      "2170",
+      "2180",
+      "2190",
+      "2194",
+      "2200",
+      "2210",
+      "2220",
+      "2230",
+      "2234",
+      "2238",
+      "2240",
+      "2250",
+      "2260",
+      "2270",
+      "2280",
+      "2284",
+      "2290",
+      "2300",
+      "2310",
+      "2320",
+      "2330",
+      "2340",
+      "2350",
+      "2360",
+      "2371",
+      "2380",
+      "2390",
+      "2400",
+      "2404",
+      "2407",
+      "2410",
+      "2411",
+      "2413",
+      "2414",
+      "2420",
+      "2430",
+      "2440",
+      "2450",
+      "2460",
+      "2470",
+      "2480",
+      "2490",
+      "2500",
+      "2510",
+      "2520",
+      "2530",
+      "2540",
+      "2550",
+      "2554",
+      "2560",
+      "2564",
+      "2570",
+      "2574",
+      "2580",
+      "2590",
+      "2594",
+      "2600",
+      "2610",
+      "2620",
+      "2630",
+      "2640",
+      "2644",
+      "2647",
+      "2650",
+      "2654",
+      "2660",
+      "2670",
+      "2680",
+      "2684",
+      "2688",
+      "2690",
+      "2700",
+      "2710",
+      "2720",
+      "2730",
+      "2740",
+      "2750",
+      "2760",
+      "2770",
+      "2780",
+      "2790",
+      "2800",
+      "2804",
+      "2807",
+      "2810",
+      "2814",
+      "2817",
+      "2820",
+      "2830",
+      "2840",
+      "2850",
+      "2860",
+      "2862",
+      "2864",
+      "2870",
+      "2872",
+      "2878",
+      "2880",
+      "2890",
+      "2900"
+    ],
+    "path": "10/56"
+  },
+  {
+    "h1": "Projetos Autorizados Para Licitação",
+    "h2": null,
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      ""
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "11/209"
+  },
+  {
+    "h1": "DEPARTAMENTO DE <BR />ESTRADAS DE RODAGEM\nDEPARTAMENTO DE\nESTRADAS DE RODAGEM",
+    "h2": "Navegação Principal DER",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "",
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "11/305"
+  },
+  {
+    "h1": null,
+    "h2": null,
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "11/311"
+  },
+  {
+    "h1": null,
+    "h2": null,
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "11/320"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "12/222"
+  },
+  {
+    "h1": null,
+    "h2": null,
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "http://bi.pr.gov.br/QvAJAXZfc/opendoc.htm?document=RealizacoesdeGoverno.qvw&host=QVS%40sparana00541&anonymous=true"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "11/61"
+  },
+  {
+    "h1": "Transparência de Obras, Ações e Projetos",
+    "h2": null,
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      ""
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "11/208"
+  },
+  {
+    "h1": "Respeitamos a sua Privacidade",
+    "h2": "Consulta de Sanções",
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 1,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "12/313"
+  },
+  {
+    "h1": "Respeitamos a sua Privacidade",
+    "h2": "Consulta de Sanções",
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 1,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "12/314"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/214"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "12/290"
+  },
+  {
+    "h1": "SECRETARIA DO PLANEJAMENTO\nSECRETARIA DO PLANEJAMENTO",
+    "h2": "Navegação Principal SEPL",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "",
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/268"
+  },
+  {
+    "h1": "Exibir Ato",
+    "h2": null,
+    "forms": [
+      "pesquisarAtoForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/282"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/326"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/327"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/62"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/63"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/64"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/67"
+  },
+  {
+    "h1": "SECRETARIA DO PLANEJAMENTO\nSECRETARIA DO PLANEJAMENTO",
+    "h2": "Navegação Principal SEPL",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/68"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/69"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/70"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/242"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/243"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/247"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/248"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/250"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/251"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/253"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/261"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/262"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/265"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/266"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/267"
+  },
+  {
+    "h1": "RECEITA ARRECADADA",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://recdiario.fazenda.pr.gov.br/recdiario/index"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/27"
+  },
+  {
+    "h1": "PLANEJA PARANÁ\nPLANEJA PARANÁ",
+    "h2": "Navegação principal Planeja Paraná",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "",
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "2/25"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/289"
+  },
+  {
+    "h1": null,
+    "h2": null,
+    "forms": [
+      "contemplados_form_search2VOypuLl6Qx0tf7Ww",
+      "contemplados_form_search11VOypuLl6Qx0tf7Ww",
+      "contemplados_fornecedores_form_searchVOypuLl6Qx0tf7Ww",
+      "contemplados_fichatecnica_form_searchVOypuLl6Qx0tf7Ww"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/298"
+  },
+  {
+    "h1": null,
+    "h2": null,
+    "forms": [
+      "esporte_form_autenticacao",
+      "esporte_form_esqueci",
+      "contemplados_form_search2J6mC8j3X5iE3L5xK",
+      "contemplados_fornecedores_form_searchJ6mC8j3X5iE3L5xK",
+      "contemplados_fichatecnica_form_searchJ6mC8j3X5iE3L5xK"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/299"
+  },
+  {
+    "h1": "CONSULTA DETALHADA DA RECEITA",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisaReceita"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisaReceita:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023"
+    ],
+    "path": "3/3"
+  },
+  {
+    "h1": "EMENDAS PARLAMENTARES PIX",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://app.powerbi.com/view?r=eyJrIjoiN2UzN2UyMTQtODgxMC00N2NiLWE1NzQtZjFkYmZkZWQ0YzVmIiwidCI6ImY3MGEwYWY2LWRhMGYtNDViZS1iN2VkLTlmOGMxYjI0YmZkZiIsImMiOjR9"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/304"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/310"
+  },
+  {
+    "h1": "OUTRAS CONSULTAS DA RECEITA",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisaReceitaOrcamentaria"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisaReceitaOrcamentaria:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "path": "3/57"
+  },
+  {
+    "h1": "EMENDAS PARLAMENTARES",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://dd-publico.serpro.gov.br/extensions/transferencias-discricionarias-e-legais/transferencias-discricionarias-e-legais.html"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/309"
+  },
+  {
+    "h1": "FOMENTO PARANÁ",
+    "h2": "Navegação Principal Fomento",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "",
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/316"
+  },
+  {
+    "h1": "REPASSES DO GOVERNO ESTADUAL AOS MUNICÍPIOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www4.pr.gov.br/Gestao/portaldatransparencia/repasses/index.jsp"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/100"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/101"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/102"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/104"
+  },
+  {
+    "h1": "TOTAL DESEMBOLSADO",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisaTotalDesembolsado"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisaTotalDesembolsado:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023"
+    ],
+    "path": "4/126"
+  },
+  {
+    "h1": "CONVÊNIOS DO GOVERNO ESTADUAL",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [
+      "formPesquisa:convenios"
+    ],
+    "columns": [
+      "Concedente",
+      "Número",
+      "Objeto",
+      "Convenente",
+      "Dt. Início Vigência",
+      "Dt. Final Vigência",
+      "Situação",
+      "Total Repasses",
+      "Documento na Íntegra",
+      "Detalhes"
+    ],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisa:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 1,
+    "has_planilha": 1,
+    "anos_dropdowns": [
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026",
+      "2027",
+      "2028",
+      "2029",
+      "2030",
+      "2031",
+      "2032",
+      "2033",
+      "2034",
+      "2035",
+      "2036"
+    ],
+    "path": "4/127"
+  },
+  {
+    "h1": "REQUISIÇÃO DE PEQUENO VALOR",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://rpv.fazenda.pr.gov.br/prpv/publico/transparencia"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/191"
+  },
+  {
+    "h1": "CONSULTA DETALHADA DA DESPESA",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisaDespesa"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisaDespesa:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023"
+    ],
+    "path": "4/22"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/254"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/255"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/256"
+  },
+  {
+    "h1": "CONSULTA POR CREDOR",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisa:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023"
+    ],
+    "path": "4/28"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/284"
+  },
+  {
+    "h1": "RECEITA ORÇAMENTÁRIA – A PARTIR DE 2024",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www.transparencia.pr.gov.br/FlexPortal/#!Receitas"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "3/285"
+  },
+  {
+    "h1": "PAGAMENTOS EFETUADOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisaPagamentoEfetuado"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/30"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://app.powerbi.com/view?r=eyJrIjoiN2E1YzRmN2EtOGMwMi00NDM0LWFhMWEtOWYzNzNjMjZmZWEwIiwidCI6ImU2MmE4YWQ4LTU0MzYtNDkzMy1iZTMyLTVjOWNmMTcxYTQ2ZiJ9",
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/324"
+  },
+  {
+    "h1": "ADIANTAMENTOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www4.pr.gov.br/Gestao/portaldatransparencia/adiantamentos/adiantamentos.jsp"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/50"
+  },
+  {
+    "h1": "OUTRAS CONSULTAS DA DESPESA",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisaPreFormatada"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisaPreFormatada:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023"
+    ],
+    "path": "4/77"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/96"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/99"
+  },
+  {
+    "h1": "CONTRATOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [
+      "formPesquisa:contrato"
+    ],
+    "columns": [
+      "Órgão",
+      "Nº Ano",
+      "Objeto",
+      "Fornecedor",
+      "Data Inicial",
+      "Data Final",
+      "Valor Contratado"
+    ],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisa:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 1,
+    "has_planilha": 1,
+    "anos_dropdowns": [
+      "1285",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026",
+      "2768",
+      "2835",
+      "2960",
+      "3155",
+      "3666",
+      "5602",
+      "5771",
+      "6384",
+      "7344",
+      "9999"
+    ],
+    "path": "5/114"
+  },
+  {
+    "h1": "LICITAÇÕES",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [
+      "formPesquisa:licitacoes"
+    ],
+    "columns": [
+      "Modalidade",
+      "Resumo\ndo Edital",
+      "Órgão\nResponsável",
+      "Órgãos\nParticipantes",
+      "Objeto",
+      "Data de\nAbertura",
+      "Data de\nApresentação",
+      "Registro\nde Preço",
+      "Situação",
+      "Protocolo",
+      "Edital"
+    ],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisa:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 1,
+    "has_planilha": 1,
+    "anos_dropdowns": [
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026",
+      "2768",
+      "2835",
+      "2960",
+      "3666",
+      "5771",
+      "7344"
+    ],
+    "path": "5/115"
+  },
+  {
+    "h1": "DESPESAS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www.transparencia.pr.gov.br/FlexPortal/#!Despesas"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/287"
+  },
+  {
+    "h1": "SITUAÇÃO FORNECEDORES",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [
+      "formPesquisa:fornecedores"
+    ],
+    "columns": [
+      "Razão Social/Nome Fantasia/Nome",
+      "CNPJ/CPF",
+      "Município",
+      "Linha de Fornecimento",
+      "Situação do Fornecedor",
+      "Sanção"
+    ],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisa:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 1,
+    "has_planilha": 1,
+    "anos_dropdowns": [
+      "1001",
+      "1002",
+      "1003",
+      "1004",
+      "1301",
+      "1302",
+      "1501",
+      "1502",
+      "1503",
+      "1601",
+      "1901",
+      "1902",
+      "1903",
+      "2001",
+      "2101",
+      "2301",
+      "2302",
+      "2303",
+      "2304",
+      "2305",
+      "2307",
+      "2308",
+      "2309",
+      "2310",
+      "2401",
+      "2402",
+      "2501",
+      "2601",
+      "2768",
+      "2901",
+      "2960",
+      "3001",
+      "3101",
+      "3102",
+      "3201",
+      "3202",
+      "3401",
+      "3402",
+      "3405",
+      "3409",
+      "3411",
+      "3501",
+      "3503",
+      "3504",
+      "3506",
+      "3601",
+      "3602",
+      "3603",
+      "3604",
+      "3605",
+      "3701",
+      "3702",
+      "3703",
+      "3704",
+      "3705",
+      "3801",
+      "3802",
+      "3803",
+      "3804",
+      "3805",
+      "3806",
+      "3807",
+      "3808",
+      "3901",
+      "3902",
+      "3903",
+      "3904",
+      "3905",
+      "4001",
+      "4002",
+      "4003",
+      "4004",
+      "4101",
+      "4102",
+      "4103",
+      "4104",
+      "4201",
+      "4202",
+      "4203",
+      "4205",
+      "4301",
+      "4302",
+      "4303",
+      "4501",
+      "4502",
+      "4601",
+      "4602",
+      "4701",
+      "4702",
+      "4703",
+      "4704",
+      "4801",
+      "4802",
+      "4901",
+      "4902",
+      "4903",
+      "4904",
+      "5101",
+      "5102",
+      "5103",
+      "5104",
+      "5105",
+      "5201",
+      "5202",
+      "5203",
+      "5301",
+      "5302",
+      "5304",
+      "5305",
+      "5307",
+      "5401",
+      "5402",
+      "5407",
+      "5501",
+      "5502",
+      "5503",
+      "5601",
+      "5602",
+      "5603",
+      "5605",
+      "5606",
+      "5607",
+      "5608",
+      "5609",
+      "5610",
+      "5611",
+      "5612",
+      "5771",
+      "5801",
+      "5802",
+      "5803",
+      "5901",
+      "5902",
+      "5903",
+      "5904",
+      "6001",
+      "6002",
+      "6003",
+      "6004",
+      "6005",
+      "6008",
+      "6010",
+      "6011",
+      "6101",
+      "6102",
+      "6103",
+      "6104",
+      "6201",
+      "6202",
+      "6203",
+      "6204",
+      "6301",
+      "6302",
+      "6305",
+      "6401",
+      "6402",
+      "6403",
+      "6404",
+      "6405",
+      "6501",
+      "6502",
+      "6503",
+      "6504",
+      "6505",
+      "6506",
+      "6507",
+      "6508",
+      "6509",
+      "6510",
+      "6511",
+      "6512",
+      "6513",
+      "6514",
+      "6515",
+      "6516",
+      "6517",
+      "6519",
+      "6520",
+      "6521",
+      "6522",
+      "6523",
+      "6524",
+      "6601",
+      "6602",
+      "6603",
+      "6604",
+      "6605",
+      "6606",
+      "6607",
+      "6701",
+      "6702",
+      "6703",
+      "6801",
+      "6802",
+      "6803",
+      "6804",
+      "6805",
+      "6901",
+      "6902",
+      "6903",
+      "6904",
+      "7002",
+      "7003",
+      "7004",
+      "7005",
+      "7006",
+      "7007",
+      "7008",
+      "7009",
+      "7011",
+      "7012",
+      "7014",
+      "7015",
+      "7017",
+      "7019",
+      "7020",
+      "7021",
+      "7101",
+      "7102",
+      "7103",
+      "7104",
+      "7105",
+      "7106",
+      "7107",
+      "7201",
+      "7202",
+      "7203",
+      "7204",
+      "7205",
+      "7206",
+      "7301",
+      "7302",
+      "7303",
+      "7501",
+      "7502",
+      "7503",
+      "7504",
+      "7505",
+      "7602",
+      "7603",
+      "7604",
+      "7605",
+      "7606",
+      "7701",
+      "7702",
+      "7703",
+      "7801",
+      "7802",
+      "7803",
+      "7901",
+      "7902",
+      "7903",
+      "7904",
+      "7905",
+      "7906",
+      "7907",
+      "7908",
+      "7909",
+      "7910",
+      "7911",
+      "7912",
+      "8001",
+      "8002",
+      "8003",
+      "8004",
+      "8005",
+      "8006",
+      "8102",
+      "8103",
+      "8104",
+      "8105",
+      "8106",
+      "8107",
+      "8108",
+      "8301",
+      "8302",
+      "8303",
+      "8304",
+      "8401",
+      "8402",
+      "8403",
+      "8404",
+      "8405",
+      "8501",
+      "8502",
+      "8503",
+      "8504",
+      "8701",
+      "8702",
+      "8801",
+      "8802",
+      "8901",
+      "8902",
+      "8903",
+      "8904",
+      "8905",
+      "8906",
+      "8907",
+      "8908",
+      "8909",
+      "8910",
+      "8911",
+      "8912",
+      "8913",
+      "8914",
+      "8915",
+      "8916",
+      "8917",
+      "8918",
+      "8919",
+      "8920",
+      "8921",
+      "9102",
+      "9103",
+      "9104",
+      "9105",
+      "9106",
+      "9501",
+      "9502",
+      "9503",
+      "9504",
+      "9505",
+      "9901",
+      "9902"
+    ],
+    "path": "5/116"
+  },
+  {
+    "h1": "FORNECEDORES",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www.transparencia.pr.gov.br/FlexPortal/#!Fornecedores"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/288"
+  },
+  {
+    "h1": "PREÇOS REGISTRADOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [
+      "formPesquisa:precos"
+    ],
+    "columns": [
+      "Descrição do Item",
+      "Valor Unitário",
+      "Órgão Gerenciador",
+      "Nº Licitação",
+      "Lote",
+      "Quantidade",
+      "Vigência",
+      "Situação",
+      "Fornecedor",
+      "Permite Adesão?"
+    ],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisa:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 1,
+    "has_planilha": 1,
+    "anos_dropdowns": [
+      "2768",
+      "2960",
+      "5771"
+    ],
+    "path": "5/117"
+  },
+  {
+    "h1": "LICITAÇÕES",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [
+      "formPesquisa:licitacoes"
+    ],
+    "columns": [
+      "Modalidade",
+      "Resumo\ndo Edital",
+      "Órgão\nResponsável",
+      "Órgãos\nParticipantes",
+      "Objeto",
+      "Data de\nAbertura",
+      "Data de\nApresentação",
+      "Registro\nde Preço",
+      "Situação",
+      "Protocolo",
+      "Edital"
+    ],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisa:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 1,
+    "has_planilha": 1,
+    "anos_dropdowns": [
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026",
+      "2768",
+      "2835",
+      "2960",
+      "3666",
+      "5771",
+      "7344"
+    ],
+    "path": "5/210"
+  },
+  {
+    "h1": "DISPENSAS E INEXIGIBILIDADE",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [
+      "formPesquisa:dispensas"
+    ],
+    "columns": [
+      "Modalidade",
+      "Natureza",
+      "Número/Ano",
+      "Órgão\nResponsável",
+      "Objeto",
+      "Valor\nTotal\n(R$)",
+      "Data de\nAutorização",
+      "Situação",
+      "Protocolo",
+      "Publicação",
+      "Local Entrega/Execução"
+    ],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisa:lnkDownloadBD1",
+      "formPesquisa:lnkDownloadBD3"
+    ],
+    "iframes": [],
+    "has_imprimir": 1,
+    "has_planilha": 1,
+    "anos_dropdowns": [
+      "1285",
+      "2012",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026",
+      "2768",
+      "2835",
+      "2960",
+      "3666",
+      "5771",
+      "7344"
+    ],
+    "path": "5/204"
+  },
+  {
+    "h1": "DISPÊNDIOS EXTRAORÇAMENTÁRIOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www.siafic.pr.gov.br/FlexPortal/#!Consulta1"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "4/325"
+  },
+  {
+    "h1": "DOCUMENTOS FISCAIS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "parent_form"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "5/212"
+  },
+  {
+    "h1": "ESTOQUE DE SUPRIMENTOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "parent_form"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": true,
+    "download_ids": [
+      "parent_form:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [
+      "1285",
+      "2768",
+      "2835",
+      "2960",
+      "3666",
+      "5771",
+      "7344"
+    ],
+    "path": "5/213"
+  },
+  {
+    "h1": "CONTRATOS - RECURSOS EXTERNOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formExibirPdf"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "5/215"
+  },
+  {
+    "h1": "CATÁLOGO DE ITENS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [
+      "formPesquisa:itens"
+    ],
+    "columns": [
+      "Nº Item",
+      "Descrição do Item",
+      "Classe",
+      "Tipo",
+      "Padronização"
+    ],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisa:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 1,
+    "has_planilha": 1,
+    "anos_dropdowns": [],
+    "path": "5/297"
+  },
+  {
+    "h1": "AQUISIÇÕES POR DISPENSA DE LICITAÇÃO - COVID-19",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [
+      "formPesquisa:dispensas"
+    ],
+    "columns": [
+      "Modalidade",
+      "Natureza",
+      "Número/Ano",
+      "Órgão\nResponsável",
+      "Objeto",
+      "Valor\nTotal\n(R$)",
+      "Data de\nAutorização",
+      "Situação",
+      "Protocolo",
+      "Publicação",
+      "Local Entrega/Execução"
+    ],
+    "has_download": true,
+    "download_ids": [
+      "formPesquisa:lnkDownloadBD2",
+      "formPesquisa:lnkDownloadBD3"
+    ],
+    "iframes": [],
+    "has_imprimir": 1,
+    "has_planilha": 1,
+    "anos_dropdowns": [
+      "1285",
+      "2012",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026",
+      "2768",
+      "2835",
+      "2960",
+      "3666",
+      "5771",
+      "7344"
+    ],
+    "path": "5/226"
+  },
+  {
+    "h1": "REMUNERAÇÃO",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formRemuneracoes",
+      "formDialogDownloadBancoDados"
+    ],
+    "datatables": [
+      "formRemuneracoes:dataTableServidores"
+    ],
+    "columns": [
+      "Nome",
+      "Instituição",
+      "Cargo",
+      "Município",
+      "Quadro Funcional",
+      "Vínculo",
+      "Remuneração\nBruta (R$)",
+      "UI-BUTTON\nUI-BUTTON"
+    ],
+    "has_download": true,
+    "download_ids": [
+      "formRemuneracoes:lnkDownloadBD",
+      "formDialogDownloadBancoDados:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "path": "6/1"
+  },
+  {
+    "h1": "RELAÇÃO DE SERVIDORES",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formRelacaoServidores"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": true,
+    "download_ids": [
+      "formRelacaoServidores:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "6/131"
+  },
+  {
+    "h1": "ESTRUTURA ORGANIZACIONAL",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formEstruturaOrganizacional"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "6/18"
+  },
+  {
+    "h1": "",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formExibirPdf"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "6/207"
+  },
+  {
+    "h1": "RECURSOS HUMANOS\nRECURSOS HUMANOS",
+    "h2": "Navegação Principal RH",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "6/308"
+  },
+  {
+    "h1": "VIAGENS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formViagens",
+      "formTabelasDiarias"
+    ],
+    "datatables": [
+      "formViagens:dataTableServidores"
+    ],
+    "columns": [
+      "Nome do Viajante",
+      "Instituição Solicitante",
+      "Ano: 2026Início: JANEIROTérmino: ABRIL"
+    ],
+    "has_download": true,
+    "download_ids": [
+      "formViagens:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [
+      "2000",
+      "2001",
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "path": "6/2"
+  },
+  {
+    "h1": "SECRETARIA DA ADMINISTRAÇÃO E DA PREVIDÊNCIA\nSECRETARIA DA ADMINISTRAÇÃO E DA PREVIDÊNCIA",
+    "h2": "Navegação Principal SEAP",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "6/35"
+  },
+  {
+    "h1": "RECURSOS HUMANOS\nRECURSOS HUMANOS",
+    "h2": "Navegação Principal RH",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "6/34"
+  },
+  {
+    "h1": "RELAÇÃO DE TERCEIRIZADOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://bi2.pr.gov.br/single/?appid=d9284dcd-1ab8-4044-8fee-28393520e405&sheet=ebb66970-8225-47ea-8a83-a8524a3d1d20&theme=horizon&opt=currsel%2Cctxmenu&select=clearall"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "6/271"
+  },
+  {
+    "h1": "",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formExibirPdf"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "6/45"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "7/257"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "7/258"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "7/36"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "7/53"
+  },
+  {
+    "h1": "WEB SERVICES",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/118"
+  },
+  {
+    "h1": null,
+    "h2": null,
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "http://bi.pr.gov.br/QvAJAXZfc/opendoc.htm?document=PTE.qvw&host=QVS%40sparana00541&anonymous=true"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/113"
+  },
+  {
+    "h1": null,
+    "h2": null,
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/119"
+  },
+  {
+    "h1": "BENS MÓVEIS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "parent_form"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/121"
+  },
+  {
+    "h1": "CONTRATAÇÕES PÚBLICAS\nCONTRATAÇÕES PÚBLICAS",
+    "h2": "Navegaçao Principal Compras",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "",
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "5/318"
+  },
+  {
+    "h1": "DOWNLOADS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "formPesquisa"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "path": "8/129"
+  },
+  {
+    "h1": "BENS MÓVEIS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm",
+      "parent_form"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": true,
+    "download_ids": [
+      "parent_form:lnkDownloadBD"
+    ],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/177"
+  },
+  {
+    "h1": "CGE-PR - CONTROLADORIA GERAL DO ESTADO DO PARANÁ",
+    "h2": "Navegação Principal CGE",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/130"
+  },
+  {
+    "h1": "LEGISLAÇÃO ESTADUAL",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www.legislacao.pr.gov.br/legislacao/entradaSite.do?action=iniciarProcesso"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/20"
+  },
+  {
+    "h1": "CGE-PR - CONTROLADORIA GERAL DO ESTADO DO PARANÁ",
+    "h2": "Navegação Principal CGE",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/211"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/259"
+  },
+  {
+    "h1": null,
+    "h2": null,
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/269"
+  },
+  {
+    "h1": "CGE-PR - CONTROLADORIA GERAL DO ESTADO DO PARANÁ",
+    "h2": "Navegação Principal CGE",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/291"
+  },
+  {
+    "h1": "PROGRAMA ESTADUAL DE DESBUROCRATIZAÇÃO",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www.legislacao.pr.gov.br/legislacao/pesquisarAto.do?action=exibir&codAto=249828&indice=1&totalRegistros=1&dt=26.3.2024.14.31.19.815"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/293"
+  },
+  {
+    "h1": "REGULAMENTO DA PRESTAÇÃO DIGITAL DE SERVIÇOS PÚBLICOS",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www.legislacao.pr.gov.br/legislacao/pesquisarAto.do?action=exibir&codAto=323967&indice=1&totalRegistros=344&dt=26.3.2024.13.39.10.366"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/294"
+  },
+  {
+    "h1": "SECRETARIA DA FAZENDA\nSECRETARIA DA FAZENDA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www.siafic.pr.gov.br/FlexPortal/#!ISSPAGOS",
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "7/54"
+  },
+  {
+    "h1": "CGEOUV+",
+    "h2": "Aguarde...",
+    "forms": [
+      "formMenuPrincipal",
+      "breadForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://bi2.pr.gov.br/single/?appid=3e7bea38-ccca-4d8f-9853-5484f1630aad&sheet=475ee842-3ac3-4466-b8e7-49949c002473&opt=currsel&select=clearall"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/295"
+  },
+  {
+    "h1": "CGE-PR - CONTROLADORIA GERAL DO ESTADO DO PARANÁ",
+    "h2": "Navegação Principal CGE",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/300"
+  },
+  {
+    "h1": "Exibir Ato",
+    "h2": null,
+    "forms": [
+      "pesquisarAtoForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/302"
+  },
+  {
+    "h1": "Exibir Ato",
+    "h2": null,
+    "forms": [
+      "pesquisarAtoForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/303"
+  },
+  {
+    "h1": "Exibir Ato",
+    "h2": null,
+    "forms": [
+      "pesquisarAtoForm"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/306"
+  },
+  {
+    "h1": "INSTITUTO ÁGUA E TERRA",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/317"
+  },
+  {
+    "h1": "CGE-PR - CONTROLADORIA GERAL DO ESTADO DO PARANÁ",
+    "h2": "Navegação Principal CGE",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/307"
+  },
+  {
+    "h1": "JUNTA COMERCIAL DO PARANÁ",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/321"
+  },
+  {
+    "h1": "JUNTA COMERCIAL DO PARANÁ",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/322"
+  },
+  {
+    "h1": null,
+    "h2": null,
+    "forms": [],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "about:blank"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/38"
+  },
+  {
+    "h1": "AGÊNCIA DE ASSUNTOS METROPOLITANOS DO PARANÁ",
+    "h2": "Navegação principal",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/323"
+  },
+  {
+    "h1": "CASA CIVIL\nCASA CIVIL",
+    "h2": "Navegação Principal Casa Civil",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://www.gcau-consulta.casacivil.pr.gov.br/gcau_internet/pesquisa",
+      "",
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/17"
+  },
+  {
+    "h1": "CGE-PR - CONTROLADORIA GERAL DO ESTADO DO PARANÁ",
+    "h2": "Navegação Principal CGE",
+    "forms": [
+      "celepar-busca"
+    ],
+    "datatables": [],
+    "columns": [],
+    "has_download": false,
+    "download_ids": [],
+    "iframes": [
+      "https://static.addtoany.com/menu/sm.25.html#type=core&event=load"
+    ],
+    "has_imprimir": 0,
+    "has_planilha": 0,
+    "anos_dropdowns": [],
+    "path": "8/46"
+  }
+]

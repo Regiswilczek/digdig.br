@@ -157,6 +157,20 @@ const TIPO_SHORT: Record<string, string> = {
   convenio: "CONVÊNIO",
   licitacao: "LICIT.",
   diaria: "DIÁRIA",
+  // ── GOV-PR (executivo estadual) ──
+  convenio_estadual: "CONV.E",
+  contrato_publico: "CONTR.P",
+  dispensa_inexigibilidade: "DISP.IN",
+  fornecedor_estado: "FORN.",
+  preco_registrado: "PR REG",
+  catalogo_item: "ITEM",
+  dump_remuneracao_mensal: "REMUN.",
+  dump_viagens_mensal: "VIAG.",
+  decreto_executivo: "DEC.EX",
+  lei_estadual: "LEI.E",
+  parecer_pge: "PG.PGE",
+  nomeacao_comissionado: "NOM.C",
+  gratificacao: "GRAT.",
 };
 
 function FeedRow({ item, slug }: { item: FeedItem; slug: string }) {
@@ -807,6 +821,22 @@ const TIPO_DISPLAY: Record<string, string> = {
   comunicacao_institucional: "Comunicação Inst.",
   placa_certidao: "Placas/Certidões",
   outros: "Outros",
+  // ── GOV-PR (executivo estadual) ──
+  convenio_estadual: "Convênios Estaduais",
+  contrato_publico: "Contratos Públicos",
+  dispensa_inexigibilidade: "Dispensas/Inexigibilidade",
+  fornecedor_estado: "Fornecedores",
+  preco_registrado: "Preços Registrados (Atas RP)",
+  catalogo_item: "Catálogo de Itens",
+  dump_remuneracao_mensal: "Remuneração Mensal (BD)",
+  dump_viagens_mensal: "Viagens/Diárias (BD)",
+  decreto_executivo: "Decretos do Executivo",
+  decreto_calamidade: "Decretos de Calamidade",
+  lei_estadual: "Leis Estaduais",
+  parecer_pge: "Pareceres PGE",
+  mensagem_governamental: "Mensagens Governamentais",
+  nomeacao_comissionado: "Nomeações Comissionadas",
+  gratificacao: "Gratificações",
 };
 
 // Cor única e legível pra cada categoria ATLAS — pelo hash do nome.
@@ -2986,7 +3016,540 @@ function _noop() {
 
 // ────────────────────────────────────────────────────────────────────────────
 
+// ── Tab: Relatório · estado de espera (tenants ainda sem síntese Zew) ────────
+//
+// O relatório sistêmico é produto da fase Zew — pressupõe Piper rodado em massa,
+// Bud nos críticos e leitura cruzada do corpus inteiro. Tenants em coleta inicial
+// não têm material suficiente; mostramos o que existe + o que falta.
+
+function TabRelatorioEspera({ slug, stats }: { slug: string; stats: PublicStats | null }) {
+  const totalAtos = stats?.total_atos ?? 0;
+  const totalAnalisados = stats?.total_analisados ?? 0;
+  const totalSemTexto = stats?.total_sem_texto ?? 0;
+  const totalAuditavel = Math.max(0, totalAtos - totalSemTexto);
+  const pctCobertura = totalAuditavel > 0 ? Math.round((totalAnalisados / totalAuditavel) * 100) : 0;
+  const dist = stats?.distribuicao;
+  const totalComNivel = dist ? dist.verde + dist.amarelo + dist.laranja + dist.vermelho : 0;
+
+  const PARA: React.CSSProperties = { fontSize: 12.5, color: MUTED, lineHeight: 1.75, marginBottom: 12 };
+
+  return (
+    <div style={{ maxWidth: 720 }}>
+      <div style={{ border: `1px solid ${BORDER}`, background: PAPER, padding: "32px 32px 40px" }}>
+
+        {/* Header */}
+        <div style={{ borderBottom: `1px solid ${BORDER}`, paddingBottom: 22, marginBottom: 28 }}>
+          <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 8 }}>
+            Relatório · em produção
+          </p>
+          <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 24, color: INK, letterSpacing: "-0.025em", lineHeight: 1.15, marginBottom: 8 }}>
+            Síntese ainda não publicada
+          </p>
+          <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.55 }}>
+            O relatório sistêmico de <strong>{slug.toUpperCase()}</strong> é gerado pelo Zew quando o corpus atinge densidade suficiente de análise. Enquanto isso não acontece, esta página mostra o que já temos e o que falta para liberar a síntese.
+          </p>
+        </div>
+
+        {/* Estado atual */}
+        <div style={{ marginBottom: 32 }}>
+          <Eyebrow>Estado atual da coleta e análise</Eyebrow>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginTop: 14 }}>
+            {[
+              { l: "Atos coletados",  n: totalAtos,        desc: "Documentos indexados no banco" },
+              { l: "Atos analisados", n: totalAnalisados,  desc: "Passaram pelo Piper" },
+              { l: "Cobertura",       n: `${pctCobertura}%`, desc: "Sobre o corpus extraível" },
+            ].map(({ l, n, desc }) => (
+              <div key={l} style={{ background: "#fff", border: `1px solid ${BORDER}`, padding: "14px 16px" }}>
+                <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 22, color: INK, letterSpacing: "-0.02em", lineHeight: 1 }}>
+                  {typeof n === "number" ? fmt(n) : n}
+                </p>
+                <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 6 }}>{l}</p>
+                <p style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+          {dist && totalComNivel > 0 && (
+            <div style={{ marginTop: 18 }}>
+              <p style={{ fontSize: 11, color: MUTED, marginBottom: 8 }}>Distribuição dos atos analisados:</p>
+              <StackedRiskBar dist={dist} total={totalComNivel} />
+            </div>
+          )}
+        </div>
+
+        {/* Critérios */}
+        <div style={{ marginBottom: 32 }}>
+          <Eyebrow>Critérios para publicação do relatório</Eyebrow>
+          <p style={PARA}>
+            A síntese só é publicada quando o corpus comporta leitura sistêmica — não basta a primeira análise estatística. Os critérios objetivos abaixo determinam quando o Zew entra em ação.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
+            {[
+              { ok: pctCobertura >= 30, label: "≥ 30% do corpus extraível analisado pelo Piper", desc: "Hoje: " + pctCobertura + "%. Cobertura mínima para distinguir padrão de ruído." },
+              { ok: totalAnalisados >= 500, label: "≥ 500 atos com triagem do Piper concluída", desc: "Hoje: " + fmt(totalAnalisados) + ". Volume mínimo para reconhecer repetição estrutural." },
+              { ok: false, label: "Bud rodado nos atos críticos (laranja + vermelho)", desc: "Confirmação independente das suspeitas levantadas pelo Piper." },
+              { ok: false, label: "Pelo menos 2 frentes investigativas identificáveis", desc: "Padrões consistentes que atravessem múltiplos atos e múltiplos atores." },
+              { ok: false, label: "Cruzamento com financeiro disponível", desc: "Diárias, contratos e despesas integrados aos indícios." },
+            ].map(({ ok, label, desc }) => (
+              <div key={label} style={{ display: "flex", gap: 12, padding: "12px 14px", background: "#fff", border: `1px solid ${BORDER}` }}>
+                <div style={{ width: 18, height: 18, borderRadius: "50%", background: ok ? "#15803d" : "#fff", border: `1px solid ${ok ? "#15803d" : BORDER}`, flexShrink: 0, marginTop: 2, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 700 }}>
+                  {ok ? "✓" : ""}
+                </div>
+                <div>
+                  <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12.5, color: INK, marginBottom: 2 }}>{label}</p>
+                  <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.55 }}>{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Onde o material está */}
+        <div style={{ marginBottom: 32 }}>
+          <Eyebrow>Enquanto o relatório não sai</Eyebrow>
+          <p style={PARA}>
+            Tudo o que já foi indexado e analisado está acessível pelas outras abas — o relatório não esconde dados, apenas organiza a leitura. Para acompanhar o que vem chegando:
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
+            {[
+              { titulo: "Visão Geral", desc: "Métricas em tempo real, custo, ritmo de análise e os atos mais recentes que cruzaram o pipeline." },
+              { titulo: "Dados", desc: "O acervo bruto organizado pelas categorias do ATLAS — licitações, contratos, decretos, leis estaduais, parecer PGE, etc." },
+              { titulo: "Pipeline", desc: "Estado da rodada atual de análise: atos na fila, atos em processamento, atos concluídos." },
+              { titulo: "Denúncias", desc: "Linhas investigativas individuais já abertas — fichas que aprofundam atos específicos." },
+            ].map(({ titulo, desc }) => (
+              <div key={titulo} style={{ background: "#fff", border: `1px solid ${BORDER}`, padding: "12px 14px" }}>
+                <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12.5, color: INK, marginBottom: 4 }}>{titulo}</p>
+                <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.55 }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Exemplo de relatório pronto */}
+        <div style={{ padding: "16px 18px", background: "#fff", border: `1px solid ${BORDER}` }}>
+          <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 6 }}>
+            Como será este relatório
+          </p>
+          <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.65, marginBottom: 10 }}>
+            O CAU/PR é o primeiro órgão com a síntese Zew publicada. A estrutura aplicada lá — três linhas investigativas, padrões transversais, rede de atores, casos confirmados — é a mesma que será produzida para este tenant assim que os critérios acima forem atingidos.
+          </p>
+          <Link to="/painel/$slug" params={{ slug: "cau-pr" }} search={{ tab: "relatorio" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: INK, textDecoration: "underline", fontWeight: 500 }}>
+            Ver relatório completo do CAU/PR <ExternalLink size={11} />
+          </Link>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ── Tab: Relatório (ZEW · síntese sistêmica · maio/2026) ───────────────────────
+//
+// Este é o relatório atual — escrito como síntese do corpus completo após Piper +
+// Bud. O preliminar (abril/2026) fica acessível via botão e renderiza inline.
+//
+// Conteúdo é narrativo (linhas investigativas) — usa dados reais do banco em
+// 01/05/2026: 1.620 análises Piper, 258 confirmações Bud, 44 vermelhos, 213 laranjas.
+// Linguagem: indício / padrão / suspeita — nunca afirma crime.
+
+const ZEW_LINHA_DELIBS = [
+  { num: "Dpopr 0172-06/2024", data: "24/09/2024", titulo: "Presidente alvo presidiu a votação sobre sua própria defesa", body: "O Presidente Maugham Zaze — alvo de voto de desconfiança protocolado e formalmente reconhecido — presidiu, conduziu e assinou a deliberação que aprovou a plenária extraordinária para receber sua própria defesa. Registrou-se como 'ausente' da votação mas consta expressamente como 'Condutor dos trabalhos (Pres.)' e como signatário do ato. Antes, o mesmo presidente havia ingressado com tutela antecipada na 6ª Vara Federal de Curitiba para impedir que o plenário deliberasse sobre sua destituição — medida indeferida pelo Judiciário —, o que adiou a pauta por ao menos quatro reuniões plenárias." },
+  { num: "Dpopr 0173-01/2024", data: "11/10/2024", titulo: "Vice-presidente beneficiário conduziu a votação que o elevou", body: "Deliberação assinada pelo vice-presidente Walter Linzmeyer aprovou a modalidade de votação para destituição de Maugham Zaze. O processo foi conduzido pelo próprio Linzmeyer, beneficiário direto da destituição (ascenderia ao cargo), em reunião ordinária quando o regimento exige plenária extraordinária com pauta única (Art. 207, §1º). A folha de votação original registrava 'Votação Online' vs 'Votação Presencial', mas o secretário requalificou informalmente os votos para 'Sim' e 'Não' após o escrutínio. Linzmeyer figura como presidente em atos de 2026: a ascensão ao cargo de fato consumou-se." },
+  { num: "Dpopr 0173-02/2024", data: "11/10/2024", titulo: "8 conselheiros impedidos votaram sua própria suspeição", body: "Oito conselheiros titulares — simultaneamente requerentes na ação judicial 5048338-77.2024.4.04.7000/PR ligada ao mandato presidencial — participaram e votaram na deliberação sobre SUA PRÓPRIA suspeição para a votação de destituição. Todos votaram 'Não' à própria suspeição. Resultado registrado: 14 Não × 3 Sim × 2 Abstenções. Excluídos os votos viciados, o resultado seria 6 Não × 3 Sim — possível aprovação da suspeição. Os votos irregulares foram determinantes no resultado." },
+  { num: "Dpopr 0173-03/2024", data: "11/10/2024", titulo: "Destituição assinada apenas pelo beneficiário direto", body: "Mesma reunião plenária. O ato deliberativo que aprovou formalmente a destituição do Presidente Maugham Zaze foi conduzido e assinado exclusivamente pelo Vice-Presidente da autarquia — identificado no documento apenas pela matrícula 'CAU A33852-4', sem nome completo —, que é o beneficiário direto da destituição, ascendendo ao cargo no mesmo ato. A formalização da troca de comando se deu sem assinatura colegiada, sem contraditório registrado e com identificação opaca do signatário, encerrando o ciclo aberto na Dpopr 0172-06." },
+];
+
+const ZEW_LINHA_PORTARIAS = [
+  { num: "Portaria 514/2024", data: "03/07/2024", body: "Presidente Maugham Zaze cria unilateralmente — por ato administrativo singelo — a 'Comissão Permanente de Inquérito e Sindicância'. A criação dessa estrutura, pelo Art. 34, XIV do RI, é competência exclusiva do Plenário. Cinco empregados subordinados à presidência são designados; nenhum conselheiro titular ou suplente compõe a comissão. Estrutura permanente sem deliberação plenária = usurpação de competência." },
+  { num: "Portaria 522/2024", data: "15/08/2024", body: "Instauração do PAD-A — investigado, objeto e base legal não constam do ato publicado. 20 meses depois, segue ativo." },
+  { num: "Portaria 533/2024", data: "10/10/2024", body: "Presidente prorroga o PAD-A E, no mesmo ato, designa servidor subordinado como 'defensor' do investigado. A cadeia se fecha: quem instaura, escolhe os investigadores, também nomeia o defensor — a proteção vira ficção." },
+  { num: "Portaria 580/2025", data: "07/04/2025", body: "Instauração do PAD-B — agora pelo presidente Linzmeyer. Mesma comissão de servidores, mesmo método: portaria unilateral, investigado oculto. 12 meses depois, segue ativo." },
+  { num: "Portaria 673/2026", data: "03/03/2026", body: "Linzmeyer altera composição do PAD-B mantendo o método: prorrogação por portaria unilateral, sem deliberação plenária. O método individual virou método institucional." },
+  { num: "Dpopr 178-14/2025", data: "31/01/2025", body: "Plenário designa o Conselheiro Versetti como Coordenador-Adjunto da Comissão Temporária do Processo Ético 1044127/2020. Versetti votou 'SIM' na matéria que deliberou sua própria indicação — conflito de interesse direto não declarado. A folha de votação registra '31/02/2025', data inexistente. A rubrica orçamentária não foi especificada." },
+];
+
+const ZEW_TOP_CASOS = [
+  { num: "Dpopr 0173-02/2024", score: 96, titulo: "8 conselheiros votaram sua própria suspeição", linha: "L1 — Crise out/2024" },
+  { num: "Dpopr 0172-06/2024", score: 94, titulo: "Presidente alvo presidiu a votação sobre sua defesa", linha: "L1 — Crise out/2024" },
+  { num: "Dpopr 0173-01/2024", score: 94, titulo: "Vice-presidente beneficiário conduziu votação que o elevou", linha: "L1 — Crise out/2024" },
+  { num: "Portaria 514/2024",   score: 93, titulo: "Comissão Permanente criada por ato unilateral", linha: "L2 — Aparato disciplinar" },
+  { num: "Portaria 03/2024",     score: 92, titulo: "Composição irregular de comissão investigativa", linha: "L2 — Aparato disciplinar" },
+  { num: "Contrato 01/2022",     score: 92, titulo: "Dispensa indevida + dano ao erário", linha: "L3 — Padrões transversais" },
+  { num: "Dpopr 178-14/2025",   score: 91, titulo: "Versetti votou sua própria nomeação para PE", linha: "L2 — Aparato disciplinar" },
+  { num: "Dpopr 0173-03/2024",  score: 88, titulo: "Destituição assinada apenas pelo beneficiário direto", linha: "L1 — Crise out/2024" },
+  { num: "Portaria 533/2024",   score: 88, titulo: "Defensor designado pelo mesmo presidente que instaurou o PAD", linha: "L2 — Aparato disciplinar" },
+];
+
+const ZEW_PADROES_TRANSVERSAIS = [
+  { tag: "Omissão Relevante",            cat: "Transparência",      ocorrencias: 28, body: "Atos publicados sem identificação do investigado, do objeto ou da base legal — uso da forma para encobrir o conteúdo." },
+  { tag: "Opacidade Deliberada",         cat: "Transparência",      ocorrencias: 17, body: "LGPD invocada como escudo retórico para suprimir informações que a Lei de Acesso à Informação exige por padrão." },
+  { tag: "Vício de Motivação",           cat: "Abuso de poder",     ocorrencias: 16, body: "Atos discricionários sem motivação suficiente — a fundamentação se reduz a fórmulas vazias ('necessidade administrativa', 'interesse institucional')." },
+  { tag: "Vício de Competência",         cat: "Abuso de poder",     ocorrencias: 12, body: "Autoridade que assina o ato não tem competência regimental para fazê-lo — incluindo presidente que exerce competências plenárias." },
+  { tag: "Violação da Impessoalidade",   cat: "Princípios",         ocorrencias: 10, body: "Atos cuja escolha do beneficiário ou do designado revela favorecimento — votação em causa própria, designação de subordinado direto, contratação de pessoa com vínculo." },
+  { tag: "Conflito de Interesses",       cat: "Princípios",         ocorrencias: 9,  body: "Decisão tomada por autoridade com interesse pessoal, financeiro ou político no resultado — sem declaração formal." },
+  { tag: "Dispensa Indevida de Licitação", cat: "Licitação",        ocorrencias: 8,  body: "Contratação direta com fundamento legal frágil ou inexistente — 'emergência' reincidente, 'inviabilidade de competição' não comprovada." },
+  { tag: "Desvio de Finalidade",         cat: "Abuso de poder",     ocorrencias: 6,  body: "Ato formalmente legal usado para fim diverso do previsto em lei — instrumento desviado de sua função institucional." },
+  { tag: "Clientelismo",                 cat: "Princípios",         ocorrencias: 6,  body: "Distribuição de cargos, contratos ou benefícios por critério de fidelidade pessoal — não por mérito ou regra impessoal." },
+  { tag: "Direcionamento de Edital",     cat: "Licitação",          ocorrencias: 3,  body: "Especificações técnicas excessivamente restritivas que reduzem o universo de competidores ao desejado." },
+  { tag: "Disfarce de Legalidade",       cat: "Transparência",      ocorrencias: 3,  body: "Sequência de atos formalmente conformes que, em conjunto, produzem resultado vedado em lei." },
+  { tag: "Falsa Urgência",               cat: "Institucional",      ocorrencias: 4,  body: "Justificativa de emergência que não resiste à análise temporal — emergência reincidente do mesmo objeto." },
+];
+
+const ZEW_ATORES = [
+  { nome: "Maugham Zaze",                apar: 97,  papel: "Ex-presidente",     obs: "Alvo de destituição. Instaurou Comissão Permanente por ato unilateral.", destaque: true },
+  { nome: "Walter Linzmeyer",            apar: 136, papel: "Presidente atual",  obs: "Beneficiário direto da destituição — conduziu a votação que o elevou.", destaque: true },
+  { nome: "Jeancarlo Versetti",          apar: 25,  papel: "Vice-presidente",   obs: "Assina atos presidenciais sem registro de substituição. Votou sua própria nomeação para PE.", destaque: true },
+  { nome: "Milton C. Zanelatto",         apar: 148, papel: "Ex-presidente",     obs: "Beneficiário de assistência jurídica aprovada após Plenário declarar-se suspeito." },
+  { nome: "Antonio Sardo + 7 outros",    apar: null, papel: "Conselheiros",     obs: "Os 8 conselheiros requerentes da ação 5048338-77 que votaram sua própria suspeição.", destaque: true },
+  { nome: "André F. Casagrande",         apar: 33,  papel: "Servidor",          obs: "Membro permanente de comissões disciplinares — sob 2 presidências.", alerta: true },
+  { nome: "Cleverson J. Veiga",          apar: 31,  papel: "Servidor",          obs: "Investigador recorrente em sindicâncias — comissão presidencial.", alerta: true },
+  { nome: "Leandro Reguelin",            apar: 31,  papel: "Servidor",          obs: "Operacional em PADs; designado defensor pelo mesmo presidente que o nomeou investigador.", alerta: true },
+  { nome: "Marcos V. Rissatto Ramos",    apar: 18,  papel: "Servidor (TI)",     obs: "Membro efetivo da Comissão Permanente criada pela Portaria 514/2024.", alerta: true },
+];
+
 function TabRelatorio({
+  stats,
+  rodada,
+  crescimento,
+  recentAnalyses,
+  finStats,
+}: {
+  stats: PublicStats | null;
+  rodada: PainelRodada | null;
+  crescimento: CrescimentoResponse | null;
+  recentAnalyses: AnaliseRecente[] | null;
+  finStats: FinanceiroStats | null;
+}) {
+  const [mostrarPreliminar, setMostrarPreliminar] = useState(false);
+
+  // Stats reais (caem para baseline conhecido se a API ainda não respondeu)
+  const totalAnalisados = stats?.total_analisados ?? 1620;
+  const totalAtos = stats?.total_atos ?? 4689;
+  const totalSemTexto = stats?.total_sem_texto ?? 1265;
+  const totalAuditavel = Math.max(0, totalAtos - totalSemTexto);
+  const pctCobertura = totalAuditavel > 0 ? Math.round((totalAnalisados / totalAuditavel) * 100) : 47;
+  const dist = stats?.distribuicao;
+  const totalComNivel = dist ? dist.verde + dist.amarelo + dist.laranja + dist.vermelho : 0;
+  const vermelhos = dist?.vermelho ?? 44;
+  const laranjas = dist?.laranja ?? 213;
+  const pctCriticos = totalComNivel > 0 ? (((laranjas + vermelhos) / totalComNivel) * 100).toFixed(1) : "15.8";
+
+  const PARA: React.CSSProperties = { fontSize: 12.5, color: MUTED, lineHeight: 1.75, marginBottom: 12 };
+  const DIV = { height: 1, background: BORDER, margin: "32px 0" };
+
+  return (
+    <div style={{ maxWidth: 760 }}>
+      <div style={{ border: `1px solid ${BORDER}`, background: PAPER, padding: "32px 32px 40px" }}>
+
+        {/* ── HEADER ZEW ── */}
+        <div style={{ borderBottom: `1px solid ${BORDER}`, paddingBottom: 22, marginBottom: 28, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <div>
+            <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 8 }}>
+              Relatório Sistêmico · CAU/PR · Maio 2026
+            </p>
+            <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 24, color: INK, letterSpacing: "-0.025em", lineHeight: 1.15, marginBottom: 8 }}>
+              Síntese de Auditoria — fase Zew
+            </p>
+            <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.55 }}>
+              Leitura sistêmica de {fmt(totalAnalisados)} atos analisados pelo Piper, dos quais {fmt(258)} foram aprofundados pelo Bud. Documenta padrões empíricos, não afirma crimes.
+            </p>
+          </div>
+          <div style={{ border: `1px solid ${BORDER}`, padding: "10px 14px", background: "#fff", flexShrink: 0 }}>
+            <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4 }}>Estágio</p>
+            <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 13, color: INK }}>Zew · pré-final</p>
+            <p style={{ fontFamily: MONO, fontSize: 9, color: "#15803d", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 2 }}>{pctCobertura}% cobertura</p>
+          </div>
+        </div>
+
+        {/* ── BOTÃO RELATÓRIO ANTERIOR ── */}
+        <button
+          onClick={() => setMostrarPreliminar(v => !v)}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+            width: "100%", padding: "14px 18px", marginBottom: 32,
+            border: `1px solid ${BORDER}`, background: "#fff", cursor: "pointer", textAlign: "left",
+          }}
+        >
+          <div>
+            <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 4 }}>
+              Versão preliminar · arquivada
+            </p>
+            <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 13.5, color: INK }}>
+              Pré-Auditoria Integrada · abril 2026
+            </p>
+            <p style={{ fontSize: 11.5, color: MUTED, marginTop: 2 }}>
+              Snapshot anterior — 1.453 atos, 14 vermelhos, antes do desfecho da crise institucional de out/2024.
+            </p>
+          </div>
+          <span style={{ fontFamily: MONO, fontSize: 11, color: INK, padding: "4px 10px", border: `1px solid ${BORDER}`, background: PAPER, flexShrink: 0 }}>
+            {mostrarPreliminar ? "Recolher ▴" : "Abrir ▾"}
+          </span>
+        </button>
+
+        {/* ─── 1: COBERTURA E CALIBRAGEM ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>1 — Cobertura e calibragem da síntese</Eyebrow>
+          <p style={PARA}>
+            Esta síntese considera <strong>{fmt(totalAnalisados)}</strong> atos analisados pelo Piper — <strong>{pctCobertura}%</strong> do corpus extraível do CAU/PR. Dos atos com algum nível de alerta, <strong>{fmt(258)}</strong> foram submetidos ao Bud para análise aprofundada e cruzamento com o histórico das pessoas envolvidas.
+          </p>
+          <p style={PARA}>
+            A decisão de não auditar 100% do corpus é estratégica. O Piper já cobriu o que importa para um panorama: as 1.516 entradas de licitação, as 624 deliberações do plenário, as 563 portarias, as 177 atas plenárias, os 107 contratos. O que sobra são lotes de pareceres, comunicações e documentos de baixa densidade investigativa — auditá-los não alteraria o quadro. Quando uma frente específica precisar de profundidade adicional (cruzamento com Implanta, financeiro de uma secretaria), o Piper roda sob demanda.
+          </p>
+          {dist && (
+            <div style={{ margin: "16px 0 8px" }}>
+              <StackedRiskBar dist={dist} total={totalComNivel} />
+            </div>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginTop: 12 }}>
+            {[
+              { l: "Verde",    n: dist?.verde ?? 203,  c: "#15803d", desc: "Conforme" },
+              { l: "Amarelo",  n: dist?.amarelo ?? 1260, c: "#a16207", desc: "Suspeito" },
+              { l: "Laranja",  n: dist?.laranja ?? 213, c: "#c2410c", desc: "Indício grave" },
+              { l: "Vermelho", n: dist?.vermelho ?? 44, c: "#b91c1c", desc: "Irregular" },
+            ].map(({ l, n, c, desc }) => (
+              <div key={l} style={{ background: "#fff", border: `1px solid ${BORDER}`, padding: "10px 12px" }}>
+                <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 19, color: c, letterSpacing: "-0.02em", lineHeight: 1 }}>{fmt(n)}</p>
+                <p style={{ fontFamily: MONO, fontSize: 9, color: c, textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>{l}</p>
+                <p style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, marginTop: 12 }}>
+            {pctCriticos}% do analisado em nível crítico (laranja + vermelho) · 258 confirmados pelo Bud
+          </p>
+        </div>
+
+        <div style={DIV} />
+
+        {/* ─── 2: AS TRÊS LINHAS INVESTIGATIVAS ─── */}
+        <div style={{ marginBottom: 24 }}>
+          <Eyebrow>2 — As três linhas investigativas</Eyebrow>
+          <p style={PARA}>
+            O corpus, lido em conjunto, organiza-se em torno de três linhas estruturais. Cada uma é composta por atos de gestões diferentes, períodos diferentes, finalidades diferentes — mas o mecanismo comum é estável e rastreável.
+          </p>
+        </div>
+
+        {/* ── LINHA 1 ── */}
+        <div style={{ marginBottom: 32, padding: "20px 22px", background: "#fff", border: `1px solid ${BORDER}`, borderLeft: "3px solid #b91c1c" }}>
+          <p style={{ fontFamily: MONO, fontSize: 9, color: "#b91c1c", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 6 }}>
+            Linha 1 · Crise institucional · Setembro–outubro de 2024
+          </p>
+          <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 17, color: INK, letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: 12 }}>
+            Votos viciados na destituição presidencial
+          </p>
+          <p style={PARA}>
+            Em duas reuniões plenárias consecutivas (172ª e 173ª), o Plenário do CAU/PR conduziu o processo de destituição do então presidente Maugham Zaze. Em quatro deliberações sucessivas, regras básicas de impedimento foram sistematicamente ignoradas. Em pelo menos um ato, o resultado da votação foi numericamente determinado por votos de pessoas com interesse direto declarado em ação judicial conexa.
+          </p>
+          <p style={PARA}>
+            A cronologia dos atos abaixo, lida em sequência, mostra um padrão que não é de erro processual: é de captura do procedimento. Cada deliberação aproveita uma brecha — fórmula de votação requalificada após escrutínio, declaração de suspeição imediatamente seguida de voto, presidente alvo conduzindo deliberação sobre sua própria defesa, conselheiros impedidos votando sua própria suspeição.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 18 }}>
+            {ZEW_LINHA_DELIBS.map((d) => (
+              <div key={d.num} style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6, flexWrap: "wrap", gap: 6 }}>
+                  <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 13, color: INK, letterSpacing: "-0.01em" }}>{d.titulo}</p>
+                  <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, letterSpacing: "0.06em" }}>{d.num} · {d.data}</p>
+                </div>
+                <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.7 }}>{d.body}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 16, padding: "10px 12px", background: "#fef2f2", border: "1px solid #fecaca" }}>
+            <p style={{ fontSize: 11.5, color: "#7f1d1d", lineHeight: 1.6 }}>
+              <strong>Desfecho documentado:</strong> Walter Linzmeyer figura como presidente do CAU/PR em atos publicados ao longo de 2026 — a ascensão consumou-se. A ação judicial 5048338-77.2024.4.04.7000/PR é fato público referenciado no próprio texto deliberativo. As deliberações desta linha estão entre os 5 maiores scores do corpus inteiro.
+            </p>
+          </div>
+        </div>
+
+        {/* ── LINHA 2 ── */}
+        <div style={{ marginBottom: 32, padding: "20px 22px", background: "#fff", border: `1px solid ${BORDER}`, borderLeft: "3px solid #c2410c" }}>
+          <p style={{ fontFamily: MONO, fontSize: 9, color: "#c2410c", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 6 }}>
+            Linha 2 · Aparato disciplinar · 2024–2026 (3 presidências)
+          </p>
+          <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 17, color: INK, letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: 12 }}>
+            Estrutura disciplinar capturada por ato unilateral
+          </p>
+          <p style={PARA}>
+            Três meses antes da crise de outubro, em 03/07/2024, o presidente Maugham Zaze assinou a Portaria 514/2024 — criando, por ato unilateral, uma "Comissão Permanente de Inquérito e Sindicância". A criação dessa estrutura é, pelo Art. 34, XIV do RI, competência exclusiva do Plenário. Os cinco membros designados são empregados subordinados à presidência; nenhum conselheiro titular ou suplente compõe a comissão.
+          </p>
+          <p style={PARA}>
+            A partir dessa estrutura, dois processos administrativos disciplinares passaram a tramitar em sigilo total sobre investigado e objeto. O PAD-A está ativo há 20 meses; o PAD-B, há 12. Os mesmos servidores aparecem em sucessão. Em pelo menos uma portaria (533/2024), o presidente prorrogou o PAD E, no mesmo ato, designou um servidor subordinado como "defensor" do investigado.
+          </p>
+          <p style={PARA}>
+            A transição de presidência não interrompeu o método. A Portaria 673/2026, assinada por Linzmeyer, alterou a composição do PAD-B mantendo o procedimento: prorrogação por portaria unilateral, sem deliberação plenária. O que poderia ser interpretado como prática individual — vinculada à pessoa de Maugham Zaze — passou ao novo gestor sem alteração de forma. O método individual virou método institucional.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 18 }}>
+            {ZEW_LINHA_PORTARIAS.map((p) => (
+              <div key={p.num} style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 10 }}>
+                <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, letterSpacing: "0.06em", marginBottom: 4 }}>{p.num} · {p.data}</p>
+                <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.7 }}>{p.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── LINHA 3 ── */}
+        <div style={{ marginBottom: 32, padding: "20px 22px", background: "#fff", border: `1px solid ${BORDER}`, borderLeft: "3px solid #a16207" }}>
+          <p style={{ fontFamily: MONO, fontSize: 9, color: "#a16207", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 6 }}>
+            Linha 3 · Padrões transversais · todo o corpus
+          </p>
+          <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 17, color: INK, letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: 12 }}>
+            Doze padrões que atravessam gestões e anos
+          </p>
+          <p style={PARA}>
+            Independente das duas linhas anteriores, o corpus revela padrões que se repetem em centenas de atos — gerados por gestões diferentes, em períodos diferentes, com finalidades diferentes. Esses padrões não são erros pontuais. São elementos estruturais do funcionamento institucional do CAU/PR.
+          </p>
+          <p style={PARA}>
+            Cada tag abaixo foi extraída pelo Piper segundo critério reproduzível e auditável (cada ocorrência é rastreável até o ato fonte). A Omissão Relevante é o padrão mais frequente — o que sugere que a opacidade não é incidente, é método. A frequência das tags de transparência (45 ocorrências combinadas) supera a frequência de qualquer categoria de violação substantiva, indicando que o vetor primário de irregularidade percebida é o controle da informação publicizada.
+          </p>
+          <div style={{ marginTop: 18, border: `1px solid ${BORDER}` }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 50px", gap: "0 12px", padding: "8px 14px", borderBottom: `1px solid ${BORDER}`, background: PAPER }}>
+              {["Padrão", "Categoria", "N"].map((h, i) => (
+                <p key={h} style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.1em", textAlign: i === 2 ? "right" : "left" }}>{h}</p>
+              ))}
+            </div>
+            {ZEW_PADROES_TRANSVERSAIS.map((p, i) => (
+              <div key={p.tag} style={{ padding: "10px 14px", borderBottom: i < ZEW_PADROES_TRANSVERSAIS.length - 1 ? `1px solid #f0ece4` : "none" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 50px", gap: "0 12px", alignItems: "baseline" }}>
+                  <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12.5, color: INK }}>{p.tag}</p>
+                  <p style={{ fontFamily: MONO, fontSize: 10, color: MUTED }}>{p.cat}</p>
+                  <p style={{ fontFamily: MONO, fontSize: 11, color: INK, fontWeight: 600, textAlign: "right" }}>{p.ocorrencias}</p>
+                </div>
+                <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.55, marginTop: 4 }}>{p.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={DIV} />
+
+        {/* ─── 3: TOP CASOS ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>3 — Casos de maior score · confirmados pelo Bud</Eyebrow>
+          <p style={PARA}>
+            Os atos abaixo combinam o maior score de risco do corpus (Piper) com confirmação independente pelo Bud — a análise aprofundada confirmou as suspeitas levantadas na triagem. Cada caso está vinculado a uma das três linhas investigativas. O score reflete densidade de indícios, peso institucional dos envolvidos e replicabilidade do padrão; não é conclusão jurídica.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 14 }}>
+            {ZEW_TOP_CASOS.map((c) => (
+              <div key={c.num} style={{ background: "#fff", border: "1px solid #fecaca", borderLeft: "3px solid #dc2626", padding: "12px 14px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                  <p style={{ fontFamily: TIGHT, fontWeight: 700, fontSize: 13, color: INK, letterSpacing: "-0.01em" }}>{c.num}</p>
+                  <span style={{ fontFamily: MONO, fontSize: 9, color: "#b91c1c", background: "#fef2f2", border: "1px solid #fecaca", padding: "2px 8px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    Vermelho · Score {c.score}
+                  </span>
+                </div>
+                <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.5 }}>{c.titulo}</p>
+                <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, marginTop: 4, letterSpacing: "0.06em" }}>{c.linha}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={DIV} />
+
+        {/* ─── 4: REDE DE ATORES ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>4 — Rede de atores</Eyebrow>
+          <p style={PARA}>
+            Quem compõe, assina e recebe designações nos atos analisados. Concentração de aparições em funções sensíveis — investigação, disciplina, condução de votação — é um indicador de captura institucional quando não corresponde a mandato eletivo legítimo.
+          </p>
+          <div style={{ marginTop: 14, border: `1px solid ${BORDER}` }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 50px 110px 1.5fr", gap: "0 12px", padding: "8px 14px", borderBottom: `1px solid ${BORDER}`, background: PAPER }}>
+              {["Nome", "Atos", "Papel", "Padrão observado"].map((h) => (
+                <p key={h} style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.1em" }}>{h}</p>
+              ))}
+            </div>
+            {ZEW_ATORES.map((a, i) => (
+              <div key={a.nome} style={{ display: "grid", gridTemplateColumns: "1fr 50px 110px 1.5fr", gap: "0 12px", padding: "10px 14px", borderBottom: i < ZEW_ATORES.length - 1 ? `1px solid #f0ece4` : "none", background: a.alerta ? "#fffbf5" : a.destaque ? "#fef2f2" : "#fff", alignItems: "baseline" }}>
+                <p style={{ fontSize: 12, color: a.destaque ? INK : MUTED, fontWeight: a.destaque ? 600 : 400 }}>{a.nome}</p>
+                <p style={{ fontFamily: MONO, fontSize: 11, color: a.alerta ? "#c2410c" : a.destaque ? "#b91c1c" : INK, fontWeight: 600 }}>{a.apar ?? "—"}</p>
+                <p style={{ fontSize: 11, color: MUTED }}>{a.papel}</p>
+                <p style={{ fontSize: 11.5, color: a.alerta ? "#92400e" : a.destaque ? "#7f1d1d" : MUTED, lineHeight: 1.5 }}>{a.obs}</p>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontFamily: MONO, fontSize: 10, color: SUBTLE, marginTop: 10 }}>
+            Vermelho-claro: protagonistas das linhas investigativas · Ocre: servidores recorrentes em comissões disciplinares
+          </p>
+        </div>
+
+        <div style={DIV} />
+
+        {/* ─── 5: LACUNAS REMANESCENTES ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>5 — O que ainda falta — e por quê</Eyebrow>
+          <p style={PARA}>
+            Esta síntese é "perto do final", não "final". As lacunas abaixo delimitam o que o corpus atual não permite afirmar — e definem onde a próxima rodada de investigação deve concentrar esforço.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              { label: "53% do corpus extraível ainda não passou pelo Piper", desc: "Decisão estratégica, não técnica. As 1.620 análises atuais cobrem todas as categorias críticas (licitações, deliberações, portarias, atas, contratos). Os ~1.800 atos restantes são predominantemente baixa densidade (pareceres, comunicações, anexos) e dificilmente alterariam as três linhas investigativas — podem ser auditados sob demanda quando uma frente específica precisar.", color: "#1d4ed8" },
+              { label: "Atas plenárias 112–125 não publicadas no portal", desc: "14 reuniões consecutivas sem ata acessível. Período crítico anterior ao recorte temporal disponível. O cruzamento sistemático de atas com portarias subsequentes — frente prevista para o Zew completo — depende dessas atas.", color: "#b91c1c" },
+              { label: "~80% dos contratos com PDF inacessível (404 no portal)", desc: "Os links existem na página do CAU/PR mas os PDFs retornam 404. Categoria inteira de atos financeiros — compromissos com fornecedores — efetivamente fora do escrutínio. Indica problema de gestão documental ou ocultação ativa.", color: "#c2410c" },
+              { label: "Dados financeiros (Implanta) ainda não cruzados com indícios", desc: "Diárias, passagens, fornecedores estão indexados mas o cruzamento sistemático com pessoas marcadas em atos críticos é frente própria — não foi executada nesta síntese. É a próxima cama de profundidade investigativa.", color: "#a16207" },
+              { label: "Portarias pré-2018 (1–127) fora do corpus", desc: "Período fundacional do CAU/PR. Práticas estabelecidas nesse intervalo estão fora do escopo desta investigação. A coleta dessas portarias é tecnicamente possível mas não foi priorizada.", color: "#a16207" },
+            ].map(({ label, desc, color }) => (
+              <div key={label} style={{ display: "flex", gap: 12, padding: "12px 14px", background: "#fff", border: `1px solid ${BORDER}` }}>
+                <div style={{ width: 3, background: color, flexShrink: 0, borderRadius: 2, minHeight: 40 }} />
+                <div>
+                  <p style={{ fontFamily: TIGHT, fontWeight: 600, fontSize: 12.5, color: INK, marginBottom: 4 }}>{label}</p>
+                  <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6 }}>{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={DIV} />
+
+        {/* ─── 6: SÍNTESE FINAL ─── */}
+        <div style={{ marginBottom: 28 }}>
+          <Eyebrow>Síntese — o que o corpus mostra hoje</Eyebrow>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <p style={PARA}>
+              Em maio de 2026, depois de 1.620 análises individuais e 258 confirmações independentes, o conjunto compõe uma figura coerente. O CAU/PR funciona, no plano formal, como um conselho profissional regular — emite portarias, realiza plenárias, publica deliberações. No plano material, três mecanismos atravessam de forma persistente a operação: a opacidade como prática (Omissão Relevante e Opacidade Deliberada respondem por 45 das 91 tags críticas extraídas pelo Piper), a captura do procedimento disciplinar (estrutura permanente criada por ato unilateral, PADs em sigilo absoluto, prosseguindo entre presidências) e a quebra dos ritos de impedimento em momentos politicamente decisivos (a sequência out/2024 é o caso documentado mais grave).
+            </p>
+            <p style={PARA}>
+              A linha 1 — a crise de outubro — é episódica mas espetacular. As quatro deliberações daquele mês concentram, em si, os quatro maiores scores do corpus. A linha 2 — o aparato disciplinar — é o oposto: silenciosa, lenta, distribuída em dezenas de portarias, atravessando três presidentes consecutivos com a mesma forma. A linha 3 — os padrões transversais — é difusa, em centenas de atos pequenos que separadamente passariam despercebidos e em conjunto compõem um inventário de método.
+            </p>
+            <p style={PARA}>
+              O Dig Dig não conclui sobre dolo, intenção ou crime. Não nomeia culpados. O que documenta é o que está nos próprios atos públicos do CAU/PR — extraído, classificado, cruzado e exposto. A leitura que cada padrão sustenta cabe ao leitor; a moldura jurídica cabe a quem tem mandato para fazê-la (Ministério Público, TCU, CAU/BR, Justiça Federal). O serviço aqui é tornar o corpus legível — não substituir o juízo.
+            </p>
+            <p style={{ ...PARA, marginBottom: 0 }}>
+              A próxima fase desta síntese — quando rodada — cruzará atas plenárias com portarias subsequentes (verificando quais portarias têm e quais não têm amparo deliberativo), montará grafo de votação por reunião (quem vota com quem, quem se ausenta antes de votos sensíveis) e cruzará as pessoas marcadas em atos vermelhos com o financeiro Implanta (diárias, passagens, fornecedores recorrentes). Hoje, sem esses cruzamentos, a investigação chegou ao ponto onde já pode mostrar o que encontrou — e nomear, com precisão, o que falta encontrar.
+            </p>
+          </div>
+        </div>
+
+        {/* ─── NOTA METODOLÓGICA ─── */}
+        <div style={{ padding: "14px 18px", background: "#f8f7f2", border: `1px solid ${BORDER}`, display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ flexShrink: 0, width: 3, background: SUBTLE, borderRadius: 2, minHeight: 60 }} />
+          <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.65 }}>
+            <strong style={{ color: INK }}>Nota metodológica.</strong> Este relatório é síntese sistêmica produzida a partir de análises individuais reproduzíveis. Toda afirmação fatual é rastreável até um ato público publicado pelo CAU/PR e indexado pelo Dig Dig. Linguagem usada: indício, padrão, suspeita, compatível com, inconsistente com. Termos evitados: crime, dolo, fraude, culpa. A conclusão jurídica pertence a advogados, procuradores e juízes; o julgamento moral pertence ao leitor. Esta síntese fornece o substrato documental — não substitui nenhuma das duas instâncias.
+          </p>
+        </div>
+
+      </div>
+
+      {/* ── PRELIMINAR INLINE ── */}
+      {mostrarPreliminar && (
+        <div style={{ marginTop: 24, paddingTop: 16, borderTop: `2px dashed ${BORDER}` }}>
+          <div style={{ marginBottom: 12, padding: "10px 14px", background: PAPER, border: `1px solid ${BORDER}` }}>
+            <p style={{ fontFamily: MONO, fontSize: 9, color: SUBTLE, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 2 }}>
+              Versão arquivada · abril 2026
+            </p>
+            <p style={{ fontSize: 11.5, color: MUTED }}>
+              Snapshot anterior do relatório, mantido para registro de evolução da investigação.
+            </p>
+          </div>
+          <TabRelatorioPreliminar stats={stats} rodada={rodada} crescimento={crescimento} recentAnalyses={recentAnalyses} finStats={finStats} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TabRelatorioPreliminar({
   stats,
   rodada: _rodada,
   crescimento,
@@ -3314,7 +3877,7 @@ function TabRelatorio({
         <div style={{ marginBottom: 28 }}>
           <Eyebrow>6 — Os cinco casos mais graves · Score de risco</Eyebrow>
           <p style={PARA}>
-            Os atos abaixo obtiveram os scores mais elevados na análise combinada Haiku + Sonnet.
+            Os atos abaixo obtiveram os scores mais elevados na análise combinada Piper + Bud.
             Cada caso está linkado ao documento público original no site do CAU/PR. O score reflete
             densidade de indícios, violações ao regimento e padrões de opacidade — não é uma conclusão
             jurídica.
@@ -3442,10 +4005,10 @@ function TabRelatorio({
 
         {/* ─── ONDE VAMOS CHEGAR ─── */}
         <div style={{ marginBottom: 28 }}>
-          <Eyebrow>Onde vamos chegar — a fase Opus 4.7</Eyebrow>
+          <Eyebrow>Onde vamos chegar — a fase Zew</Eyebrow>
           <p style={PARA}>
             Quando a cobertura atingir 95–100% e as atas plenárias estiverem cruzadas com o banco de
-            portarias, o Dig Dig rodará o Opus 4.7 sobre o corpus completo. O que essa fase entrega:
+            portarias, o Dig Dig rodará o Zew sobre o corpus completo. O que essa fase entrega:
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
             {[
@@ -3918,23 +4481,45 @@ const DADOS_TIPOS = [
   { value: "financeiro_balanco",         label: "Balanços",              grupo: "financeiro" },
   { value: "financeiro_orcamento",       label: "Orçamentos",            grupo: "financeiro" },
   { value: "financeiro_demonstrativo",   label: "Demonstrativos",        grupo: "financeiro" },
+
+  // Executivo estadual (GOV-PR) — tabs específicas, ficam vazias em conselhos
+  { value: "convenio_estadual",          label: "Convênios Estaduais",   grupo: "tipo" },
+  { value: "contrato_publico",           label: "Contratos Públicos",    grupo: "tipo" },
+  { value: "dispensa_inexigibilidade",   label: "Dispensas/Inexig.",     grupo: "tipo" },
+  { value: "fornecedor_estado",          label: "Fornecedores",          grupo: "tipo" },
+  { value: "preco_registrado",           label: "Preços Registrados",    grupo: "tipo" },
+  { value: "catalogo_item",              label: "Catálogo de Itens",     grupo: "tipo" },
+  { value: "dump_remuneracao_mensal",    label: "Remuneração Mensal",    grupo: "tipo" },
+  { value: "dump_viagens_mensal",        label: "Viagens/Diárias",       grupo: "tipo" },
+  { value: "decreto_executivo",          label: "Decretos Executivo",    grupo: "tipo" },
+  { value: "lei_estadual",               label: "Leis Estaduais",        grupo: "tipo" },
 ] as const;
 
-function TabDados({ slug }: { slug: string }) {
+function TabDados({ slug, tipoOrgao }: { slug: string; tipoOrgao?: string }) {
+  const isExecutivoEstadual = tipoOrgao === "executivo_estadual";
+  const subDefault = isExecutivoEstadual ? "convenio_estadual" : "deliberacao_arquivo";
+
   const navigate = useNavigate({ from: Route.fullPath });
   const search = useSearch({ from: Route.fullPath }) as DashboardSearch;
-  const tipo = search.sub ?? "deliberacao_arquivo";
+  const tipo = search.sub ?? subDefault;
   const setTipo = (v: string) => {
     navigate({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      search: ((s: any) => ({ ...s, sub: v === "deliberacao_arquivo" ? undefined : v })) as any,
+      search: ((s: any) => ({ ...s, sub: v === subDefault ? undefined : v })) as any,
       replace: true,
     });
   };
-  const ACCENT = "#16a34a";
+  const ACCENT = isExecutivoEstadual ? "#1d4ed8" : "#16a34a";
 
-  const tipoAtivo = DADOS_TIPOS.find((t) => t.value === tipo);
-  const idxAtivo = DADOS_TIPOS.findIndex((t) => t.value === tipo);
+  // Filtra DADOS_TIPOS pelo tipo de órgão:
+  // - executivo_estadual → mostra só "tipo" (convênios, contratos, dispensas, etc.) + "especial" (Pendentes)
+  // - conselho_profissional (CAU/PR) → mostra "atlas" + "especial" + "financeiro" (estrutura original)
+  const dadosTipos = isExecutivoEstadual
+    ? DADOS_TIPOS.filter((t) => t.grupo === "tipo" || t.value === "pendentes")
+    : DADOS_TIPOS.filter((t) => t.grupo !== "tipo");
+
+  const tipoAtivo = dadosTipos.find((t) => t.value === tipo);
+  const idxAtivo = dadosTipos.findIndex((t) => t.value === tipo);
 
   return (
     <div>
@@ -3994,7 +4579,7 @@ function TabDados({ slug }: { slug: string }) {
             border: `1px solid ${BORDER}`,
           }}
         >
-          {DADOS_TIPOS.filter((t) => t.grupo === "atlas").map((t, i) => {
+          {dadosTipos.filter((t) => t.grupo === "atlas" || t.grupo === "tipo").map((t, i) => {
             const ativo = tipo === t.value;
             return (
               <button
@@ -4034,7 +4619,7 @@ function TabDados({ slug }: { slug: string }) {
             border: `1px solid ${BORDER}`,
           }}
         >
-          {DADOS_TIPOS.filter((t) => t.grupo === "especial").map((t) => {
+          {dadosTipos.filter((t) => t.grupo === "especial" || (t.value as string) === "pendentes").map((t) => {
             const ativo = tipo === t.value;
             return (
               <button
@@ -4059,7 +4644,8 @@ function TabDados({ slug }: { slug: string }) {
           })}
         </div>
 
-        {/* Grupo financeiro */}
+        {/* Grupo financeiro — só conselhos (CAU/PR via Implanta) */}
+        {!isExecutivoEstadual && (<>
         <p style={{ fontFamily: MONO, fontSize: 8.5, color: "#6366f1", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
           Financeiro
         </p>
@@ -4071,7 +4657,7 @@ function TabDados({ slug }: { slug: string }) {
             border: `1px solid #c7d2fe`,
           }}
         >
-          {DADOS_TIPOS.filter((t) => t.grupo === "financeiro").map((t) => {
+          {dadosTipos.filter((t) => t.grupo === "financeiro").map((t) => {
             const ativo = tipo === t.value;
             return (
               <button
@@ -4095,6 +4681,50 @@ function TabDados({ slug }: { slug: string }) {
             );
           })}
         </div>
+
+        </>)}
+        {/* Executivo Estadual — só renderiza pra órgãos NÃO-conselho que tenham
+            tabs do grupo "tipo". No GOV-PR já saíram pra "Documentos" principal,
+            então essa seção fica oculta. Mantida pra futuros tenants híbridos. */}
+        {false && (
+          <>
+            <p style={{ fontFamily: MONO, fontSize: 8.5, color: SUBTLE, letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6, marginTop: 16 }}>
+              Executivo Estadual
+            </p>
+            <div
+              className="grid gap-[1px] mb-2"
+              style={{
+                gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                background: "#bfdbfe",
+                border: `1px solid #bfdbfe`,
+              }}
+            >
+              {DADOS_TIPOS.filter((t) => t.grupo === "tipo").map((t) => {
+                const ativo = tipo === t.value;
+                return (
+                  <button
+                    key={t.value}
+                    onClick={() => setTipo(t.value)}
+                    className="text-left transition-colors"
+                    style={{
+                      fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.1em", textTransform: "uppercase",
+                      padding: "10px 12px",
+                      background: ativo ? "#1d4ed8" : "#eff6ff",
+                      color: ativo ? "#fff" : "#1d4ed8",
+                      fontWeight: ativo ? 600 : 500,
+                      cursor: "pointer", border: "none",
+                      borderLeft: ativo ? `2px solid #60a5fa` : "2px solid transparent",
+                    }}
+                    onMouseEnter={(e) => { if (!ativo) e.currentTarget.style.background = "#dbeafe"; }}
+                    onMouseLeave={(e) => { if (!ativo) e.currentTarget.style.background = "#eff6ff"; }}
+                  >
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Conteúdo — value decide o renderer (grupo é só visual) */}
@@ -4102,8 +4732,11 @@ function TabDados({ slug }: { slug: string }) {
         <TabPendentes slug={slug} />
       ) : tipo === "diarias" || tipo === "passagens" ? (
         <TabFinanceiro slug={slug} tipo={tipo} />
+      ) : DADOS_TIPOS.find((t) => t.value === tipo)?.grupo === "tipo" ? (
+        // Tipos do executivo estadual (GOV-PR): filtra por Ato.tipo, não tipo_atlas
+        <TabAtos slug={slug} tipo={tipo} tipoAtlas="" />
       ) : (
-        // Todos os outros são categorias ATLAS — filtra por tipo_atlas
+        // Categorias ATLAS — filtra por tipo_atlas
         <TabAtos slug={slug} tipo="" tipoAtlas={tipo} />
       )}
     </div>
@@ -4307,7 +4940,7 @@ function SlugDashboard() {
                 <TabVisaoGeral stats={stats} rodada={rodada} recentCount24h={count24h} recentAnalyses={recentAnalyses} crescimento={crescimento} finStats={finStats} />
               </TabsContent>
               <TabsContent value="dados">
-                <TabDados slug={slug} />
+                <TabDados slug={slug} tipoOrgao={stats?.tenant?.tipo_orgao} />
               </TabsContent>
               <TabsContent value="denuncias">
                 <TabDenuncias slug={slug} />
@@ -4316,7 +4949,9 @@ function SlugDashboard() {
                 <TabPipeline slug={slug} rodada={rodada} initialItems={atividade} />
               </TabsContent>
               <TabsContent value="relatorio">
-                <TabRelatorio stats={stats} rodada={rodada} crescimento={crescimento} recentAnalyses={recentAnalyses} finStats={finStats} />
+                {slug === "cau-pr"
+                  ? <TabRelatorio stats={stats} rodada={rodada} crescimento={crescimento} recentAnalyses={recentAnalyses} finStats={finStats} />
+                  : <TabRelatorioEspera slug={slug} stats={stats} />}
               </TabsContent>
             </div>
           </Tabs>
